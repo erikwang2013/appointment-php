@@ -63,31 +63,30 @@ admin/
 │   │   ├── HealthController        # 健康检查
 │   │   ├── DocsController          # API文档
 │   │   ├── MetricsController       # Prometheus指标
-│   │   │                            # ↓ 待新增（业务模块）
-│   │   ├── TechnicianController    #   技师管理
-│   │   ├── MemberController        #   会员管理
-│   │   ├── StoreController         #   门店管理
-│   │   ├── ServiceController       #   服务管理
-│   │   ├── ServiceCategoryController
-│   │   ├── ProductController       #   产品管理
-│   │   ├── MallOrderController     #   商城订单
-│   │   ├── SalesStatsController    #   销售统计
-│   │   ├── AppointmentOrderController  # 预约订单
-│   │   ├── CouponController        #   优惠券管理
-│   │   ├── FinanceController       #   财务管理
-│   │   ├── WithdrawalController    #   提现审核
-│   │   ├── CommissionController    #   佣金设置
-│   │   ├── WithdrawalAccountController
-│   │   ├── WithdrawalConfigController
-│   │   ├── BannerController        #   轮播图
-│   │   ├── AnnouncementController  #   公告
-│   │   ├── FaqController           #   常见问题
-│   │   ├── FeedbackController      #   意见反馈
-│   │   ├── MomentController        #   朋友圈动态
-│   │   ├── AgreementController     #   协议编辑
-│   │   ├── AboutController         #   关于我们
-│   │   ├── SystemMessageController #   系统消息
-│   │   └── AdminUserController     #   子账号管理
+│   │   │                            # ✅ 已实现的业务模块:
+│   │   ├── TechnicianController    #   技师管理(列表/审核/排班/导出)
+│   │   ├── MemberController        #   会员管理(等级/消费)
+│   │   ├── StoreController         #   门店CRUD
+│   │   ├── ServiceController       #   服务项目CRUD
+│   │   ├── ServiceCategoryController # 服务分类CRUD(树形)
+│   │   ├── ProductController       #   产品CRUD
+│   │   ├── MallOrderController     #   商城订单/发货/售后
+│   │   ├── SalesStatsController    #   销售统计(Redis缓存)
+│   │   ├── AppointmentOrderController  # 预约订单(取消/完成)
+│   │   ├── CouponController        #   优惠券CRUD
+│   │   ├── FinanceController       #   财务流水/统计
+│   │   ├── WithdrawalController    #   提现审核(通过/驳回/完成)
+│   │   ├── CommissionController    #   佣金设置/奖罚
+│   │   ├── WithdrawalAccountController # 提现账号管理
+│   │   ├── WithdrawalConfigController  # 提现限制配置
+│   │   ├── BannerController        #   轮播图CRUD
+│   │   ├── AnnouncementController  #   公告CRUD/发布
+│   │   ├── FaqController           #   常见问题CRUD
+│   │   ├── FeedbackController      #   意见反馈/回复
+│   │   ├── MomentController        #   朋友圈审核
+│   │   ├── AgreementController     #   协议编辑/发布
+│   │   ├── AboutController         #   关于我们设置
+│   │   └── SystemMessageController #   系统消息模板/发送
 │   ├── api/v1/controller/      # 公开API v1
 │   │   ├── AuthController
 │   │   └── CaptchaController
@@ -158,37 +157,56 @@ admin/
 ```
 service/
 ├── app/
-│   ├── api/                    # 公开API
-│   │   └── v1/controller/      #   v1版本控制器
-│   │       ├── AuthController      #   登录/注册/忘记密码/身份切换
-│   │       ├── CaptchaController   #   短信验证码
-│   │       ├── WechatController    #   微信授权/登录/支付回调
-│   │       ├── CommonController    #   协议/关于/版本
-│   │       └── DocsController      #   OpenAPI文档（hg/apidoc）
-│   ├── user/                   # 用户模块
-│   │   └── v1/controller/      #   v1版本控制器
-│   │       ├── ProfileController   #   个人信息/密码/手机/注销
-│   │       ├── AddressController   #   地址CRUD
-│   │       ├── FavoriteController  #   收藏
-│   │       ├── FeedbackController  #   意见反馈
-│   │       └── ReferralController  #   推广/推荐
-│   ├── technician/             # 技师模块（Phase 4）
-│   │   └── v1/controller/
-│   ├── order/                  # 订单模块（Phase 3）
-│   │   └── v1/controller/
-│   ├── marketing/              # 营销模块（Phase 5）
-│   │   └── v1/controller/
-│   ├── notification/           # 通知模块（Phase 6）
-│   │   └── v1/controller/
-│   ├── common/                 # 公共能力
-│   │   └── BaseController          # 统一响应/hashids加解密
-│   ├── middleware/             # 中间件
-│   │   ├── ApiVersion              # API版本控制（API-Version头）
-│   │   ├── Auth                    # JWT认证
-│   │   ├── Cors                    # 跨域
-│   │   ├── Security                # 安全检测
+│   ├── api/v1/controller/       # 公开API v1
+│   │   ├── AuthController          # 登录/注册/忘记密码/刷新/身份切换
+│   │   ├── CaptchaController       # 短信验证码(Redis限流)
+│   │   ├── CommonController        # 公共配置/协议/区域
+│   │   ├── ContentController       # 轮播图/公告/文章
+│   │   ├── DocsController          # OpenAPI文档(hg/apidoc)
+│   │   ├── LbsController           # 附近门店(Haversine)/逆地理
+│   │   ├── SearchController        # ES全文搜索(服务+产品)
+│   │   └── ServiceController       # 服务分类/项目/产品/门店
+│   ├── user/v1/controller/      # 用户模块 v1
+│   │   ├── ProfileController       # 个人信息/密码/手机/注销/登出
+│   │   ├── AddressController       # 地址CRUD(默认地址管理)
+│   │   ├── FavoriteController      # 收藏(服务/技师)
+│   │   ├── FeedbackController      # 意见反馈(文字+图片)
+│   │   └── ReferralController      # 推广/二维码/已推荐用户
+│   ├── technician/v1/controller/ # 技师模块 v1
+│   │   ├── ProfileController       # 技师档案/入驻申请
+│   │   ├── ScheduleController      # 排班查询/设置
+│   │   ├── OrderController         # 技师订单列表
+│   │   ├── EarningController       # 收益概况+流水
+│   │   ├── WithdrawController      # 提现申请(每月20号)
+│   │   └── AttendanceController    # 签到/签退/卫生照片
+│   ├── order/v1/controller/     # 订单模块 v1
+│   │   └── OrderController         # 下单(锁技师)/列表/详情/取消/支付/退款/核销
+│   ├── marketing/v1/controller/ # 营销模块 v1
+│   │   ├── CouponController        # 优惠券列表/领取
+│   │   ├── CardController          # 会员卡列表/购买
+│   │   ├── PointController         # 积分流水
+│   │   └── GiftCardController      # 礼品卡/兑换
+│   ├── notification/v1/controller/ # 通知模块 v1
+│   │   └── NotificationController  # 通知列表/标记已读
+│   ├── common/                  # 公共能力
+│   │   └── BaseController          # 统一响应/hashids加解密/分页
+│   ├── middleware/              # 中间件
+│   │   ├── ApiVersion              # API版本控制(API-Version头)
+│   │   ├── Auth                    # JWT认证+用户状态校验
+│   │   ├── Cors                    # 跨域处理
+│   │   ├── Security                # 安全检测(security-php)
 │   │   └── TechnicianAuth          # 技师身份校验
-│   └── model/                  # 数据模型
+│   └── model/                   # 数据模型(36个)
+│       ├── User.php → erik_user
+│       ├── TechnicianProfile.php → erik_technician_profile
+│       ├── Service.php → erik_service (ES: erik_services)
+│       ├── Product.php → erik_product (ES: erik_products)
+│       ├── Store.php → erik_store
+│       ├── Order.php → erik_order (含退款规则/状态机)
+│       ├── Coupon.php → erik_coupon
+│       ├── MemberCard.php → erik_member_card
+│       ├── Notification.php → erik_notification
+│       └── ... (共36个模型文件)
 ├── config/                     # 配置文件
 ├── public/                     # 入口
 ├── runtime/                    # 运行时
