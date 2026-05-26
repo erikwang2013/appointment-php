@@ -1,4 +1,5 @@
 <?php
+// 日志配置 - Monolog 日志通道和处理器
 /**
  * This file is part of webman.
  *

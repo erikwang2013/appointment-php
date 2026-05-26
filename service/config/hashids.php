@@ -37,7 +37,7 @@ return [
 
         'main' => [
             // 盐值，生产环境务必修改为随机字符串
-            'salt' => '',
+            'salt' => env('HASHIDS_SALT', 'appointment-service-hashids-change-in-production'),
             // 最小长度
             'length' => 0,
             // 'alphabet' => 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890',

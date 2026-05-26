@@ -35,7 +35,6 @@ class Cors implements MiddlewareInterface
             // 预检请求缓存时间（秒）
             'Access-Control-Max-Age' => '86400',
             // 允许携带凭证（cookie）
-            'Access-Control-Allow-Credentials' => 'true',
         ]);
 
         return $response;

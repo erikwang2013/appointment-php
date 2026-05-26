@@ -1,4 +1,5 @@
 <?php
+// 启动配置 - 定义应用启动时加载的进程和插件
 /**
  * This file is part of webman.
  *

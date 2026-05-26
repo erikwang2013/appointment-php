@@ -1,4 +1,5 @@
 <?php
+// 容器配置 - 依赖注入容器定义
 /**
  * This file is part of webman.
  *

@@ -1,4 +1,5 @@
 <?php
+// 进程配置 - 自定义进程定义和启动参数
 /**
  * This file is part of webman.
  *

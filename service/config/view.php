@@ -1,4 +1,5 @@
 <?php
+// 视图配置 - 模板引擎和视图文件路径
 /**
  * This file is part of webman.
  *

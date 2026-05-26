@@ -1,4 +1,5 @@
 <?php
+// 自动加载配置 - Composer 自动加载规则
 /**
  * This file is part of webman.
  *

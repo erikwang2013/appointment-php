@@ -33,7 +33,7 @@ class TechnicianAuth implements MiddlewareInterface
         }
 
         // 查询技师档案，验证身份状态
-        $technician = Db::table('erik_technician_profile')
+        $technician = Db::table('technician_profile')
             ->where('user_id', $userId)
             ->first();
 

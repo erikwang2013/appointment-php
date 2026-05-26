@@ -1,4 +1,5 @@
 <?php
+// Session 配置 - 会话驱动和过期时间
 /**
  * This file is part of webman.
  *

@@ -9,7 +9,7 @@
 
 return [
     'enable' => true,
-    'secret_key' => getenv('JWT_SECRET_KEY'),  //签名密钥
+    'secret_key' => getenv('JWT_SECRET_KEY') ?: 'appointment-service-jwt-secret-change-in-production',  //签名密钥
     'algorithm' => getenv('JWT_ALGORITHM'),  //签名算法：HS256, HS384, HS512, RS256等
     'issuer' => getenv('JWT_ISSUER'),   //签发者标识，用于验证令牌来源
     'audience' => getenv('JWT_AUDIENCE'),  //受众标识，用于验证令牌目标
