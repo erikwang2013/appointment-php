@@ -26,6 +26,7 @@ class TechnicianProfile extends Model
     protected $fillable = [
         'user_id', 'real_name', 'gender', 'id_card',
         'id_card_front', 'id_card_back', 'avatar', 'intro',
+        'cover_image', 'video_url', 'certificates',
         'rating', 'order_count', 'favorite_count',
         'status', 'audit_remark', 'audited_at',
     ];
@@ -35,6 +36,7 @@ class TechnicianProfile extends Model
         'order_count' => 'integer',
         'favorite_count' => 'integer',
         'gender' => 'integer',
+        'certificates' => 'array',
     ];
 
     protected $hidden = ['id_card', 'id_card_front', 'id_card_back', 'deleted_at'];

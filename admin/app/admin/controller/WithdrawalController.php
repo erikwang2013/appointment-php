@@ -97,7 +97,10 @@ class WithdrawalController extends BaseController
     }
 
     /**
-     * 审核通过
+     * 审核通过（多级审批流）
+     * - Level 1: 店长审批 (store_approved_at)
+     * - 小额（<500元）自动完成，不进入Level 2
+     * - Level 2: 财务审批 (finance_approved_at)，大额（>=500元）须两级
      */
     public function approve(Request $request, string $hashid): Response
     {
@@ -113,12 +116,39 @@ class WithdrawalController extends BaseController
             return $this->fail('仅待审核状态的提现可审核', 422);
         }
 
-        $withdrawal->status      = 'approved';
-        $withdrawal->audit_remark = $request->input('remark', '');
-        $withdrawal->audited_at   = date('Y-m-d H:i:s');
-        $withdrawal->save();
+        $now    = date('Y-m-d H:i:s');
+        $amount = (float) $withdrawal->amount;
 
-        return $this->success($this->encodeIds($withdrawal->toArray()), '审核通过');
+        if (empty($withdrawal->store_approved_at)) {
+            // Level 1: 店长审批
+            $withdrawal->store_approved_at = $now;
+
+            if ($amount < 500) {
+                // 小额自动完成
+                $withdrawal->status      = 'approved';
+                $withdrawal->audited_at   = $now;
+            }
+            $withdrawal->audit_remark = $request->input('remark', $withdrawal->audit_remark);
+            $withdrawal->save();
+
+            if ($amount < 500) {
+                return $this->success($this->encodeIds($withdrawal->toArray()), '店长审批通过，小额自动完成');
+            }
+            return $this->success($this->encodeIds($withdrawal->toArray()), '店长审批通过，等待财务审批');
+        }
+
+        if (empty($withdrawal->finance_approved_at) && $amount >= 500) {
+            // Level 2: 财务审批
+            $withdrawal->finance_approved_at = $now;
+            $withdrawal->status       = 'approved';
+            $withdrawal->audited_at   = $now;
+            $withdrawal->audit_remark = $request->input('remark', $withdrawal->audit_remark);
+            $withdrawal->save();
+
+            return $this->success($this->encodeIds($withdrawal->toArray()), '财务审批通过');
+        }
+
+        return $this->fail('该提现已完成全部审批流程', 422);
     }
 
     /**

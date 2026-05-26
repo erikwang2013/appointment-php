@@ -23,6 +23,7 @@ class Order extends Model
     public $timestamps = true;
 
     protected $fillable = [
+        'created_at', 'updated_at',
         'order_no', 'user_id', 'technician_id', 'store_id',
         'order_type', 'total_amount', 'discount_amount', 'paid_amount',
         'coupon_id', 'user_coupon_id', 'member_card_usage_id',
@@ -36,6 +37,7 @@ class Order extends Model
         'paid_amount' => 'float',
         'cancel_at' => 'datetime',
         'service_time' => 'datetime',
+        'created_at' => 'datetime',
         'service_start_at' => 'datetime',
         'service_end_at' => 'datetime',
     ];
@@ -138,7 +140,7 @@ class Order extends Model
         }
 
         // 服务已确认开始 → 不可退
-        if (in_array($this->status, [self::STATUS_CONFIRMED], true)) {
+        if (in_array($this->status, [self::STATUS_CONFIRMED, self::STATUS_COMPLETED], true)) {
             return 0.00;
         }
 

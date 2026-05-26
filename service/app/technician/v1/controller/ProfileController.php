@@ -87,4 +87,42 @@ class ProfileController extends BaseController
 
         return $this->success($profile, '资料更新成功');
     }
+
+    /**
+     * 更新技师主页自定义信息
+     * PUT /api/technician/profile/homepage
+     */
+    public function updateHomepage(Request $request)
+    {
+        $technicianId = $request->technician_id;
+
+        $profile = TechnicianProfile::find($technicianId);
+        if (!$profile) {
+            return $this->error('技师档案不存在', 404);
+        }
+
+        $data = [];
+
+        $fields = ['cover_image', 'video_url', 'intro', 'certificates'];
+
+        foreach ($fields as $field) {
+            if ($request->has($field)) {
+                $value = $request->input($field);
+                if ($field === 'certificates' && is_array($value)) {
+                    $data[$field] = $value;
+                } else {
+                    $data[$field] = trim((string)$value);
+                }
+            }
+        }
+
+        if (empty($data)) {
+            return $this->error('没有需要更新的信息');
+        }
+
+        $profile->fill($data);
+        $profile->save();
+
+        return $this->success($profile, '主页信息更新成功');
+    }
 }

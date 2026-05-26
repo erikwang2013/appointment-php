@@ -11,8 +11,12 @@ use app\model\AdminUser;
 use app\common\EncryptionService;
 use app\model\OperationLog;
 use app\model\Order;
+use app\model\OrderItem;
+use app\model\OrderReview;
+use app\model\Store;
 use app\model\TechnicianProfile;
 use app\model\TechnicianWithdrawal;
+use support\DB;
 use support\Redis;
 use support\Request;
 use support\Response;
@@ -46,6 +50,10 @@ class DashboardController extends BaseController
             'trends' => $this->getTrends($startOfRange),
             'distribution' => $this->getDistribution(),
             'recent_logs' => $this->getRecentLogs(),
+            'store_comparison' => $this->getStoreComparison($request),
+            'service_ranking' => $this->getServiceRanking(),
+            'technician_ranking' => $this->getTechnicianRanking(),
+            'peak_hours' => $this->getPeakHours(),
         ];
 
         Redis::setex($cacheKey, 300, json_encode($data, JSON_UNESCAPED_UNICODE));
@@ -223,5 +231,130 @@ class DashboardController extends BaseController
             return $today > 0 ? 100.0 : 0.0;
         }
         return round(($today - $yesterday) / $yesterday * 100, 1);
+    }
+
+    /**
+     * 门店对比：近7天各门店营收/订单数
+     */
+    private function getStoreComparison(Request $request): array
+    {
+        $range = $request->input('range', 7);
+        $start = date('Y-m-d', strtotime("-{$range} days"));
+
+        $stores = Store::where('status', 1)->get();
+
+        $storeData = [];
+        foreach ($stores as $store) {
+            $revenue = (float) Order::where('store_id', $store->id)
+                ->whereIn('status', ['paid', 'confirmed', 'serving', 'completed'])
+                ->whereDate('created_at', '>=', $start)
+                ->sum('paid_amount');
+
+            $orderCount = Order::where('store_id', $store->id)
+                ->whereDate('created_at', '>=', $start)
+                ->count();
+
+            $storeData[] = [
+                'store_id'    => $this->encodeId((int) $store->id),
+                'store_name'  => $store->name,
+                'revenue'     => round($revenue, 2),
+                'order_count' => $orderCount,
+            ];
+        }
+
+        // 按营收降序
+        usort($storeData, fn($a, $b) => $b['revenue'] <=> $a['revenue']);
+
+        return [
+            'range'  => "近{$range}天",
+            'stores' => $storeData,
+        ];
+    }
+
+    /**
+     * 服务排行榜：Top 10 按销售额
+     */
+    private function getServiceRanking(): array
+    {
+        $ranking = OrderItem::where('target_type', 'service')
+            ->selectRaw('target_id, name, SUM(quantity) as total_qty, SUM(price * quantity) as total_revenue')
+            ->groupBy('target_id', 'name')
+            ->orderBy('total_revenue', 'desc')
+            ->limit(10)
+            ->get()
+            ->map(fn($r) => [
+                'service_id'    => $this->encodeId((int) $r->target_id),
+                'service_name'  => $r->name,
+                'total_qty'     => (int) $r->total_qty,
+                'total_revenue' => round((float) $r->total_revenue, 2),
+            ])
+            ->toArray();
+
+        return $ranking;
+    }
+
+    /**
+     * 技师排行榜：Top 10 按评分 + 接单数
+     */
+    private function getTechnicianRanking(): array
+    {
+        $ranking = TechnicianProfile::where('status', 1)
+            ->orderBy('rating', 'desc')
+            ->orderBy('order_count', 'desc')
+            ->limit(10)
+            ->get()
+            ->map(function ($t) {
+                return [
+                    'technician_id'   => $this->encodeId((int) $t->id),
+                    'technician_name' => mb_substr($t->real_name, 0, 1) . '**',
+                    'rating'          => (float) $t->rating,
+                    'order_count'     => $t->order_count,
+                    'favorite_count'  => $t->favorite_count,
+                ];
+            })
+            ->toArray();
+
+        return $ranking;
+    }
+
+    /**
+     * 时段分布：近30天每小时订单分布
+     */
+    private function getPeakHours(): array
+    {
+        $thirtyDaysAgo = date('Y-m-d', strtotime('-30 days'));
+
+        $hourlyData = Order::whereDate('created_at', '>=', $thirtyDaysAgo)
+            ->selectRaw('HOUR(created_at) as hour, COUNT(*) as count')
+            ->groupBy(DB::raw('HOUR(created_at)'))
+            ->orderBy('hour')
+            ->get()
+            ->keyBy('hour')
+            ->toArray();
+
+        $hours = [];
+        for ($h = 0; $h < 24; $h++) {
+            $hours[] = [
+                'hour'  => sprintf('%02d:00', $h),
+                'count' => isset($hourlyData[$h]) ? (int) $hourlyData[$h]['count'] : 0,
+            ];
+        }
+
+        // 找出峰值小时
+        $peakHour = null;
+        $peakCount = 0;
+        foreach ($hours as $item) {
+            if ($item['count'] > $peakCount) {
+                $peakCount = $item['count'];
+                $peakHour = $item['hour'];
+            }
+        }
+
+        return [
+            'range'       => '近30天',
+            'hours'       => $hours,
+            'peak_hour'   => $peakHour,
+            'peak_count'  => $peakCount,
+        ];
     }
 }

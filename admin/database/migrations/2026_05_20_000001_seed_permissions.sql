@@ -82,6 +82,70 @@ INSERT INTO `erik_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, 
 (21000000000000094, NULL, '文件上传', 'post.admin/upload', 3, NULL, NULL, 1, NOW(), NOW());
 
 -- ============================================================
+-- 店长子账号菜单 + API 权限
+-- ============================================================
+
+-- 菜单: 店长工作台
+INSERT INTO `erik_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
+(21000000000000101, NULL, '店长工作台', 'store_manager', 1, 'store', '/store-manager', 7, NOW(), NOW());
+
+-- API 权限: 店长仪表盘
+INSERT INTO `erik_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
+(21000000000000102, 21000000000000101, '店长仪表盘', 'get.admin/store-manager/dashboard', 3, NULL, NULL, 1, NOW(), NOW());
+
+-- API 权限: 订单管理
+INSERT INTO `erik_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
+(21000000000000103, 21000000000000101, '订单查询', 'get.admin/appointment-orders', 3, NULL, NULL, 2, NOW(), NOW()),
+(21000000000000104, 21000000000000101, '订单更新', 'put.admin/appointment-orders', 3, NULL, NULL, 3, NOW(), NOW());
+
+-- API 权限: 排班管理
+INSERT INTO `erik_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
+(21000000000000105, 21000000000000101, '排班管理', 'get.admin/technicians/schedules', 3, NULL, NULL, 4, NOW(), NOW()),
+(21000000000000106, 21000000000000101, '排班设置', 'post.admin/technicians/schedules', 3, NULL, NULL, 5, NOW(), NOW());
+
+-- API 权限: 优惠券管理
+INSERT INTO `erik_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
+(21000000000000107, 21000000000000101, '优惠券查询', 'get.admin/coupons', 3, NULL, NULL, 6, NOW(), NOW()),
+(21000000000000108, 21000000000000101, '优惠券创建', 'post.admin/coupons', 3, NULL, NULL, 7, NOW(), NOW());
+
+-- API 权限: Store manager CRUD
+INSERT INTO `erik_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
+(21000000000000109, NULL, '店长查询', 'get.admin/store-managers', 3, NULL, NULL, 1, NOW(), NOW()),
+(21000000000000110, NULL, '店长创建', 'post.admin/store-managers', 3, NULL, NULL, 2, NOW(), NOW()),
+(21000000000000111, NULL, '店长更新', 'put.admin/store-managers', 3, NULL, NULL, 3, NOW(), NOW()),
+(21000000000000112, NULL, '店长删除', 'delete.admin/store-managers', 3, NULL, NULL, 4, NOW(), NOW());
+
+-- API 权限: 培训课程
+INSERT INTO `erik_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
+(21000000000000113, NULL, '培训课程查询', 'get.admin/training-courses', 3, NULL, NULL, 1, NOW(), NOW()),
+(21000000000000114, NULL, '培训课程创建', 'post.admin/training-courses', 3, NULL, NULL, 2, NOW(), NOW()),
+(21000000000000115, NULL, '培训课程更新', 'put.admin/training-courses', 3, NULL, NULL, 3, NOW(), NOW()),
+(21000000000000116, NULL, '培训课程删除', 'delete.admin/training-courses', 3, NULL, NULL, 4, NOW(), NOW());
+
+-- API 权限: 调度任务
+INSERT INTO `erik_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
+(21000000000000117, NULL, '调度任务执行', 'post.admin/scheduled-tasks', 3, NULL, NULL, 1, NOW(), NOW());
+
+-- API 权限: 客户画像
+INSERT INTO `erik_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
+(21000000000000118, NULL, '客户画像查询', 'get.admin/customer-profiles', 3, NULL, NULL, 1, NOW(), NOW());
+
+-- API 权限: 批量消息
+INSERT INTO `erik_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
+(21000000000000119, NULL, '批量消息发送', 'post.admin/batch-messages', 3, NULL, NULL, 1, NOW(), NOW());
+
+-- API 权限: 退款审批
+INSERT INTO `erik_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
+(21000000000000120, NULL, '退款审批列表', 'get.admin/refund-workflows', 3, NULL, NULL, 1, NOW(), NOW()),
+(21000000000000121, NULL, '退款审批通过', 'post.admin/refund-workflows/approve', 3, NULL, NULL, 2, NOW(), NOW()),
+(21000000000000122, NULL, '退款审批驳回', 'post.admin/refund-workflows/reject', 3, NULL, NULL, 3, NOW(), NOW());
+
+-- API 权限: 技师等级
+INSERT INTO `erik_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
+(21000000000000123, NULL, '技师等级查询', 'get.admin/technician-tiers', 3, NULL, NULL, 1, NOW(), NOW()),
+(21000000000000124, NULL, '技师等级更新', 'put.admin/technician-tiers', 3, NULL, NULL, 2, NOW(), NOW());
+
+-- ============================================================
 -- 超级管理员角色 (ID=10000000000000001) 关联所有权限
 -- ============================================================
 INSERT INTO `erik_admin_role_permission` (`role_id`, `permission_id`)
