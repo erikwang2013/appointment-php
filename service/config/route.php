@@ -19,13 +19,14 @@ use Webman\Route;
 // 公开接口（无需认证）
 // ============================================================
 Route::group('/api', function () {
-    // ── 点击验证码 ──
-    Route::post('/captcha/generate', [app\api\controller\CaptchaController::class, 'generate']);
-    Route::post('/captcha/verify', [app\api\controller\CaptchaController::class, 'verify']);
+    // ── 短信验证码 ──
+    Route::post('/captcha/send', [app\api\controller\CaptchaController::class, 'send']);
 
-    // ── 认证：登录/注册/刷新 ──
+    // ── 认证：登录/注册/刷新/忘记密码 ──
     Route::post('/auth/login', [app\api\controller\AuthController::class, 'login']);
+    Route::post('/auth/login-by-code', [app\api\controller\AuthController::class, 'loginByCode']);
     Route::post('/auth/register', [app\api\controller\AuthController::class, 'register']);
+    Route::post('/auth/forget-password', [app\api\controller\AuthController::class, 'forgetPassword']);
     Route::post('/auth/refresh', [app\api\controller\AuthController::class, 'refresh']);
 
     // ── 微信 ──
@@ -66,11 +67,28 @@ Route::group('/api/user', function () {
     // 个人资料
     Route::get('/profile', [app\user\controller\ProfileController::class, 'show']);
     Route::put('/profile', [app\user\controller\ProfileController::class, 'update']);
+    Route::post('/change-password', [app\user\controller\ProfileController::class, 'changePassword']);
+    Route::post('/change-phone', [app\user\controller\ProfileController::class, 'changePhone']);
+    Route::post('/cancel-account', [app\user\controller\ProfileController::class, 'cancelAccount']);
+    Route::post('/logout', [app\user\controller\ProfileController::class, 'logout']);
+    // 角色切换
+    Route::post('/switch-role', [app\api\controller\AuthController::class, 'switchRole']);
     // 地址管理
     Route::get('/addresses', [app\user\controller\AddressController::class, 'index']);
     Route::post('/addresses', [app\user\controller\AddressController::class, 'store']);
+    Route::get('/addresses/{id}', [app\user\controller\AddressController::class, 'show']);
     Route::put('/addresses/{id}', [app\user\controller\AddressController::class, 'update']);
     Route::delete('/addresses/{id}', [app\user\controller\AddressController::class, 'destroy']);
+    // 收藏管理
+    Route::get('/favorites', [app\user\controller\FavoriteController::class, 'index']);
+    Route::post('/favorites', [app\user\controller\FavoriteController::class, 'store']);
+    Route::delete('/favorites/{id}', [app\user\controller\FavoriteController::class, 'destroy']);
+    // 意见反馈
+    Route::post('/feedback', [app\user\controller\FeedbackController::class, 'store']);
+    // 推广推荐
+    Route::get('/referral', [app\user\controller\ReferralController::class, 'index']);
+    Route::get('/referral/qrcode', [app\user\controller\ReferralController::class, 'qrcode']);
+    Route::get('/referral/referred-users', [app\user\controller\ReferralController::class, 'referredUsers']);
     // 车辆管理
     Route::get('/vehicles', [app\user\controller\VehicleController::class, 'index']);
     Route::post('/vehicles', [app\user\controller\VehicleController::class, 'store']);

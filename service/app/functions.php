@@ -1,6 +1,7 @@
 <?php
 // Copyright (c) 2026 erik <erik@erik.xyz> — https://erik.xyz
-ndeclare(strict_types=1);
+declare(strict_types=1);
+
 // 全局辅助函数
 
 use support\Db;
