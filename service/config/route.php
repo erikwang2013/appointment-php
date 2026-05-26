@@ -19,6 +19,9 @@ use Webman\Route;
 // 公开接口（无需认证）
 // ============================================================
 Route::group('/api', function () {
+    // ── API 文档（客户端）──
+    Route::get('/docs', [app\api\controller\DocsController::class, 'index']);
+
     // ── 短信验证码 ──
     Route::post('/captcha/send', [app\api\controller\CaptchaController::class, 'send']);
 
