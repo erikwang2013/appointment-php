@@ -164,3 +164,14 @@ iPad → iPadOS / Mac → macOS / Windows → Windows
 Linux → Linux / iPhone → ios / Android → android
 HarmonyOS → harmonyOS / 其他 → web
 ```
+
+
+## TDD 测试
+
+| 项目 | 测试数 | 状态 |
+|------|--------|------|
+| admin/ | 60 | ✅ 全部通过 |
+| service/ | 17 | ✅ 全部通过 |
+| 合计 | 77 | ✅ |
+
+测试覆盖: 退款4级规则 / 订单状态机 / Hashids编解码 / Snowflake ID / 加密服务 / 验证码
