@@ -1,0 +1,65 @@
+<?php
+// Copyright (c) 2026 erik <erik@erik.xyz> — https://erik.xyz
+
+declare(strict_types=1);
+
+namespace app\model;
+
+use Erikwang2013\Snowflake\Snowflake;
+use support\Model;
+
+/**
+ * 订单评价模型
+ */
+class OrderReview extends Model
+{
+    protected $table = 'erik_order_review';
+    public $incrementing = false;
+    protected $keyType = 'string';
+    public $timestamps = true;
+
+    protected $fillable = [
+        'id', 'order_id', 'user_id', 'technician_id',
+        'rating', 'content', 'images', 'reply', 'replied_at', 'status',
+    ];
+
+    protected $casts = [
+        'rating' => 'integer',
+        'images' => 'array',
+        'replied_at' => 'datetime',
+        'status' => 'integer',
+    ];
+
+    // ── 评价状态常量 ──
+    public const STATUS_HIDDEN  = 0;
+    public const STATUS_VISIBLE = 1;
+
+    /**
+     * 评价用户
+     */
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
+
+    /**
+     * 所属订单
+     */
+    public function order()
+    {
+        return $this->belongsTo(Order::class, 'order_id');
+    }
+
+    /**
+     * 生成 snowflake ID
+     */
+    public static function generateId(): string
+    {
+        $snowflakeConfig = config('snowflake');
+        $snowflake = new Snowflake(
+            (int)($snowflakeConfig['datacenter_id'] ?? 1),
+            (int)($snowflakeConfig['worker_id'] ?? 1)
+        );
+        return (string)$snowflake->id();
+    }
+}

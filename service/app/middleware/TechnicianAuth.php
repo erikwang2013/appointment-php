@@ -33,7 +33,7 @@ class TechnicianAuth implements MiddlewareInterface
         }
 
         // 查询技师档案，验证身份状态
-        $technician = Db::table('technician_profile')
+        $technician = Db::table('erik_technician_profile')
             ->where('user_id', $userId)
             ->first();
 
@@ -46,7 +46,6 @@ class TechnicianAuth implements MiddlewareInterface
             $statusMap = [
                 'pending' => '您的技师申请正在审核中，请耐心等待',
                 'rejected' => '您的技师申请未通过审核',
-                'disabled' => '您的技师账号已被禁用',
             ];
             $message = $statusMap[$technician->status] ?? '您的技师身份验证未通过';
             return $this->forbidden($message);

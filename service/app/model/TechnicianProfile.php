@@ -1,0 +1,59 @@
+<?php
+// Copyright (c) 2026 erik <erik@erik.xyz> — https://erik.xyz
+
+declare(strict_types=1);
+
+namespace app\model;
+
+use Erikwang2013\Encryptable\Encryptable;
+use Erikwang2013\Snowflake\Snowflake;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use support\Model;
+
+class TechnicianProfile extends Model
+{
+    use Encryptable, SoftDeletes;
+
+    protected $table = 'erik_technician_profile';
+    public $incrementing = false;
+    protected $keyType = 'string';
+    public $timestamps = true;
+
+    protected array $encryptable = [
+        'real_name', 'id_card',
+    ];
+
+    protected $fillable = [
+        'user_id', 'real_name', 'gender', 'id_card',
+        'id_card_front', 'id_card_back', 'avatar', 'intro',
+        'rating', 'order_count', 'favorite_count',
+        'status', 'audit_remark', 'audited_at',
+    ];
+
+    protected $casts = [
+        'rating' => 'decimal:1',
+        'order_count' => 'integer',
+        'favorite_count' => 'integer',
+        'gender' => 'integer',
+    ];
+
+    protected $hidden = ['id_card', 'id_card_front', 'id_card_back', 'deleted_at'];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
+
+    /**
+     * 生成 snowflake ID
+     */
+    public static function generateId(): string
+    {
+        $snowflakeConfig = config('snowflake');
+        $snowflake = new Snowflake(
+            (int)($snowflakeConfig['datacenter_id'] ?? 1),
+            (int)($snowflakeConfig['worker_id'] ?? 1)
+        );
+        return (string)$snowflake->id();
+    }
+}
