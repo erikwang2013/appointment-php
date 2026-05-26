@@ -1,0 +1,69 @@
+{
+    "name": "erik/appointment-service",
+    "description": "预约服务系统 - 业务API服务",
+    "type": "project",
+    "license": "proprietary",
+    "keywords": [
+        "high performance",
+        "http service",
+        "appointment"
+    ],
+    "require": {
+        "php": ">=8.3",
+        "workerman/webman": "^2.0",
+        "erikwang2013/snowflake-php": "^1.0",
+        "erikwang2013/hashids": "^1.0",
+        "erikwang2013/jwt-webman": "^1.0",
+        "erikwang2013/encryption": "^1.0",
+        "erikwang2013/encryptable": "^1.0",
+        "erikwang2013/webman-scout": "^1.0",
+        "erikwang2013/security-php": "^1.0",
+        "erikwang2013/poster-php": "^1.0",
+        "erikwang2013/season": "^1.0",
+        "illuminate/database": "^11.0",
+        "illuminate/events": "^11.0",
+        "illuminate/redis": "^11.0",
+        "vlucas/phpdotenv": "^5.6",
+        "monolog/monolog": "^2.0"
+    },
+    "suggest": {
+        "ext-event": "For better performance."
+    },
+    "autoload": {
+        "psr-4": {
+            "app\\": "app/"
+        },
+        "files": [
+            "app/functions.php"
+        ]
+    },
+    "scripts": {
+        "post-package-install": [
+            "support\\Plugin::install"
+        ],
+        "post-package-update": [
+            "support\\Plugin::install"
+        ],
+        "pre-package-uninstall": [
+            "support\\Plugin::uninstall"
+        ],
+        "post-create-project-cmd": [
+            "support\\Setup::run"
+        ],
+        "setup-webman": [
+            "support\\Setup::run"
+        ]
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "config": {
+        "allow-plugins": {
+            "erikwang2013/encryptable": true,
+            "erikwang2013/webman-scout": true,
+            "erikwang2013/encryption": true
+        }
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^12.5"
+    }
+}
