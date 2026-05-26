@@ -1,0 +1,59 @@
+{
+  "pages": [
+    "pages/login/login",
+    "pages/dashboard/dashboard",
+    "pages/user/list/list",
+    "pages/user/form/form",
+    "pages/role/list/list",
+    "pages/role/form/form",
+    "pages/config/config",
+    "pages/log/log",
+    "pages/profile/profile"
+  ],
+  "window": {
+    "navigationBarBackgroundColor": "#1677FF",
+    "navigationBarTitleText": "开放管理后台",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#f5f5f5"
+  },
+  "tabBar": {
+    "color": "#999999",
+    "selectedColor": "#1677FF",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "black",
+    "list": [
+      {
+        "pagePath": "pages/dashboard/dashboard",
+        "text": "仪表盘",
+        "iconPath": "images/tab/dashboard.png",
+        "selectedIconPath": "images/tab/dashboard-active.png"
+      },
+      {
+        "pagePath": "pages/user/list/list",
+        "text": "用户管理",
+        "iconPath": "images/tab/user.png",
+        "selectedIconPath": "images/tab/user-active.png"
+      },
+      {
+        "pagePath": "pages/role/list/list",
+        "text": "角色权限",
+        "iconPath": "images/tab/role.png",
+        "selectedIconPath": "images/tab/role-active.png"
+      },
+      {
+        "pagePath": "pages/config/config",
+        "text": "系统配置",
+        "iconPath": "images/tab/config.png",
+        "selectedIconPath": "images/tab/config-active.png"
+      },
+      {
+        "pagePath": "pages/log/log",
+        "text": "操作日志",
+        "iconPath": "images/tab/log.png",
+        "selectedIconPath": "images/tab/log-active.png"
+      }
+    ]
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
+}

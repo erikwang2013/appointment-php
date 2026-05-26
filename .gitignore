@@ -1,0 +1,14 @@
+/.idea
+/.vscode
+*.log
+.env
+/admin/tests/tmp
+/admin/tests/.phpunit.result.cache
+/admin/composer.lock
+/admin/vendor
+/admin/runtime
+/service/tests/tmp
+/service/tests/.phpunit.result.cache
+/service/composer.lock
+/service/vendor
+/service/runtime

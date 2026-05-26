@@ -1,0 +1,35 @@
+{
+    "name": "开放管理后台",
+    "short_name": "管理后台",
+    "start_url": ".",
+    "display": "standalone",
+    "background_color": "#1677FF",
+    "theme_color": "#1677FF",
+    "description": "开放管理后台 - 全栈管理系统 (PC Web 端)",
+    "orientation": "any",
+    "prefer_related_applications": false,
+    "icons": [
+        {
+            "src": "icons/Icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "icons/Icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        },
+        {
+            "src": "icons/Icon-maskable-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "maskable"
+        },
+        {
+            "src": "icons/Icon-maskable-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "maskable"
+        }
+    ]
+}
