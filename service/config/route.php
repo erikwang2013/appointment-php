@@ -76,6 +76,15 @@ Route::group('/api', function () {
     // ── LBS ──
     Route::get('/lbs/nearby-stores', v('api', 'LbsController', 'nearbyStores'));
     Route::get('/lbs/geocode', v('api', 'LbsController', 'geocode'));
+
+    // ── 服务套餐（公开浏览）──
+    Route::get('/service-packages', v('api', 'ServicePackageController', 'index'));
+    Route::get('/service-packages/{id}', v('api', 'ServicePackageController', 'show'));
+
+    // ── 促销活动（公开浏览）──
+    Route::get('/promotions', v('api', 'PromotionController', 'index'));
+    Route::get('/promotions/{id}', v('api', 'PromotionController', 'show'));
+    Route::get('/promotions/{id}/participants', v('api', 'PromotionController', 'participants'));
 })->middleware([
     app\middleware\ApiVersion::class,
 ]);
@@ -107,6 +116,12 @@ Route::group('/api/user', function () {
     Route::get('/referral', v('user', 'ReferralController', 'index'));
     Route::get('/referral/qrcode', v('user', 'ReferralController', 'qrcode'));
     Route::get('/referral/referred-users', v('user', 'ReferralController', 'referredUsers'));
+
+    Route::post('/check-in', v('user', 'CheckInController', 'store'));
+    Route::get('/check-in/status', v('user', 'CheckInController', 'status'));
+
+    Route::post('/service-packages/buy', v('api', 'ServicePackageController', 'buy'));
+    Route::post('/promotions/join/{id}', v('api', 'PromotionController', 'join'));
 })->middleware([
     app\middleware\ApiVersion::class,
     app\middleware\Auth::class,
@@ -123,6 +138,9 @@ Route::group('/api/technician', function () {
     Route::get('/orders', v('technician', 'OrderController', 'index'));
     Route::get('/earnings', v('technician', 'EarningController', 'index'));
     Route::post('/withdraw', v('technician', 'WithdrawController', 'store'));
+
+    Route::post('/service-records', v('technician', 'ServiceRecordController', 'store'));
+    Route::get('/service-records/{id}', v('technician', 'ServiceRecordController', 'show'));
 })->middleware([
     app\middleware\ApiVersion::class,
     app\middleware\Auth::class,
@@ -140,6 +158,10 @@ Route::group('/api/order', function () {
     Route::post('/pay/{id}', v('order', 'OrderController', 'pay'));
     Route::post('/refund/{id}', v('order', 'OrderController', 'refund'));
     Route::post('/verify/{id}', v('order', 'OrderController', 'verify'));
+
+    Route::post('/waitlist', v('order', 'WaitlistController', 'store'));
+    Route::get('/waitlist', v('order', 'WaitlistController', 'index'));
+    Route::post('/waitlist/cancel/{id}', v('order', 'WaitlistController', 'cancel'));
 })->middleware([
     app\middleware\ApiVersion::class,
     app\middleware\Auth::class,
@@ -157,6 +179,9 @@ Route::group('/api/marketing', function () {
     Route::get('/gift-cards', v('marketing', 'GiftCardController', 'index'));
     Route::post('/gift-cards/redeem', v('marketing', 'GiftCardController', 'redeem'));
     Route::post('/gift-cards/store', v('marketing', 'GiftCardController', 'store'));
+
+    Route::get('/benefits', v('marketing', 'MemberBenefitController', 'index'));
+    Route::get('/benefits/birthday', v('marketing', 'MemberBenefitController', 'birthday'));
 })->middleware([
     app\middleware\ApiVersion::class,
     app\middleware\Auth::class,
