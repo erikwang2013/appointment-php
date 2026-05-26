@@ -47,6 +47,7 @@ class OrderController extends BaseController
         $couponId       = $request->input('coupon_id');
         $userCouponId   = $request->input('user_coupon_id');
         $remark         = $request->input('remark', '');
+        $voiceRemarkUrl = $request->input('voice_remark_url', '');
 
         if ($technicianId) {
             $technicianId = $this->decodeId($technicianId);
@@ -138,8 +139,9 @@ class OrderController extends BaseController
                 'coupon_id'       => $couponId,
                 'user_coupon_id'  => $userCouponId,
                 'service_time'    => $serviceTime ?: null,
-                'status'          => Order::STATUS_PENDING,
-                'remark'          => $remark,
+                'status'           => Order::STATUS_PENDING,
+                'remark'           => $remark,
+                'voice_remark_url' => $voiceRemarkUrl ?: null,
             ]);
 
             // 创建订单明细

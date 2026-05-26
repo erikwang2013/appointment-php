@@ -263,6 +263,21 @@ Route::group('/admin', function () {
     // 自定义导出 + 定期报表
     Route::post('/export/custom', [app\admin\controller\ExportController::class, 'custom']);
     Route::post('/export/scheduled', [app\admin\controller\ExportController::class, 'scheduled']);
+
+    // ============================================================
+    // 短视频审核
+    // ============================================================
+    Route::get('/video-audit', [app\admin\controller\VideoAuditController::class, 'index']);
+    Route::post('/video-audit/{hashid}', [app\admin\controller\VideoAuditController::class, 'audit']);
+
+    // ============================================================
+    // 社区审核
+    // ============================================================
+    Route::get('/community-moderation', [app\admin\controller\CommunityModerationController::class, 'index']);
+    Route::post('/community-moderation/pin/{hashid}', [app\admin\controller\CommunityModerationController::class, 'pin']);
+    Route::post('/community-moderation/unpin/{hashid}', [app\admin\controller\CommunityModerationController::class, 'unpin']);
+    Route::post('/community-moderation/hide/{hashid}', [app\admin\controller\CommunityModerationController::class, 'hide']);
+    Route::delete('/community-moderation/{hashid}', [app\admin\controller\CommunityModerationController::class, 'destroy']);
 })->middleware([
     app\middleware\AdminAuth::class,
     app\middleware\AdminPermission::class,

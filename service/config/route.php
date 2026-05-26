@@ -85,6 +85,15 @@ Route::group('/api', function () {
     Route::get('/promotions', v('api', 'PromotionController', 'index'));
     Route::get('/promotions/{id}', v('api', 'PromotionController', 'show'));
     Route::get('/promotions/{id}/participants', v('api', 'PromotionController', 'participants'));
+
+    // ── 短视频（公开浏览）──
+    Route::get('/video/list', v('api', 'VideoController', 'index'));
+    Route::get('/video/detail/{id}', v('api', 'VideoController', 'show'));
+
+    // ── 社区圈子（公开浏览）──
+    Route::get('/community', v('api', 'CommunityController', 'index'));
+    Route::get('/community/detail/{id}', v('api', 'CommunityController', 'show'));
+    Route::get('/community/comment/list/{post_id}', v('api', 'CommunityCommentController', 'index'));
 })->middleware([
     app\middleware\ApiVersion::class,
 ]);
@@ -122,6 +131,10 @@ Route::group('/api/user', function () {
 
     Route::post('/service-packages/buy', v('api', 'ServicePackageController', 'buy'));
     Route::post('/promotions/join/{id}', v('api', 'PromotionController', 'join'));
+
+    // ── 设备推送 ──
+    Route::post('/device/register', v('user', 'DeviceController', 'register'));
+    Route::post('/device/unregister', v('user', 'DeviceController', 'unregister'));
 })->middleware([
     app\middleware\ApiVersion::class,
     app\middleware\Auth::class,
@@ -141,6 +154,11 @@ Route::group('/api/technician', function () {
 
     Route::post('/service-records', v('technician', 'ServiceRecordController', 'store'));
     Route::get('/service-records/{id}', v('technician', 'ServiceRecordController', 'show'));
+
+    // ── 考试系统 ──
+    Route::get('/exams', v('technician', 'ExamController', 'index'));
+    Route::post('/exam/start/{id}', v('technician', 'ExamController', 'start'));
+    Route::post('/exam/submit/{id}', v('technician', 'ExamController', 'submit'));
 })->middleware([
     app\middleware\ApiVersion::class,
     app\middleware\Auth::class,
@@ -162,6 +180,9 @@ Route::group('/api/order', function () {
     Route::post('/waitlist', v('order', 'WaitlistController', 'store'));
     Route::get('/waitlist', v('order', 'WaitlistController', 'index'));
     Route::post('/waitlist/cancel/{id}', v('order', 'WaitlistController', 'cancel'));
+
+    Route::post('/signature', v('order', 'SignatureController', 'store'));
+    Route::get('/signature/{order_id}', v('order', 'SignatureController', 'show'));
 })->middleware([
     app\middleware\ApiVersion::class,
     app\middleware\Auth::class,
@@ -194,6 +215,61 @@ Route::group('/api/notification', function () {
     Route::get('/', v('notification', 'NotificationController', 'index'));
     Route::put('/read/{id}', v('notification', 'NotificationController', 'read'));
     Route::put('/read-all', v('notification', 'NotificationController', 'readAll'));
+})->middleware([
+    app\middleware\ApiVersion::class,
+    app\middleware\Auth::class,
+]);
+
+// ============================================================
+// 社区圈子接口（JWT + ApiVersion）
+// ============================================================
+Route::group('/api/community', function () {
+    Route::post('/', v('api', 'CommunityController', 'store'));
+    Route::post('/like/{id}', v('api', 'CommunityController', 'like'));
+    Route::post('/comment', v('api', 'CommunityController', 'comment'));
+    Route::get('/my-posts', v('api', 'CommunityController', 'myPosts'));
+
+    Route::post('/comment', v('api', 'CommunityCommentController', 'store'));
+    Route::delete('/comment/{id}', v('api', 'CommunityCommentController', 'destroy'));
+})->middleware([
+    app\middleware\ApiVersion::class,
+    app\middleware\Auth::class,
+]);
+
+// ============================================================
+// 短视频接口（JWT + ApiVersion）
+// ============================================================
+Route::group('/api/video', function () {
+    Route::post('/like/{id}', v('api', 'VideoController', 'like'));
+})->middleware([
+    app\middleware\ApiVersion::class,
+    app\middleware\Auth::class,
+]);
+
+// ============================================================
+// 门店排队叫号接口（JWT + ApiVersion）
+// ============================================================
+Route::group('/api/queue', function () {
+    Route::post('/take', v('api', 'QueueController', 'take'));
+    Route::get('/current', v('api', 'QueueController', 'current'));
+    Route::get('/store/{store_id}', v('api', 'QueueController', 'storeQueue'));
+})->middleware([
+    app\middleware\ApiVersion::class,
+    app\middleware\Auth::class,
+]);
+
+// ============================================================
+// 支付回调接口（不使用版本控制中间件，不进行JWT认证）
+// ============================================================
+Route::any('/payment/wechat-notify', [app\api\v1\controller\PaymentNotifyController::class, 'wechatNotify']);
+Route::any('/payment/alipay-notify', [app\api\v1\controller\PaymentNotifyController::class, 'alipayNotify']);
+
+// ============================================================
+// 打印接口（JWT + ApiVersion）
+// ============================================================
+Route::group('/api/print', function () {
+    Route::get('/receipt/{order_id}', v('api', 'PrintController', 'receipt'));
+    Route::get('/preview/{order_id}', v('api', 'PrintController', 'preview'));
 })->middleware([
     app\middleware\ApiVersion::class,
     app\middleware\Auth::class,
