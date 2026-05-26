@@ -1,0 +1,35 @@
+{
+  "pages": [
+    "pages/home/index",
+    "pages/service/list",
+    "pages/service/detail",
+    "pages/cart/index",
+    "pages/order/list",
+    "pages/order/detail",
+    "pages/order/confirm",
+    "pages/user/index",
+    "pages/auth/login",
+    "pages/auth/register",
+    "pages/auth/forget-password",
+    "pages/tech-work/index",
+    "pages/marketing/coupons",
+    "pages/message/list"
+  ],
+  "window": {
+    "backgroundTextStyle": "light",
+    "navigationBarBackgroundColor": "#fff",
+    "navigationBarTitleText": "预约服务",
+    "navigationBarTextStyle": "black"
+  },
+  "tabBar": {
+    "color": "#999",
+    "selectedColor": "#e74c3c",
+    "list": [
+      {"pagePath": "pages/home/index", "text": "首页", "iconPath": "images/home.png", "selectedIconPath": "images/home-active.png"},
+      {"pagePath": "pages/service/list", "text": "服务", "iconPath": "images/service.png", "selectedIconPath": "images/service-active.png"},
+      {"pagePath": "pages/cart/index", "text": "购物车", "iconPath": "images/cart.png", "selectedIconPath": "images/cart-active.png"},
+      {"pagePath": "pages/order/list", "text": "订单", "iconPath": "images/order.png", "selectedIconPath": "images/order-active.png"},
+      {"pagePath": "pages/user/index", "text": "我的", "iconPath": "images/user.png", "selectedIconPath": "images/user-active.png"}
+    ]
+  }
+}

@@ -1,0 +1,33 @@
+<view class="page">
+  <view class="search-bar">
+    <input class="search-input" type="text" placeholder="搜索服务" bindconfirm="onSearch" />
+  </view>
+
+  <scroll-view class="category-tabs" scroll-x>
+    <block wx:for="{{categories}}" wx:key="id">
+      <view class="tab-item {{activeCategory === item.id ? 'active' : ''}}" data-id="{{item.id}}" bindtap="onCategoryTap">
+        {{item.name}}
+      </view>
+    </block>
+  </scroll-view>
+
+  <view class="service-list container">
+    <block wx:for="{{services}}" wx:key="id">
+      <view class="service-card card flex-row" data-id="{{item.id}}" bindtap="goDetail">
+        <image src="{{item.image}}" class="service-img" mode="aspectFill" />
+        <view class="service-info flex-1">
+          <text class="service-name">{{item.name}}</text>
+          <text class="service-desc text-gray">{{item.description}}</text>
+          <view class="flex-between">
+            <text class="service-price text-primary">¥{{item.price}}</text>
+            <text class="text-gray">已售 {{item.sales || 0}}</text>
+          </view>
+        </view>
+      </view>
+    </block>
+    <view wx:if="{{!hasMore && services.length > 0}}" class="no-more text-gray flex-center">没有更多了</view>
+    <view wx:if="{{services.length === 0}}" class="empty flex-center flex-column">
+      <text class="text-gray">暂无服务</text>
+    </view>
+  </view>
+</view>

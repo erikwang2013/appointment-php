@@ -1,0 +1,8 @@
+.cart-item { display: flex; align-items: center; gap: 16rpx; }
+.cart-img { width: 120rpx; height: 120rpx; border-radius: 8rpx; }
+.cart-info { flex: 1; }
+.price { color: #e74c3c; font-weight: bold; display: block; }
+.qty-ctrl { display: flex; align-items: center; gap: 12rpx; margin-top: 8rpx; }
+.del { color: #999; font-size: 24rpx; }
+.cart-footer { position: fixed; bottom: 0; width: 100%; padding: 24rpx; background: #fff; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #eee; }
+.empty { text-align: center; padding: 100rpx 0; color: #999; }

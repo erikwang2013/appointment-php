@@ -1,0 +1,8 @@
+.user-header { display: flex; align-items: center; gap: 24rpx; }
+.avatar { width: 100rpx; height: 100rpx; border-radius: 50%; }
+.user-info { flex: 1; }
+.nickname { font-size: 36rpx; font-weight: bold; display: block; }
+.phone { color: #999; }
+.menu-grid { display: flex; flex-wrap: wrap; }
+.menu-item { width: 25%; text-align: center; padding: 20rpx 0; }
+.menu-icon { font-size: 48rpx; display: block; margin-bottom: 8rpx; }

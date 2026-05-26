@@ -1,0 +1,16 @@
+<view>
+  <scroll-view scroll-x class="tabs">
+    <text wx:for="{{tabs}}" wx:key="*this" class="tab {{activeTab===index?'active':''}}" bindtap="onTabChange" data-index="{{index}}">{{item}}</text>
+  </scroll-view>
+  <block wx:for="{{orders}}" wx:key="id">
+    <view class="card" bindtap="onDetail" data-id="{{item.id}}">
+      <view class="order-header"><text>订单号: {{item.order_no}}</text><text class="status">{{item.status}}</text></view>
+      <view wx:for="{{item.items}}" wx:for-item="i" wx:key="id" class="order-item">
+        <image src="{{i.cover_image}}" class="order-img"/>
+        <view class="order-info"><text>{{i.name}}</text><text class="price">¥{{i.price}} x{{i.quantity}}</text></view>
+      </view>
+      <view class="order-footer">合计: ¥{{item.paid_amount}}</view>
+    </view>
+  </block>
+  <view wx:if="{{orders.length===0}}" class="empty">暂无订单</view>
+</view>

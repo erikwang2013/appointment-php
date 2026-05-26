@@ -1,0 +1,3 @@
+.stats { display: flex; justify-content: space-around; }
+.stat-item { text-align: center; }
+.stat-val { font-size: 40rpx; font-weight: bold; color: #e74c3c; display: block; }

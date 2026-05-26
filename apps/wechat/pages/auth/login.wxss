@@ -1,0 +1,19 @@
+.page { min-height: 100vh; padding: 48rpx 40rpx; }
+.logo-area { flex-direction: column; padding: 80rpx 0 48rpx; }
+.app-name { font-size: 48rpx; font-weight: bold; color: #e74c3c; }
+.app-desc { font-size: 26rpx; color: #999; margin-top: 12rpx; }
+.form-card { padding: 32rpx; }
+.mode-tabs { margin-bottom: 32rpx; justify-content: center; }
+.mode-tab { padding: 12rpx 32rpx; font-size: 30rpx; color: #999; border-bottom: 4rpx solid transparent; }
+.mode-tab.active { color: #e74c3c; border-bottom-color: #e74c3c; font-weight: bold; }
+.input-group { margin-bottom: 24rpx; }
+.input { width: 100%; padding: 20rpx 16rpx; border-bottom: 1rpx solid #eee; font-size: 30rpx; }
+.flex-1 { flex: 1; }
+.code-btn { padding: 16rpx 24rpx; background: #e74c3c; color: #fff; border-radius: 8rpx; font-size: 24rpx; white-space: nowrap; margin-left: 16rpx; }
+.privacy-row { margin: 16rpx 0; font-size: 24rpx; color: #999; }
+.checkbox { width: 32rpx; height: 32rpx; border: 2rpx solid #ddd; border-radius: 4rpx; margin-right: 8rpx; }
+.checkbox.checked { background: #e74c3c; border-color: #e74c3c; }
+.login-btn { margin-top: 32rpx; border-radius: 44rpx; }
+.link-row { margin-top: 24rpx; font-size: 26rpx; color: #e74c3c; }
+.wechat-login { margin-top: 48rpx; width: 100rpx; height: 100rpx; border-radius: 50%; background: #07c160; color: #fff; font-size: 24rpx; flex-direction: column; margin-left: auto; margin-right: auto; }
+.guest-entry { text-align: center; margin-top: 40rpx; color: #999; font-size: 26rpx; }

@@ -1,0 +1,49 @@
+<view class="page">
+  <!-- Banner Carousel -->
+  <swiper class="banner" indicator-dots autoplay circular bindchange="onSwiperChange">
+    <block wx:for="{{banners}}" wx:key="id">
+      <swiper-item>
+        <image src="{{item.image}}" class="banner-img" mode="aspectFill" />
+      </swiper-item>
+    </block>
+  </swiper>
+
+  <!-- Announcements -->
+  <view class="notice-bar flex-row" wx:if="{{announcements.length > 0}}">
+    <text class="notice-icon">📢</text>
+    <swiper class="notice-swiper" vertical autoplay circular interval="3000">
+      <block wx:for="{{announcements}}" wx:key="id">
+        <swiper-item><text class="notice-text">{{item.title}}</text></swiper-item>
+      </block>
+    </swiper>
+  </view>
+
+  <!-- Service Categories Grid -->
+  <view class="section">
+    <text class="section-title">服务分类</text>
+    <view class="category-grid">
+      <block wx:for="{{categories}}" wx:key="id">
+        <view class="category-item flex-column flex-center" data-id="{{item.id}}" bindtap="goToCategory">
+          <image src="{{item.icon}}" class="category-icon" mode="aspectFit" />
+          <text class="category-name">{{item.name}}</text>
+        </view>
+      </block>
+    </view>
+  </view>
+
+  <!-- Hot Services -->
+  <view class="section">
+    <text class="section-title">热门推荐</text>
+    <view class="service-scroll">
+      <scroll-view scroll-x class="scroll-x">
+        <block wx:for="{{categories}}" wx:key="id">
+          <view class="service-card card" data-id="{{item.id}}" bindtap="goToService">
+            <image src="{{item.image}}" class="service-img" mode="aspectFill" />
+            <text class="service-name">{{item.name}}</text>
+            <text class="service-price text-primary">¥{{item.price}}</text>
+          </view>
+        </block>
+      </scroll-view>
+    </view>
+  </view>
+</view>

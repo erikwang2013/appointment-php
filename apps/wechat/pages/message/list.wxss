@@ -1,0 +1,5 @@
+.msg-item { border-left: 4rpx solid transparent; }
+.msg-item.unread { border-left-color: #e74c3c; background: #fff5f5; }
+.msg-title { font-weight: bold; display: block; margin-bottom: 8rpx; }
+.msg-content { color: #666; display: block; font-size: 26rpx; }
+.msg-time { color: #999; font-size: 24rpx; display: block; margin-top: 8rpx; }

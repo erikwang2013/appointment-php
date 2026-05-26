@@ -1,0 +1,19 @@
+<view class="container">
+  <view class="user-header card">
+    <image src="{{userInfo.avatar||'/images/default-avatar.png'}}" class="avatar"/>
+    <view class="user-info">
+      <text class="nickname">{{userInfo.nickname||'未登录'}}</text>
+      <text class="phone">{{userInfo.phone||''}}</text>
+    </view>
+    <button size="mini" wx:if="{{userInfo}}" bindtap="onSwitchRole">{{userInfo.active_role==='customer'?'切换技师':'切换客户'}}</button>
+  </view>
+  <view class="menu-grid card">
+    <block wx:for="{{[{icon:'📋',name:'我的订单',url:'/pages/order/list'},{icon:'🎫',name:'优惠券',url:'/pages/marketing/coupons'},{icon:'💳',name:'会员卡',url:''},{icon:'⭐',name:'积分',url:''},{icon:'❤️',name:'收藏',url:''},{icon:'📨',name:'消息',url:'/pages/message/list'},{icon:'👥',name:'推广',url:''},{icon:'✍️',name:'反馈',url:''}]}}" wx:key="name">
+      <view class="menu-item" bindtap="onNav" data-url="{{item.url}}">
+        <text class="menu-icon">{{item.icon}}</text>
+        <text>{{item.name}}</text>
+      </view>
+    </block>
+  </view>
+  <view class="card"><button bindtap="onNav" data-url="/pages/auth/login">退出登录</button></view>
+</view>

@@ -1,0 +1,10 @@
+<view class="container">
+  <view class="stats card">
+    <view class="stat-item"><text class="stat-val">¥{{earnings.today_income}}</text><text>今日收入</text></view>
+    <view class="stat-item"><text class="stat-val">¥{{earnings.balance}}</text><text>可提现</text></view>
+    <view class="stat-item"><text class="stat-val">{{todayOrders}}</text><text>今日订单</text></view>
+  </view>
+  <view class="menu-grid card">
+    <view class="menu-item" wx:for="{{[{name:'订单管理'},{name:'排班设置'},{name:'扫码核销'},{name:'我的会员'},{name:'收益明细'},{name:'提现'},{name:'考勤签到'},{name:'专业培训'}]}}" wx:key="name"><text>{{item.name}}</text></view>
+  </view>
+</view>

@@ -1,0 +1,23 @@
+<view class="container">
+  <block wx:for="{{items}}" wx:key="id">
+    <view class="card cart-item">
+      <checkbox checked="{{item.selected}}" bindtap="onSelect" data-index="{{index}}"/>
+      <image src="{{item.cover_image}}" class="cart-img"/>
+      <view class="cart-info">
+        <text>{{item.name}}</text>
+        <text class="price">¥{{item.price}}</text>
+        <view class="qty-ctrl">
+          <button size="mini" bindtap="onQuantityChange" data-index="{{index}}" data-type="minus">-</button>
+          <text>{{item.quantity}}</text>
+          <button size="mini" bindtap="onQuantityChange" data-index="{{index}}" data-type="plus">+</button>
+        </view>
+      </view>
+      <text class="del" bindtap="onDelete" data-index="{{index}}">删除</text>
+    </view>
+  </block>
+  <view wx:if="{{items.length===0}}" class="empty">购物车为空</view>
+  <view class="cart-footer" wx:if="{{items.length>0}}">
+    <text>合计: ¥{{totalAmount}}</text>
+    <button class="btn-primary" bindtap="onCheckout">去结算</button>
+  </view>
+</view>

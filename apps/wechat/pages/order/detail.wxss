@@ -1,0 +1,3 @@
+.status-text { font-size: 32rpx; color: #e74c3c; font-weight: bold; }
+.actions { padding: 24rpx; display: flex; gap: 16rpx; }
+.actions button { flex: 1; }
