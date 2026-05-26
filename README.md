@@ -82,6 +82,7 @@ docker-compose up -d
 | [功能说明](docs/FEATURES.md) | 用户端/技师端/管理后台完整功能清单 |
 | [架构设计](docs/ARCHITECTURE-DESIGN.md) | 分层设计、中间件链、数据库设计、安全设计 |
 | [功能设计](docs/FEATURE-DESIGN.md) | 核心业务流程、业务规则、状态机、退款规则 |
+| [API文档](docs/API.md) | 业务API 60+端点 + 管理后台API，含请求/响应示例 |
 | [项目结构](docs/STRUCTURE.md) | 完整目录布局、中间件执行链、数据库表清单 |
 | [设计规范](docs/superpowers/specs/2026-05-26-appointment-system-design.md) | 系统设计规范 |
 | [实现计划](docs/superpowers/plans/2026-05-26-appointment-system-plan.md) | 分阶段实现计划 |
