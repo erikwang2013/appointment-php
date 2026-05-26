@@ -7,6 +7,15 @@
 - **认证方式**: Bearer Token (JWT), 请求头 `Authorization: Bearer <token>`
 - **版本控制**: admin API通过请求头 `API-Version: v1` 控制版本
 - **ID编码**: 所有请求/响应中的ID字段使用hashids编码，对外隐藏真实数据库ID
+- **OpenAPI文档**: 使用 `hg/apidoc` 生成，管理端和客户端分开
+
+| 端 | OpenAPI文档地址 | 说明 |
+|------|------|------|
+| 管理端 | `GET http://localhost:8787/api/docs` | 管理后台API完整规范（OpenAPI 3.0 JSON） |
+| 客户端 | `GET http://localhost:8788/api/docs` | 业务API完整规范（OpenAPI 3.0 JSON） |
+
+可通过 Swagger UI 等工具导入上述地址查看交互式文档。
+
 - **通用响应格式**:
 
 ```json

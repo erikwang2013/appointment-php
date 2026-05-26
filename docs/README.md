@@ -9,7 +9,7 @@
 | [ARCHITECTURE-DESIGN.md](ARCHITECTURE-DESIGN.md) | 架构设计：分层架构、中间件设计、数据库设计原则、ID加解密机制、安全设计、ES集成、Excel/PDF导出 |
 | [FEATURE-DESIGN.md](FEATURE-DESIGN.md) | 功能设计：购买流程、订单状态机、技师锁定、退款规则、折扣规则、提现设计、积分设计、会员卡设计、身份切换 |
 | [STRUCTURE.md](STRUCTURE.md) | 项目结构：三端完整目录布局、中间件执行链、数据库表清单、外部服务预留 |
-| [API.md](API.md) | API文档：业务API 60+ 端点 + 管理后台API，含请求/响应示例 |
+| [API.md](API.md) | API文档：业务API + 管理后台API，含请求/响应示例 + OpenAPI端点（hg/apidoc） |
 
 ## 规范与计划
 

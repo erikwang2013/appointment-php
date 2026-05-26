@@ -91,6 +91,17 @@ API请求/响应中的ID通过 `erikwang2013/hashids` 编码，对外暴露hash�
 - 登录锁定：5次失败锁15分钟
 - 并发限制：最多3个有效Token
 
+### API文档
+
+`hg/apidoc` 生成 OpenAPI 3.0 规范文档，管理端和客户端分开：
+
+| 端 | 地址 | 说明 |
+|------|------|------|
+| 管理端 | `admin/ GET /api/docs` | 管理后台API（JWT+RBAC） |
+| 客户端 | `service/ GET /api/docs` | 业务API（JWT Bearer） |
+
+文档公开访问，可导入 Swagger UI 查看交互式接口文档。
+
 ### Elasticsearch
 
 `erikwang2013/webman-scout` 模型自动同步ES，支持全文搜索。

@@ -162,7 +162,8 @@ service/
 │   │   ├── AuthController          # 登录/注册/忘记密码/游客/身份切换
 │   │   ├── CaptchaController       # 短信验证码
 │   │   ├── WechatController        # 微信授权/登录/支付回调
-│   │   └── CommonController        # 协议/关于/版本
+│   │   ├── CommonController        # 协议/关于/版本
+│   │   └── DocsController          # OpenAPI文档（hg/apidoc）
 │   ├── user/                   # 用户模块（需认证）
 │   │   ├── ProfileController       # 个人信息/密码/手机/注销
 │   │   ├── AddressController       # 地址CRUD
