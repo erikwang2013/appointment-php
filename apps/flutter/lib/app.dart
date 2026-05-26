@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'pages/order/payment/payment_page.dart';
+import 'pages/order/success/payment_success_page.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 
 import 'services/api_service.dart';
