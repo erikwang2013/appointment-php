@@ -87,6 +87,20 @@ admin/
 │   │   ├── AgreementController     #   协议编辑/发布
 │   │   ├── AboutController         #   关于我们设置
 │   │   └── SystemMessageController #   系统消息模板/发送
+│   │   │                            # ✅ 扩展模块:
+│   │   ├── ServiceCardController    #   卡项设计
+│   │   ├── SystemMonitorController  #   系统监控
+│   │   ├── IpBlacklistController    #   IP黑名单管理
+│   │   ├── DbBackupController       #   数据库备份
+│   │   ├── SmsConfigController      #   短信配置
+│   │   ├── StorageConfigController  #   存储配置
+│   │   ├── StoreManagerController   #   店长账号
+│   │   ├── TrainingController       #   技师培训
+│   │   ├── ScheduledTaskController  #   定时任务
+│   │   ├── CustomerProfileController #  客户画像
+│   │   ├── BatchMessageController   #   批量推送
+│   │   ├── RefundWorkflowController #   退款审核
+│   │   └── TechnicianTierController #   技师等级
 │   ├── api/v1/controller/      # 公开API v1
 │   │   ├── AuthController
 │   │   └── CaptchaController
@@ -164,7 +178,10 @@ service/
 │   │   ├── ContentController       # 轮播图/公告/文章
 │   │   ├── DocsController          # OpenAPI文档(hg/apidoc)
 │   │   ├── LbsController           # 附近门店(Haversine)/逆地理
-│   │   ├── SearchController        # ES全文搜索(服务+产品)
+│   │   ├── SearchController        # ES全文搜索
+│   │   ├── ShareController          # 服务分享
+│   │   ├── ServicePackageController # 服务套餐
+│   │   ├── PromotionController      # 拼团秒杀
 │   │   └── ServiceController       # 服务分类/项目/产品/门店
 │   ├── user/v1/controller/      # 用户模块 v1
 │   │   ├── ProfileController       # 个人信息/密码/手机/注销/登出
@@ -189,7 +206,6 @@ service/
 │   ├── notification/v1/controller/ # 通知模块 v1
 │   │   └── NotificationController  # 通知列表/标记已读
 │   ├── common/                  # 公共能力
-│   │   └── BaseController          # 统一响应/hashids加解密/分页
 │   ├── middleware/              # 中间件
 │   │   ├── ApiVersion              # API版本控制(API-Version头)
 │   │   ├── Auth                    # JWT认证+用户状态校验

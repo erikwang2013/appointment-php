@@ -143,3 +143,13 @@ API请求/响应中的ID通过 `erikwang2013/hashids` 编码，对外暴露hash�
 ## 8操作来源端
 
 `source` 字段记录操作来源：web / iPadOS / macOS / Windows / Linux / ios / android / harmonyOS
+
+### 第三方服务集成
+
+| 服务 | 类 | 能力 |
+|------|------|------|
+| 微信支付 | WechatPayService | 统一下单/查询/退款/提现到零钱 |
+| 短信 | SmsService | 阿里云/腾讯云双通道 |
+| 地图 | MapService | 高德/腾讯逆地理/距离/导航 |
+| 模板消息 | WechatTemplateMessageService | 订单/退款/提醒推送 |
+| 对象存储 | StorageService | 本地/OSS/COS/CDN |
