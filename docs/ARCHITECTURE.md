@@ -142,6 +142,16 @@ API请求/响应中的ID通过 `erikwang2013/hashids` 编码，对外暴露hash�
 
 ## 8操作来源端
 
+## 最新扩展
+
+| 类别 | 功能 |
+|------|------|
+| 实时 | WebSocket推送 / 支付回调 / APNs+FCM |
+| 门店 | 蓝牙打印 / 电子签章 / 排队叫号 |
+| 技师 | 在线考核 / 短视频展示 |
+| 社区 | 发帖/评论/点赞/审核 |
+| 系统 | 多语言(中/英) / 订单自动取消 / 数据种子 |
+
 `source` 字段记录操作来源：web / iPadOS / macOS / Windows / Linux / ios / android / harmonyOS
 
 ### 第三方服务集成
