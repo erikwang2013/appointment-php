@@ -582,6 +582,11 @@ class WechatPayService
 
             Log::info('[WechatPay notify] payment success, out_trade_no: ' . $outTradeNo);
 
+            // WebSocket 实时推送
+            if ($order) {
+                $this->pushPaymentSuccess($order);
+            }
+
             return ['success' => true, 'message' => 'OK'];
         } catch (\Throwable $e) {
             \support\Db::rollBack();
@@ -661,11 +666,41 @@ class WechatPayService
             \support\Db::commit();
 
             Log::info('[Alipay notify] payment success, out_trade_no: ' . $outTradeNo);
+
+            // WebSocket 实时推送
+            if ($order) {
+                $this->pushPaymentSuccess($order);
+            }
+
             return ['success' => true, 'message' => 'success'];
         } catch (\Throwable $e) {
             \support\Db::rollBack();
             Log::error('[Alipay notify] exception: ' . $e->getMessage());
             return ['success' => false, 'message' => '处理异常'];
+        }
+    }
+
+    /**
+     * 支付完成后的推送通知
+     *
+     * @param \app\model\Order $order
+     */
+    private function pushPaymentSuccess(\app\model\Order $order): void
+    {
+        try {
+            \app\common\PushService::sendOrderUpdate(
+                (int)$order->user_id,
+                $order->technician_id ? (int)$order->technician_id : 0,
+                $order->id,
+                $order->order_no,
+                \app\model\Order::STATUS_PAID,
+                [
+                    'order_type'  => $order->order_type,
+                    'paid_amount' => $order->paid_amount,
+                ]
+            );
+        } catch (\Throwable $e) {
+            // 非阻塞推送，忽略异常
         }
     }
 

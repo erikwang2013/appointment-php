@@ -6,6 +6,7 @@ declare(strict_types=1);
 namespace app\order\v1\controller;
 
 use app\common\BaseController;
+use app\common\PushService;
 use app\common\WechatTemplateMessageService;
 use app\model\Order;
 use app\model\OrderItem;
@@ -184,6 +185,9 @@ class OrderController extends BaseController
         // 发送订单确认模板消息（非阻塞，失败不影响主流程）
         $this->sendOrderConfirmTemplate($userId, $order);
 
+        // WebSocket 实时推送：通知技师有新订单
+        $this->pushOrderUpdate($order);
+
         return $this->success($order, '订单创建成功');
     }
 
@@ -290,6 +294,9 @@ class OrderController extends BaseController
 
         // 释放技师锁
         $this->releaseTechnicianLock($order);
+
+        // WebSocket 实时推送
+        $this->pushOrderUpdate($order);
 
         return $this->success(null, '订单已取消');
     }
@@ -403,6 +410,9 @@ class OrderController extends BaseController
         // 发送退款通知模板消息（非阻塞，失败不影响主流程）
         $this->sendRefundNotifyTemplate($userId, $order, $refundAmount, $reason);
 
+        // WebSocket 实时推送
+        $this->pushOrderUpdate($order);
+
         return $this->success([
             'refund_amount' => $refundAmount,
             'ratio'         => $ratio,
@@ -454,6 +464,9 @@ class OrderController extends BaseController
             $order->service_start_at = now();
             $order->save();
         }
+
+        // WebSocket 实时推送
+        $this->pushOrderUpdate($order);
 
         return $this->success($order, '核销成功');
     }
@@ -529,6 +542,35 @@ class OrderController extends BaseController
             ]);
         } catch (\Throwable $e) {
             Log::warning('[OrderController] sendRefundNotifyTemplate failed: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * WebSocket 实时推送订单状态更新
+     *
+     * 非阻塞调用，失败不影响主流程。
+     * 注意: 当 WebSocket 进程与 HTTP 进程分离时，PushService 的静态连接池
+     * 可能为空。生产环境需配合 Redis Pub/Sub 或 webman Channel 实现跨进程推送。
+     */
+    private function pushOrderUpdate(Order $order): void
+    {
+        try {
+            $technicianId = $order->technician_id ? (int)$order->technician_id : 0;
+            $clientUserId = (int)$order->user_id;
+
+            PushService::sendOrderUpdate(
+                $clientUserId,
+                $technicianId,
+                $order->id,
+                $order->order_no,
+                $order->status,
+                [
+                    'order_type' => $order->order_type,
+                    'paid_amount' => $order->paid_amount,
+                ]
+            );
+        } catch (\Throwable $e) {
+            Log::warning('[OrderController] pushOrderUpdate failed: ' . $e->getMessage());
         }
     }
 }
