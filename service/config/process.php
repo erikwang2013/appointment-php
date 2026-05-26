@@ -36,6 +36,17 @@ return [
             'publicPath' => public_path()
         ]
     ],
+    // WebSocket 实时推送
+    'websocket' => [
+        'handler' => \app\process\WebSocket::class,
+        'listen' => 'websocket://0.0.0.0:8282',
+        'count' => 1,
+    ],
+    // Order auto-cancel timer (runs every 30 seconds)
+    'auto_cancel' => [
+        'handler' => \app\process\AutoCancelTimer::class,
+        'count' => 1,
+    ],
     // File update detection and automatic reload
     'monitor' => [
         'handler' => app\process\Monitor::class,
