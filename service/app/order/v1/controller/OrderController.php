@@ -6,13 +6,16 @@ declare(strict_types=1);
 namespace app\order\v1\controller;
 
 use app\common\BaseController;
+use app\common\WechatTemplateMessageService;
 use app\model\Order;
 use app\model\OrderItem;
 use app\model\OrderPayment;
 use app\model\OrderRefund;
 use app\model\OrderVerification;
+use app\model\User;
 use Illuminate\Support\Facades\Redis;
 use support\Db;
+use support\Log;
 use Webman\Http\Request;
 
 /**
@@ -175,6 +178,9 @@ class OrderController extends BaseController
         }
 
         $order->load(['items', 'payment']);
+
+        // 发送订单确认模板消息（非阻塞，失败不影响主流程）
+        $this->sendOrderConfirmTemplate($userId, $order);
 
         return $this->success($order, '订单创建成功');
     }
@@ -392,6 +398,9 @@ class OrderController extends BaseController
         // 释放技师锁
         $this->releaseTechnicianLock($order);
 
+        // 发送退款通知模板消息（非阻塞，失败不影响主流程）
+        $this->sendRefundNotifyTemplate($userId, $order, $refundAmount, $reason);
+
         return $this->success([
             'refund_amount' => $refundAmount,
             'ratio'         => $ratio,
@@ -460,5 +469,64 @@ class OrderController extends BaseController
         $lockKey = "technician_lock:{$order->technician_id}:{$timeSlot}";
 
         Redis::connection()->del($lockKey);
+    }
+
+    /**
+     * 发送订单确认模板消息（非阻塞）
+     */
+    private function sendOrderConfirmTemplate(string $userId, Order $order): void
+    {
+        try {
+            $user = User::find($userId);
+            if (!$user || empty($user->wx_openid)) {
+                return;
+            }
+
+            $service = new WechatTemplateMessageService();
+
+            $serviceName = '';
+            $items = $order->items()->get();
+            if ($items->isNotEmpty()) {
+                $serviceName = $items->first()->name;
+            }
+
+            $service->sendOrderConfirm($user->wx_openid, [
+                'order_no'     => $order->order_no,
+                'service_name' => $serviceName,
+                'service_time' => $order->service_time ? $order->service_time->format('Y-m-d H:i') : '',
+                'technician'   => '',
+                'store'        => '',
+                'remark'       => $order->remark ?? '感谢您的预约',
+            ]);
+        } catch (\Throwable $e) {
+            Log::warning('[OrderController] sendOrderConfirmTemplate failed: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * 发送退款通知模板消息（非阻塞）
+     */
+    private function sendRefundNotifyTemplate(string $userId, Order $order, float $refundAmount, string $reason): void
+    {
+        try {
+            $user = User::find($userId);
+            if (!$user || empty($user->wx_openid)) {
+                return;
+            }
+
+            $service = new WechatTemplateMessageService();
+
+            $refund = OrderRefund::where('order_id', $order->id)->latest()->first();
+            $refundNo = $refund ? $refund->refund_no : '';
+
+            $service->sendRefundNotify($user->wx_openid, [
+                'order_no'      => $order->order_no,
+                'refund_no'     => $refundNo,
+                'refund_amount' => number_format($refundAmount, 2) . ' 元',
+                'reason'        => $reason ?: '用户申请退款',
+            ]);
+        } catch (\Throwable $e) {
+            Log::warning('[OrderController] sendRefundNotifyTemplate failed: ' . $e->getMessage());
+        }
     }
 }

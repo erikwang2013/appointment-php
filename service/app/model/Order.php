@@ -91,6 +91,11 @@ class Order extends Model
         return $this->hasOne(OrderVerification::class, 'order_id');
     }
 
+    public function refunds()
+    {
+        return $this->hasMany(OrderRefund::class, 'order_id');
+    }
+
     // ── 查询作用域 ──
 
     /**
