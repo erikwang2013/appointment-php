@@ -158,60 +158,36 @@ admin/
 ```
 service/
 ├── app/
-│   ├── api/                    # 公开API（无需认证）
-│   │   ├── AuthController          # 登录/注册/忘记密码/游客/身份切换
-│   │   ├── CaptchaController       # 短信验证码
-│   │   ├── WechatController        # 微信授权/登录/支付回调
-│   │   ├── CommonController        # 协议/关于/版本
-│   │   └── DocsController          # OpenAPI文档（hg/apidoc）
-│   ├── user/                   # 用户模块（需认证）
-│   │   ├── ProfileController       # 个人信息/密码/手机/注销
-│   │   ├── AddressController       # 地址CRUD
-│   │   ├── FavoriteController      # 收藏
-│   │   ├── FeedbackController      # 意见反馈
-│   │   └── ReferralController      # 推广/推荐
-│   ├── technician/             # 技师模块（需技师身份）
-│   │   ├── ProfileController       # 技师档案/入驻
-│   │   ├── ScheduleController      # 排班
-│   │   ├── OrderController         # 订单/核销
-│   │   ├── MemberController        # 会员/档案
-│   │   ├── EarningsController      # 收益/在途资金
-│   │   ├── WithdrawalController    # 提现
-│   │   └── AttendanceController    # 考勤
-│   ├── service/                # 服务模块
-│   │   ├── CategoryController      # 分类
-│   │   ├── ItemController          # 服务/产品列表与详情
-│   │   ├── SearchController        # 搜索
-│   │   └── StoreController         # 门店
-│   ├── order/                  # 订单模块（需认证）
-│   │   ├── CartController          # 购物车
-│   │   ├── OrderController         # 下单/列表/详情/取消
-│   │   ├── PaymentController       # 支付/退款
-│   │   ├── VerificationController  # 核销
-│   │   └── ReviewController        # 评价
-│   ├── marketing/              # 营销模块（需认证）
-│   │   ├── CouponController        # 优惠券
-│   │   ├── MemberCardController    # 会员卡
-│   │   ├── PointsController        # 积分
-│   │   └── GiftCardController      # 礼品卡
-│   ├── content/                # 内容模块
-│   │   ├── BannerController        # 轮播图
-│   │   ├── AnnouncementController  # 公告
-│   │   └── NotificationController  # 消息通知
-│   ├── lbs/                    # LBS模块
-│   │   └── LocationController      # 定位/城市/附近门店
+│   ├── api/                    # 公开API
+│   │   └── v1/controller/      #   v1版本控制器
+│   │       ├── AuthController      #   登录/注册/忘记密码/身份切换
+│   │       ├── CaptchaController   #   短信验证码
+│   │       ├── WechatController    #   微信授权/登录/支付回调
+│   │       ├── CommonController    #   协议/关于/版本
+│   │       └── DocsController      #   OpenAPI文档（hg/apidoc）
+│   ├── user/                   # 用户模块
+│   │   └── v1/controller/      #   v1版本控制器
+│   │       ├── ProfileController   #   个人信息/密码/手机/注销
+│   │       ├── AddressController   #   地址CRUD
+│   │       ├── FavoriteController  #   收藏
+│   │       ├── FeedbackController  #   意见反馈
+│   │       └── ReferralController  #   推广/推荐
+│   ├── technician/             # 技师模块（Phase 4）
+│   │   └── v1/controller/
+│   ├── order/                  # 订单模块（Phase 3）
+│   │   └── v1/controller/
+│   ├── marketing/              # 营销模块（Phase 5）
+│   │   └── v1/controller/
+│   ├── notification/           # 通知模块（Phase 6）
+│   │   └── v1/controller/
 │   ├── common/                 # 公共能力
-│   │   ├── SnowflakeService
-│   │   ├── HashidsService
-│   │   ├── EncryptionService
-│   │   ├── WechatPayService        # 微信支付（预留）
-│   │   ├── WechatAuthService       # 微信登录（预留）
-│   │   ├── SmsService              # 短信（预留）
-│   │   └── MapService              # 地图（预留）
+│   │   └── BaseController          # 统一响应/hashids加解密
 │   ├── middleware/             # 中间件
+│   │   ├── ApiVersion              # API版本控制（API-Version头）
 │   │   ├── Auth                    # JWT认证
-│   │   ├── TechnicianAuth          # 技师身份校验
-│   │   └── RateLimit               # 限流
+│   │   ├── Cors                    # 跨域
+│   │   ├── Security                # 安全检测
+│   │   └── TechnicianAuth          # 技师身份校验
 │   └── model/                  # 数据模型
 ├── config/                     # 配置文件
 ├── public/                     # 入口

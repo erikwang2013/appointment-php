@@ -111,10 +111,9 @@ API请求/响应中的ID通过 `erikwang2013/hashids` 编码，对外暴露hash�
 ### service/ 中间件
 
 ```
-公开API:  Cors → Security(31种检测) → RateLimit → Controller
+公开API:  Cors → Security(31种检测) → RateLimit → ApiVersion → Controller
 用户API:  Cors → Security → RateLimit → Auth(JWT) → Controller
-技师API:  Cors → Security → RateLimit → Auth → TechnicianAuth → Controller
-支付回调: Cors → Security → Controller
+技师API:  Cors → Security → RateLimit → ApiVersion → Auth → TechnicianAuth → Controller
 ```
 
 ### admin/ 中间件

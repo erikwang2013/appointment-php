@@ -5,7 +5,7 @@
 - **业务API** (service/): `http://localhost:8788` — 为小程序/APP提供业务接口
 - **管理后台API** (admin/): `http://localhost:8787` — 为管理后台Flutter Web提供接口
 - **认证方式**: Bearer Token (JWT), 请求头 `Authorization: Bearer <token>`
-- **版本控制**: admin API通过请求头 `API-Version: v1` 控制版本
+- **版本控制**: 通过请求头 `API-Version: v1` 控制API版本，不在URL中体现。默认v1
 - **ID编码**: 所有请求/响应中的ID字段使用hashids编码，对外隐藏真实数据库ID
 - **OpenAPI文档**: 使用 `hg/apidoc` 生成，管理端和客户端分开
 
