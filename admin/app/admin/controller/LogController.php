@@ -8,6 +8,7 @@ declare(strict_types=1);
 namespace app\admin\controller;
 
 use app\model\OperationLog;
+use app\model\OperationLogDetail;
 use support\Request;
 use support\Response;
 
@@ -75,5 +76,52 @@ class LogController extends BaseController
             'page'  => $page,
             'limit' => $limit,
         ]);
+    }
+
+    /**
+     * 操作日志详情
+     * 返回完整 input JSON、响应快照、before/after 变更快照
+     */
+    public function show(Request $request, string $hashid): Response
+    {
+        $id = $this->decodeId($hashid);
+        $log = OperationLog::with('user')->find($id);
+
+        if (!$log) {
+            return $this->fail('日志不存在', 404);
+        }
+
+        $data = $log->toArray();
+        $data['id'] = $hashid;
+        $data['user_name'] = $log->user->username ?? '系统';
+        unset($data['user']);
+
+        // 解析 input JSON
+        if (!empty($data['input'])) {
+            $inputDecoded = json_decode($data['input'], true);
+            $data['input_parsed'] = $inputDecoded ?: $data['input'];
+        } else {
+            $data['input_parsed'] = null;
+        }
+
+        // 查询操作日志详情表
+        $detail = OperationLogDetail::where('log_id', $id)->first();
+        if ($detail) {
+            $data['detail'] = [
+                'snapshot_before' => $detail->snapshot_before
+                    ? json_decode($detail->snapshot_before, true)
+                    : null,
+                'snapshot_after'  => $detail->snapshot_after
+                    ? json_decode($detail->snapshot_after, true)
+                    : null,
+                'response_body'   => $detail->response_body
+                    ? json_decode($detail->response_body, true)
+                    : null,
+            ];
+        } else {
+            $data['detail'] = null;
+        }
+
+        return $this->success($data);
     }
 }

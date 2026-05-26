@@ -11,10 +11,19 @@ use app\model\TechnicianProfile;
 use app\model\TechnicianSchedule;
 use app\model\TechnicianService;
 use app\model\TechnicianEarning;
+use app\model\TechnicianTierConfig;
 use app\model\User;
+use app\model\SystemConfig;
+use app\model\Service;
+use app\model\ServiceCategory;
 use support\Request;
 use support\Response;
 use Erikwang2013\PosterPhp\Poster;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
 
 class TechnicianController extends BaseController
 {
@@ -111,6 +120,12 @@ class TechnicianController extends BaseController
         if (isset($data['real_name']) && !empty($data['real_name'])) {
             $data['real_name'] = mb_substr($data['real_name'], 0, 1) . '**';
         }
+
+        // 技师等级评估
+        $tierData = $this->getTechnicianTier($profile);
+        $data['current_tier'] = $tierData['current'];
+        $data['next_tier'] = $tierData['next'];
+        $data['tier_progress'] = $tierData['progress'];
 
         return $this->success($this->encodeIds($data));
     }
@@ -281,6 +296,27 @@ class TechnicianController extends BaseController
         if ($request->method() === 'POST') {
             // 批量设置: { service_ids: [...] }
             $serviceIds = $request->input('service_ids', []);
+
+            // 性别限制校验
+            $restrictions = $this->getGenderRestrictions();
+            $gender = (int) $profile->gender;
+            $genderKey = match ($gender) { 1 => 'male', 2 => 'female', default => '' };
+            $restrictedIds = $restrictions[$genderKey] ?? [];
+
+            if (!empty($restrictedIds) && !empty($serviceIds)) {
+                $conflictIds = array_intersect(
+                    array_map('strval', $serviceIds),
+                    array_map('strval', $restrictedIds)
+                );
+                if (!empty($conflictIds)) {
+                    $conflictServices = Service::whereIn('id', $conflictIds)->pluck('name')->toArray();
+                    return $this->fail(
+                        '以下服务因性别限制无法分配给该技师: ' . implode('、', $conflictServices),
+                        422
+                    );
+                }
+            }
+
             // 清除旧的，写入新的
             TechnicianService::where('technician_id', $id)->delete();
             foreach ($serviceIds as $serviceId) {
@@ -301,5 +337,355 @@ class TechnicianController extends BaseController
             ->map(fn($ts) => $this->encodeIds($ts->toArray()));
 
         return $this->success(['list' => $list]);
+    }
+
+    // ────────────────────────────────────────────────
+    // 2. 技师性别限制 — 服务分配校验
+    // ────────────────────────────────────────────────
+
+    /**
+     * 获取某技师的服务限制列表
+     * 返回该技师因性别而受限的服务项目
+     */
+    public function serviceRestrictions(Request $request, string $hashid): Response
+    {
+        $id = $this->decodeId($hashid);
+        $profile = TechnicianProfile::find($id);
+        if (!$profile) {
+            return $this->fail('技师不存在', 404);
+        }
+
+        // 获取全局性别限制配置
+        $restrictions = $this->getGenderRestrictions();
+        $gender = (int) $profile->gender;
+
+        // 性别映射: 0=未知 1=男 2=女
+        $genderKey = match ($gender) {
+            1 => 'male',
+            2 => 'female',
+            default => 'unknown',
+        };
+
+        $restrictedServiceIds = $restrictions[$genderKey] ?? [];
+        $restrictedServices = [];
+        if (!empty($restrictedServiceIds)) {
+            $restrictedServices = Service::whereIn('id', $restrictedServiceIds)
+                ->with('category')
+                ->get()
+                ->map(fn($s) => $this->encodeIds($s->toArray()));
+        }
+
+        return $this->success([
+            'technician_id'       => $hashid,
+            'gender'              => $gender,
+            'gender_label'        => match ($gender) { 1 => '男', 2 => '女', default => '未知' },
+            'restricted_services' => $restrictedServices,
+        ]);
+    }
+
+    /**
+     * 管理员更新全局性别限制配置
+     * 存储到 erik_system_config，key: gender_service_restrictions
+     * 格式: {"male": ["svc_id1", "svc_id2"], "female": ["svc_id3"]}
+     */
+    public function updateRestrictions(Request $request): Response
+    {
+        $male   = $request->input('male', []);
+        $female = $request->input('female', []);
+
+        $value = json_encode([
+            'male'   => $male,
+            'female' => $female,
+        ], JSON_UNESCAPED_UNICODE);
+
+        $config = SystemConfig::where('group', 'technician')
+            ->where('key', 'gender_service_restrictions')
+            ->first();
+
+        if ($config) {
+            $config->value = $value;
+            $config->save();
+        } else {
+            $config = new SystemConfig();
+            $config->id = $this->generateId();
+            $config->group = 'technician';
+            $config->key = 'gender_service_restrictions';
+            $config->value = $value;
+            $config->type = 'json';
+            $config->description = '技师性别服务限制配置';
+            $config->save();
+        }
+
+        return $this->success($request->all(), '性别限制更新成功');
+    }
+
+    /**
+     * 重写 services() 的 POST 逻辑, 添加性别限制校验
+     * 用新方法覆盖原有 POST 块 — 保持 GET 不变
+     */
+
+    // ────────────────────────────────────────────────
+    // 3. 排班导出
+    // ────────────────────────────────────────────────
+
+    /**
+     * 导出技师排班为 Excel
+     * 参数: date_start, date_end, technician_ids(可选)
+     * 列: 技师姓名, 日期, 时间段, 状态
+     */
+    public function exportSchedules(Request $request): Response
+    {
+        $dateStart = $request->input('date_start', date('Y-m-01'));
+        $dateEnd   = $request->input('date_end', date('Y-m-t'));
+        $techIds   = $request->input('technician_ids', []);
+
+        $query = TechnicianSchedule::with('technician')
+            ->where('date', '>=', $dateStart)
+            ->where('date', '<=', $dateEnd);
+
+        if (!empty($techIds)) {
+            $query->whereIn('technician_id', (array) $techIds);
+        }
+
+        $schedules = $query->orderBy('date')->orderBy('technician_id')->get();
+
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('技师排班');
+
+        // 表头
+        $headers = ['技师姓名', '日期', '时间段', '状态'];
+        $headerStyle = [
+            'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
+            'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '1677FF']],
+            'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
+            'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN]],
+        ];
+        $dataStyle = [
+            'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN]],
+        ];
+
+        $colIndex = 'A';
+        foreach ($headers as $header) {
+            $cell = $sheet->getCell($colIndex . '1');
+            $cell->setValue($header);
+            $sheet->getStyle($colIndex . '1')->applyFromArray($headerStyle);
+            $sheet->getColumnDimension($colIndex)->setAutoSize(true);
+            $colIndex++;
+        }
+
+        $row = 2;
+        foreach ($schedules as $s) {
+            $techName = $s->technician->real_name ?? ('技师#' . $s->technician_id);
+            $timeSlots = is_array($s->time_slots) ? implode(', ', $s->time_slots) : $s->time_slots;
+            $statusLabel = match ((int) $s->status) {
+                1 => '正常',
+                2 => '休息',
+                3 => '请假',
+                default => '未知',
+            };
+
+            $sheet->getCell('A' . $row)->setValue($techName);
+            $sheet->getCell('B' . $row)->setValue($s->date);
+            $sheet->getCell('C' . $row)->setValue($timeSlots);
+            $sheet->getCell('D' . $row)->setValue($statusLabel);
+
+            $sheet->getStyle('A' . $row . ':D' . $row)->applyFromArray($dataStyle);
+            $row++;
+        }
+
+        $sheet->freezePane('A2');
+
+        $filename = 'schedules_' . date('YmdHis') . '.xlsx';
+        $tmpFile = runtime_path() . '/tmp/' . $filename;
+
+        $dir = dirname($tmpFile);
+        if (!is_dir($dir)) {
+            mkdir($dir, 0755, true);
+        }
+
+        $writer = new Xlsx($spreadsheet);
+        $writer->save($tmpFile);
+
+        return response()->download($tmpFile, $filename);
+    }
+
+    /**
+     * 导出考勤记录
+     * 列: 技师姓名, 日期, 签到时间, 签退时间, 考勤状态, 卫生照片, 备注
+     * 考勤数据从 erik_technician_schedule 扩展字段中提取
+     */
+    public function exportAttendance(Request $request): Response
+    {
+        $dateStart = $request->input('date_start', date('Y-m-01'));
+        $dateEnd   = $request->input('date_end', date('Y-m-t'));
+        $techIds   = $request->input('technician_ids', []);
+
+        $query = TechnicianSchedule::with('technician')
+            ->where('date', '>=', $dateStart)
+            ->where('date', '<=', $dateEnd);
+
+        if (!empty($techIds)) {
+            $query->whereIn('technician_id', (array) $techIds);
+        }
+
+        $schedules = $query->orderBy('date')->orderBy('technician_id')->get();
+
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('技师考勤');
+
+        $headers = ['技师姓名', '日期', '签到时间', '签退时间', '考勤状态', '卫生照片', '备注'];
+        $headerStyle = [
+            'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
+            'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '1677FF']],
+            'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
+            'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN]],
+        ];
+        $dataStyle = [
+            'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN]],
+        ];
+
+        $colIndex = 'A';
+        foreach ($headers as $header) {
+            $cell = $sheet->getCell($colIndex . '1');
+            $cell->setValue($header);
+            $sheet->getStyle($colIndex . '1')->applyFromArray($headerStyle);
+            $sheet->getColumnDimension($colIndex)->setAutoSize(true);
+            $colIndex++;
+        }
+
+        $row = 2;
+        foreach ($schedules as $s) {
+            $techName = $s->technician->real_name ?? ('技师#' . $s->technician_id);
+            $checkIn  = $s->check_in_at ?? '';
+            $checkOut = $s->check_out_at ?? '';
+            $statusLabel = match ((int) $s->status) {
+                1 => '出勤',
+                2 => '休息',
+                3 => '请假',
+                4 => '迟到',
+                5 => '早退',
+                default => '未知',
+            };
+            $hygienePhoto = $s->hygiene_photo ?? '';
+            $remark = $s->remark ?? '';
+
+            $sheet->getCell('A' . $row)->setValue($techName);
+            $sheet->getCell('B' . $row)->setValue($s->date);
+            $sheet->getCell('C' . $row)->setValue($checkIn);
+            $sheet->getCell('D' . $row)->setValue($checkOut);
+            $sheet->getCell('E' . $row)->setValue($statusLabel);
+            $sheet->getCell('F' . $row)->setValue($hygienePhoto);
+            $sheet->getCell('G' . $row)->setValue($remark);
+
+            $sheet->getStyle('A' . $row . ':G' . $row)->applyFromArray($dataStyle);
+            $row++;
+        }
+
+        $sheet->freezePane('A2');
+
+        $filename = 'attendance_' . date('YmdHis') . '.xlsx';
+        $tmpFile = runtime_path() . '/tmp/' . $filename;
+
+        $dir = dirname($tmpFile);
+        if (!is_dir($dir)) {
+            mkdir($dir, 0755, true);
+        }
+
+        $writer = new Xlsx($spreadsheet);
+        $writer->save($tmpFile);
+
+        return response()->download($tmpFile, $filename);
+    }
+
+    // ────────────────────────────────────────────────
+    // 性别限制辅助方法
+    // ────────────────────────────────────────────────
+
+    /**
+     * 从 erik_system_config 获取性别服务限制
+     */
+    private function getGenderRestrictions(): array
+    {
+        $config = SystemConfig::where('group', 'technician')
+            ->where('key', 'gender_service_restrictions')
+            ->first();
+
+        if ($config && !empty($config->value)) {
+            $data = json_decode($config->value, true);
+            if (is_array($data)) {
+                return $data;
+            }
+        }
+
+        return ['male' => [], 'female' => []];
+    }
+
+    /**
+     * 计算技师当前等级及升级进度
+     */
+    private function getTechnicianTier(TechnicianProfile $profile): array
+    {
+        $tiers = TechnicianTierConfig::orderBy('sort', 'desc')->get();
+
+        $currentTier = null;
+        $nextTier = null;
+
+        // 从高到低匹配当前等级
+        foreach ($tiers as $tier) {
+            if ($profile->order_count >= $tier->min_orders
+                && (float) $profile->rating >= (float) $tier->min_rating
+            ) {
+                $currentTier = $tier;
+                break;
+            }
+        }
+
+        // 如果没有匹配到，设为最低等级
+        if (!$currentTier && $tiers->isNotEmpty()) {
+            $currentTier = $tiers->last();
+        }
+
+        // 查找下一等级
+        $nextTierSlugs = ['junior' => 'senior', 'senior' => 'expert'];
+        if ($currentTier && isset($nextTierSlugs[$currentTier->slug])) {
+            $nextSlug = $nextTierSlugs[$currentTier->slug];
+            $nextTier = $tiers->firstWhere('slug', $nextSlug);
+        }
+
+        // 计算升级进度
+        $progress = null;
+        if ($currentTier && $nextTier) {
+            $orderProgress = $nextTier->min_orders > 0
+                ? min(100, round(($profile->order_count / $nextTier->min_orders) * 100, 1))
+                : 100;
+            $ratingProgress = $nextTier->min_rating > 0
+                ? min(100, round(((float) $profile->rating / $nextTier->min_rating) * 100, 1))
+                : 100;
+            $progress = [
+                'orders_needed'    => max(0, $nextTier->min_orders - $profile->order_count),
+                'rating_needed'    => max(0, round((float) $nextTier->min_rating - (float) $profile->rating, 1)),
+                'order_progress'   => $orderProgress,
+                'rating_progress'  => $ratingProgress,
+                'overall_progress' => round(($orderProgress + $ratingProgress) / 2, 1),
+            ];
+        }
+
+        return [
+            'current'  => $currentTier ? [
+                'name'              => $currentTier->name,
+                'slug'              => $currentTier->slug,
+                'commission_rate'   => (float) $currentTier->commission_rate,
+                'price_multiplier'  => (float) $currentTier->price_multiplier,
+            ] : null,
+            'next'     => $nextTier ? [
+                'name'              => $nextTier->name,
+                'slug'              => $nextTier->slug,
+                'commission_rate'   => (float) $nextTier->commission_rate,
+                'price_multiplier'  => (float) $nextTier->price_multiplier,
+            ] : null,
+            'progress' => $progress,
+        ];
     }
 }

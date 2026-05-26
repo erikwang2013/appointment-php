@@ -18,6 +18,9 @@ use app\model\AdminUser;
 use app\model\OperationLog;
 use app\model\AdminRole;
 use app\model\SystemConfig;
+use app\model\User;
+use app\model\Order;
+use app\model\TechnicianProfile;
 use support\Request;
 
 class ExportController extends BaseController
@@ -212,6 +215,288 @@ class ExportController extends BaseController
         $html .= '</body></html>';
 
         return $html;
+    }
+
+    /**
+     * 自定义导出
+     * 根据动态参数构建查询并导出 Excel
+     * @Apidoc\Param("table", type="string", require=true, desc="数据表: users/orders/technicians/finance")
+     * @Apidoc\Param("columns", type="array", require=true, desc="导出字段名列表")
+     * @Apidoc\Param("date_start", type="string", require=false, desc="开始日期")
+     * @Apidoc\Param("date_end", type="string", require=false, desc="结束日期")
+     * @Apidoc\Param("filters", type="object", require=false, desc="额外筛选条件")
+     * @Apidoc\Param("title", type="string", require=false, desc="导出标题", default="自定义导出")
+     */
+    public function custom(Request $request): Response
+    {
+        $table     = $request->input('table', 'users');
+        $columns   = $request->input('columns', []);
+        $dateStart = $request->input('date_start', '');
+        $dateEnd   = $request->input('date_end', '');
+        $filters   = $request->input('filters', []);
+        $title     = $request->input('title', '自定义导出');
+
+        if (empty($columns)) {
+            return $this->fail('columns 参数不能为空', 422);
+        }
+
+        $exportColumns = $this->getCustomExportColumns($table);
+        if (empty($exportColumns)) {
+            return $this->fail('不支持的表名: ' . $table, 422);
+        }
+
+        // 动态构建查询
+        $data = $this->fetchCustomExportData($table, $columns, $dateStart, $dateEnd, $filters);
+        $sensitiveFields = $this->getCustomSensitiveFields($table);
+
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle($title);
+
+        $headerStyle = [
+            'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
+            'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '1677FF']],
+            'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
+            'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN]],
+        ];
+
+        $dataStyle = [
+            'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN]],
+        ];
+
+        $colIndex = 'A';
+        foreach ($columns as $col) {
+            $label = $exportColumns[$col] ?? $col;
+            $cell = $sheet->getCell($colIndex . '1');
+            $cell->setValue($label);
+            $sheet->getStyle($colIndex . '1')->applyFromArray($headerStyle);
+            $sheet->getColumnDimension($colIndex)->setAutoSize(true);
+            $colIndex++;
+        }
+
+        $row = 2;
+        foreach ($data as $item) {
+            $colIndex = 'A';
+            foreach ($columns as $col) {
+                $value = $item[$col] ?? '';
+
+                // 敏感字段自动脱敏
+                if (in_array($col, $sensitiveFields) && !empty($value)) {
+                    $decrypted = EncryptionService::decrypt((string) $value);
+                    if ($col === 'phone') {
+                        $value = EncryptionService::maskPhone($decrypted);
+                    } elseif ($col === 'email') {
+                        $value = EncryptionService::maskEmail($decrypted);
+                    } else {
+                        $value = str_repeat('*', 8);
+                    }
+                }
+
+                $sheet->getCell($colIndex . $row)->setValue($value);
+                $sheet->getStyle($colIndex . $row)->applyFromArray($dataStyle);
+                $colIndex++;
+            }
+            $row++;
+        }
+
+        $sheet->freezePane('A2');
+        $sheet->setAutoFilter($sheet->calculateWorksheetDimension());
+
+        $filename = sprintf('custom_%s_%s.xlsx', $table, date('YmdHis'));
+        $tmpFile = runtime_path() . '/tmp/' . $filename;
+
+        $dir = dirname($tmpFile);
+        if (!is_dir($dir)) {
+            mkdir($dir, 0755, true);
+        }
+
+        $writer = new Xlsx($spreadsheet);
+        $writer->save($tmpFile);
+
+        return response()->download($tmpFile, $filename);
+    }
+
+    /**
+     * 调度定期报表导出
+     * 配置保存到 erik_system_config
+     * @Apidoc\Param("type", type="string", require=true, desc="报表类型")
+     * @Apidoc\Param("frequency", type="string", require=true, desc="频率: daily/weekly/monthly")
+     * @Apidoc\Param("recipients", type="array", require=true, desc="接收人邮箱列表")
+     * @Apidoc\Param("format", type="string", require=false, desc="格式: excel/pdf", default="excel")
+     */
+    public function scheduled(Request $request): Response
+    {
+        $type       = $request->input('type', '');
+        $frequency  = $request->input('frequency', 'daily');
+        $recipients = $request->input('recipients', []);
+        $format     = $request->input('format', 'excel');
+
+        $validator = validator($request->all(), [
+            'type'       => 'required|string',
+            'frequency'  => 'required|string|in:daily,weekly,monthly',
+            'recipients' => 'required|array',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->fail($validator->errors()->first(), 422);
+        }
+
+        // 验证邮箱格式
+        foreach ($recipients as $email) {
+            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                return $this->fail("无效的邮箱地址: {$email}", 422);
+            }
+        }
+
+        $scheduledReport = [
+            'id'         => (string) $this->generateId(),
+            'type'       => $type,
+            'frequency'  => $frequency,
+            'recipients' => $recipients,
+            'format'     => $format,
+            'status'     => 'active',
+            'created_at' => date('Y-m-d H:i:s'),
+            'updated_at' => date('Y-m-d H:i:s'),
+        ];
+
+        // 读取已有调度配置
+        $config = SystemConfig::where('group', 'export')
+            ->where('key', 'scheduled_reports')
+            ->first();
+
+        $reports = [];
+        if ($config && !empty($config->value)) {
+            $reports = json_decode($config->value, true) ?: [];
+        }
+
+        $reports[] = $scheduledReport;
+
+        if ($config) {
+            $config->value = json_encode($reports, JSON_UNESCAPED_UNICODE);
+            $config->save();
+        } else {
+            $config = new SystemConfig();
+            $config->id = $this->generateId();
+            $config->group = 'export';
+            $config->key = 'scheduled_reports';
+            $config->value = json_encode($reports, JSON_UNESCAPED_UNICODE);
+            $config->type = 'json';
+            $config->description = '定期报表调度配置';
+            $config->save();
+        }
+
+        return $this->success($scheduledReport, '报表调度配置保存成功');
+    }
+
+    /**
+     * 自定义导出的字段映射
+     */
+    private function getCustomExportColumns(string $table): array
+    {
+        return match ($table) {
+            'users' => [
+                'id' => '用户ID', 'phone' => '手机号', 'nickname' => '昵称',
+                'real_name' => '真实姓名', 'gender' => '性别', 'status' => '状态',
+                'region' => '地区', 'last_login_at' => '最后登录', 'created_at' => '注册时间',
+            ],
+            'orders' => [
+                'id' => '订单ID', 'order_no' => '订单号', 'user_id' => '用户ID',
+                'total_amount' => '订单金额', 'status' => '订单状态',
+                'pay_type' => '支付方式', 'created_at' => '下单时间',
+            ],
+            'technicians' => [
+                'id' => '技师ID', 'real_name' => '姓名', 'gender' => '性别',
+                'rating' => '评分', 'order_count' => '接单数', 'favorite_count' => '收藏数',
+                'status' => '状态', 'created_at' => '注册时间',
+            ],
+            'finance' => [
+                'id' => 'ID', 'order_id' => '订单ID', 'amount' => '金额',
+                'type' => '类型', 'pay_method' => '支付方式', 'status' => '状态',
+                'created_at' => '交易时间',
+            ],
+            default => $this->getExportColumns($table),
+        };
+    }
+
+    /**
+     * 自定义导出的敏感字段
+     */
+    private function getCustomSensitiveFields(string $table): array
+    {
+        return match ($table) {
+            'users' => ['phone', 'real_name', 'id_card'],
+            'orders' => ['phone'],
+            'technicians' => ['real_name', 'id_card'],
+            'finance' => ['phone', 'id_card'],
+            default => [],
+        };
+    }
+
+    /**
+     * 自定义导出的数据查询
+     */
+    private function fetchCustomExportData(string $table, array $columns, string $dateStart, string $dateEnd, array $filters): array
+    {
+        switch ($table) {
+            case 'users':
+                $query = User::query();
+                if ($dateStart) {
+                    $query->whereDate('created_at', '>=', $dateStart);
+                }
+                if ($dateEnd) {
+                    $query->whereDate('created_at', '<=', $dateEnd);
+                }
+                if (isset($filters['status']) && $filters['status'] !== '') {
+                    $query->where('status', (int) $filters['status']);
+                }
+                if (!empty($filters['keyword'])) {
+                    $query->where(function ($q) use ($filters) {
+                        $q->where('nickname', 'like', "%{$filters['keyword']}%")
+                          ->orWhere('phone', 'like', "%{$filters['keyword']}%");
+                    });
+                }
+                return $query->limit(10000)->get()->toArray();
+
+            case 'orders':
+                $query = Order::query();
+                if ($dateStart) {
+                    $query->whereDate('created_at', '>=', $dateStart);
+                }
+                if ($dateEnd) {
+                    $query->whereDate('created_at', '<=', $dateEnd);
+                }
+                if (isset($filters['status']) && $filters['status'] !== '') {
+                    $query->where('status', (int) $filters['status']);
+                }
+                return $query->limit(10000)->get()->toArray();
+
+            case 'technicians':
+                $query = TechnicianProfile::query();
+                if ($dateStart) {
+                    $query->whereDate('created_at', '>=', $dateStart);
+                }
+                if ($dateEnd) {
+                    $query->whereDate('created_at', '<=', $dateEnd);
+                }
+                if (isset($filters['status']) && $filters['status'] !== '') {
+                    $query->where('status', (int) $filters['status']);
+                }
+                return $query->limit(10000)->get()->toArray();
+
+            case 'finance':
+                // 财务数据从订单支付表读取
+                $query = \app\model\OrderPayment::query();
+                if ($dateStart) {
+                    $query->whereDate('created_at', '>=', $dateStart);
+                }
+                if ($dateEnd) {
+                    $query->whereDate('created_at', '<=', $dateEnd);
+                }
+                return $query->limit(10000)->get()->toArray();
+
+            default:
+                return $this->fetchExportData($table, $columns, $filters);
+        }
     }
 
     private function fetchExportData(string $table, array $columns, array $conditions): array
