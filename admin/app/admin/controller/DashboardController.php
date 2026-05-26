@@ -10,6 +10,9 @@ namespace app\admin\controller;
 use app\model\AdminUser;
 use app\common\EncryptionService;
 use app\model\OperationLog;
+use app\model\Order;
+use app\model\TechnicianProfile;
+use app\model\TechnicianWithdrawal;
 use support\Redis;
 use support\Request;
 use support\Response;
@@ -57,6 +60,12 @@ class DashboardController extends BaseController
         $todayActive = AdminUser::whereDate('last_login_at', $today)->count();
         $todayLogs = OperationLog::whereDate('created_at', $today)->count();
 
+        // Phase 7: 业务统计
+        $todayAppointments = Order::where('order_type', 'appointment')
+            ->whereDate('created_at', $today)->count();
+        $pendingWithdrawals = TechnicianWithdrawal::where('status', 'pending')->count();
+        $newTechnicians = TechnicianProfile::where('status', 0)->count();
+
         return [
             [
                 'label' => '用户总数',
@@ -83,6 +92,24 @@ class DashboardController extends BaseController
                 'icon' => 'description',
                 'color' => '#722ED1',
             ],
+            [
+                'label' => '今日预约',
+                'value' => (string) $todayAppointments,
+                'icon' => 'event',
+                'color' => '#EB2F96',
+            ],
+            [
+                'label' => '待审核提现',
+                'value' => (string) $pendingWithdrawals,
+                'icon' => 'account_balance_wallet',
+                'color' => '#FA541C',
+            ],
+            [
+                'label' => '待审技师',
+                'value' => (string) $newTechnicians,
+                'icon' => 'engineering',
+                'color' => '#13C2C2',
+            ],
         ];
     }
 
@@ -91,6 +118,9 @@ class DashboardController extends BaseController
         $dates = [];
         $userGrowth = [];
         $logCounts = [];
+        $appointmentsByDay = [];
+        $revenueByDay = [];
+        $newUsersByDay = [];
 
         // 生成日期序列
         for ($i = 29; $i >= 0; $i--) {
@@ -108,6 +138,7 @@ class DashboardController extends BaseController
         foreach ($dates as $date) {
             $cumulative += $dailyNewUsers[$date] ?? 0;
             $userGrowth[] = $cumulative;
+            $newUsersByDay[] = $dailyNewUsers[$date] ?? 0;
         }
 
         // 一次查询获取操作日志每日数量
@@ -121,11 +152,38 @@ class DashboardController extends BaseController
             $logCounts[] = $dailyLogs[$date] ?? 0;
         }
 
+        // Phase 7: 每日预约趋势
+        $dailyAppointments = Order::where('order_type', 'appointment')
+            ->whereDate('created_at', '>=', $startOfRange)
+            ->selectRaw('DATE(created_at) as date, COUNT(*) as count')
+            ->groupBy('date')
+            ->pluck('count', 'date')
+            ->toArray();
+
+        foreach ($dates as $date) {
+            $appointmentsByDay[] = $dailyAppointments[$date] ?? 0;
+        }
+
+        // Phase 7: 每日收入趋势（已支付金额）
+        $dailyRevenue = Order::whereIn('status', ['paid', 'confirmed', 'serving', 'completed'])
+            ->whereDate('created_at', '>=', $startOfRange)
+            ->selectRaw('DATE(created_at) as date, SUM(paid_amount) as total')
+            ->groupBy('date')
+            ->pluck('total', 'date')
+            ->toArray();
+
+        foreach ($dates as $date) {
+            $revenueByDay[] = round((float) ($dailyRevenue[$date] ?? 0), 2);
+        }
+
         return [
             'dates' => $dates,
             'series' => [
                 ['name' => '累计用户', 'data' => $userGrowth, 'color' => '#1677FF'],
                 ['name' => '操作日志', 'data' => $logCounts, 'color' => '#52C41A'],
+                ['name' => '每日预约', 'data' => $appointmentsByDay, 'color' => '#EB2F96'],
+                ['name' => '每日收入', 'data' => $revenueByDay, 'color' => '#13C2C2'],
+                ['name' => '每日新用户', 'data' => $newUsersByDay, 'color' => '#2F54EB'],
             ],
         ];
     }
