@@ -120,7 +120,9 @@ class ProfileController extends BaseController
             return $this->error('用户不存在', 404);
         }
 
-        if (!password_verify($oldPassword, $user->password)) {
+        // SMS注册用户没有旧密码，跳过旧密码验证
+        $hasNoPassword = empty($user->password);
+        if (!$hasNoPassword && !password_verify($oldPassword, $user->password)) {
             return $this->error('原密码错误');
         }
 
@@ -204,7 +206,8 @@ class ProfileController extends BaseController
             return $this->error('用户不存在', 404);
         }
 
-        if (!password_verify($password, $user->password)) {
+        $hasNoPassword = empty($user->password);
+        if (!$hasNoPassword && !password_verify($password, $user->password)) {
             return $this->error('密码错误');
         }
 
