@@ -144,6 +144,7 @@ class QueueController extends BaseController
      */
     public function storeQueue(string $storeId, Request $request)
     {
+        $storeId = $this->decodeId($storeId);
         if (empty($storeId)) {
             return $this->error('store_id is required');
         }
