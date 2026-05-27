@@ -75,6 +75,8 @@ class ExamController extends BaseController
      */
     public function start(string $examId, Request $request)
     {
+        $examId = $this->decodeId($examId);
+        $examId = (string)$examId;
         $technicianId = $request->user_id;
 
         $exam = Exam::where('status', Exam::STATUS_PUBLISHED)->find($examId);
@@ -143,6 +145,7 @@ class ExamController extends BaseController
      */
     public function submit(string $attemptId, Request $request)
     {
+        $attemptId = $this->decodeId($attemptId);
         $technicianId = $request->user_id;
         $answers      = $request->input('answers', []);
 
