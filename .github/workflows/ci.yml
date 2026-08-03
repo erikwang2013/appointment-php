@@ -79,11 +79,11 @@ jobs:
 
       - name: PHPStan analysis
         working-directory: ${{ matrix.app }}
-        run: php vendor/bin/phpstan analyse --level=5 app/ 2>&1 || true
+        run: php vendor/bin/phpstan analyse --level=5 app/ 2>&1
 
       - name: PHP-CS-Fixer check
         working-directory: ${{ matrix.app }}
-        run: php vendor/bin/php-cs-fixer fix --dry-run --diff 2>&1 || true
+        run: php vendor/bin/php-cs-fixer fix --dry-run --diff 2>&1
 
   flutter:
     name: Flutter analyze

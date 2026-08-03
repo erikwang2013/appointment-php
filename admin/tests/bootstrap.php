@@ -19,6 +19,10 @@ if (class_exists('Dotenv\Dotenv') && file_exists(__DIR__ . '/../.env')) {
     }
 }
 
+// 测试环境强制使用 file 存储 — 必须放在 .env 加载之后、配置加载之前
+$_ENV['POSTER_CAPTCHA_STORAGE'] = 'file';
+putenv('POSTER_CAPTCHA_STORAGE=file');
+
 // 加载所有配置
 \Webman\Config::clear();
 support\App::loadAllConfig(['route']);

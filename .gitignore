@@ -21,3 +21,7 @@
 ruvector.db
 .superpowers/state/target
 .agents
+skills-lock.json
+.php-cs-fixer.cache
+*.backup
+*.bak
