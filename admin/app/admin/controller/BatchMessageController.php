@@ -11,6 +11,7 @@ use app\model\Notification;
 use app\model\User;
 use app\model\Order;
 use support\Request;
+use support\Log;
 use support\Response;
 
 class BatchMessageController extends BaseController
@@ -137,8 +138,7 @@ class BatchMessageController extends BaseController
             $created++;
         }
 
-        // TODO: 接入实际SMS/推送网关
-        // SmsGateway::sendBatch($userIds, $title, $content);
+        $this->dispatchNotifications($userIds, $type, $title, $content, $batchId);
 
         return $this->success([
             'batch_id'      => $batchId,

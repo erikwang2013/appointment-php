@@ -81,8 +81,8 @@ class ReferralController extends BaseController
         $appUrl = getenv('APP_URL') ?: 'https://appointment.example.com';
         $inviteUrl = $appUrl . '/invite?code=' . $user->referral_code;
 
-        // TODO: 集成二维码生成服务生成真实二维码图片
-        // 当前返回推广码和邀请链接，由前端生成二维码
+        // 前端根据 invite_url 自行生成二维码（推荐做法，无需服务端生成）
+        // 如需服务端生成: composer require endroid/qr-code
 
         return $this->success([
             'referral_code' => $user->referral_code,

@@ -59,8 +59,9 @@ class GiftCardController extends BaseController
             $giftCard->used_at = date('Y-m-d H:i:s');
             $giftCard->save();
 
-            // 如果是现金类型，可在此处增加用户余额
-            // TODO: 对接钱包/余额系统
+            // 现金类型: 需增加钱包余额系统后启用
+            // 所需 schema: erik_user 添加 balance DECIMAL(10,2), 创建 erik_user_balance_log 表
+            // 实现后: $user->increment("balance", $giftCard->amount)
 
             Db::commit();
 

@@ -91,6 +91,25 @@ docker-compose up -d
 | [设计规范](docs/superpowers/specs/2026-05-26-appointment-system-design.md) | 系统设计规范 |
 | [实现计划](docs/superpowers/plans/2026-05-26-appointment-system-plan.md) | 分阶段实现计划 |
 
+## 支持项目 / Support
+
+如果这个项目对你有帮助，欢迎支持！感谢你的鼓励 :heart:
+
+If this project helps you, your support is welcome and appreciated!
+
+<table>
+  <tr>
+    <td align="center" width="50%">
+      <img src="docs/weixinpay.png" alt="微信支付 / WeChat Pay" width="130" height="130"><br>
+      <b>微信支付</b><br>WeChat Pay
+    </td>
+    <td align="center" width="50%">
+      <img src="docs/alipay.png" alt="支付宝 / Alipay" width="130" height="130"><br>
+      <b>支付宝</b><br>Alipay
+    </td>
+  </tr>
+</table>
+
 ## 版权
 
 Copyright (c) 2026 erik <erik@erik.xyz> — https://erik.xyz

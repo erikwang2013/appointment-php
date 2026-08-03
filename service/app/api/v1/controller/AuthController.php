@@ -6,10 +6,13 @@ declare(strict_types=1);
 namespace app\api\v1\controller;
 
 use app\common\BaseController;
+use app\model\Coupon;
 use app\model\User;
+use app\model\UserCoupon;
 use app\model\UserReferral;
 use ErikJwt\JWTFactory;
 use support\Db;
+use support\Log;
 use support\Redis;
 use Webman\Http\Request;
 
@@ -99,8 +102,7 @@ class AuthController extends BaseController
                 ]);
             }
 
-            // 自动发放新用户优惠券（TODO: Phase 5 实现）
-            // $this->issueNewUserCoupon($userId);
+            $this->issueNewUserCoupon($userId);
 
             // 清除验证码
             Redis::del("sms_code:{$phone}");
@@ -393,6 +395,56 @@ class AuthController extends BaseController
     /**
      * 手机号脱敏：保留前3后4，中间用****代替
      */
+    /**
+     * 自动发放新用户优惠券
+     * 查找 type='new_user' 的有效优惠券模板，为用户发放一张
+     * 如果未配置新用户优惠券，静默跳过不影响注册流程
+     */
+    private function issueNewUserCoupon(int $userId): void
+    {
+        try {
+            $newUserCoupon = Coupon::where('type', 'new_user')
+                ->where('status', 1)
+                ->where('remain_qty', '>', 0)
+                ->first();
+
+            if (!$newUserCoupon) {
+                return;
+            }
+
+            $alreadyIssued = UserCoupon::where('user_id', $userId)
+                ->where('coupon_id', $newUserCoupon->id)
+                ->exists();
+
+            if ($alreadyIssued) {
+                return;
+            }
+
+            Db::beginTransaction();
+            try {
+                $newUserCoupon->decrement('remain_qty');
+
+                UserCoupon::create([
+                    'id'          => UserCoupon::generateId(),
+                    'user_id'     => $userId,
+                    'coupon_id'   => $newUserCoupon->id,
+                    'status'      => 'available',
+                    'received_at' => date('Y-m-d H:i:s'),
+                ]);
+
+                Db::commit();
+            } catch (\Throwable $e) {
+                Db::rollBack();
+                Log::warning('[NewUser] 优惠券发放失败: ' . $e->getMessage(), [
+                    'user_id' => $userId,
+                    'coupon_id' => $newUserCoupon->id,
+                ]);
+            }
+        } catch (\Throwable $e) {
+            Log::warning('[NewUser] 优惠券查询失败: ' . $e->getMessage());
+        }
+    }
+
     private function maskPhone(string $phone): string
     {
         if (strlen($phone) >= 7) {

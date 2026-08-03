@@ -6,6 +6,7 @@ declare(strict_types=1);
 namespace app\api\v1\controller;
 
 use app\common\BaseController;
+use app\common\SmsService;
 use support\Redis;
 use Webman\Http\Request;
 
@@ -46,9 +47,15 @@ class CaptchaController extends BaseController
         // 设置频率限制，60秒
         Redis::setex($rateLimitKey, 60, '1');
 
-        // TODO: 调用实际短信发送服务
-        // 当前为占位实现，将验证码记录到日志中
-        error_log("[SMS] 验证码发送至 {$phone}: {$code}");
+        // 调用短信服务发送验证码
+        $smsService = new SmsService();
+        $result = $smsService->send($phone, $code);
+
+        if (!$result['success']) {
+            // 短信发送失败时保留 Redis 中的验证码供测试/降级使用
+            // 生产环境需配置 erik_system_config 中 group='sms' 的短信服务商信息
+            error_log("[SMS] 验证码发送失败 ({$phone}): {$result['message']}. 验证码: {$code}");
+        }
 
         return $this->success([
             'phone' => $this->maskPhone($phone),

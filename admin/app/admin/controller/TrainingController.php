@@ -11,6 +11,7 @@ use app\model\TrainingCourse;
 use app\model\TrainingProgress;
 use app\model\TechnicianProfile;
 use support\Request;
+use support\Log;
 use support\Response;
 
 class TrainingController extends BaseController
@@ -229,8 +230,7 @@ class TrainingController extends BaseController
             ->pluck('title')
             ->toArray();
 
-        // TODO: 接入实际推送通道（短信/App Push/微信模板消息）
-        // 此处仅记录操作 + 返回待学课程列表
+        $this->dispatchTrainingReminder($technicianId, $pendingCourses);
 
         return $this->success([
             'technician_id'   => $this->encodeId($technicianId),
