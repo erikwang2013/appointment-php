@@ -2,7 +2,7 @@
 
 A three-platform appointment service management platform: WeChat Mini Program + Flutter App (same-account role switching) + PC Admin Dashboard.
 
-> **Status**: All complete | 101 Controllers | 58 Models | 81 Tests | 11 Services | 4 Processes | 241 Routes
+> **Status**: All complete | 104 Controllers | 58 Models | 80 Tests | 55+ Tables | 242 Routes
 
 ## Project Structure
 
@@ -25,35 +25,37 @@ appointment-php/
 - Redis
 - Composer
 
-### Installation
+### Web Installer (Recommended)
 
 ```bash
-# 1. Initialize business API service
-cd service/
+cd admin/
 cp .env.example .env
 composer install
+php start.php start -d
+```
 
-# 2. Initialize admin dashboard
-cd ../admin/
-cp .env.example .env
-composer install
+Open `http://localhost:8787/install` in browser and follow the wizard to configure database and admin account.
 
-# 3. Import database
-mysql -u root -p < admin/database/migrations/2026_05_16_000000_init_tables.sql
-mysql -u root -p < admin/database/migrations/2026_05_20_000001_seed_permissions.sql
-mysql -u root -p < admin/database/migrations/2026_05_26_000003_appointment_business_tables.sql
+### Manual Installation
 
-# 4. Start services
-cd service/ && php start.php    # Business API → 0.0.0.0:8788
-cd admin/ && php start.php      # Admin API → 0.0.0.0:8787
+```bash
+# 1. Install dependencies
+cd service/ && cp .env.example .env && composer install
+cd ../admin/ && cp .env.example .env && composer install
+
+# 2. Import unified database script (55 tables + demo data)
+mysql -u root -p < docs/install.sql
+
+# 3. Start services
+cd service/ && php start.php start -d   # Business API → :8788
+cd ../admin/ && php start.php start -d  # Admin API → :8787
 ```
 
 ### Docker Deployment
 
 ```bash
-cd admin/
-cp .env.docker .env
-docker-compose up -d
+cd admin/ && cp .env.docker .env && docker-compose up -d
+cd ../service/ && cp .env.docker .env && docker-compose up -d
 ```
 
 ## Tech Stack

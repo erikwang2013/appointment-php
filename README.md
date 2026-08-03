@@ -2,7 +2,7 @@
 
 三端预约服务管理平台：用户端微信小程序 + Flutter APP（同账号身份切换）、PC管理后台。
 
-> **项目状态**: 全部完成 ✅ | 101 控制器 | 58 模型 | 81 测试 | 11 服务 | 4 进程 | 241 路由
+> **项目状态**: 全部完成 ✅ | 104 控制器 | 58 模型 | 80 测试 | 55+ 数据表 | 242 路由
 
 ## 项目结构
 
@@ -25,35 +25,37 @@ appointment-php/
 - Redis
 - Composer
 
-### 安装
+### Web 安装向导（推荐）
 
 ```bash
-# 1. 初始化业务API服务
-cd service/
+cd admin/
 cp .env.example .env
 composer install
+php start.php start -d
+```
 
-# 2. 初始化管理后台
-cd ../admin/
-cp .env.example .env
-composer install
+浏览器打开 `http://localhost:8787/install`，按指引填写数据库和管理员账号即可完成安装。
 
-# 3. 导入数据库
-mysql -u root -p < admin/database/migrations/2026_05_16_000000_init_tables.sql
-mysql -u root -p < admin/database/migrations/2026_05_20_000001_seed_permissions.sql
-mysql -u root -p < admin/database/migrations/2026_05_26_000003_appointment_business_tables.sql
+### 手动安装
 
-# 4. 启动服务
-cd service/ && php start.php    # 业务API → 0.0.0.0:8788
-cd admin/ && php start.php      # 管理后台API → 0.0.0.0:8787
+```bash
+# 1. 安装依赖
+cd service/ && cp .env.example .env && composer install
+cd ../admin/ && cp .env.example .env && composer install
+
+# 2. 一键导入数据库（含全部 55 张表 + 演示数据）
+mysql -u root -p < docs/install.sql
+
+# 3. 启动服务
+cd service/ && php start.php start -d   # 业务API → :8788
+cd ../admin/ && php start.php start -d  # 管理后台 → :8787
 ```
 
 ### Docker 部署
 
 ```bash
-cd admin/
-cp .env.docker .env
-docker-compose up -d
+cd admin/ && cp .env.docker .env && docker-compose up -d
+cd ../service/ && cp .env.docker .env && docker-compose up -d
 ```
 
 ## 技术栈

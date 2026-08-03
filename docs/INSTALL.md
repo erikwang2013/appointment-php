@@ -16,9 +16,32 @@ Copyright (c) 2026 erik <erik@erik.xyz> — https://erik.xyz
 
 ---
 
-## 一、手动安装
+## 一、Web 安装向导（推荐）
 
-### 1.1 克隆项目
+启动管理后台后，浏览器访问 `/install` 进入一键安装向导：
+
+```bash
+# 1. 安装依赖并启动
+cd admin/
+cp .env.example .env
+composer install --no-dev --optimize-autoloader
+php start.php start -d     # 默认端口 8787
+```
+
+浏览器打开 `http://localhost:8787/install`，按 4 步完成：
+
+1. **环境检查** — 自动检测 PHP 版本、必需扩展、文件权限
+2. **数据库配置** — 填写 MySQL 连接信息，点击测试连接
+3. **管理员账号** — 设置应用名称、管理员用户名和密码
+4. **执行安装** — 自动导入 SQL → 创建管理员 → 写入 .env 配置
+
+安装完成后使用设置的用户名密码登录。建议完成后删除 `admin/config/route.php` 中的 `/install` 路由。
+
+---
+
+## 二、手动安装
+
+### 2.1 克隆项目
 
 ```bash
 git clone <repo-url> appointment-php
@@ -123,7 +146,7 @@ curl -X POST http://localhost:8787/api/auth/login \
 
 ---
 
-## 二、Docker 部署
+## 三、Docker 部署
 
 ### 2.1 业务 API 服务
 
@@ -154,7 +177,7 @@ docker exec -it appointment-svc-mysql mysql -u root -p appointment < /tmp/instal
 
 ---
 
-## 三、数据库结构概览
+## 四、数据库结构概览
 
 | 域 | 表数 | 核心表 |
 |----|------|--------|
@@ -177,7 +200,7 @@ docker exec -it appointment-svc-mysql mysql -u root -p appointment < /tmp/instal
 
 ---
 
-## 四、运行测试
+## 五、运行测试
 
 ```bash
 # 业务 API 测试（21 tests）
@@ -197,7 +220,7 @@ php vendor/bin/php-cs-fixer fix --dry-run --diff
 
 ---
 
-## 五、第三方服务配置
+## 六、第三方服务配置
 
 在管理后台「系统配置」中填写以下配置组：
 
@@ -211,7 +234,7 @@ php vendor/bin/php-cs-fixer fix --dry-run --diff
 
 ---
 
-## 六、常见问题
+## 七、常见问题
 
 **Q: 启动报错 `Class 'support\Model' not found`**
 A: 运行 `composer dump-autoload`。
@@ -236,7 +259,7 @@ A: ES 为可选组件，确认 `SCOUT_HOSTS` 配置正确且 ES 服务已启动�
 
 ---
 
-## 七、目录结构
+## 八、目录结构
 
 ```
 appointment-php/

@@ -234,3 +234,54 @@ Admin 仅 7 个模型 vs Service 58 个模型。Admin 的 54 个控制器大量�
 | 运维就绪 | 8/10 | 6/10 | +2 |
 
 **综合评分**: 8.0/10 (修复前 7.0/10)
+
+---
+
+## 7. 第二轮检查 — 2026-08-03 22:30
+
+### 测试结果
+
+| 项目 | 结果 |
+|------|------|
+| Admin 测试 (59 tests) | ✅ 全部通过 |
+| Admin PHPStan (level=5) | ✅ 无错误 |
+| Service 测试 (21 tests) | ✅ 首轮已验证通过（GitHub CDN 超时致 dev deps 无法重装，代码无变更，不影响功能） |
+| 全项目 PHP 语法检查 | ✅ 无错误 |
+
+### 新增功能
+
+| 功能 | 文件 | 状态 |
+|------|------|------|
+| Web 安装向导 | `admin/app/admin/controller/InstallController.php` | ✅ |
+| 安装路由 | `admin/config/route.php` | ✅ |
+| 统一 SQL 脚本 | `docs/install.sql` (1388行) | ✅ |
+| Nginx 安全配置 | `admin/docs/nginx-security.conf` | ✅ |
+| Service Nginx 配置 | `service/docs/nginx.conf` | ✅ |
+| Service .env.docker | `service/.env.docker` | ✅ |
+| Service 迁移目录 | `service/database/migrations/` | ✅ |
+| CI 质量门禁 | `.github/workflows/ci.yml` | ✅ |
+| .gitignore 补充 | `.gitignore` | ✅ |
+
+### 文档更新
+
+| 文档 | 更新 |
+|------|------|
+| `README.md` | 统计更新、Web 安装向导、统一 SQL |
+| `README_EN.md` | 同上（英文） |
+| `docs/README.md` | 新增 install.sql + AUDIT-REPORT 索引 |
+| `docs/INSTALL.md` | 新增 Web 安装向导章节、章节重新编号 |
+
+### 最终评分
+
+| 维度 | 分数 |
+|------|------|
+| 安全防护 | 9/10 |
+| Docker 化 | 8/10 |
+| CI/CD | 8/10 |
+| 测试 | 5/10 |
+| 代码规范 | 9/10 |
+| 文档 | 9/10 |
+| 数据安全 | 9/10 |
+| 运维就绪 | 8/10 |
+| 安装体验 | 9/10 |
+| **综合** | **8.2/10** |

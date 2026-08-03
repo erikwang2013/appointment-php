@@ -33,6 +33,11 @@ function v(string $controller, string $action): \Closure
 }
 
 // ============================================================
+// 安装向导（无需认证，安装完成后建议删除本路由）
+// ============================================================
+Route::any('/install', [app\admin\controller\InstallController::class, 'index']);
+
+// ============================================================
 // 健康检查（全局，无需认证）
 // ============================================================
 Route::get('/health', [app\admin\controller\HealthController::class, 'index']);
