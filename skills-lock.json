@@ -1,0 +1,47 @@
+{
+  "version": 1,
+  "skills": {
+    "rev-dex-dumper": {
+      "source": "P4nda0s/reverse-skills",
+      "sourceType": "github",
+      "skillPath": "skills/rev-dex-dumper/SKILL.md",
+      "computedHash": "6ef3530ac257a809f928f3f0f608c8cb3e950e28d903a15f5f1c69ce628e2663"
+    },
+    "rev-frida": {
+      "source": "P4nda0s/reverse-skills",
+      "sourceType": "github",
+      "skillPath": "skills/rev-frida/SKILL.md",
+      "computedHash": "460d239f10ee63c1b5c463f895281f68ea13ff0ef88d0106253f4d46cfa68434"
+    },
+    "rev-idapython": {
+      "source": "P4nda0s/reverse-skills",
+      "sourceType": "github",
+      "skillPath": "skills/rev-idapython/SKILL.md",
+      "computedHash": "44c39326c8063465cc874129f1cc71db06f4f29e34a2164b7f9c8ca7a3da6f9d"
+    },
+    "rev-struct": {
+      "source": "P4nda0s/reverse-skills",
+      "sourceType": "github",
+      "skillPath": "skills/rev-struct/SKILL.md",
+      "computedHash": "0f401810a2bd31bc21f7a48985d7dcabac87e87fa8cfb8a51195049de3baa89e"
+    },
+    "rev-symbol": {
+      "source": "P4nda0s/reverse-skills",
+      "sourceType": "github",
+      "skillPath": "skills/rev-symbol/SKILL.md",
+      "computedHash": "586aabab1065884b7989d60fe24980932ffd0e48cffa3b005d39b1dc0c8436c2"
+    },
+    "rev-u3d-dump": {
+      "source": "P4nda0s/reverse-skills",
+      "sourceType": "github",
+      "skillPath": "skills/rev-u3d-dump/SKILL.md",
+      "computedHash": "34a00825213ba2d9142d400ecd70877dc90d7b743ae803fae9c9db7332cf57ec"
+    },
+    "rev-unicorn-debug": {
+      "source": "P4nda0s/reverse-skills",
+      "sourceType": "github",
+      "skillPath": "skills/rev-unicorn-debug/SKILL.md",
+      "computedHash": "7c798c5791b85f1d4cef8dac8874122ccf98285236824c076cd45a7f6b6d571b"
+    }
+  }
+}

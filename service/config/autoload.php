@@ -1,4 +1,5 @@
 <?php
+// Copyright (c) 2026 erik <erik@erik.xyz> — https://erik.xyz
 // 自动加载配置 - Composer 自动加载规则
 /**
  * This file is part of webman.

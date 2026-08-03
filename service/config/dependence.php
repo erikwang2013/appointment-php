@@ -1,4 +1,5 @@
 <?php
+// Copyright (c) 2026 erik <erik@erik.xyz> — https://erik.xyz
 // 依赖配置 - 接口与实现类绑定关系
 /**
  * This file is part of webman.

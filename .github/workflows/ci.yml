@@ -1,0 +1,107 @@
+# ============================================================
+# 预约服务系统 — CI/CD 流水线
+# Copyright (c) 2026 erik <erik@erik.xyz> — https://erik.xyz
+# ============================================================
+
+name: CI
+
+on:
+  push:
+    branches: [main, master, dev, develop]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  backend:
+    name: PHP ${{ matrix.php }} — ${{ matrix.app }}
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ['8.3']
+        app: ['admin', 'service']
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd "mysqladmin ping -h localhost"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP ${{ matrix.php }}
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: mbstring, pdo, pdo_mysql, redis, gd, pcntl, bcmath, curl, json, xml, fileinfo
+          coverage: none
+
+      - name: Cache Composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: ${{ matrix.app }}/vendor
+          key: ${{ runner.os }}-composer-${{ matrix.app }}-${{ hashFiles(format('{0}/composer.lock', matrix.app)) }}
+          restore-keys: |
+            ${{ runner.os }}-composer-${{ matrix.app }}-
+
+      - name: Install dependencies
+        working-directory: ${{ matrix.app }}
+        run: composer install --prefer-dist --no-progress --no-interaction
+
+      - name: PHP syntax check
+        working-directory: ${{ matrix.app }}
+        run: find app/ support/ -name '*.php' -not -path '*/vendor/*' -exec php -l {} \; | grep -v 'No syntax'
+
+      - name: PHPUnit tests
+        working-directory: ${{ matrix.app }}
+        run: php vendor/bin/phpunit
+
+      - name: PHPStan analysis
+        working-directory: ${{ matrix.app }}
+        run: php vendor/bin/phpstan analyse --level=5 app/ 2>&1 || true
+
+      - name: PHP-CS-Fixer check
+        working-directory: ${{ matrix.app }}
+        run: php vendor/bin/php-cs-fixer fix --dry-run --diff 2>&1 || true
+
+  flutter:
+    name: Flutter analyze
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.x'
+
+      - name: Analyze admin Flutter app
+        working-directory: admin/apps/flutter
+        run: flutter analyze 2>&1 || true
+
+      - name: Analyze user Flutter app
+        working-directory: apps/flutter
+        run: flutter analyze 2>&1 || true

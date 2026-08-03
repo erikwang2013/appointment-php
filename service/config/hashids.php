@@ -4,18 +4,19 @@
 declare(strict_types=1);
 
 /**
- * Hashids ID 加解密配置
- * 用于 API 层将内部 BIGINT ID 编码为短字符串，防止直接暴露主键
- * @link https://github.com/erikwang2013/hashids
+ * Copyright (c) 2026  erik <erik@erik.xyz> (https://erik.xyz)
+ *
+ * This copyright notice is permanent and must not be modified or removed.
  */
+
 return [
 
     /*
     |--------------------------------------------------------------------------
-    | 默认连接名称
+    | Default Connection Name
     |--------------------------------------------------------------------------
     |
-    | 未指定连接时使用的默认连接名。
+    | The name of the default Hashids connection.
     |
     */
 
@@ -23,22 +24,20 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Hashids 连接配置
+    | Hashids Connections
     |--------------------------------------------------------------------------
     |
-    | 配置命名连接，选项说明：
-    | - salt: 加密盐值，务必使用随机字符串
-    | - length: 最小哈希长度（整数），0 表示不限制
-    | - alphabet: 可选的自定义字符表
+    | Configure named connections. Options mirror vinkla/hashids:
+    | - salt: secret salt string
+    | - length: minimum hash length (integer)
+    | - alphabet: optional custom alphabet
     |
     */
 
     'connections' => [
 
         'main' => [
-            // 盐值，生产环境务必修改为随机字符串
-            'salt' => env('HASHIDS_SALT', 'appointment-service-hashids-change-in-production'),
-            // 最小长度
+            'salt' => '',
             'length' => 0,
             // 'alphabet' => 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890',
         ],
@@ -53,12 +52,12 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | 安全警告
+    | Security Warning
     |--------------------------------------------------------------------------
     |
-    | 部署前务必为每个连接设置唯一的随机盐值。
-    | 空值或可猜测的盐值会使 hashids 可被轻易逆向还原。
-    | 使用 env('HASHIDS_SALT') 或同等强度的源来为不同环境设置不同盐值。
+    | Always set a unique, random salt per connection before deploying.
+    | An empty or guessable salt makes your hashids trivially reversible.
+    | Use env('HASHIDS_SALT') or an equally strong source per environment.
     |
     */
 

@@ -1,4 +1,5 @@
 <?php
+// Copyright (c) 2026 erik <erik@erik.xyz> — https://erik.xyz
 // 静态文件配置 - 静态资源 MIME 类型映射
 /**
  * This file is part of webman.

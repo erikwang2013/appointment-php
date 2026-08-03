@@ -14,3 +14,10 @@
 /service/runtime
 /service/.phpunit.result.cache
 /admin/.phpunit.result.cache
+.claude
+.claude-flow
+.swarm
+.mcp.json
+ruvector.db
+.superpowers/state/target
+.agents

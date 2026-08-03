@@ -14,6 +14,6 @@
  */
 return [
     'key' => env('ENCRYPTABLE_KEY'),
-    'cipher' => env('ENCRYPTION_CIPHER', 'aes-128-ecb'),
+    'cipher' => env('ENCRYPTABLE_CIPHER', 'aes-128-ecb'),
     'previous_keys' => \Maize\Encryptable\Support\PreviousKeysParser::parse(env('ENCRYPTION_PREVIOUS_KEYS')),
 ];

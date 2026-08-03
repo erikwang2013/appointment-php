@@ -1,4 +1,5 @@
 <?php
+// Copyright (c) 2026 erik <erik@erik.xyz> — https://erik.xyz
 // 容器配置 - 依赖注入容器定义
 /**
  * This file is part of webman.

@@ -1,0 +1,12 @@
+# Copyright (c) 2026 erik <erik@erik.xyz> — https://erik.xyz
+parameters:
+    level: 5
+    paths:
+        - app/
+    excludePaths:
+        - app/model/Test.php
+        - app/process/*
+        - app/queue/*
+    scanFiles:
+        - config/
+        - support/

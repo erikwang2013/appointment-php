@@ -1,4 +1,5 @@
 <?php
+// Copyright (c) 2026 erik <erik@erik.xyz> — https://erik.xyz
 // 异常处理配置 - 异常处理器和错误模板
 /**
  * This file is part of webman.

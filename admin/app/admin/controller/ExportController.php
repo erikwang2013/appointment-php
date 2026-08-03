@@ -119,7 +119,7 @@ class ExportController extends BaseController
         $writer = new Xlsx($spreadsheet);
         $writer->save($tmpFile);
 
-        return response()->download($tmpFile, $filename);
+        return $this->downloadAndCleanup($tmpFile, $filename);
     }
 
     /**
@@ -155,7 +155,7 @@ class ExportController extends BaseController
 
         file_put_contents($tmpFile, $dompdf->output());
 
-        return response()->download($tmpFile, $filename);
+        return $this->downloadAndCleanup($tmpFile, $filename);
     }
 
     /**
@@ -313,7 +313,7 @@ class ExportController extends BaseController
         $writer = new Xlsx($spreadsheet);
         $writer->save($tmpFile);
 
-        return response()->download($tmpFile, $filename);
+        return $this->downloadAndCleanup($tmpFile, $filename);
     }
 
     /**
@@ -558,5 +558,29 @@ class ExportController extends BaseController
             'admin_user' => ['phone', 'email', 'id_card'],
         ];
         return $maps[$table] ?? [];
+    }
+
+    private function downloadAndCleanup(string $tmpFile, string $filename): Response
+    {
+        register_shutdown_function(function () use ($tmpFile) {
+            @unlink($tmpFile);
+        });
+        return $this->downloadAndCleanup($tmpFile, $filename);
+    }
+
+    public static function cleanStaleFiles(?string $dir = null, int $maxAgeSeconds = 3600): int
+    {
+        $dir = $dir ?? runtime_path() . '/tmp';
+        $count = 0;
+        if (!is_dir($dir)) {
+            return 0;
+        }
+        foreach ((array) glob($dir . '/*') as $file) {
+            if (is_file($file) && (time() - (int) filemtime($file)) > $maxAgeSeconds) {
+                @unlink($file);
+                $count++;
+            }
+        }
+        return $count;
     }
 }

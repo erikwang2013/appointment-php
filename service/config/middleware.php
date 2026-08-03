@@ -17,5 +17,7 @@ return [
         app\middleware\Cors::class,
         // 安全中间件：erikwang2013/security-php 提供的 31 种攻击检测（XSS/SQL注入/CSRF等）
         \Erikwang2013\Security\Middleware\Webman\SecurityMiddleware::class,
+        // 限流中间件：Redis 滑动窗口，默认 60次/分钟/IP，登录/注册等敏感端点更严格
+        app\middleware\RateLimit::class,
     ],
 ];

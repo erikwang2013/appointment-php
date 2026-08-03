@@ -1,4 +1,5 @@
 <?php
+// Copyright (c) 2026 erik <erik@erik.xyz> — https://erik.xyz
 // 翻译配置 - 多语言支持和翻译文件路径
 /**
  * This file is part of webman.

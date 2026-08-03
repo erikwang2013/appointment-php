@@ -1,4 +1,5 @@
 <?php
+// Copyright (c) 2026 erik <erik@erik.xyz> — https://erik.xyz
 // 服务器配置 - HTTP 服务器监听地址和端口
 /**
  * This file is part of webman.

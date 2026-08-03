@@ -33,8 +33,8 @@ return [
         ],
         'auth'               => [
             'enable'     => true,
-            'password'   => "admin888",
-            'secret_key' => "open-admin-apidoc",
+            'password'   => getenv('APIDOC_PASSWORD') ?: '',
+            'secret_key' => getenv('APIDOC_SECRET_KEY') ?: '',
             'expire'     => 24 * 60 * 60
         ],
         'params' => [

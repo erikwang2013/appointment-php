@@ -38,9 +38,9 @@ return [
             // 是否启用密码验证
             'enable'     => false,
             // 全局访问密码
-            'password'   => "123456",
+            'password'   => getenv('APIDOC_PASSWORD') ?: '',
             // 密码加密盐
-            'secret_key' => "apidoc#hg_code",
+            'secret_key' => getenv('APIDOC_SECRET_KEY') ?: '',
             // 授权访问后的有效期
             'expire' => 24*60*60
         ],

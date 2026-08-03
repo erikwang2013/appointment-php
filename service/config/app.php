@@ -9,7 +9,7 @@ use support\Request;
  */
 return [
     // 调试模式：true 开启调试（开发环境），false 关闭（生产环境务必关闭）
-    'debug' => true,
+    'debug' => filter_var(getenv('APP_DEBUG') ?: false, FILTER_VALIDATE_BOOLEAN),
     // 错误报告级别：E_ALL 报告所有错误
     'error_reporting' => E_ALL,
     // 默认时区：Asia/Shanghai 北京时间
