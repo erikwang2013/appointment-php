@@ -78,6 +78,15 @@ cd ../service/ && cp .env.docker .env && docker-compose up -d
 | Country Flags | erikwang2013/season | Flag icons |
 | ES Sync | erikwang2013/webman-scout | Automatic model synchronization |
 
+## Diagrams
+
+| Diagram | Description |
+|---------|-------------|
+| [Architecture](docs/diagrams/ARCHITECTURE-DIAGRAM.md) | Three-platform + dual-service + data layer + external services + security components |
+| [Flowcharts](docs/diagrams/FLOWCHART.md) | Appointment booking, payment & refund, technician withdrawal, role switching |
+| [Function Map](docs/diagrams/FUNCTION-DIAGRAM.md) | Complete mind map: client / technician workbench / admin dashboard |
+| [Lifecycles](docs/diagrams/LIFECYCLE-DIAGRAM.md) | Order state machine, membership card, technician onboarding, coupon, withdrawal, token — 6 lifecycles |
+
 ## Documentation
 
 | Document | Description |

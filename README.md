@@ -78,6 +78,15 @@ cd ../service/ && cp .env.docker .env && docker-compose up -d
 | 国家旗帜 | erikwang2013/season | 国旗图标 |
 | ES同步 | erikwang2013/webman-scout | 模型自动同步 |
 
+## 系统图示
+
+| 图示 | 说明 |
+|------|------|
+| [架构图](docs/diagrams/ARCHITECTURE-DIAGRAM.md) | 三端+双服务+数据层+外部服务+安全组件，完整拓扑关系 |
+| [流程图](docs/diagrams/FLOWCHART.md) | 服务预约、支付退款、技师提现、身份切换四大核心流程 |
+| [功能图](docs/diagrams/FUNCTION-DIAGRAM.md) | 用户端/技师工作台/管理后台完整功能脑图 |
+| [生命周期图](docs/diagrams/LIFECYCLE-DIAGRAM.md) | 订单状态机、会员卡、技师入驻、优惠券、提现、Token 六大生命周期 |
+
 ## 文档导航
 
 | 文档 | 说明 |
