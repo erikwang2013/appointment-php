@@ -27,10 +27,10 @@ flowchart TD
     T --> U["用户评价（文字+图片）"]
     U --> V["订单 → reviewed ✅"]
 
-    style A fill:#e3f2fd,stroke:#1565c0
-    style V fill:#c8e6c9,stroke:#2e7d32
-    style K fill:#ffcdd2,stroke:#c62828
-    style O fill:#fff9c4,stroke:#f9a825
+    style A fill:#e3f2fd,stroke:#1565c0,color:#333
+    style V fill:#c8e6c9,stroke:#2e7d32,color:#333
+    style K fill:#ffcdd2,stroke:#c62828,color:#333
+    style O fill:#fff9c4,stroke:#f9a825,color:#333
 ```
 
 ## 2. 支付与退款流程
@@ -58,9 +58,9 @@ flowchart TD
         R8 --> R9["订单 → refunded<br/>微信退款到账"]
     end
 
-    style P5 fill:#c8e6c9,stroke:#2e7d32
-    style R6 fill:#ffcdd2,stroke:#c62828
-    style R9 fill:#c8e6c9,stroke:#2e7d32
+    style P5 fill:#c8e6c9,stroke:#2e7d32,color:#333
+    style R6 fill:#ffcdd2,stroke:#c62828,color:#333
+    style R9 fill:#c8e6c9,stroke:#2e7d32,color:#333
 ```
 
 ## 3. 技师提现流程
@@ -80,10 +80,10 @@ flowchart TD
     I --> J["T+1 到账"]
     J --> K["生成财务流水<br/>记录收支"]
 
-    style K fill:#c8e6c9,stroke:#2e7d32
-    style X fill:#ffcdd2,stroke:#c62828
-    style Y fill:#fff9c4,stroke:#f9a825
-    style H fill:#ffcdd2,stroke:#c62828
+    style K fill:#c8e6c9,stroke:#2e7d32,color:#333
+    style X fill:#ffcdd2,stroke:#c62828,color:#333
+    style Y fill:#fff9c4,stroke:#f9a825,color:#333
+    style H fill:#ffcdd2,stroke:#c62828,color:#333
 ```
 
 ## 4. 身份切换流程
@@ -103,6 +103,6 @@ flowchart TD
     J["当前身份: 技师"] --> K["点击切换客户"]
     K --> L["active_role = customer<br/>页面切换为客户界面"]
 
-    style D fill:#c8e6c9,stroke:#2e7d32
-    style L fill:#c8e6c9,stroke:#2e7d32
+    style D fill:#c8e6c9,stroke:#2e7d32,color:#333
+    style L fill:#c8e6c9,stroke:#2e7d32,color:#333
 ```

@@ -68,12 +68,12 @@ graph TB
     API模块 -.->|调用| 外部服务
     ADMIN_API -.->|调用| 外部服务
 
-    classDef terminal fill:#e1f5fe,stroke:#0288d1,stroke-width:2px
-    classDef service fill:#fff3e0,stroke:#f57c00,stroke-width:2px
-    classDef admin fill:#e8f5e9,stroke:#388e3c,stroke-width:2px
-    classDef data fill:#fce4ec,stroke:#c62828,stroke-width:2px
-    classDef external fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
-    classDef security fill:#fff8e1,stroke:#f9a825,stroke-width:2px
+    classDef terminal fill:#e1f5fe,stroke:#0288d1,stroke-width:2px,color:#01579b
+    classDef service fill:#fff3e0,stroke:#f57c00,stroke-width:2px,color:#e65100
+    classDef admin fill:#e8f5e9,stroke:#388e3c,stroke-width:2px,color:#1b5e20
+    classDef data fill:#fce4ec,stroke:#c62828,stroke-width:2px,color:#880e4f
+    classDef external fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#4a148c
+    classDef security fill:#fff8e1,stroke:#f9a825,stroke-width:2px,color:#f57f17
 
     class WX,APP terminal
     class MW1,API模块,PUB,USER,TECH,SVC,ORD,MKT,CTN,LBS service
