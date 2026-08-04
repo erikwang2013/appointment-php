@@ -25,7 +25,8 @@
         "monolog/monolog": "^2.0",
         "hg/apidoc": "^5.3",
         "webman/redis": "^2.1",
-        "dompdf/dompdf": "*"
+        "dompdf/dompdf": "*",
+        "erikwang2013/security-php": "*"
     },
     "suggest": {
         "ext-event": "For better performance."
