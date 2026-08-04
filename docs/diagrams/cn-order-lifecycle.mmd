@@ -1,0 +1,25 @@
+stateDiagram-v2
+    [*] --> pending: 提交订单
+
+    pending --> paid: 支付成功
+    pending --> cancelled: 超时/主动取消
+
+    paid --> confirmed: 技师确认
+    paid --> cancelled: 取消(按退款规则)
+    paid --> refunding: 申请退款
+
+    confirmed --> serving: 服务开始
+    serving --> completed: 核销完成
+    serving --> refunding: 异常退款(80%)
+
+    completed --> reviewed: 用户评价
+
+    refunding --> refunded: 审核通过
+    refunding --> paid: 审核驳回
+
+    reviewed --> [*]
+    cancelled --> [*]
+    refunded --> [*]
+
+    note right of pending: Redis锁技师3分钟
+    note right of refunding: 店长→财务两级审批

@@ -1,0 +1,17 @@
+flowchart TD
+    A["浏览服务"] --> B["选门店/技师/时间"]
+    B --> C["确认订单<br/>优惠券/备注/协议"]
+    C --> D{"Redis锁技师<br/>SETNX 3min"}
+    D -->|"成功"| E["创建订单 pending"]
+    D -->|"冲突"| F["提示技师繁忙"]
+    E --> G["微信支付"]
+    G -->|"成功"| H["订单 paid<br/>通知用户+技师"]
+    G -->|"失败"| I["保持pending<br/>15min自动取消"]
+    H --> J["技师确认 → serving"]
+    J --> K["服务完成 → 核销"]
+    K --> L["completed → 评价"]
+    L --> M["reviewed ✅"]
+
+    style A fill:#e3f2fd,stroke:#1565c0,color:#01579b
+    style M fill:#c8e6c9,stroke:#2e7d32,color:#1b5e20
+    style F fill:#ffcdd2,stroke:#c62828,color:#b71c1c

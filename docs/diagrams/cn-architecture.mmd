@@ -1,0 +1,55 @@
+graph TB
+    subgraph 终端["用户终端"]
+        WX["微信小程序<br/>apps/wechat/"]
+        APP["Flutter APP<br/>apps/flutter/"]
+    end
+
+    subgraph 业务API["业务API :8788"]
+        MW1["Cors → Security → RateLimit → Auth"]
+        API["公开 · 用户 · 技师 · 服务 · 订单 · 营销 · 内容 · LBS"]
+    end
+
+    subgraph 管理后台["管理后台 :8787"]
+        MW2["Cors → Security → RateLimit → AdminAuth → RBAC → OperationLog"]
+        ADMIN["仪表盘 · 用户 · 技师 · 门店 · 服务 · 订单 · 优惠券 · 财务 · 内容 · 设置"]
+        FW["Flutter Web 前端"]
+    end
+
+    subgraph 数据["数据层"]
+        MySQL[("MySQL 8.0<br/>55+ 表 erik_")]
+        Redis[("Redis<br/>缓存/限流/锁")]
+        ES[("Elasticsearch<br/>全文检索")]
+    end
+
+    subgraph 外部["第三方服务"]
+        WXPAY["微信支付"]
+        SMS["短信服务"]
+        MAP["地图服务"]
+        OSS["对象存储"]
+    end
+
+    subgraph 安全["安全组件"]
+        SEC["security-php<br/>31种攻击检测"]
+        JWT["jwt-webman<br/>Token+黑名单"]
+        ENC["encryption<br/>API+DB双层加密"]
+    end
+
+    WX & APP -->|"HTTP API"| MW1 --> API
+    FW -->|"HTTP API"| MW2 --> ADMIN
+    API & ADMIN --> MySQL & Redis & ES
+    安全 -.->|防护| 业务API & 管理后台
+    API & ADMIN -.->|调用| 外部
+
+    classDef client fill:#e1f5fe,stroke:#0288d1,color:#01579b
+    classDef service fill:#fff3e0,stroke:#f57c00,color:#e65100
+    classDef admin fill:#e8f5e9,stroke:#388e3c,color:#1b5e20
+    classDef dat fill:#fce4ec,stroke:#c62828,color:#880e4f
+    classDef ext fill:#f3e5f5,stroke:#7b1fa2,color:#4a148c
+    classDef sec fill:#fff8e1,stroke:#f9a825,color:#f57f17
+
+    class WX,APP client
+    class MW1,API service
+    class MW2,ADMIN,FW admin
+    class MySQL,Redis,ES dat
+    class WXPAY,SMS,MAP,OSS ext
+    class SEC,JWT,ENC sec

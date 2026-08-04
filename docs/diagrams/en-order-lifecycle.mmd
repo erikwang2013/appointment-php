@@ -1,0 +1,25 @@
+stateDiagram-v2
+    [*] --> pending: Submit Order
+
+    pending --> paid: Payment OK
+    pending --> cancelled: Timeout/Cancel
+
+    paid --> confirmed: Tech Confirm
+    paid --> cancelled: Cancel (by rules)
+    paid --> refunding: Request Refund
+
+    confirmed --> serving: Service Start
+    serving --> completed: Verify Complete
+    serving --> refunding: Anomaly Refund(80%)
+
+    completed --> reviewed: User Review
+
+    refunding --> refunded: Approved
+    refunding --> paid: Rejected
+
+    reviewed --> [*]
+    cancelled --> [*]
+    refunded --> [*]
+
+    note right of pending: Redis lock tech 3min
+    note right of refunding: Manager→Finance approval
