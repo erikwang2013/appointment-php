@@ -142,11 +142,35 @@ class AuthController extends BaseController
             return $this->error('请输入手机号和密码');
         }
 
+        // 账号锁定检查（5次失败/15分钟）
+        $lockKey = "account_lock:{$phone}";
+        try {
+            if (Redis::get($lockKey)) {
+                return $this->error('账号已被临时锁定，请15分钟后再试', 429);
+            }
+        } catch (\Throwable) {}
+
         $user = User::where('phone', $phone)->first();
 
         if (!$user || !password_verify($password, $user->password)) {
+            // 登录失败：计数 + 锁定
+            try {
+                $failKey = "login_fail:{$phone}";
+                $fails = Redis::incr($failKey);
+                if ($fails === 1) {
+                    Redis::expire($failKey, 900);
+                }
+                if ($fails >= 5) {
+                    Redis::setex($lockKey, 900, '1');
+                    Redis::del($failKey);
+                    return $this->error('账号已被临时锁定，请15分钟后再试', 429);
+                }
+            } catch (\Throwable) {}
             return $this->error('手机号或密码错误');
         }
+
+        // 登录成功：清除失败计数
+        try { Redis::del("login_fail:{$phone}"); Redis::del($lockKey); } catch (\Throwable) {}
 
         if ($user->status == 0) {
             return $this->error('账号已被禁用，请联系客服');
@@ -187,11 +211,35 @@ class AuthController extends BaseController
             return $this->error('请输入手机号和验证码');
         }
 
+        // 账号锁定检查（5次失败/15分钟）
+        $lockKey = "account_lock:{$phone}";
+        try {
+            if (Redis::get($lockKey)) {
+                return $this->error('账号已被临时锁定，请15分钟后再试', 429);
+            }
+        } catch (\Throwable) {}
+
         // 验证短信验证码
         $storedCode = Redis::get("sms_code:{$phone}");
         if (!$storedCode || $storedCode != $code) {
+            // 验证失败：计数 + 锁定
+            try {
+                $failKey = "login_fail:{$phone}";
+                $fails = Redis::incr($failKey);
+                if ($fails === 1) {
+                    Redis::expire($failKey, 900);
+                }
+                if ($fails >= 5) {
+                    Redis::setex($lockKey, 900, '1');
+                    Redis::del($failKey);
+                    return $this->error('账号已被临时锁定，请15分钟后再试', 429);
+                }
+            } catch (\Throwable) {}
             return $this->error('验证码错误或已过期');
         }
+
+        // 验证成功：清除失败计数
+        try { Redis::del("login_fail:{$phone}"); Redis::del($lockKey); } catch (\Throwable) {}
 
         // 查找或创建用户
         $user = User::where('phone', $phone)->first();

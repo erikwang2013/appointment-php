@@ -11,7 +11,7 @@ use Webman\MiddlewareInterface;
 
 /**
  * CORS 跨域中间件
- * 处理 OPTIONS 预检请求，设置 CORS 响应头，允许跨域访问
+ * 处理 OPTIONS 预检请求，设置 CORS + 安全响应头
  */
 class Cors implements MiddlewareInterface
 {
@@ -24,17 +24,23 @@ class Cors implements MiddlewareInterface
             $response = $next($request);
         }
 
-        // 设置 CORS 响应头
+        // 设置 CORS 响应头，来源可通过 CORS_ALLOW_ORIGIN 环境变量配置
         $response->withHeaders([
-            // 允许的来源，生产环境应限制为具体域名
-            'Access-Control-Allow-Origin' => '*',
-            // 允许的请求方法
+            'Access-Control-Allow-Origin' => getenv('CORS_ALLOW_ORIGIN') ?: '*',
             'Access-Control-Allow-Methods' => 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
-            // 允许的请求头
             'Access-Control-Allow-Headers' => 'Authorization, Content-Type, X-Requested-With, API-Version, Accept, Origin, X-CSRF-Token',
-            // 预检请求缓存时间（秒）
             'Access-Control-Max-Age' => '86400',
-            // 允许携带凭证（cookie）
+        ]);
+
+        // 安全响应头
+        $response->withHeaders([
+            'X-Content-Type-Options' => 'nosniff',
+            'X-Frame-Options' => 'DENY',
+            'X-XSS-Protection' => '1; mode=block',
+            'Referrer-Policy' => 'strict-origin-when-cross-origin',
+            'Permissions-Policy' => 'camera=(), microphone=(), geolocation=()',
+            'Content-Security-Policy' => "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' http: https:;",
+            'X-Permitted-Cross-Domain-Policies' => 'none',
         ]);
 
         return $response;
