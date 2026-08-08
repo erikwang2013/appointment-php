@@ -6,7 +6,7 @@ declare(strict_types=1);
 namespace app\middleware;
 
 use app\model\User;
-use Erikwang2013\Jwt\JWT;
+use ErikJwt\JWTFactory;
 use Webman\Http\Request;
 use Webman\Http\Response;
 use Webman\MiddlewareInterface;
@@ -27,7 +27,8 @@ class Auth implements MiddlewareInterface
         }
 
         try {
-            $payload = JWT::decode($token);
+            $jwt = JWTFactory::createFromConfig(config('plugin.erikwang2013.jwt.jwt'));
+            $payload = $jwt->decode($token);
         } catch (\Exception $e) {
             return $this->unauthorized('认证令牌无效或已过期');
         }

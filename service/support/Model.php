@@ -18,13 +18,23 @@ class Model extends EloquentModel
         parent::boot();
         static::creating(function (Model $model): void {
             if (empty($model->getKey())) {
-                $model->setAttribute($model->getKeyName(), Snowflake::generate());
+                $model->setAttribute($model->getKeyName(), self::nextId());
             }
         });
     }
 
     public static function generateId(): string
     {
-        return Snowflake::generate();
+        return self::nextId();
+    }
+
+    private static function nextId(): string
+    {
+        $config = config('snowflake', []);
+        $snowflake = new Snowflake(
+            (int)($config['datacenter_id'] ?? 1),
+            (int)($config['worker_id'] ?? 1)
+        );
+        return (string)$snowflake->id();
     }
 }

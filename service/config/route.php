@@ -26,7 +26,21 @@ function v(string $module, string $controller, string $action): \Closure
     return function (Request $request) use ($module, $controller, $action) {
         $version = $request->apiVersion ?? 'v1';
         $class = "\\app\\{$module}\\{$version}\\controller\\{$controller}";
-        return (new $class)->{$action}($request);
+        $instance = new $class;
+        $method = new ReflectionMethod($instance, $action);
+        $pathParams = $request->route ? array_values($request->route->param()) : [];
+        $args = [];
+        $i = 0;
+        foreach ($method->getParameters() as $param) {
+            $type = $param->getType();
+            if ($type instanceof ReflectionNamedType && is_a(Request::class, $type->getName(), true)) {
+                $args[] = $request;
+            } else {
+                $args[] = $pathParams[$i] ?? null;
+                $i++;
+            }
+        }
+        return $instance->{$action}(...$args);
     };
 }
 
@@ -226,7 +240,6 @@ Route::group('/api/notification', function () {
 Route::group('/api/community', function () {
     Route::post('/', v('api', 'CommunityController', 'store'));
     Route::post('/like/{id}', v('api', 'CommunityController', 'like'));
-    Route::post('/comment', v('api', 'CommunityController', 'comment'));
     Route::get('/my-posts', v('api', 'CommunityController', 'myPosts'));
 
     Route::post('/comment', v('api', 'CommunityCommentController', 'store'));

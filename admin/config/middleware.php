@@ -11,8 +11,10 @@
  */
 
 return [
-    app\middleware\Cors::class,
-    app\middleware\Locale::class,
-    \Erikwang2013\Security\Middleware\Webman\SecurityMiddleware::class,
-    app\middleware\RateLimit::class,
+    '@' => [
+        app\middleware\Cors::class,
+        app\middleware\Locale::class,
+        \Erikwang2013\Security\Middleware\Webman\SecurityMiddleware::class,
+        app\middleware\RateLimit::class,
+    ],
 ];

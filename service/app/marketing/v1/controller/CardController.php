@@ -22,7 +22,7 @@ class CardController extends BaseController
      */
     public function index(Request $request)
     {
-        $cards = MemberCard::where('status', 1)->orderBy('sort')->orderBy('created_at', 'desc')->get();
+        $cards = MemberCard::where('status', 1)->orderBy('created_at', 'desc')->get();
 
         return $this->success($cards);
     }

@@ -228,7 +228,7 @@ class TechnicianController extends BaseController
      * @param string $technicianId
      * @return string|null
      */
-    private function getEarliestSlot(string $technicianId): ?string
+    private function getEarliestSlot(int|string $technicianId): ?string
     {
         $today = date('Y-m-d');
         $endDate = date('Y-m-d', strtotime('+6 days'));

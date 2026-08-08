@@ -35,7 +35,7 @@ class CouponController extends BaseController
             $query->where('status', 'expired');
         }
 
-        $userCoupons = $query->orderBy('created_at', 'desc')->get();
+        $userCoupons = $query->orderBy('received_at', 'desc')->get();
 
         $result = [];
         foreach ($userCoupons as $uc) {

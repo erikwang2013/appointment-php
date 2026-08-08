@@ -23,7 +23,7 @@ global $argv;
 return [
     'webman' => [
         'handler' => Http::class,
-        'listen' => 'http://0.0.0.0:8787',
+        'listen' => 'http://0.0.0.0:8798',
         'count' => cpu_count() * 4,
         'user' => '',
         'group' => '',
@@ -40,7 +40,7 @@ return [
     // WebSocket 实时推送
     'websocket' => [
         'handler' => \app\process\WebSocket::class,
-        'listen' => 'websocket://0.0.0.0:8282',
+        'listen' => 'websocket://0.0.0.0:8298',
         'count' => 1,
     ],
     // Order auto-cancel timer (runs every 30 seconds)

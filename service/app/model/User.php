@@ -13,15 +13,17 @@ use support\Model;
 
 class User extends Model
 {
-    use SoftDeletes, Encryptable;
+    use SoftDeletes;
 
     protected $table = 'erik_user';
     public $incrementing = false;
     protected $keyType = 'string';
     public $timestamps = true;
 
-    protected array $encryptable = [
-        'phone', 'wx_openid', 'wx_unionid', 'real_name',
+    protected $casts = [
+        // phone/wx_openid/wx_unionid 必须明文存储：登录/查重/唯一键依赖明文精确查询，
+        // 而加密包不支持对密文做等价查询（Encryption::db() 与自身加密格式不兼容，实测返回 NULL）
+        'real_name' => Encryptable::class,
     ];
 
     protected $fillable = [

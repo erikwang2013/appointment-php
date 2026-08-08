@@ -42,7 +42,9 @@
     "webman/redis": "^2.1",
     "illuminate/events": "^11.51",
     "dompdf/dompdf": "*",
-    "erikwang2013/security-php": "^1.1"
+    "erikwang2013/security-php": "^1.1",
+    "webman/validation": "^2.2",
+    "webman/database": "^2.1"
   },
   "suggest": {
     "ext-event": "For better performance. "
@@ -53,7 +55,10 @@
       "app\\": "./app",
       "App\\": "./app",
       "app\\View\\Components\\": "./app/view/components"
-    }
+    },
+    "files": [
+      "app/functions.php"
+    ]
   },
   "scripts": {
     "post-package-install": [

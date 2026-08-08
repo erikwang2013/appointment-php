@@ -448,7 +448,7 @@ class AuthController extends BaseController
      * 查找 type='new_user' 的有效优惠券模板，为用户发放一张
      * 如果未配置新用户优惠券，静默跳过不影响注册流程
      */
-    private function issueNewUserCoupon(int $userId): void
+    private function issueNewUserCoupon(string $userId): void
     {
         try {
             $newUserCoupon = Coupon::where('type', 'new_user')

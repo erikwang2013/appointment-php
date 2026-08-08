@@ -187,7 +187,7 @@ class DocsController
         $p = [];
 
         // 公开 - 验证码
-        $this->add($p, '/api/captcha/send', 'post', '发送短信验证码', '验证码', ['phone' => 'string']);
+        $this->add($p, '/api/captcha/send', 'post', '发送短信验证码', '验证码', ['phone']);
 
         // 公开 - 认证
         $this->add($p, '/api/auth/register', 'post', '手机号注册', '认证', ['phone', 'code', 'password', 'confirm_password', 'referral_code?'], 'AuthResult');
@@ -320,9 +320,9 @@ class DocsController
 
         // Query params for GET/DELETE
         if ($params && in_array($method, ['get', 'delete'])) {
-            foreach ($params as $p) {
-                $clean = rtrim($p, '?');
-                $required = $p === $clean;
+            foreach ($params as $param) {
+                $clean = rtrim($param, '?');
+                $required = $param === $clean;
                 $op['parameters'][] = [
                     'name' => $clean, 'in' => 'query', 'required' => $required,
                     'schema' => ['type' => 'string'],
@@ -334,10 +334,10 @@ class DocsController
         if ($params && in_array($method, ['post', 'put'])) {
             $props = [];
             $req   = [];
-            foreach ($params as $p) {
-                $clean = rtrim($p, '?');
+            foreach ($params as $param) {
+                $clean = rtrim($param, '?');
                 $props[$clean] = ['type' => 'string'];
-                if ($p === $clean) $req[] = $clean;
+                if ($param === $clean) $req[] = $clean;
             }
             $op['requestBody'] = [
                 'required' => true,

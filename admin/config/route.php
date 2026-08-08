@@ -109,7 +109,9 @@ Route::group('/admin', function () {
     Route::resource('/stores', app\admin\controller\StoreController::class);
     Route::put('/stores/{id}/toggle-status', [app\admin\controller\StoreController::class, 'toggleStatus']);
 
-    // 技师管理
+    // 技师管理（静态路由必须先于 resource 定义，避免被 {id} 变量路由 shadow）
+    Route::get('/technicians/export-schedules', [app\admin\controller\TechnicianController::class, 'exportSchedules']);
+    Route::get('/technicians/export-attendance', [app\admin\controller\TechnicianController::class, 'exportAttendance']);
     Route::resource('/technicians', app\admin\controller\TechnicianController::class);
     Route::post('/technicians/{id}/audit', [app\admin\controller\TechnicianController::class, 'audit']);
     Route::get('/technicians/{id}/schedules', [app\admin\controller\TechnicianController::class, 'schedules']);
@@ -149,7 +151,7 @@ Route::group('/admin', function () {
     Route::resource('/withdrawal-accounts', app\admin\controller\WithdrawalAccountController::class);
 
     // 提现配置
-    Route::get('/withdrawal-config', [app\admin\controller\WithdrawalConfigController::class, 'index']);
+    Route::get('/withdrawal-config', [app\admin\controller\WithdrawalConfigController::class, 'show']);
     Route::put('/withdrawal-config/{id}', [app\admin\controller\WithdrawalConfigController::class, 'update']);
 
     // 佣金管理
@@ -183,8 +185,8 @@ Route::group('/admin', function () {
     Route::resource('/system-messages', app\admin\controller\SystemMessageController::class);
 
     // 关于我们
-    Route::get('/about', [app\admin\controller\AboutController::class, 'index']);
-    Route::post('/about', [app\admin\controller\AboutController::class, 'store']);
+    Route::get('/about', [app\admin\controller\AboutController::class, 'show']);
+    Route::post('/about', [app\admin\controller\AboutController::class, 'update']);
 
     // ============================================================
     // 新增管理扩展路由
@@ -239,10 +241,6 @@ Route::group('/admin', function () {
     // 技师性别限制
     Route::get('/technicians/{id}/service-restrictions', [app\admin\controller\TechnicianController::class, 'serviceRestrictions']);
     Route::post('/technicians/gender-restrictions', [app\admin\controller\TechnicianController::class, 'updateRestrictions']);
-
-    // 排班/考勤导出
-    Route::get('/technicians/export-schedules', [app\admin\controller\TechnicianController::class, 'exportSchedules']);
-    Route::get('/technicians/export-attendance', [app\admin\controller\TechnicianController::class, 'exportAttendance']);
 
     // 系统监控
     Route::get('/system-monitor', [app\admin\controller\SystemMonitorController::class, 'index']);

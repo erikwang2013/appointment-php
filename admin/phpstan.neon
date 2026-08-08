@@ -3,10 +3,9 @@ parameters:
     level: 5
     paths:
         - app/
+        - support/
     excludePaths:
         - app/model/Test.php
         - app/process/*
         - app/queue/*
-    scanFiles:
-        - config/
-        - support/
+        - support/bootstrap.php

@@ -72,7 +72,7 @@ class Service extends Model
 
     public function reviews()
     {
-        return $this->hasMany(ServiceReview::class, 'service_id');
+        return $this->hasMany(OrderReview::class, 'service_id');
     }
 
     /**

@@ -85,7 +85,9 @@ CREATE TABLE IF NOT EXISTS `erik_admin_permission` (
 -- ============================================================
 CREATE TABLE IF NOT EXISTS `erik_admin_user_role` (
     `user_id` BIGINT UNSIGNED NOT NULL COMMENT '用户ID',
-    `role_id` BIGINT UNSIGNED NOT NULL COMMENT '角色ID',
+    `role_id` BIGINT UNSIGNED NOT NULL COMMENT '角色ID',    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+
     PRIMARY KEY (`user_id`, `role_id`),
     KEY `idx_role_id` (`role_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='用户角色关联表';
@@ -95,7 +97,9 @@ CREATE TABLE IF NOT EXISTS `erik_admin_user_role` (
 -- ============================================================
 CREATE TABLE IF NOT EXISTS `erik_admin_role_permission` (
     `role_id` BIGINT UNSIGNED NOT NULL COMMENT '角色ID',
-    `permission_id` BIGINT UNSIGNED NOT NULL COMMENT '权限ID',
+    `permission_id` BIGINT UNSIGNED NOT NULL COMMENT '权限ID',    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+
     PRIMARY KEY (`role_id`, `permission_id`),
     KEY `idx_permission_id` (`permission_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='角色权限关联表';
@@ -127,7 +131,8 @@ CREATE TABLE IF NOT EXISTS `erik_operation_log` (
     `path` VARCHAR(255) NOT NULL DEFAULT '' COMMENT '请求路径',
     `ip` VARCHAR(50) NOT NULL DEFAULT '' COMMENT '操作IP',
     `input` TEXT COMMENT '请求参数（敏感字段已脱敏）',
-    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '操作时间',
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '操作时间',    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+
     PRIMARY KEY (`id`),
     KEY `idx_user_id` (`user_id`),
     KEY `idx_action` (`action`),
@@ -154,78 +159,78 @@ INSERT INTO `erik_admin_role` (`id`, `name`, `slug`, `description`, `status`) VA
 
 -- 菜单权限 (type=1)
 INSERT INTO `erik_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
-(21000000000000001, NULL, '仪表盘',    'dashboard',     1, 'dashboard', '/dashboard',        1, NOW(), NOW()),
-(21000000000000002, NULL, '用户管理',  'user',           1, 'people',    '/admin/user',        2, NOW(), NOW()),
-(21000000000000003, NULL, '角色管理',  'role',           1, 'shield',    '/admin/role',        3, NOW(), NOW()),
-(21000000000000004, NULL, '权限管理',  'permission',     1, 'lock',      '/admin/permission',  4, NOW(), NOW()),
-(21000000000000005, NULL, '系统配置',  'config',         1, 'settings',  '/admin/config',      5, NOW(), NOW()),
-(21000000000000006, NULL, '操作日志',  'log',            1, 'article',   '/admin/log',         6, NOW(), NOW());
+(21000000000000001, 0, '仪表盘',    'dashboard',     1, 'dashboard', '/dashboard',        1, NOW(), NOW()),
+(21000000000000002, 0, '用户管理',  'user',           1, 'people',    '/admin/user',        2, NOW(), NOW()),
+(21000000000000003, 0, '角色管理',  'role',           1, 'shield',    '/admin/role',        3, NOW(), NOW()),
+(21000000000000004, 0, '权限管理',  'permission',     1, 'lock',      '/admin/permission',  4, NOW(), NOW()),
+(21000000000000005, 0, '系统配置',  'config',         1, 'settings',  '/admin/config',      5, NOW(), NOW()),
+(21000000000000006, 0, '操作日志',  'log',            1, 'article',   '/admin/log',         6, NOW(), NOW());
 
 -- 按钮权限 (type=2)
 INSERT INTO `erik_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
-(21000000000000011, 21000000000000002, '批量删除',     'batch.destroy', 2, NULL, NULL, 1, NOW(), NOW()),
-(21000000000000012, 21000000000000002, '批量启用/禁用', 'batch.status', 2, NULL, NULL, 2, NOW(), NOW()),
-(21000000000000013, 21000000000000002, '导入用户',     'import.users',  2, NULL, NULL, 3, NOW(), NOW()),
-(21000000000000014, 21000000000000002, '导出Excel',     'export.excel',  2, NULL, NULL, 4, NOW(), NOW()),
-(21000000000000015, 21000000000000002, '导出PDF',       'export.pdf',    2, NULL, NULL, 5, NOW(), NOW()),
-(21000000000000016, 21000000000000002, '文件上传',     'upload',         2, NULL, NULL, 6, NOW(), NOW());
+(21000000000000011, 21000000000000002, '批量删除',     'batch.destroy', 2, '', '', 1, NOW(), NOW()),
+(21000000000000012, 21000000000000002, '批量启用/禁用', 'batch.status', 2, '', '', 2, NOW(), NOW()),
+(21000000000000013, 21000000000000002, '导入用户',     'import.users',  2, '', '', 3, NOW(), NOW()),
+(21000000000000014, 21000000000000002, '导出Excel',     'export.excel',  2, '', '', 4, NOW(), NOW()),
+(21000000000000015, 21000000000000002, '导出PDF',       'export.pdf',    2, '', '', 5, NOW(), NOW()),
+(21000000000000016, 21000000000000002, '文件上传',     'upload',         2, '', '', 6, NOW(), NOW());
 
 -- API 权限 (type=3) — 仪表盘
 INSERT INTO `erik_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
-(21000000000000021, 21000000000000001, '查看仪表盘',   'get.admin/dashboard', 3, NULL, NULL, 1, NOW(), NOW());
+(21000000000000021, 21000000000000001, '查看仪表盘',   'get.admin/dashboard', 3, '', '', 1, NOW(), NOW());
 
 -- API 权限 — 用户管理
 INSERT INTO `erik_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
-(21000000000000031, 21000000000000002, '查看用户',     'get.admin/user',             3, NULL, NULL, 1, NOW(), NOW()),
-(21000000000000032, 21000000000000002, '创建用户',     'post.admin/user',            3, NULL, NULL, 2, NOW(), NOW()),
-(21000000000000033, 21000000000000002, '更新用户',     'put.admin/user',             3, NULL, NULL, 3, NOW(), NOW()),
-(21000000000000034, 21000000000000002, '删除用户',     'delete.admin/user',          3, NULL, NULL, 4, NOW(), NOW()),
-(21000000000000035, 21000000000000002, '批量删除用户', 'post.admin/user/batch/destroy', 3, NULL, NULL, 5, NOW(), NOW()),
-(21000000000000036, 21000000000000002, '批量启禁用',   'post.admin/user/batch/status',  3, NULL, NULL, 6, NOW(), NOW());
+(21000000000000031, 21000000000000002, '查看用户',     'get.admin/user',             3, '', '', 1, NOW(), NOW()),
+(21000000000000032, 21000000000000002, '创建用户',     'post.admin/user',            3, '', '', 2, NOW(), NOW()),
+(21000000000000033, 21000000000000002, '更新用户',     'put.admin/user',             3, '', '', 3, NOW(), NOW()),
+(21000000000000034, 21000000000000002, '删除用户',     'delete.admin/user',          3, '', '', 4, NOW(), NOW()),
+(21000000000000035, 21000000000000002, '批量删除用户', 'post.admin/user/batch/destroy', 3, '', '', 5, NOW(), NOW()),
+(21000000000000036, 21000000000000002, '批量启禁用',   'post.admin/user/batch/status',  3, '', '', 6, NOW(), NOW());
 
 -- API 权限 — 角色管理
 INSERT INTO `erik_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
-(21000000000000041, 21000000000000003, '查看角色', 'get.admin/role',    3, NULL, NULL, 1, NOW(), NOW()),
-(21000000000000042, 21000000000000003, '创建角色', 'post.admin/role',   3, NULL, NULL, 2, NOW(), NOW()),
-(21000000000000043, 21000000000000003, '更新角色', 'put.admin/role',    3, NULL, NULL, 3, NOW(), NOW()),
-(21000000000000044, 21000000000000003, '删除角色', 'delete.admin/role', 3, NULL, NULL, 4, NOW(), NOW());
+(21000000000000041, 21000000000000003, '查看角色', 'get.admin/role',    3, '', '', 1, NOW(), NOW()),
+(21000000000000042, 21000000000000003, '创建角色', 'post.admin/role',   3, '', '', 2, NOW(), NOW()),
+(21000000000000043, 21000000000000003, '更新角色', 'put.admin/role',    3, '', '', 3, NOW(), NOW()),
+(21000000000000044, 21000000000000003, '删除角色', 'delete.admin/role', 3, '', '', 4, NOW(), NOW());
 
 -- API 权限 — 权限管理
 INSERT INTO `erik_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
-(21000000000000051, 21000000000000004, '查看权限', 'get.admin/permission',    3, NULL, NULL, 1, NOW(), NOW()),
-(21000000000000052, 21000000000000004, '创建权限', 'post.admin/permission',   3, NULL, NULL, 2, NOW(), NOW()),
-(21000000000000053, 21000000000000004, '更新权限', 'put.admin/permission',    3, NULL, NULL, 3, NOW(), NOW()),
-(21000000000000054, 21000000000000004, '删除权限', 'delete.admin/permission', 3, NULL, NULL, 4, NOW(), NOW());
+(21000000000000051, 21000000000000004, '查看权限', 'get.admin/permission',    3, '', '', 1, NOW(), NOW()),
+(21000000000000052, 21000000000000004, '创建权限', 'post.admin/permission',   3, '', '', 2, NOW(), NOW()),
+(21000000000000053, 21000000000000004, '更新权限', 'put.admin/permission',    3, '', '', 3, NOW(), NOW()),
+(21000000000000054, 21000000000000004, '删除权限', 'delete.admin/permission', 3, '', '', 4, NOW(), NOW());
 
 -- API 权限 — 系统配置
 INSERT INTO `erik_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
-(21000000000000061, 21000000000000005, '查看配置', 'get.admin/config',    3, NULL, NULL, 1, NOW(), NOW()),
-(21000000000000062, 21000000000000005, '创建配置', 'post.admin/config',   3, NULL, NULL, 2, NOW(), NOW()),
-(21000000000000063, 21000000000000005, '更新配置', 'put.admin/config',    3, NULL, NULL, 3, NOW(), NOW()),
-(21000000000000064, 21000000000000005, '删除配置', 'delete.admin/config', 3, NULL, NULL, 4, NOW(), NOW());
+(21000000000000061, 21000000000000005, '查看配置', 'get.admin/config',    3, '', '', 1, NOW(), NOW()),
+(21000000000000062, 21000000000000005, '创建配置', 'post.admin/config',   3, '', '', 2, NOW(), NOW()),
+(21000000000000063, 21000000000000005, '更新配置', 'put.admin/config',    3, '', '', 3, NOW(), NOW()),
+(21000000000000064, 21000000000000005, '删除配置', 'delete.admin/config', 3, '', '', 4, NOW(), NOW());
 
 -- API 权限 — 操作日志
 INSERT INTO `erik_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
-(21000000000000071, 21000000000000006, '查看日志', 'get.admin/log', 3, NULL, NULL, 1, NOW(), NOW());
+(21000000000000071, 21000000000000006, '查看日志', 'get.admin/log', 3, '', '', 1, NOW(), NOW());
 
 -- API 权限 — 个人中心
 INSERT INTO `erik_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
-(21000000000000081, NULL, '个人中心-更新信息', 'put.admin/profile',         3, NULL, NULL, 1, NOW(), NOW()),
-(21000000000000082, NULL, '个人中心-修改密码', 'put.admin/profile/password', 3, NULL, NULL, 2, NOW(), NOW()),
-(21000000000000083, NULL, '个人中心-登出',     'post.admin/profile/logout',  3, NULL, NULL, 3, NOW(), NOW());
+(21000000000000081, 0, '个人中心-更新信息', 'put.admin/profile',         3, '', '', 1, NOW(), NOW()),
+(21000000000000082, 0, '个人中心-修改密码', 'put.admin/profile/password', 3, '', '', 2, NOW(), NOW()),
+(21000000000000083, 0, '个人中心-登出',     'post.admin/profile/logout',  3, '', '', 3, NOW(), NOW());
 
 -- API 权限 — 导出
 INSERT INTO `erik_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
-(21000000000000091, NULL, '导出Excel', 'post.admin/export/excel', 3, NULL, NULL, 1, NOW(), NOW()),
-(21000000000000092, NULL, '导出PDF',   'post.admin/export/pdf',   3, NULL, NULL, 2, NOW(), NOW());
+(21000000000000091, 0, '导出Excel', 'post.admin/export/excel', 3, '', '', 1, NOW(), NOW()),
+(21000000000000092, 0, '导出PDF',   'post.admin/export/pdf',   3, '', '', 2, NOW(), NOW());
 
 -- API 权限 — 导入
 INSERT INTO `erik_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
-(21000000000000093, NULL, '导入用户', 'post.admin/import/users', 3, NULL, NULL, 1, NOW(), NOW());
+(21000000000000093, 0, '导入用户', 'post.admin/import/users', 3, '', '', 1, NOW(), NOW());
 
 -- API 权限 — 上传
 INSERT INTO `erik_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
-(21000000000000094, NULL, '文件上传', 'post.admin/upload', 3, NULL, NULL, 1, NOW(), NOW());
+(21000000000000094, 0, '文件上传', 'post.admin/upload', 3, '', '', 1, NOW(), NOW());
 
 -- ============================================================
 -- 店长子账号菜单 + API 权限
@@ -233,63 +238,63 @@ INSERT INTO `erik_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, 
 
 -- 菜单: 店长工作台
 INSERT INTO `erik_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
-(21000000000000101, NULL, '店长工作台', 'store_manager', 1, 'store', '/store-manager', 7, NOW(), NOW());
+(21000000000000101, 0, '店长工作台', 'store_manager', 1, 'store', '/store-manager', 7, NOW(), NOW());
 
 -- API 权限: 店长仪表盘
 INSERT INTO `erik_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
-(21000000000000102, 21000000000000101, '店长仪表盘', 'get.admin/store-manager/dashboard', 3, NULL, NULL, 1, NOW(), NOW());
+(21000000000000102, 21000000000000101, '店长仪表盘', 'get.admin/store-manager/dashboard', 3, '', '', 1, NOW(), NOW());
 
 -- API 权限: 订单管理
 INSERT INTO `erik_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
-(21000000000000103, 21000000000000101, '订单查询', 'get.admin/appointment-orders', 3, NULL, NULL, 2, NOW(), NOW()),
-(21000000000000104, 21000000000000101, '订单更新', 'put.admin/appointment-orders', 3, NULL, NULL, 3, NOW(), NOW());
+(21000000000000103, 21000000000000101, '订单查询', 'get.admin/appointment-orders', 3, '', '', 2, NOW(), NOW()),
+(21000000000000104, 21000000000000101, '订单更新', 'put.admin/appointment-orders', 3, '', '', 3, NOW(), NOW());
 
 -- API 权限: 排班管理
 INSERT INTO `erik_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
-(21000000000000105, 21000000000000101, '排班管理', 'get.admin/technicians/schedules', 3, NULL, NULL, 4, NOW(), NOW()),
-(21000000000000106, 21000000000000101, '排班设置', 'post.admin/technicians/schedules', 3, NULL, NULL, 5, NOW(), NOW());
+(21000000000000105, 21000000000000101, '排班管理', 'get.admin/technicians/schedules', 3, '', '', 4, NOW(), NOW()),
+(21000000000000106, 21000000000000101, '排班设置', 'post.admin/technicians/schedules', 3, '', '', 5, NOW(), NOW());
 
 -- API 权限: 优惠券管理
 INSERT INTO `erik_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
-(21000000000000107, 21000000000000101, '优惠券查询', 'get.admin/coupons', 3, NULL, NULL, 6, NOW(), NOW()),
-(21000000000000108, 21000000000000101, '优惠券创建', 'post.admin/coupons', 3, NULL, NULL, 7, NOW(), NOW());
+(21000000000000107, 21000000000000101, '优惠券查询', 'get.admin/coupons', 3, '', '', 6, NOW(), NOW()),
+(21000000000000108, 21000000000000101, '优惠券创建', 'post.admin/coupons', 3, '', '', 7, NOW(), NOW());
 
 -- API 权限: Store manager CRUD
 INSERT INTO `erik_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
-(21000000000000109, NULL, '店长查询', 'get.admin/store-managers', 3, NULL, NULL, 1, NOW(), NOW()),
-(21000000000000110, NULL, '店长创建', 'post.admin/store-managers', 3, NULL, NULL, 2, NOW(), NOW()),
-(21000000000000111, NULL, '店长更新', 'put.admin/store-managers', 3, NULL, NULL, 3, NOW(), NOW()),
-(21000000000000112, NULL, '店长删除', 'delete.admin/store-managers', 3, NULL, NULL, 4, NOW(), NOW());
+(21000000000000109, 0, '店长查询', 'get.admin/store-managers', 3, '', '', 1, NOW(), NOW()),
+(21000000000000110, 0, '店长创建', 'post.admin/store-managers', 3, '', '', 2, NOW(), NOW()),
+(21000000000000111, 0, '店长更新', 'put.admin/store-managers', 3, '', '', 3, NOW(), NOW()),
+(21000000000000112, 0, '店长删除', 'delete.admin/store-managers', 3, '', '', 4, NOW(), NOW());
 
 -- API 权限: 培训课程
 INSERT INTO `erik_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
-(21000000000000113, NULL, '培训课程查询', 'get.admin/training-courses', 3, NULL, NULL, 1, NOW(), NOW()),
-(21000000000000114, NULL, '培训课程创建', 'post.admin/training-courses', 3, NULL, NULL, 2, NOW(), NOW()),
-(21000000000000115, NULL, '培训课程更新', 'put.admin/training-courses', 3, NULL, NULL, 3, NOW(), NOW()),
-(21000000000000116, NULL, '培训课程删除', 'delete.admin/training-courses', 3, NULL, NULL, 4, NOW(), NOW());
+(21000000000000113, 0, '培训课程查询', 'get.admin/training-courses', 3, '', '', 1, NOW(), NOW()),
+(21000000000000114, 0, '培训课程创建', 'post.admin/training-courses', 3, '', '', 2, NOW(), NOW()),
+(21000000000000115, 0, '培训课程更新', 'put.admin/training-courses', 3, '', '', 3, NOW(), NOW()),
+(21000000000000116, 0, '培训课程删除', 'delete.admin/training-courses', 3, '', '', 4, NOW(), NOW());
 
 -- API 权限: 调度任务
 INSERT INTO `erik_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
-(21000000000000117, NULL, '调度任务执行', 'post.admin/scheduled-tasks', 3, NULL, NULL, 1, NOW(), NOW());
+(21000000000000117, 0, '调度任务执行', 'post.admin/scheduled-tasks', 3, '', '', 1, NOW(), NOW());
 
 -- API 权限: 客户画像
 INSERT INTO `erik_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
-(21000000000000118, NULL, '客户画像查询', 'get.admin/customer-profiles', 3, NULL, NULL, 1, NOW(), NOW());
+(21000000000000118, 0, '客户画像查询', 'get.admin/customer-profiles', 3, '', '', 1, NOW(), NOW());
 
 -- API 权限: 批量消息
 INSERT INTO `erik_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
-(21000000000000119, NULL, '批量消息发送', 'post.admin/batch-messages', 3, NULL, NULL, 1, NOW(), NOW());
+(21000000000000119, 0, '批量消息发送', 'post.admin/batch-messages', 3, '', '', 1, NOW(), NOW());
 
 -- API 权限: 退款审批
 INSERT INTO `erik_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
-(21000000000000120, NULL, '退款审批列表', 'get.admin/refund-workflows', 3, NULL, NULL, 1, NOW(), NOW()),
-(21000000000000121, NULL, '退款审批通过', 'post.admin/refund-workflows/approve', 3, NULL, NULL, 2, NOW(), NOW()),
-(21000000000000122, NULL, '退款审批驳回', 'post.admin/refund-workflows/reject', 3, NULL, NULL, 3, NOW(), NOW());
+(21000000000000120, 0, '退款审批列表', 'get.admin/refund-workflows', 3, '', '', 1, NOW(), NOW()),
+(21000000000000121, 0, '退款审批通过', 'post.admin/refund-workflows/approve', 3, '', '', 2, NOW(), NOW()),
+(21000000000000122, 0, '退款审批驳回', 'post.admin/refund-workflows/reject', 3, '', '', 3, NOW(), NOW());
 
 -- API 权限: 技师等级
 INSERT INTO `erik_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
-(21000000000000123, NULL, '技师等级查询', 'get.admin/technician-tiers', 3, NULL, NULL, 1, NOW(), NOW()),
-(21000000000000124, NULL, '技师等级更新', 'put.admin/technician-tiers', 3, NULL, NULL, 2, NOW(), NOW());
+(21000000000000123, 0, '技师等级查询', 'get.admin/technician-tiers', 3, '', '', 1, NOW(), NOW()),
+(21000000000000124, 0, '技师等级更新', 'put.admin/technician-tiers', 3, '', '', 2, NOW(), NOW());
 
 -- ============================================================
 -- 超级管理员角色 (ID=10000000000000001) 关联所有权限
@@ -388,7 +393,8 @@ CREATE TABLE IF NOT EXISTS `erik_user_favorite` (
     `user_id` BIGINT UNSIGNED NOT NULL COMMENT '用户ID',
     `target_type` VARCHAR(20) NOT NULL DEFAULT 'service' COMMENT '收藏类型: service=服务 technician=技师',
     `target_id` BIGINT UNSIGNED NOT NULL COMMENT '收藏目标ID',
-    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_user_target` (`user_id`, `target_type`, `target_id`),
     KEY `idx_user_id` (`user_id`)
@@ -409,19 +415,24 @@ CREATE TABLE IF NOT EXISTS `erik_technician_profile` (
     `id_card_back` VARCHAR(500) NOT NULL DEFAULT '' COMMENT '身份证反面照片URL',
     `avatar` VARCHAR(500) NOT NULL DEFAULT '' COMMENT '技师头像URL',
     `intro` VARCHAR(500) NOT NULL DEFAULT '' COMMENT '个人简介',
+    `cover_image` VARCHAR(500) NOT NULL DEFAULT '' COMMENT '封面图URL',
+    `video_url` VARCHAR(500) NOT NULL DEFAULT '' COMMENT '个人视频URL',
+    `certificates` JSON COMMENT '资质证书照片URL列表',
     `rating` DECIMAL(2,1) NOT NULL DEFAULT 5.0 COMMENT '评价星级（1.0-5.0）',
     `order_count` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT '累计服务订单数',
     `favorite_count` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT '被收藏数',
     `status` VARCHAR(20) NOT NULL DEFAULT 'pending' COMMENT '审核状态: pending=待审核 approved=已通过 rejected=已驳回',
     `audit_remark` VARCHAR(255) NOT NULL DEFAULT '' COMMENT '审核备注',
     `audited_at` DATETIME DEFAULT NULL COMMENT '审核时间',
+    `deleted_at` DATETIME DEFAULT NULL COMMENT '软删除标记',
     `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_user_id` (`user_id`),
     KEY `idx_status` (`status`),
     KEY `idx_rating` (`rating`),
-    KEY `idx_order_count` (`order_count`)
+    KEY `idx_order_count` (`order_count`),
+    KEY `idx_deleted_at` (`deleted_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='技师档案表';
 
 -- 技师排班表
@@ -443,7 +454,8 @@ CREATE TABLE IF NOT EXISTS `erik_technician_service` (
     `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
     `technician_id` BIGINT UNSIGNED NOT NULL COMMENT '技师档案ID',
     `service_id` BIGINT UNSIGNED NOT NULL COMMENT '服务项目ID',
-    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_tech_service` (`technician_id`, `service_id`),
     KEY `idx_service_id` (`service_id`)
@@ -664,7 +676,8 @@ CREATE TABLE IF NOT EXISTS `erik_order_item` (
     `price` DECIMAL(10,2) NOT NULL DEFAULT 0.00 COMMENT '单价（元）',
     `quantity` INT UNSIGNED NOT NULL DEFAULT 1 COMMENT '数量',
     `spec_info` VARCHAR(255) NOT NULL DEFAULT '' COMMENT '规格信息',
-    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+
     PRIMARY KEY (`id`),
     KEY `idx_order_id` (`order_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='订单明细表';
@@ -711,6 +724,7 @@ CREATE TABLE IF NOT EXISTS `erik_order_refund` (
 CREATE TABLE IF NOT EXISTS `erik_order_review` (
     `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
     `order_id` BIGINT UNSIGNED NOT NULL COMMENT '订单ID',
+    `service_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '被评价服务ID',
     `user_id` BIGINT UNSIGNED NOT NULL COMMENT '评价用户ID',
     `technician_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '被评价技师ID',
     `rating` TINYINT UNSIGNED NOT NULL DEFAULT 5 COMMENT '评分（1-5星）',
@@ -723,6 +737,7 @@ CREATE TABLE IF NOT EXISTS `erik_order_review` (
     `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_order_id` (`order_id`),
+    KEY `idx_service_id` (`service_id`),
     KEY `idx_user_id` (`user_id`),
     KEY `idx_technician_id` (`technician_id`),
     KEY `idx_rating` (`rating`)
@@ -737,7 +752,8 @@ CREATE TABLE IF NOT EXISTS `erik_order_verification` (
     `verify_type` VARCHAR(20) NOT NULL DEFAULT 'scan' COMMENT '核销方式: scan=扫码 self=自行核销',
     `location` VARCHAR(255) NOT NULL DEFAULT '' COMMENT '核销地点',
     `verified_at` DATETIME DEFAULT NULL COMMENT '核销时间',
-    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_code` (`code`),
     KEY `idx_order_id` (`order_id`)
@@ -822,7 +838,9 @@ CREATE TABLE IF NOT EXISTS `erik_member_card_usage` (
     `user_card_id` BIGINT UNSIGNED NOT NULL COMMENT '用户会员卡ID',
     `order_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '关联订单ID',
     `service_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '使用的服务项目ID',
-    `used_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '使用时间',
+    `used_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '使用时间',    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+
     PRIMARY KEY (`id`),
     KEY `idx_user_card_id` (`user_card_id`),
     KEY `idx_order_id` (`order_id`)
@@ -838,7 +856,8 @@ CREATE TABLE IF NOT EXISTS `erik_user_points` (
     `source` VARCHAR(50) NOT NULL DEFAULT '' COMMENT '来源: order=消费 referral=推荐 gift_card=礼品卡兑换 admin=后台调整',
     `order_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '关联订单ID',
     `description` VARCHAR(255) NOT NULL DEFAULT '' COMMENT '说明',
-    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+
     PRIMARY KEY (`id`),
     KEY `idx_user_id` (`user_id`),
     KEY `idx_type` (`type`),
@@ -873,7 +892,8 @@ CREATE TABLE IF NOT EXISTS `erik_user_referral` (
     `rewarded_at` DATETIME DEFAULT NULL COMMENT '发放奖励时间',
     `registered_at` DATETIME NOT NULL COMMENT '被推荐人注册时间',
     `first_order_at` DATETIME DEFAULT NULL COMMENT '被推荐人首单时间',
-    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+
     PRIMARY KEY (`id`),
     KEY `idx_referrer_id` (`referrer_id`),
     KEY `idx_referred_user_id` (`referred_user_id`)
@@ -985,7 +1005,8 @@ CREATE TABLE IF NOT EXISTS `erik_notification` (
     `order_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '关联订单ID',
     `is_read` TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '是否已读: 0=未读 1=已读',
     `read_at` DATETIME DEFAULT NULL COMMENT '阅读时间',
-    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+
     PRIMARY KEY (`id`),
     KEY `idx_user_id` (`user_id`),
     KEY `idx_type` (`type`),
@@ -1063,14 +1084,6 @@ CREATE TABLE IF NOT EXISTS `erik_withdrawal_config` (
     `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='提现限制配置表';
-
--- ============================================================
--- 8. 扩展 erik_operation_log 表，增加来源端字段
--- ============================================================
-
-ALTER TABLE `erik_operation_log`
-ADD COLUMN IF NOT EXISTS `source` VARCHAR(20) NOT NULL DEFAULT 'web' COMMENT '操作来源端: web=Web后台 iPadOS macOS Windows Linux ios android harmonyOS'
-AFTER `ip`;
 
 -- ============================================================
 -- 初始数据: 提现默认配置
@@ -1193,7 +1206,9 @@ CREATE TABLE IF NOT EXISTS `erik_operation_log_detail` (
     `log_id` BIGINT UNSIGNED NOT NULL COMMENT '关联操作日志ID',
     `snapshot_before` TEXT COMMENT '操作前数据快照（JSON）',
     `snapshot_after` TEXT COMMENT '操作后数据快照（JSON）',
-    `response_body` TEXT COMMENT '响应内容（JSON）',
+    `response_body` TEXT COMMENT '响应内容（JSON）',    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_log_id` (`log_id`),
     KEY `idx_log_id` (`log_id`)
@@ -1386,3 +1401,262 @@ CREATE TABLE IF NOT EXISTS `erik_signature` (
     KEY `idx_user_id` (`user_id`),
     KEY `idx_technician_id` (`technician_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='电子签名记录表';
+CREATE TABLE IF NOT EXISTS `erik_card_transfer` (
+    `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
+    `card_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'card_id',
+    `from_user_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'from_user_id',
+    `to_user_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'to_user_id',
+    `transferred_at` DATETIME DEFAULT NULL COMMENT 'transferred_at',
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    PRIMARY KEY (`id`),
+    KEY `idx_card_id` (`card_id`),
+    KEY `idx_from_user_id` (`from_user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='会员卡转赠记录表';
+
+CREATE TABLE IF NOT EXISTS `erik_check_in` (
+    `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
+    `user_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'user_id',
+    `date` DATE DEFAULT NULL COMMENT 'date',
+    `points_awarded` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'points_awarded',
+    `consecutive_days` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'consecutive_days',
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_user_date` (`user_id`, `date`),
+    KEY `idx_user_id` (`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='签到记录表';
+
+CREATE TABLE IF NOT EXISTS `erik_community_post` (
+    `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
+    `user_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'user_id',
+    `title` VARCHAR(200) NOT NULL DEFAULT '' COMMENT 'title',
+    `content` TEXT COMMENT 'content',
+    `images` JSON COMMENT 'images',
+    `likes` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'likes',
+    `comments_count` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'comments_count',
+    `status` TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'status',
+    `is_pinned` TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'is_pinned',
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    PRIMARY KEY (`id`),
+    KEY `idx_user_id` (`user_id`),
+    KEY `idx_status` (`status`),
+    KEY `idx_created_at` (`created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='社区帖子表';
+
+CREATE TABLE IF NOT EXISTS `erik_community_comment` (
+    `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
+    `post_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'post_id',
+    `user_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'user_id',
+    `parent_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'parent_id',
+    `content` TEXT COMMENT 'content',
+    `likes` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'likes',
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    PRIMARY KEY (`id`),
+    KEY `idx_post_id` (`post_id`),
+    KEY `idx_parent_id` (`parent_id`),
+    KEY `idx_user_id` (`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='社区评论表';
+
+CREATE TABLE IF NOT EXISTS `erik_exam` (
+    `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
+    `title` VARCHAR(200) NOT NULL DEFAULT '' COMMENT 'title',
+    `course_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'course_id',
+    `passing_score` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'passing_score',
+    `duration_minutes` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'duration_minutes',
+    `status` TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'status',
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    PRIMARY KEY (`id`),
+    KEY `idx_course_id` (`course_id`),
+    KEY `idx_status` (`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='技师考试表';
+
+CREATE TABLE IF NOT EXISTS `erik_exam_attempt` (
+    `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
+    `exam_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'exam_id',
+    `technician_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'technician_id',
+    `score` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'score',
+    `total_score` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'total_score',
+    `passed` TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'passed',
+    `started_at` DATETIME DEFAULT NULL COMMENT 'started_at',
+    `submitted_at` DATETIME DEFAULT NULL COMMENT 'submitted_at',
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    PRIMARY KEY (`id`),
+    KEY `idx_exam_id` (`exam_id`),
+    KEY `idx_technician_id` (`technician_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='考试答题记录表';
+
+CREATE TABLE IF NOT EXISTS `erik_exam_question` (
+    `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
+    `exam_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'exam_id',
+    `content` TEXT COMMENT 'content',
+    `type` VARCHAR(20) NOT NULL DEFAULT '' COMMENT 'type',
+    `options` JSON COMMENT 'options',
+    `answer` JSON COMMENT 'answer',
+    `score` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'score',
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    PRIMARY KEY (`id`),
+    KEY `idx_exam_id` (`exam_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='考试题目表';
+
+CREATE TABLE IF NOT EXISTS `erik_invoice` (
+    `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
+    `user_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'user_id',
+    `order_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'order_id',
+    `type` VARCHAR(20) NOT NULL DEFAULT '' COMMENT 'type',
+    `title` VARCHAR(255) NOT NULL DEFAULT '' COMMENT 'title',
+    `tax_no` VARCHAR(50) NOT NULL DEFAULT '' COMMENT 'tax_no',
+    `email` VARCHAR(100) NOT NULL DEFAULT '' COMMENT 'email',
+    `amount` DECIMAL(10,2) NOT NULL DEFAULT 0.00 COMMENT 'amount',
+    `status` TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'status',
+    `issued_at` DATETIME DEFAULT NULL COMMENT 'issued_at',
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    PRIMARY KEY (`id`),
+    KEY `idx_user_id` (`user_id`),
+    KEY `idx_order_id` (`order_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='发票申请表';
+
+CREATE TABLE IF NOT EXISTS `erik_promotion` (
+    `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
+    `name` VARCHAR(200) NOT NULL DEFAULT '' COMMENT 'name',
+    `type` VARCHAR(20) NOT NULL DEFAULT '' COMMENT 'type',
+    `service_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'service_id',
+    `min_people` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'min_people',
+    `max_people` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'max_people',
+    `discount_percent` DECIMAL(5,2) NOT NULL DEFAULT 0.00 COMMENT 'discount_percent',
+    `start_at` DATETIME DEFAULT NULL COMMENT 'start_at',
+    `end_at` DATETIME DEFAULT NULL COMMENT 'end_at',
+    `status` TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'status',
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    PRIMARY KEY (`id`),
+    KEY `idx_service_id` (`service_id`),
+    KEY `idx_status` (`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='营销活动表';
+
+CREATE TABLE IF NOT EXISTS `erik_promotion_participant` (
+    `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
+    `promotion_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'promotion_id',
+    `user_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'user_id',
+    `order_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'order_id',
+    `status` TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'status',
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    PRIMARY KEY (`id`),
+    KEY `idx_promotion_id` (`promotion_id`),
+    KEY `idx_user_id` (`user_id`),
+    KEY `idx_order_id` (`order_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='活动参与记录表';
+
+CREATE TABLE IF NOT EXISTS `erik_queue_number` (
+    `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
+    `store_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'store_id',
+    `user_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'user_id',
+    `number` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'number',
+    `status` TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'status',
+    `called_at` DATETIME DEFAULT NULL COMMENT 'called_at',
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    PRIMARY KEY (`id`),
+    KEY `idx_store_id` (`store_id`),
+    KEY `idx_user_id` (`user_id`),
+    KEY `idx_status` (`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='门店排队叫号表';
+
+CREATE TABLE IF NOT EXISTS `erik_service_package` (
+    `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
+    `name` VARCHAR(200) NOT NULL DEFAULT '' COMMENT 'name',
+    `description` TEXT COMMENT 'description',
+    `cover_image` VARCHAR(500) NOT NULL DEFAULT '' COMMENT 'cover_image',
+    `price` DECIMAL(10,2) NOT NULL DEFAULT 0.00 COMMENT 'price',
+    `original_price` DECIMAL(10,2) NOT NULL DEFAULT 0.00 COMMENT 'original_price',
+    `services` JSON COMMENT 'services',
+    `duration_days` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'duration_days',
+    `sales_volume` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'sales_volume',
+    `status` TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'status',
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    PRIMARY KEY (`id`),
+    KEY `idx_status` (`status`),
+    KEY `idx_price` (`price`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='服务套餐表';
+
+CREATE TABLE IF NOT EXISTS `erik_service_record` (
+    `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
+    `order_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'order_id',
+    `technician_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'technician_id',
+    `before_photos` JSON COMMENT 'before_photos',
+    `after_photos` JSON COMMENT 'after_photos',
+    `notes` VARCHAR(500) NOT NULL DEFAULT '' COMMENT 'notes',
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    PRIMARY KEY (`id`),
+    KEY `idx_order_id` (`order_id`),
+    KEY `idx_technician_id` (`technician_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='服务记录表';
+
+CREATE TABLE IF NOT EXISTS `erik_share` (
+    `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
+    `sharer_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'sharer_id',
+    `share_type` VARCHAR(30) NOT NULL DEFAULT '' COMMENT 'share_type',
+    `target_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'target_id',
+    `platform` VARCHAR(20) NOT NULL DEFAULT '' COMMENT 'platform',
+    `clicked_at` DATETIME DEFAULT NULL COMMENT 'clicked_at',
+    `converted_at` DATETIME DEFAULT NULL COMMENT 'converted_at',
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    PRIMARY KEY (`id`),
+    KEY `idx_sharer_id` (`sharer_id`),
+    KEY `idx_target_id` (`target_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='分享记录表';
+
+CREATE TABLE IF NOT EXISTS `erik_user_device` (
+    `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
+    `user_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'user_id',
+    `platform` VARCHAR(20) NOT NULL DEFAULT '' COMMENT 'platform',
+    `device_token` VARCHAR(255) NOT NULL DEFAULT '' COMMENT 'device_token',
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    PRIMARY KEY (`id`),
+    KEY `idx_user_id` (`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='用户设备表';
+
+CREATE TABLE IF NOT EXISTS `erik_video_post` (
+    `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
+    `technician_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'technician_id',
+    `title` VARCHAR(200) NOT NULL DEFAULT '' COMMENT 'title',
+    `video_url` VARCHAR(500) NOT NULL DEFAULT '' COMMENT 'video_url',
+    `cover_url` VARCHAR(500) NOT NULL DEFAULT '' COMMENT 'cover_url',
+    `duration` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'duration',
+    `views` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'views',
+    `likes` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'likes',
+    `status` TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'status',
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    PRIMARY KEY (`id`),
+    KEY `idx_technician_id` (`technician_id`),
+    KEY `idx_status` (`status`),
+    KEY `idx_views` (`views`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='技师短视频表';
+
+CREATE TABLE IF NOT EXISTS `erik_waitlist` (
+    `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
+    `user_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'user_id',
+    `service_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'service_id',
+    `technician_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'technician_id',
+    `preferred_date` DATE DEFAULT NULL COMMENT 'preferred_date',
+    `preferred_time` VARCHAR(20) NOT NULL DEFAULT '' COMMENT 'preferred_time',
+    `status` VARCHAR(20) NOT NULL DEFAULT '' COMMENT 'status',
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    PRIMARY KEY (`id`),
+    KEY `idx_user_id` (`user_id`),
+    KEY `idx_service_id` (`service_id`),
+    KEY `idx_technician_id` (`technician_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='排队候补表';

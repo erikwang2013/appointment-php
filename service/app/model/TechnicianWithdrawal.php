@@ -11,16 +11,10 @@ use support\Model;
 
 class TechnicianWithdrawal extends Model
 {
-    use Encryptable;
-
     protected $table = 'erik_technician_withdrawal';
     public $incrementing = false;
     protected $keyType = 'string';
     public $timestamps = true;
-
-    protected array $encryptable = [
-        'account_name', 'account_no',
-    ];
 
     protected $fillable = [
         'technician_id', 'withdrawal_no', 'amount', 'actual_amount',
@@ -29,6 +23,8 @@ class TechnicianWithdrawal extends Model
     ];
 
     protected $casts = [
+        'account_name' => Encryptable::class,
+        'account_no' => Encryptable::class,
         'amount' => 'decimal:2',
         'actual_amount' => 'decimal:2',
         'commission_fee' => 'decimal:2',

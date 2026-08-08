@@ -12,16 +12,12 @@ use support\Model;
 
 class TechnicianProfile extends Model
 {
-    use Encryptable, SoftDeletes;
+    use SoftDeletes;
 
     protected $table = 'erik_technician_profile';
     public $incrementing = false;
     protected $keyType = 'string';
     public $timestamps = true;
-
-    protected array $encryptable = [
-        'real_name', 'id_card',
-    ];
 
     protected $fillable = [
         'user_id', 'real_name', 'gender', 'id_card',
@@ -32,6 +28,8 @@ class TechnicianProfile extends Model
     ];
 
     protected $casts = [
+        // real_name 必须明文：admin 按技师姓名 LIKE 搜索（TechnicianController 等 3 处）
+        'id_card' => Encryptable::class,
         'rating' => 'decimal:1',
         'order_count' => 'integer',
         'favorite_count' => 'integer',

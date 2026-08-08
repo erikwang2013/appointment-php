@@ -11,19 +11,17 @@ use support\Model;
 
 class TechnicianMemberNote extends Model
 {
-    use Encryptable;
-
     protected $table = 'erik_technician_member_note';
     public $incrementing = false;
     protected $keyType = 'string';
     public $timestamps = true;
 
-    protected array $encryptable = [
-        'content',
-    ];
-
     protected $fillable = [
         'technician_id', 'user_id', 'order_id', 'content',
+    ];
+
+    protected $casts = [
+        'content' => Encryptable::class,
     ];
 
     public function technician()

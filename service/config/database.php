@@ -30,8 +30,8 @@ return [
             'charset' => 'utf8mb4',
             // 排序规则，utf8mb4_unicode_ci 兼容性最好
             'collation' => 'utf8mb4_unicode_ci',
-            // 表前缀，所有表名自动添加此前缀
-            'prefix' => 'erik_',
+            // 表前缀已内嵌在模型 $table（如 erik_user），此处不再配置 prefix，
+            // 否则表名被二次拼接为 erik_erik_user
             // 严格模式，杜绝非法数据写入
             'strict' => true,
             // 存储引擎

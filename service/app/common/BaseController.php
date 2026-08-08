@@ -5,7 +5,7 @@ declare(strict_types=1);
 
 namespace app\common;
 
-use Erikwang2013\Hashids\Hashids;
+use support\Container;
 use Webman\Http\Response;
 
 /**
@@ -89,7 +89,7 @@ class BaseController
                 foreach ($data as $key => $value) {
                     // 对 id 和以 _id 结尾的字段进行编码
                     if ($this->shouldEncode($key) && is_numeric($value) && $value > 0) {
-                        $result[$key] = Hashids::encode((int) $value);
+                        $result[$key] = Container::get('hashids')->encode((int) $value);
                     } elseif (is_array($value) || is_object($value)) {
                         $result[$key] = $this->encodeIds($value);
                     } else {
@@ -104,10 +104,16 @@ class BaseController
         }
 
         if (is_object($data)) {
+            // Eloquent 模型/集合: get_object_vars 只能取到 public 属性（如 incrementing/exists），
+            // 会丢失真实数据，必须走 toArray()
+            if (method_exists($data, 'toArray')) {
+                return $this->encodeIds($data->toArray());
+            }
+
             $result = [];
             foreach (get_object_vars($data) as $key => $value) {
                 if ($this->shouldEncode($key) && is_numeric($value) && $value > 0) {
-                    $result[$key] = Hashids::encode((int) $value);
+                    $result[$key] = Container::get('hashids')->encode((int) $value);
                 } elseif (is_array($value) || is_object($value)) {
                     $result[$key] = $this->encodeIds($value);
                 } else {
@@ -168,9 +174,13 @@ class BaseController
      * @param string $hashid hashids 编码的字符串
      * @return int|null 返回解码后的整数 ID，解码失败返回 null
      */
-    protected function decodeId(string $hashid): ?int
+    protected function decodeId(?string $hashid): ?int
     {
-        $result = Hashids::decode($hashid);
+        if ($hashid === null || $hashid === '') {
+            return null;
+        }
+
+        $result = Container::get('hashids')->decode($hashid);
 
         if (empty($result)) {
             return null;

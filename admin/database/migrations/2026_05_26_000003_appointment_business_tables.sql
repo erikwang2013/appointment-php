@@ -67,7 +67,8 @@ CREATE TABLE IF NOT EXISTS `erik_user_favorite` (
     `user_id` BIGINT UNSIGNED NOT NULL COMMENT '用户ID',
     `target_type` VARCHAR(20) NOT NULL DEFAULT 'service' COMMENT '收藏类型: service=服务 technician=技师',
     `target_id` BIGINT UNSIGNED NOT NULL COMMENT '收藏目标ID',
-    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_user_target` (`user_id`, `target_type`, `target_id`),
     KEY `idx_user_id` (`user_id`)
@@ -88,19 +89,24 @@ CREATE TABLE IF NOT EXISTS `erik_technician_profile` (
     `id_card_back` VARCHAR(500) NOT NULL DEFAULT '' COMMENT '身份证反面照片URL',
     `avatar` VARCHAR(500) NOT NULL DEFAULT '' COMMENT '技师头像URL',
     `intro` VARCHAR(500) NOT NULL DEFAULT '' COMMENT '个人简介',
+    `cover_image` VARCHAR(500) NOT NULL DEFAULT '' COMMENT '封面图URL',
+    `video_url` VARCHAR(500) NOT NULL DEFAULT '' COMMENT '个人视频URL',
+    `certificates` JSON COMMENT '资质证书照片URL列表',
     `rating` DECIMAL(2,1) NOT NULL DEFAULT 5.0 COMMENT '评价星级（1.0-5.0）',
     `order_count` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT '累计服务订单数',
     `favorite_count` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT '被收藏数',
     `status` VARCHAR(20) NOT NULL DEFAULT 'pending' COMMENT '审核状态: pending=待审核 approved=已通过 rejected=已驳回',
     `audit_remark` VARCHAR(255) NOT NULL DEFAULT '' COMMENT '审核备注',
     `audited_at` DATETIME DEFAULT NULL COMMENT '审核时间',
+    `deleted_at` DATETIME DEFAULT NULL COMMENT '软删除标记',
     `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_user_id` (`user_id`),
     KEY `idx_status` (`status`),
     KEY `idx_rating` (`rating`),
-    KEY `idx_order_count` (`order_count`)
+    KEY `idx_order_count` (`order_count`),
+    KEY `idx_deleted_at` (`deleted_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='技师档案表';
 
 -- 技师排班表
@@ -122,7 +128,8 @@ CREATE TABLE IF NOT EXISTS `erik_technician_service` (
     `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
     `technician_id` BIGINT UNSIGNED NOT NULL COMMENT '技师档案ID',
     `service_id` BIGINT UNSIGNED NOT NULL COMMENT '服务项目ID',
-    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_tech_service` (`technician_id`, `service_id`),
     KEY `idx_service_id` (`service_id`)
@@ -343,7 +350,8 @@ CREATE TABLE IF NOT EXISTS `erik_order_item` (
     `price` DECIMAL(10,2) NOT NULL DEFAULT 0.00 COMMENT '单价（元）',
     `quantity` INT UNSIGNED NOT NULL DEFAULT 1 COMMENT '数量',
     `spec_info` VARCHAR(255) NOT NULL DEFAULT '' COMMENT '规格信息',
-    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+
     PRIMARY KEY (`id`),
     KEY `idx_order_id` (`order_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='订单明细表';
@@ -390,6 +398,7 @@ CREATE TABLE IF NOT EXISTS `erik_order_refund` (
 CREATE TABLE IF NOT EXISTS `erik_order_review` (
     `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
     `order_id` BIGINT UNSIGNED NOT NULL COMMENT '订单ID',
+    `service_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '被评价服务ID',
     `user_id` BIGINT UNSIGNED NOT NULL COMMENT '评价用户ID',
     `technician_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '被评价技师ID',
     `rating` TINYINT UNSIGNED NOT NULL DEFAULT 5 COMMENT '评分（1-5星）',
@@ -402,6 +411,7 @@ CREATE TABLE IF NOT EXISTS `erik_order_review` (
     `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_order_id` (`order_id`),
+    KEY `idx_service_id` (`service_id`),
     KEY `idx_user_id` (`user_id`),
     KEY `idx_technician_id` (`technician_id`),
     KEY `idx_rating` (`rating`)
@@ -416,7 +426,8 @@ CREATE TABLE IF NOT EXISTS `erik_order_verification` (
     `verify_type` VARCHAR(20) NOT NULL DEFAULT 'scan' COMMENT '核销方式: scan=扫码 self=自行核销',
     `location` VARCHAR(255) NOT NULL DEFAULT '' COMMENT '核销地点',
     `verified_at` DATETIME DEFAULT NULL COMMENT '核销时间',
-    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_code` (`code`),
     KEY `idx_order_id` (`order_id`)
@@ -501,7 +512,9 @@ CREATE TABLE IF NOT EXISTS `erik_member_card_usage` (
     `user_card_id` BIGINT UNSIGNED NOT NULL COMMENT '用户会员卡ID',
     `order_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '关联订单ID',
     `service_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '使用的服务项目ID',
-    `used_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '使用时间',
+    `used_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '使用时间',    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+
     PRIMARY KEY (`id`),
     KEY `idx_user_card_id` (`user_card_id`),
     KEY `idx_order_id` (`order_id`)
@@ -517,7 +530,8 @@ CREATE TABLE IF NOT EXISTS `erik_user_points` (
     `source` VARCHAR(50) NOT NULL DEFAULT '' COMMENT '来源: order=消费 referral=推荐 gift_card=礼品卡兑换 admin=后台调整',
     `order_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '关联订单ID',
     `description` VARCHAR(255) NOT NULL DEFAULT '' COMMENT '说明',
-    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+
     PRIMARY KEY (`id`),
     KEY `idx_user_id` (`user_id`),
     KEY `idx_type` (`type`),
@@ -552,7 +566,8 @@ CREATE TABLE IF NOT EXISTS `erik_user_referral` (
     `rewarded_at` DATETIME DEFAULT NULL COMMENT '发放奖励时间',
     `registered_at` DATETIME NOT NULL COMMENT '被推荐人注册时间',
     `first_order_at` DATETIME DEFAULT NULL COMMENT '被推荐人首单时间',
-    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+
     PRIMARY KEY (`id`),
     KEY `idx_referrer_id` (`referrer_id`),
     KEY `idx_referred_user_id` (`referred_user_id`)
@@ -664,7 +679,8 @@ CREATE TABLE IF NOT EXISTS `erik_notification` (
     `order_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '关联订单ID',
     `is_read` TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '是否已读: 0=未读 1=已读',
     `read_at` DATETIME DEFAULT NULL COMMENT '阅读时间',
-    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+
     PRIMARY KEY (`id`),
     KEY `idx_user_id` (`user_id`),
     KEY `idx_type` (`type`),
@@ -757,3 +773,262 @@ AFTER `ip`;
 
 INSERT INTO `erik_withdrawal_config` (`id`, `min_amount`, `reserve_amount`, `round_to_hundred`, `withdrawal_day`, `arrival_days`) VALUES
 (10000000000000001, 10.00, 0.00, 1, 20, 1);
+CREATE TABLE IF NOT EXISTS `erik_card_transfer` (
+    `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
+    `card_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'card_id',
+    `from_user_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'from_user_id',
+    `to_user_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'to_user_id',
+    `transferred_at` DATETIME DEFAULT NULL COMMENT 'transferred_at',
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    PRIMARY KEY (`id`),
+    KEY `idx_card_id` (`card_id`),
+    KEY `idx_from_user_id` (`from_user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='会员卡转赠记录表';
+
+CREATE TABLE IF NOT EXISTS `erik_check_in` (
+    `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
+    `user_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'user_id',
+    `date` DATE DEFAULT NULL COMMENT 'date',
+    `points_awarded` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'points_awarded',
+    `consecutive_days` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'consecutive_days',
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_user_date` (`user_id`, `date`),
+    KEY `idx_user_id` (`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='签到记录表';
+
+CREATE TABLE IF NOT EXISTS `erik_community_post` (
+    `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
+    `user_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'user_id',
+    `title` VARCHAR(200) NOT NULL DEFAULT '' COMMENT 'title',
+    `content` TEXT COMMENT 'content',
+    `images` JSON COMMENT 'images',
+    `likes` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'likes',
+    `comments_count` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'comments_count',
+    `status` TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'status',
+    `is_pinned` TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'is_pinned',
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    PRIMARY KEY (`id`),
+    KEY `idx_user_id` (`user_id`),
+    KEY `idx_status` (`status`),
+    KEY `idx_created_at` (`created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='社区帖子表';
+
+CREATE TABLE IF NOT EXISTS `erik_community_comment` (
+    `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
+    `post_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'post_id',
+    `user_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'user_id',
+    `parent_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'parent_id',
+    `content` TEXT COMMENT 'content',
+    `likes` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'likes',
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    PRIMARY KEY (`id`),
+    KEY `idx_post_id` (`post_id`),
+    KEY `idx_parent_id` (`parent_id`),
+    KEY `idx_user_id` (`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='社区评论表';
+
+CREATE TABLE IF NOT EXISTS `erik_exam` (
+    `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
+    `title` VARCHAR(200) NOT NULL DEFAULT '' COMMENT 'title',
+    `course_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'course_id',
+    `passing_score` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'passing_score',
+    `duration_minutes` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'duration_minutes',
+    `status` TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'status',
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    PRIMARY KEY (`id`),
+    KEY `idx_course_id` (`course_id`),
+    KEY `idx_status` (`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='技师考试表';
+
+CREATE TABLE IF NOT EXISTS `erik_exam_attempt` (
+    `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
+    `exam_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'exam_id',
+    `technician_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'technician_id',
+    `score` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'score',
+    `total_score` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'total_score',
+    `passed` TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'passed',
+    `started_at` DATETIME DEFAULT NULL COMMENT 'started_at',
+    `submitted_at` DATETIME DEFAULT NULL COMMENT 'submitted_at',
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    PRIMARY KEY (`id`),
+    KEY `idx_exam_id` (`exam_id`),
+    KEY `idx_technician_id` (`technician_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='考试答题记录表';
+
+CREATE TABLE IF NOT EXISTS `erik_exam_question` (
+    `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
+    `exam_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'exam_id',
+    `content` TEXT COMMENT 'content',
+    `type` VARCHAR(20) NOT NULL DEFAULT '' COMMENT 'type',
+    `options` JSON COMMENT 'options',
+    `answer` JSON COMMENT 'answer',
+    `score` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'score',
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    PRIMARY KEY (`id`),
+    KEY `idx_exam_id` (`exam_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='考试题目表';
+
+CREATE TABLE IF NOT EXISTS `erik_invoice` (
+    `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
+    `user_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'user_id',
+    `order_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'order_id',
+    `type` VARCHAR(20) NOT NULL DEFAULT '' COMMENT 'type',
+    `title` VARCHAR(255) NOT NULL DEFAULT '' COMMENT 'title',
+    `tax_no` VARCHAR(50) NOT NULL DEFAULT '' COMMENT 'tax_no',
+    `email` VARCHAR(100) NOT NULL DEFAULT '' COMMENT 'email',
+    `amount` DECIMAL(10,2) NOT NULL DEFAULT 0.00 COMMENT 'amount',
+    `status` TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'status',
+    `issued_at` DATETIME DEFAULT NULL COMMENT 'issued_at',
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    PRIMARY KEY (`id`),
+    KEY `idx_user_id` (`user_id`),
+    KEY `idx_order_id` (`order_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='发票申请表';
+
+CREATE TABLE IF NOT EXISTS `erik_promotion` (
+    `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
+    `name` VARCHAR(200) NOT NULL DEFAULT '' COMMENT 'name',
+    `type` VARCHAR(20) NOT NULL DEFAULT '' COMMENT 'type',
+    `service_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'service_id',
+    `min_people` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'min_people',
+    `max_people` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'max_people',
+    `discount_percent` DECIMAL(5,2) NOT NULL DEFAULT 0.00 COMMENT 'discount_percent',
+    `start_at` DATETIME DEFAULT NULL COMMENT 'start_at',
+    `end_at` DATETIME DEFAULT NULL COMMENT 'end_at',
+    `status` TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'status',
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    PRIMARY KEY (`id`),
+    KEY `idx_service_id` (`service_id`),
+    KEY `idx_status` (`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='营销活动表';
+
+CREATE TABLE IF NOT EXISTS `erik_promotion_participant` (
+    `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
+    `promotion_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'promotion_id',
+    `user_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'user_id',
+    `order_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'order_id',
+    `status` TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'status',
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    PRIMARY KEY (`id`),
+    KEY `idx_promotion_id` (`promotion_id`),
+    KEY `idx_user_id` (`user_id`),
+    KEY `idx_order_id` (`order_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='活动参与记录表';
+
+CREATE TABLE IF NOT EXISTS `erik_queue_number` (
+    `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
+    `store_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'store_id',
+    `user_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'user_id',
+    `number` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'number',
+    `status` TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'status',
+    `called_at` DATETIME DEFAULT NULL COMMENT 'called_at',
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    PRIMARY KEY (`id`),
+    KEY `idx_store_id` (`store_id`),
+    KEY `idx_user_id` (`user_id`),
+    KEY `idx_status` (`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='门店排队叫号表';
+
+CREATE TABLE IF NOT EXISTS `erik_service_package` (
+    `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
+    `name` VARCHAR(200) NOT NULL DEFAULT '' COMMENT 'name',
+    `description` TEXT COMMENT 'description',
+    `cover_image` VARCHAR(500) NOT NULL DEFAULT '' COMMENT 'cover_image',
+    `price` DECIMAL(10,2) NOT NULL DEFAULT 0.00 COMMENT 'price',
+    `original_price` DECIMAL(10,2) NOT NULL DEFAULT 0.00 COMMENT 'original_price',
+    `services` JSON COMMENT 'services',
+    `duration_days` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'duration_days',
+    `sales_volume` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'sales_volume',
+    `status` TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'status',
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    PRIMARY KEY (`id`),
+    KEY `idx_status` (`status`),
+    KEY `idx_price` (`price`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='服务套餐表';
+
+CREATE TABLE IF NOT EXISTS `erik_service_record` (
+    `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
+    `order_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'order_id',
+    `technician_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'technician_id',
+    `before_photos` JSON COMMENT 'before_photos',
+    `after_photos` JSON COMMENT 'after_photos',
+    `notes` VARCHAR(500) NOT NULL DEFAULT '' COMMENT 'notes',
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    PRIMARY KEY (`id`),
+    KEY `idx_order_id` (`order_id`),
+    KEY `idx_technician_id` (`technician_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='服务记录表';
+
+CREATE TABLE IF NOT EXISTS `erik_share` (
+    `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
+    `sharer_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'sharer_id',
+    `share_type` VARCHAR(30) NOT NULL DEFAULT '' COMMENT 'share_type',
+    `target_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'target_id',
+    `platform` VARCHAR(20) NOT NULL DEFAULT '' COMMENT 'platform',
+    `clicked_at` DATETIME DEFAULT NULL COMMENT 'clicked_at',
+    `converted_at` DATETIME DEFAULT NULL COMMENT 'converted_at',
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    PRIMARY KEY (`id`),
+    KEY `idx_sharer_id` (`sharer_id`),
+    KEY `idx_target_id` (`target_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='分享记录表';
+
+CREATE TABLE IF NOT EXISTS `erik_user_device` (
+    `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
+    `user_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'user_id',
+    `platform` VARCHAR(20) NOT NULL DEFAULT '' COMMENT 'platform',
+    `device_token` VARCHAR(255) NOT NULL DEFAULT '' COMMENT 'device_token',
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    PRIMARY KEY (`id`),
+    KEY `idx_user_id` (`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='用户设备表';
+
+CREATE TABLE IF NOT EXISTS `erik_video_post` (
+    `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
+    `technician_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'technician_id',
+    `title` VARCHAR(200) NOT NULL DEFAULT '' COMMENT 'title',
+    `video_url` VARCHAR(500) NOT NULL DEFAULT '' COMMENT 'video_url',
+    `cover_url` VARCHAR(500) NOT NULL DEFAULT '' COMMENT 'cover_url',
+    `duration` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'duration',
+    `views` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'views',
+    `likes` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'likes',
+    `status` TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'status',
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    PRIMARY KEY (`id`),
+    KEY `idx_technician_id` (`technician_id`),
+    KEY `idx_status` (`status`),
+    KEY `idx_views` (`views`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='技师短视频表';
+
+CREATE TABLE IF NOT EXISTS `erik_waitlist` (
+    `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
+    `user_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'user_id',
+    `service_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'service_id',
+    `technician_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'technician_id',
+    `preferred_date` DATE DEFAULT NULL COMMENT 'preferred_date',
+    `preferred_time` VARCHAR(20) NOT NULL DEFAULT '' COMMENT 'preferred_time',
+    `status` VARCHAR(20) NOT NULL DEFAULT '' COMMENT 'status',
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    PRIMARY KEY (`id`),
+    KEY `idx_user_id` (`user_id`),
+    KEY `idx_service_id` (`service_id`),
+    KEY `idx_technician_id` (`technician_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='排队候补表';

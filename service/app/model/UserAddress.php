@@ -11,16 +11,10 @@ use support\Model;
 
 class UserAddress extends Model
 {
-    use Encryptable;
-
     protected $table = 'erik_user_address';
     public $incrementing = false;
     protected $keyType = 'string';
     public $timestamps = true;
-
-    protected array $encryptable = [
-        'contact_phone',
-    ];
 
     protected $fillable = [
         'user_id', 'contact_name', 'contact_phone', 'province',
@@ -28,6 +22,7 @@ class UserAddress extends Model
     ];
 
     protected $casts = [
+        'contact_phone' => Encryptable::class,
         'is_default' => 'integer',
         'lat' => 'float',
         'lng' => 'float',

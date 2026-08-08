@@ -156,8 +156,10 @@ class ProfileController extends BaseController
             return $this->error('用户不存在', 404);
         }
 
+        $oldPhone = $user->phone;
+
         // 验证旧手机验证码
-        $storedOldCode = Redis::get("sms_code:{$user->phone}");
+        $storedOldCode = Redis::get("sms_code:{$oldPhone}");
         if (!$storedOldCode || $storedOldCode != $oldCode) {
             return $this->error('旧手机验证码错误或已过期');
         }
@@ -180,7 +182,7 @@ class ProfileController extends BaseController
         $user->save();
 
         // 清除验证码
-        Redis::del("sms_code:{$user->phone}");
+        Redis::del("sms_code:{$oldPhone}");
         Redis::del("sms_code:{$newPhone}");
 
         return $this->success([

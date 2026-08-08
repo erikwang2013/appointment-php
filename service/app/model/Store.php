@@ -12,16 +12,12 @@ use support\Model;
 
 class Store extends Model
 {
-    use Encryptable, SoftDeletes;
+    use SoftDeletes;
 
     protected $table = 'erik_store';
     public $incrementing = false;
     protected $keyType = 'string';
     public $timestamps = true;
-
-    protected array $encryptable = [
-        'phone',
-    ];
 
     protected $fillable = [
         'name', 'address', 'lat', 'lng', 'phone',
@@ -29,6 +25,7 @@ class Store extends Model
     ];
 
     protected $casts = [
+        'phone' => Encryptable::class,
         'lat' => 'float',
         'lng' => 'float',
         'business_hours' => 'array',
