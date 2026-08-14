@@ -575,8 +575,25 @@ class OrderController extends BaseController
                 return $this->error('当前订单状态不可支付');
             }
 
+            // 积分抵扣（可选，use_points 缺省 0 走原逻辑）：余额校验 → 抵扣额计算 → 消费流水写入
+            $pointsUsed   = 0;
+            $pointsOffset = 0.0;
+            $usePoints    = (int) $request->input('use_points', 0);
+            if ($usePoints > 0) {
+                try {
+                    $offset = $this->applyPointsOffset($order, $usePoints);
+                    $pointsUsed   = $offset['points_used'];
+                    $pointsOffset = $offset['offset_amount'];
+                } catch (\InvalidArgumentException $e) {
+                    return $this->error($e->getMessage(), 422);
+                }
+            }
+
             // 支付渠道：wechat=微信支付（默认）/ balance=余额支付
             $payChannel = (string) $request->input('pay_channel', 'wechat');
+
+            // 实际支付金额 = 订单应付 - 积分抵扣（未用积分时为应付原额，与原有行为一致）
+            $payAmount = round((float) $order->paid_amount - $pointsOffset, 2);
 
             // 查找或创建支付记录
             $payment = OrderPayment::where('order_id', $order->id)->first();
@@ -587,12 +604,12 @@ class OrderController extends BaseController
                     'order_id'   => $order->id,
                     'payment_no' => OrderPayment::generatePaymentNo(),
                     'pay_type'   => 'wechat',
-                    'amount'     => $order->paid_amount,
+                    'amount'     => $payAmount,
                     'status'     => OrderPayment::STATUS_PENDING,
                 ]);
             } elseif ($payment->status === OrderPayment::STATUS_CLOSED || $payment->status === OrderPayment::STATUS_FAILED) {
                 $payment->payment_no = OrderPayment::generatePaymentNo();
-                $payment->amount = $order->paid_amount;
+                $payment->amount = $payAmount;
                 $payment->status = OrderPayment::STATUS_PENDING;
                 $payment->save();
             }
@@ -608,16 +625,18 @@ class OrderController extends BaseController
                 // 订阅消息：支付成功（非阻塞，失败不影响主流程）
                 $this->notifySubscribeEvent($order, NotificationReminderService::SCENE_PAY);
                 return $this->success([
-                    'order_no'   => $order->order_no,
-                    'payment_no' => $payment->payment_no,
-                    'amount'     => 0,
-                    'status'     => Order::STATUS_PAID,
+                    'order_no'      => $order->order_no,
+                    'payment_no'    => $payment->payment_no,
+                    'amount'        => 0,
+                    'status'        => Order::STATUS_PAID,
+                    'points_offset' => $pointsOffset,
+                    'points_used'   => $pointsUsed,
                 ], '订单支付成功');
             }
 
             // 余额支付：无微信预下单，事务内钱包扣款 + 标记支付成功（order_lock 内串行，幂等）
             if ($payChannel === 'balance') {
-                return $this->doBalancePay($order, $payment);
+                return $this->doBalancePay($order, $payment, $pointsUsed, $pointsOffset);
             }
 
             // 用户 openid（hidden 字段在服务层可读）
@@ -650,11 +669,13 @@ class OrderController extends BaseController
             }
 
             return $this->success([
-                'prepay_id'   => $result['prepay_id'],
-                'sign_params' => $result['sign_params'],
-                'payment_no'  => $payment->payment_no,
-                'amount'      => $payment->amount,
-                'order_no'    => $order->order_no,
+                'prepay_id'     => $result['prepay_id'],
+                'sign_params'   => $result['sign_params'],
+                'payment_no'    => $payment->payment_no,
+                'amount'        => $payment->amount,
+                'order_no'      => $order->order_no,
+                'points_offset' => $pointsOffset,
+                'points_used'   => $pointsUsed,
             ], '支付参数已生成');
         } finally {
             // 释放支付锁（token 校验，仅释放自己持有的锁）
@@ -672,7 +693,7 @@ class OrderController extends BaseController
      * 任一步失败整体回滚，绝无「扣款成功但订单未支付」。
      * 幂等：order_lock 串行 + markOrderPaid 状态复验（已支付直接成功）。
      */
-    private function doBalancePay(Order $order, OrderPayment $payment)
+    private function doBalancePay(Order $order, OrderPayment $payment, int $pointsUsed = 0, float $pointsOffset = 0.0)
     {
         $amount = (float) $payment->amount;
         $payService = new WechatPayService();
@@ -736,11 +757,84 @@ class OrderController extends BaseController
 
         // WebSocket 实时推送已由 markOrderPaid 内部完成（订单上下文一致），此处不重复推送
         return $this->success([
-            'order_no'   => $order->order_no,
-            'payment_no' => $payment->payment_no,
-            'amount'     => $amount,
-            'status'     => Order::STATUS_PAID,
+            'order_no'      => $order->order_no,
+            'payment_no'    => $payment->payment_no,
+            'amount'        => $amount,
+            'status'        => Order::STATUS_PAID,
+            'points_offset' => $pointsOffset,
+            'points_used'   => $pointsUsed,
         ], '余额支付成功');
+    }
+
+    /**
+     * 积分抵扣（pay 内调用，order_lock 串行执行）
+     *
+     * 抵扣规则：points_rate 积分 = 1 元，抵扣金额 = floor(use_points / rate) 元；
+     * 抵扣后应付不得低于 0.01 元，超出订单应付的抵扣按应付满减（不浪费用户积分）。
+     * 可用积分 = SUM(earn) + SUM(consume/use)——balance 列仅是单次增量快照，不可作为余额依据；
+     * consume/use 行 points 存负值，故直接累加即得净余额。
+     * 消费流水在微信预支付前写入（幂等：同订单同来源已存在则不重复扣，支付重试安全）。
+     *
+     * @return array{points_used: int, offset_amount: float}
+     * @throws \InvalidArgumentException 积分不足（code 422）
+     */
+    private function applyPointsOffset(Order $order, int $usePoints): array
+    {
+        $rate = (int) config('app.points_rate', 100);
+        if ($rate <= 0) {
+            $rate = 100; // 配置异常兜底
+        }
+
+        $earned   = (int) UserPoints::where('user_id', $order->user_id)->where('type', 'earn')->sum('points');
+        $consumed = (int) UserPoints::where('user_id', $order->user_id)->whereIn('type', ['consume', 'use'])->sum('points');
+        $available = $earned + $consumed; // consume/use 行为负值
+        if ($available <= 0 || $usePoints > $available) {
+            throw new \InvalidArgumentException('积分不足', 422);
+        }
+
+        $paidFen   = (int) round((float) $order->paid_amount * 100);
+        $offsetFen = (int) floor($usePoints / $rate) * 100;
+        if ($offsetFen <= 0) {
+            throw new \InvalidArgumentException('积分不足', 422);
+        }
+        // 抵扣后金额 >= 0.01：超出应付部分按应付满减（剩余 1 分）
+        $capFen = max(0, $paidFen - 1);
+        if ($offsetFen > $capFen) {
+            $offsetFen = $capFen;
+        }
+        if ($offsetFen <= 0) {
+            throw new \InvalidArgumentException('积分不足', 422);
+        }
+
+        $pointsUsed = (int) round($offsetFen / 100 * $rate);
+
+        // 幂等：同订单 points_offset 流水已存在（支付重试）则不重复扣减
+        $exists = UserPoints::where('order_id', $order->id)
+            ->where('source', 'points_offset')
+            ->exists();
+        if (!$exists) {
+            // balance = 上一条余额 - 本次扣减（快照累加，锁最后一条流水防同用户并发串行）
+            $lastBalance = (int) (UserPoints::where('user_id', $order->user_id)
+                ->orderBy('created_at', 'desc')
+                ->lockForUpdate()
+                ->value('balance') ?? 0);
+
+            UserPoints::create([
+                'id'          => UserPoints::generateId(),
+                'user_id'     => $order->user_id,
+                'type'        => 'consume',
+                'points'      => -$pointsUsed,
+                'balance'     => $lastBalance - $pointsUsed,
+                'source'      => 'points_offset',
+                'order_id'    => $order->id,
+                'description' => '积分抵扣订单 ' . $order->order_no,
+            ]);
+        }
+
+        return [
+            'points_used'   => $pointsUsed,
+            'offset_amount' => round($offsetFen / 100, 2),
+        ];
     }
 
     /**

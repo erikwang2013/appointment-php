@@ -24,4 +24,6 @@ return [
     'controller_suffix' => 'Controller',
     // 控制器复用：false 每次请求新建实例，避免状态污染
     'controller_reuse' => false,
+    // 积分抵扣比例：points_rate 积分 = 1 元（OrderController::pay use_points）
+    'points_rate' => 100,
 ];
