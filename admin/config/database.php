@@ -32,8 +32,9 @@ return [
             'charset' => 'utf8mb4',
             // 排序规则
             'collation' => 'utf8mb4_unicode_ci',
-            // 表前缀
-            'prefix' => 'erik_',
+            // 表前缀：模型 $table 已内嵌完整前缀（如 erik_user_coupon），此处必须留空，
+            // 否则 Eloquent 会拼出 erik_erik_xxx 双前缀表名（与 service 端做法一致）
+            'prefix' => '',
             // 严格模式
             'strict' => true,
             // 引擎

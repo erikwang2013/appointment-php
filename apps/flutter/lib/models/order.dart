@@ -16,7 +16,8 @@ class OrderModel {
   final String? storeAddress;
   final String? remark;
   final List<OrderItem>? items;
-  final String? couponId;
+  // M4: 服务端仅认 user_coupon_id（用户领券记录 id，来自 GET /api/marketing/coupons 列表顶层 id）
+  final String? userCouponId;
   final double? couponDiscount;
   final String? createdAt;
   final String? paidAt;
@@ -41,7 +42,7 @@ class OrderModel {
     this.storeAddress,
     this.remark,
     this.items,
-    this.couponId,
+    this.userCouponId,
     this.couponDiscount,
     this.createdAt,
     this.paidAt,
@@ -81,7 +82,8 @@ class OrderModel {
       items: json['items'] != null
           ? (json['items'] as List).map((e) => OrderItem.fromJson(e)).toList()
           : null,
-      couponId: json['coupon_id']?.toString(),
+      // M4: 详情接口同时返回 coupon_id（券定义）与 user_coupon_id（领券记录），优先取后者
+      userCouponId: json['user_coupon_id']?.toString() ?? json['coupon_id']?.toString(),
       couponDiscount: (json['coupon_discount'] is int)
           ? (json['coupon_discount'] as int).toDouble()
           : json['coupon_discount']?.toDouble(),
@@ -111,7 +113,8 @@ class OrderModel {
       'store_address': storeAddress,
       'remark': remark,
       'items': items?.map((e) => e.toJson()).toList(),
-      'coupon_id': couponId,
+      // M4: 下单传 user_coupon_id（用户领券记录 id）；coupon_id 直通已被服务端禁用
+      'user_coupon_id': userCouponId,
       'coupon_discount': couponDiscount,
       'created_at': createdAt,
       'paid_at': paidAt,

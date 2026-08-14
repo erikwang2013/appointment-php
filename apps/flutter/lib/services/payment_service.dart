@@ -30,13 +30,15 @@ class PaymentService extends GetxService {
   /// 微信支付
   Future<Map<String, dynamic>> _wechatPay(Map<String, dynamic> params) async {
     try {
-      // 服务端 pay() 返回: {prepay_id, sign_params:{appId,timeStamp,nonceStr,package,paySign},...}
+      // 服务端 pay() 返回: {prepay_id, sign_params:{appId,timeStamp,nonceStr,package,signType,paySign,partnerId},...}
       final sign = (params['sign_params'] as Map<String, dynamic>?) ?? {};
       final prepayId = params['prepay_id']?.toString() ?? '';
       // fluwx 支付参数: appId, partnerId, prepayId, packageValue, nonceStr, timeStamp, sign
+      // M10: 服务端 sign_params 已返回 partnerId(=mch_id)，直接透传给 fluwx；
+      // partnerId 不参与 JSAPI 调起签名（签名仅 appId/timeStamp/nonceStr/package/signType）。
       await Fluws().pay(
         appId: sign['appId'] ?? '',
-        partnerId: '', // 服务端 sign_params 未返回 partnerId(mch_id)，待服务端补齐
+        partnerId: sign['partnerId'] ?? '',
         prepayId: prepayId,
         packageValue: sign['package'] ?? 'Sign=WXPay',
         nonceStr: sign['nonceStr'] ?? '',

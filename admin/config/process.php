@@ -41,6 +41,12 @@ return [
             'publicPath' => public_path()
         ]
     ],
+    // 定时任务自动调度：每日 03:00 技师收益结算 + 每小时过期券/过期卡标记
+    // （驱动 ScheduledTaskController 三任务，见 app/process/AdminScheduleProcess.php）
+    'admin_schedule' => [
+        'handler' => app\process\AdminScheduleProcess::class,
+        'count' => 1,
+    ],
     // File update detection and automatic reload
     'monitor' => [
         'handler' => app\process\Monitor::class,

@@ -30,6 +30,14 @@ class TechnicianEarning extends Model
     }
 
     /**
+     * 关联订单（admin ScheduledTaskController::autoSettle 的 whereHas 依赖）
+     */
+    public function order()
+    {
+        return $this->belongsTo(Order::class, 'order_id');
+    }
+
+    /**
      * 生成 snowflake ID
      */
     public static function generateId(): string

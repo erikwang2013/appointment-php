@@ -113,6 +113,11 @@ class WechatPayService
         ];
         $signParams['paySign'] = $this->sign($signParams);
 
+        // M10: 补充 partnerId（mch_id）供客户端 SDK 构造调起参数（fluwx 需 partnerId）。
+        // 微信 JSAPI 调起签名仅含 appId/timeStamp/nonceStr/package/signType 五个字段，
+        // partnerId 不参与签名——必须在 paySign 生成之后再追加，否则会破坏验签。
+        $signParams['partnerId'] = $this->mchId;
+
         return [
             'prepay_id'   => $prepayId,
             'sign_params' => $signParams,
