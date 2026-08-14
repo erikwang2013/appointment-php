@@ -490,3 +490,37 @@ Flutter Web 单页应用，共 21 个页面：dashboard/用户/角色/配置/日
 - ReviewController 新增 reply()：GET /admin/reviews/{id}/reply 回复详情（decodeId → find → 404 → decorate 输出，未回复时 reply=''，reply/replied_at 经 toArray 透出）
 - 路由为静态路由（位于 audit 前，先于 resource 定义）；权限种子 id 381（slug 'get.admin/reviews/{id}/reply'，type 3，超管角色幂等关联）
 - 权限点：381
+
+### 21. 预约月历（第20轮）
+
+- CalendarController 月/日视图：GET /api/calendar/technician/{id}（月视图）+ /day（日视图）
+- 数据源：technician_schedule.time_slots JSON 按星期展开小时槽，erik_order 该日已约时段排除（status ∈ pending/paid/confirmed/serving），剩余可约槽位输出
+- 用途：门店排班可视化选时，前端按天横向滚动 + 时间格点选
+
+### 22. 用户成长等级（第20轮）
+
+- erik_user_growth（流水）+ erik_growth_level（档位种子 5 级：青铜0/白银100/黄金500/铂金2000/钻石5000）
+- 成长值入账点：签到 +10（CheckInController）；提交评价 +20（ReviewController::store，追评不入账）；消费 floor(paid) 每 1 元 1 点（WechatPayService::markOrderPaid，复用既有支付状态复验天然幂等，重复回调不重复入账）
+- 接口：GET /api/growth（当前等级概览：balance/level/下一档差额）；GET /api/growth/records（流水分页）；GET /api/growth/levels（公开档位列表，无需登录）
+- 失败策略：任一入账点 try/catch 记日志，不影响主流程
+
+### 23. 电子发票（第20轮）
+
+- erik_invoice：uk_order_type(order_id,order_type) 防同一订单重复申请（重复申请 422，含 MySQL 1062 捕获兜底）；idx_user_created/idx_status
+- 用户端：POST /api/invoices（申请，金额/标题服务端从订单带出，不可篡改）；GET /api/invoices（列表）；GET /api/invoices/{id}（详情）
+- 管理端：InvoiceController issue（开票：写 invoice_no + status=issued + issued_at）/ reject（驳回：status=rejected + reject_reason），权限 382 列表/383 开票/384 驳回
+- 状态机：pending → issued / rejected
+
+### 24. 客服工单（第20轮）
+
+- erik_ticket：用户提交工单（title/content），后台回复追加（reply_content/replied_at），用户可关闭（closed_at）
+- 用户端：POST /api/tickets（提交）；GET /api/tickets（列表）；GET /api/tickets/{id}（详情，仅本人）；POST /api/tickets/{id}/close（关闭）
+- 管理端：TicketController index（列表）/ reply（回复），静态路由先于 resource 定义避免 {id} shadow；权限 385 工单回复/387 工单列表查看
+- 状态机：open → replied（回复后回 open 可再回）/ closed
+
+### 25. 多级分销-二级返佣（第20轮）
+
+- ReferralRewardService::payLevel2Reward(paidAmount, orderId)：订单支付成功后，查一级推荐人的推荐人（二级推荐关系），发 paid×level2_rate（系统配置 referral.level2_rate，默认 0.02）
+- 幂等：事务内行锁 + uk_order_referred(order_id, level2_user_id) 唯一键，重复支付回调/并发不重复发放；try/catch 失败仅记日志不影响支付主流程
+- 入账：WalletTxn type='referral_level2'（TYPE_REFERRAL_LEVEL2 常量）+ 钱包余额累加
+- 管理端：ReferralLevel2Controller index 分页记录（权限 386），join 两级用户昵称

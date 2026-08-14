@@ -2,7 +2,7 @@
 
 A three-platform appointment service management platform: WeChat Mini Program + Flutter App (same-account role switching) + PC Admin Dashboard.
 
-> **Status**: All complete | 116 Controllers | 113 Models | 481 tests (service 372 / admin 109) | 80 Tables | 303 Routes
+> **Status**: All complete | 123 Controllers | 121 Models | 535 tests (service 408 / admin 127) | 84 Tables | 324 Routes
 
 ## Project Structure
 
@@ -137,6 +137,11 @@ cd ../service/ && cp .env.docker .env && docker-compose up -d
 | Review Append | POST /api/order/review/{order_id}/append: non-owner 404 / duplicate 422 / empty 422 / non-completed 422, technician in-app notification type='review_append' on success; erik_order_review append_content/append_images(JSON)/append_at columns; also registered the previously-unreachable user review-submit route and fixed its latent TypeError |
 | Logistics Tracking | GET /api/order/logistics/{id}: owner-only product orders (404 for non-owner/non-product/not-shipped); parses order.remark JSON (shipping_company/tracking_no/shipped_at written by admin ship()); receiver phone masked 138****5678 |
 | Notification Preferences | erik_user_notify_setting table (uk_user_type unique, absent row = enabled by default); GET/PUT /api/user/notify-settings; 5 types service_reminder/card_expiry/points_expiry/marketing/system (system always-on); notifySettingEnabled gates 3 timers + subscribe events, disabled type skips both in-app and subscribe messages |
+| Booking Calendar | GET /api/calendar/technician/{id} (month view) + /day (day view): time_slots JSON expanded to hour slots, erik_order booked slots excluded; visual schedule-based time picking |
+| User Growth Levels | erik_user_growth + erik_growth_level (Bronze 0 / Silver 100 / Gold 500 / Platinum 2000 / Diamond 5000); check-in +10, review +20, spending 1 point per yuan (reuses existing status re-check for natural idempotency); GET /api/growth (overview/records, public levels) |
+| E-Invoice | POST/GET /api/invoices (apply/list/detail): uk_order_type(order_id,order_type) dedup on duplicate apply, amount served server-side; admin issue/reject (permissions 382-384) |
+| Customer Tickets | POST/GET /api/tickets + /{id}/close: user submit/list/detail/close; admin reply (permissions 385/387) |
+| Multi-level Referral L2 | After order paid, pay first-level referrer's referrer paid×level2_rate (config 0.02): transaction row lock + uk_order_referred idempotency; WalletTxn TYPE_REFERRAL_LEVEL2; admin record view (permission 386) |
 
 > Round-8 maintenance fixes: removed 12 latent Poster::verify fatals; DashboardController stats switched to Capsule Manager queries.
 >
@@ -153,6 +158,8 @@ cd ../service/ && cp .env.docker .env && docker-compose up -d
 > Round-18 additions: flash-sale ordering (store() flash_sale price path); service start reminder (ServiceReminderTimer + SCENE_REMINDER); member-card/coupon expiry reminder (ExpiryReminderTimer + SCENE_EXPIRY); technician review reply (reply endpoint + replied_at column + permission 381); recharge arrival notification (type='wallet_recharge' inside callback transaction).
 >
 > Round-19 additions: balance transfer (erik_wallet_transfer + WalletTransferController, dual row locks + client_token idempotency); points transfer (erik_user_points_transfer + PointsTransferController, daily cap + double ledger); review append (erik_order_review 3 append columns + append endpoint + store route registration); logistics tracking (logistics endpoint + remark JSON parsing + phone masking); notification preferences (erik_user_notify_setting + NotifySettingController + 3 timer gates).
+>
+> Round-20 additions: booking calendar (CalendarController month/day views + booked-slot exclusion); user growth levels (erik_user_growth + erik_growth_level 5 tiers + check-in/review/spending hooks); e-invoice (erik_invoice + uk_order_type dedup + admin issue/reject, permissions 382-384); customer tickets (erik_ticket submit/list/detail/close + admin reply, permissions 385/387); multi-level referral L2 (payLevel2Reward transaction row lock + uk_order_referred idempotency, permission 386).
 
 ## Documentation
 

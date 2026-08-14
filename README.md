@@ -2,7 +2,7 @@
 
 三端预约服务管理平台：用户端微信小程序 + Flutter APP（同账号身份切换）、PC管理后台。
 
-> **项目状态**: 全部完成 ✅ | 116 控制器 | 113 模型 | 481 测试（service 372 / admin 109） | 80 数据表 | 303 路由
+> **项目状态**: 全部完成 ✅ | 123 控制器 | 121 模型 | 535 测试（service 408 / admin 127） | 84 数据表 | 324 路由
 
 ## 项目结构
 
@@ -137,6 +137,11 @@ cd ../service/ && cp .env.docker .env && docker-compose up -d
 | 评价追评 | POST /api/order/review/{order_id}/append：非本人 404/重复 422/空内容 422/非 completed 422，成功写技师站内通知 type='review_append'；erik_order_review 增 append_content/append_images(JSON)/append_at；顺带补注册用户提交评价路由（原 store 无路由不可达）并修复其潜伏 TypeError |
 | 用户端物流跟踪 | GET /api/order/logistics/{id}：仅本人 product 订单（404 非本人/非商品/未发货）；读取 order.remark JSON（shipping_company/tracking_no/shipped_at，admin 发货写入）；收货人手机号脱敏 138****5678 |
 | 消息偏好设置 | erik_user_notify_setting 表（uk_user_type 唯一键，缺省行=默认开）；GET/PUT /api/user/notify-settings；5 类开关 service_reminder/card_expiry/points_expiry/marketing/system（system 恒开不可关）；notifySettingEnabled 门控 3 定时器 + 订阅事件，关闭则站内通知与订阅消息一并跳过 |
+| 预约月历 | GET /api/calendar/technician/{id}（月视图）+ /day（日视图）：time_slots JSON 展开小时槽、erik_order 已约时段排除；门店排班可视化选时 |
+| 用户成长等级 | erik_user_growth + erik_growth_level（青铜0/白银100/黄金500/铂金2000/钻石5000）；签到+10、评价+20、消费每1元1点（复用既有状态复验天然幂等）；GET /api/growth（概览/records/levels 公开档位） |
+| 电子发票 | POST/GET /api/invoices（申请/列表/详情）：uk_order_type(order_id,order_type) 防重复申请、金额服务端带出；admin 开票/驳回（权限 382-384） |
+| 客服工单 | POST/GET /api/tickets + /{id}/close：用户提交/列表/详情/关闭；admin 回复（权限 385/387） |
+| 多级分销-二级返佣 | 订单支付后给一级推荐人的推荐人发 paid×level2_rate（配置 0.02）：事务行锁 + uk_order_referred 幂等防重复发放；WalletTxn TYPE_REFERRAL_LEVEL2；admin 记录查看（权限 386） |
 
 > 第 8 轮运维性修复：移除 12 处 Poster::verify 潜伏 fatal；DashboardController 统计改用 Capsule Manager 查询。
 >
@@ -151,6 +156,8 @@ cd ../service/ && cp .env.docker .env && docker-compose up -d
 > Round-18 补充：秒杀下单（store() 支持 flash_sale 秒杀价）；服务开始前提醒（ServiceReminderTimer + SCENE_REMINDER）；会员卡/优惠券到期提醒（ExpiryReminderTimer + SCENE_EXPIRY）；技师回复评价（review reply 接口 + replied_at 列 + 权限 381）；充值到账通知（回调事务内 type='wallet_recharge'）。
 >
 > Round-19 补充：余额转账（erik_wallet_transfer + WalletTransferController，权限内双行锁 + client_token 幂等）；积分转赠（erik_user_points_transfer + PointsTransferController，单日限额 + 双向流水）；评价追评（erik_order_review append 三列 + append 接口 + 补注册 store 路由）；用户端物流跟踪（logistics 接口 + remark JSON 解析 + 手机号脱敏）；消息偏好设置（erik_user_notify_setting + NotifySettingController + 3 定时器门控）。
+>
+> Round-20 补充：预约月历（CalendarController 月/日视图 + 已约排除）；用户成长等级（erik_user_growth + erik_growth_level 5 档 + 签到/评价/消费挂接）；电子发票（erik_invoice + uk_order_type 防重复 + 后台开票/驳回，权限 382-384）；客服工单（erik_ticket 提交/列表/详情/关闭 + 后台回复，权限 385/387）；多级分销-二级返佣（payLevel2Reward 事务行锁 + uk_order_referred 幂等，权限 386）。
 
 ## 文档导航
 

@@ -423,6 +423,11 @@ apps/flutter/
 | 系统 | erik_admin_role_permission | 角色权限关联（已建） |
 | 系统 | erik_system_config | 系统配置（已建） |
 | 系统 | erik_operation_log | 操作日志（已建） |
+| 用户 | erik_user_growth | 成长值流水（第20轮） |
+| 用户 | erik_growth_level | 成长等级档位（第20轮） |
+| 订单 | erik_invoice | 电子发票（第20轮） |
+| 用户 | erik_ticket | 客服工单（第20轮） |
+| 营销 | erik_referral_level2_reward | 二级返佣记录（第20轮） |
 
 ## 外部服务预留
 

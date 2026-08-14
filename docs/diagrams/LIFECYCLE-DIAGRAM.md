@@ -223,3 +223,31 @@ stateDiagram-v2
 
     note right of completed: 积分接收流水含 expires_at<br/>可被 PointsExpiryTimer 正常过期
 ```
+
+## 11. 客服工单生命周期（第20轮）
+
+```mermaid
+stateDiagram-v2
+    [*] --> open: 用户提交工单<br/>(title/content)
+
+    open --> open: 后台回复<br/>(reply_content/replied_at 追加)
+
+    open --> closed: 用户主动关闭<br/>(仅本人/仅 open)
+
+    closed --> [*]
+```
+
+## 12. 电子发票生命周期（第20轮）
+
+```mermaid
+stateDiagram-v2
+    [*] --> pending: 用户申请<br/>(uk_order_type 防重复,<br/>金额服务端带出)
+
+    pending --> issued: 后台开票<br/>(invoice_no + issued_at)
+
+    pending --> rejected: 后台驳回<br/>(reject_reason)
+
+    issued --> [*]
+    rejected --> [*]
+```
+

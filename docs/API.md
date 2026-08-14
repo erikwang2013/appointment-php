@@ -497,7 +497,7 @@
 | GET | `/api/wallet/transfers` | 转账记录 (?direction=out/in&page=1)（第19轮） |
 | GET | `/api/wallet/transfers/{id}` | 转账详情（仅双方可见，他人 404）（第19轮） |
 
-**流水**: wallet_txn 类型: recharge / consume / refund / gift_card / referral_reward(分销返佣) / points_exchange(积分兑换入账)，分页返回。
+**流水**: wallet_txn 类型: recharge / consume / refund / gift_card / referral_reward(分销返佣) / referral_level2(二级返佣) / points_exchange(积分兑换入账)，分页返回。
 
 **充值**: `POST /api/wallet/recharge` 传 amount（元）创建充值单，返回充值单 hashid。`POST /api/wallet/recharge/{id}/pay` 发起微信支付，响应含 sign_params（同订单支付模式）；支付回调以 R 前缀的 out_trade_no 区分充值单与订单。
 
@@ -517,6 +517,44 @@
 | GET | `/api/store-manager/revenue` | 近 7 天营收聚合 |
 
 **store_id 隔离**: requireStoreId() 强制当前用户绑定门店（erik_user.store_id），无门店 403；所有查询按 store_id 过滤。
+
+---
+
+### 9. 成长等级接口（需JWT认证，第20轮）
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/api/growth` | 当前成长概览（balance/等级/下一档差额/等级名称） |
+| GET | `/api/growth/records` | 成长值流水分页 (?page=&limit=) |
+| GET | `/api/growth/levels` | 档位列表（公开，无需登录） |
+
+**成长值入账**: 签到 +10；提交评价 +20（追评不入账）；消费 floor(paid) 每 1 元 1 点（支付回调内复用状态复验幂等，重复回调不重复入账）。
+
+### 10. 发票接口（需JWT认证，第20轮）
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| POST | `/api/invoices` | 申请发票 (order_id hashid/order_type: service=服务/points_exchange=积分兑换/order_type 默认 service；金额与抬头服务端带出，不可篡改) |
+| GET | `/api/invoices` | 发票列表 (?status=&page=) |
+| GET | `/api/invoices/{id}` | 发票详情（仅本人） |
+
+**防重复**: uk_order_type(order_id, order_type) 唯一键，同一订单同类型重复申请 422（含 MySQL 1062 捕获兜底）。
+
+### 11. 客服工单接口（需JWT认证，第20轮）
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| POST | `/api/tickets` | 提交工单 (title/content 必填) |
+| GET | `/api/tickets` | 工单列表 (?status=open/closed&page=) |
+| GET | `/api/tickets/{id}` | 工单详情（仅本人，他人 404） |
+| POST | `/api/tickets/{id}/close` | 关闭工单（仅本人/仅 open） |
+
+### 12. 预约月历接口（需JWT认证，第20轮）
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/api/calendar/technician/{id}` | 月视图 (?month=YYYY-MM)：排班 time_slots 展开小时槽 + 已约排除 |
+| GET | `/api/calendar/technician/{id}/day` | 日视图 (?date=YYYY-MM-DD)：当天可约/已约/不可约槽位明细 |
 
 ---
 
@@ -601,6 +639,33 @@
 | GET | `/admin/reviews/{id}/reply` | 评价回复详情（decodeId → find → 404 → decorate 输出；未回复 reply=''，reply/replied_at 经 toArray 透出；静态路由先于 resource） |
 
 权限ID: 381（slug 'get.admin/reviews/{id}/reply'）。
+
+### 发票管理（第20轮）
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/admin/invoices` | 发票列表（?status=pending/issued/rejected&page=） |
+| POST | `/admin/invoices/{id}/issue` | 开票 (invoice_no 必填，status→issued + issued_at；幂等：已开票 422) |
+| POST | `/admin/invoices/{id}/reject` | 驳回 (reject_reason 必填，status→rejected；仅 pending 可驳回) |
+
+权限ID: 382 列表 / 383 开票 / 384 驳回。
+
+### 工单管理（第20轮）
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/admin/tickets` | 工单列表（?status=&page=，静态路由先于 resource 避免 shadow） |
+| POST | `/admin/tickets/{id}/reply` | 回复工单 (content 必填，写 reply_content/replied_at，工单回到 open) |
+
+权限ID: 385 工单回复 / 387 工单列表查看。
+
+### 二级返佣记录（第20轮）
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/admin/referral-level2` | 二级返佣记录（join 一级推荐人与二级推荐人昵称，分页） |
+
+权限ID: 386。发放规则：订单支付后给一级推荐人的推荐人发 paid×level2_rate（系统配置 referral.level2_rate 默认 0.02），uk_order_referred 幂等防重复。
 
 ### 角色权限
 
