@@ -105,7 +105,8 @@ Route::group('/admin', function () {
     // 业务管理路由
     // ============================================================
 
-    // 门店管理
+    // 门店管理（静态路由必须先于 resource 定义，避免被 {id} 变量路由 shadow）
+    Route::get('/stores/workbench-overview', [app\admin\controller\StoreController::class, 'workbenchOverview']);
     Route::resource('/stores', app\admin\controller\StoreController::class);
     Route::put('/stores/{id}/toggle-status', [app\admin\controller\StoreController::class, 'toggleStatus']);
 

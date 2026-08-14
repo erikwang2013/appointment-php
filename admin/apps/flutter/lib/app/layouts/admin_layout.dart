@@ -22,6 +22,7 @@ import '../pages/withdrawal/withdrawal_list_page.dart';
 import '../pages/aftersale/aftersale_list_page.dart';
 import '../pages/review/review_list_page.dart';
 import '../pages/report/report_page.dart';
+import '../pages/store_manager/store_manager_page.dart';
 
 class AdminLayout extends StatefulWidget {
   final Widget child;
@@ -61,6 +62,7 @@ class _AdminLayoutState extends State<AdminLayout> {
     AftersaleListPage(),
     ReviewListPage(),
     ReportPage(),
+    StoreManagerPage(),
   ];
 
   ResponsiveBreakpointsData get _bp => ResponsiveBreakpoints.of(context);
@@ -296,6 +298,11 @@ class _AdminLayoutState extends State<AdminLayout> {
         icon: Icon(Icons.bar_chart, size: 20),
         label: Text('数据报表'),
         selectedIcon: Icon(Icons.bar_chart, size: 20),
+      ),
+      NavigationDrawerDestination(
+        icon: Icon(Icons.storefront, size: 20),
+        label: Text('门店工作台'),
+        selectedIcon: Icon(Icons.storefront, size: 20),
       ),
     ];
   }

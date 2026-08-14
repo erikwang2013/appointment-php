@@ -29,6 +29,7 @@ class AppointmentOrderController extends BaseController
         $uid         = $request->input('uid', '');
         $status      = $request->input('status', '');
         $technicianId = $request->input('technician_id', '');
+        $storeId     = $request->input('store_id', '');
         $dateStart   = $request->input('date_start', '');
         $dateEnd     = $request->input('date_end', '');
 
@@ -48,6 +49,9 @@ class AppointmentOrderController extends BaseController
         }
         if ($technicianId) {
             $query->where('technician_id', $technicianId);
+        }
+        if ($storeId !== '') {
+            $query->where('store_id', $this->decodeId($storeId));
         }
         if ($dateStart) {
             $query->whereDate('created_at', '>=', $dateStart);

@@ -7,6 +7,8 @@ declare(strict_types=1);
 
 namespace app\admin\controller;
 
+use app\model\Order;
+use app\model\OrderVerification;
 use app\model\Store;
 use support\Request;
 use support\Response;
@@ -46,6 +48,68 @@ class StoreController extends BaseController
             'total' => $total,
             'page'  => $page,
             'limit' => $limit,
+        ]);
+    }
+
+    /**
+     * 店长工作台概览（按门店）
+     * GET /admin/stores/workbench-overview?store_id={hashid}
+     *
+     * 今日口径与 service 端 StoreManagerController::overview 一致：
+     * 今日订单数按 created_at 今日；今日营收按 completed 且 updated_at 今日；
+     * 进行中 = pending/paid/confirmed/serving；技师数 = 本店订单去重 technician_id；
+     * 核销数 = 本店订单今日核销记录数。
+     */
+    public function workbenchOverview(Request $request): Response
+    {
+        $storeHashid = (string) $request->input('store_id', '');
+        if ($storeHashid === '') {
+            return $this->fail('请选择门店', 422);
+        }
+        $storeId = $this->decodeId($storeHashid);
+        $store = Store::find($storeId);
+        if (!$store) {
+            return $this->fail('门店不存在', 404);
+        }
+
+        $todayStart = date('Y-m-d 00:00:00');
+
+        $todayOrders = Order::where('store_id', $storeId)
+            ->where('created_at', '>=', $todayStart)
+            ->count();
+
+        $todayRevenue = (float) Order::where('store_id', $storeId)
+            ->where('status', Order::STATUS_COMPLETED)
+            ->where('updated_at', '>=', $todayStart)
+            ->sum('paid_amount');
+
+        $ongoingOrders = Order::where('store_id', $storeId)
+            ->whereIn('status', [
+                Order::STATUS_PENDING,
+                Order::STATUS_PAID,
+                Order::STATUS_CONFIRMED,
+                Order::STATUS_SERVING,
+            ])
+            ->count();
+
+        $technicianCount = Order::where('store_id', $storeId)
+            ->where('technician_id', '>', 0)
+            ->distinct()
+            ->count('technician_id');
+
+        $verificationCount = OrderVerification::where('verified_at', '>=', $todayStart)
+            ->whereIn('order_id', function ($q) use ($storeId) {
+                $q->select('id')->from('erik_order')->where('store_id', $storeId);
+            })
+            ->count();
+
+        return $this->success([
+            'store_name'         => $store->name,
+            'today_orders'       => $todayOrders,
+            'today_revenue'      => $todayRevenue,
+            'ongoing_orders'     => $ongoingOrders,
+            'technician_count'   => $technicianCount,
+            'verification_count' => $verificationCount,
         ]);
     }
 
