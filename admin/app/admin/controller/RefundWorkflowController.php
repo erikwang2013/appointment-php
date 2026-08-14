@@ -7,6 +7,7 @@ declare(strict_types=1);
 
 namespace app\admin\controller;
 
+use app\common\TechnicianWithdrawalService;
 use app\model\TechnicianWithdrawal;
 use support\Request;
 use support\Response;
@@ -93,6 +94,11 @@ class RefundWorkflowController extends BaseController
             $withdrawal->save();
 
             if ($amount < 500) {
+                // 小额自动完成：审批全部通过，发起微信转账（失败返回错误，提现记录已置 failed）
+                $transfer = (new TechnicianWithdrawalService())->approveAndTransfer($withdrawal);
+                if (!$transfer['success']) {
+                    return $this->fail($transfer['message'], 500);
+                }
                 return $this->success(
                     $this->encodeIds($withdrawal->toArray()),
                     '店长审批通过，小额自动完成'
@@ -111,6 +117,12 @@ class RefundWorkflowController extends BaseController
             $withdrawal->audited_at   = $now;
             $withdrawal->audit_remark = $request->input('remark', $withdrawal->audit_remark);
             $withdrawal->save();
+
+            // 审批全部通过，发起微信转账（失败返回错误，提现记录已置 failed）
+            $transfer = (new TechnicianWithdrawalService())->approveAndTransfer($withdrawal);
+            if (!$transfer['success']) {
+                return $this->fail($transfer['message'], 500);
+            }
 
             return $this->success(
                 $this->encodeIds($withdrawal->toArray()),

@@ -56,7 +56,7 @@ class OrderRefund extends Model
      */
     public static function generateRefundNo(): string
     {
-        return 'REF' . date('YmdHis') . str_pad(random_int(0, 9999), 4, '0', STR_PAD_LEFT);
+        return 'REF' . date('YmdHis') . str_pad((string) random_int(0, 9999), 4, '0', STR_PAD_LEFT);
     }
 
     /**

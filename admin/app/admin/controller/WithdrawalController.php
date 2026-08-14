@@ -7,6 +7,7 @@ declare(strict_types=1);
 
 namespace app\admin\controller;
 
+use app\common\TechnicianWithdrawalService;
 use app\model\TechnicianWithdrawal;
 use support\Request;
 use support\Response;
@@ -118,20 +119,38 @@ class WithdrawalController extends BaseController
 
         $now    = date('Y-m-d H:i:s');
         $amount = (float) $withdrawal->amount;
+        $remark = $request->input('remark', $withdrawal->audit_remark);
 
         if (empty($withdrawal->store_approved_at)) {
             // Level 1: 店长审批
             $withdrawal->store_approved_at = $now;
+            $withdrawal->audit_remark      = $remark;
 
             if ($amount < 500) {
                 // 小额自动完成
-                $withdrawal->status      = 'approved';
-                $withdrawal->audited_at   = $now;
+                $withdrawal->status    = 'approved';
+                $withdrawal->audited_at = $now;
             }
-            $withdrawal->audit_remark = $request->input('remark', $withdrawal->audit_remark);
-            $withdrawal->save();
+
+            // CAS 流转：仅 pending 可更新，防并发双审覆盖状态
+            $affected = TechnicianWithdrawal::where('id', $withdrawal->id)
+                ->where('status', 'pending')
+                ->update([
+                    'store_approved_at' => $now,
+                    'audit_remark'      => $remark,
+                    'status'            => $withdrawal->status,
+                    'audited_at'        => $withdrawal->audited_at,
+                ]);
+            if ($affected === 0) {
+                return $this->fail('审批状态已变化', 422);
+            }
 
             if ($amount < 500) {
+                // 小额自动完成：审批全部通过，发起微信转账（失败返回错误，提现记录已置 failed）
+                $transfer = (new TechnicianWithdrawalService())->approveAndTransfer($withdrawal);
+                if (!$transfer['success']) {
+                    return $this->fail($transfer['message'], 500);
+                }
                 return $this->success($this->encodeIds($withdrawal->toArray()), '店长审批通过，小额自动完成');
             }
             return $this->success($this->encodeIds($withdrawal->toArray()), '店长审批通过，等待财务审批');
@@ -140,10 +159,28 @@ class WithdrawalController extends BaseController
         if (empty($withdrawal->finance_approved_at) && $amount >= 500) {
             // Level 2: 财务审批
             $withdrawal->finance_approved_at = $now;
-            $withdrawal->status       = 'approved';
-            $withdrawal->audited_at   = $now;
-            $withdrawal->audit_remark = $request->input('remark', $withdrawal->audit_remark);
-            $withdrawal->save();
+            $withdrawal->status              = 'approved';
+            $withdrawal->audited_at          = $now;
+            $withdrawal->audit_remark        = $remark;
+
+            // CAS 流转：仅 pending 可更新，防并发双审覆盖状态
+            $affected = TechnicianWithdrawal::where('id', $withdrawal->id)
+                ->where('status', 'pending')
+                ->update([
+                    'finance_approved_at' => $now,
+                    'status'              => 'approved',
+                    'audited_at'          => $now,
+                    'audit_remark'        => $remark,
+                ]);
+            if ($affected === 0) {
+                return $this->fail('审批状态已变化', 422);
+            }
+
+            // 审批全部通过，发起微信转账（失败返回错误，提现记录已置 failed）
+            $transfer = (new TechnicianWithdrawalService())->approveAndTransfer($withdrawal);
+            if (!$transfer['success']) {
+                return $this->fail($transfer['message'], 500);
+            }
 
             return $this->success($this->encodeIds($withdrawal->toArray()), '财务审批通过');
         }

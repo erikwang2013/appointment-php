@@ -7,6 +7,18 @@ declare(strict_types=1);
 use support\Db;
 
 /**
+ * 当前时间（Laravel 兼容 helper）
+ *
+ * 本运行时不加载 illuminate/foundation，全局 now() 缺失，
+ * 此处补标准实现，供订单取消/退款/核销等流程使用。
+ * @return Carbon\Carbon
+ */
+function now(?string $modifier = null): Carbon\Carbon
+{
+    return Carbon\Carbon::now($modifier);
+}
+
+/**
  * 生成订单号
  * 格式: YmdHis + 4位随机数字，例如 202605261530451234
  */

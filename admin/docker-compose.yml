@@ -31,6 +31,9 @@ services:
     working_dir: /app
     volumes:
       - .:/app
+      # 跨应用共享实现（config/autoload.php 通过 dirname(base_path()) . '/service/...' 加载），
+      # 挂载方式与本机目录结构一致（本机 admin 与 service 同级）
+      - ../service:/service
       - app-runtime:/app/runtime
     command: ["php", "start.php", "start"]
     env_file:

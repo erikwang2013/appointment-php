@@ -528,14 +528,33 @@ class WechatPayService
         $outTradeNo = $data['out_trade_no'] ?? '';
         $transactionId = $data['transaction_id'] ?? '';
         $totalFee = (int)($data['total_fee'] ?? 0);
-        $openid = $data['openid'] ?? '';
 
         if (empty($outTradeNo)) {
             Log::error('[WechatPay notify] out_trade_no is empty');
             return ['success' => false, 'message' => '缺少商户订单号'];
         }
 
-        // 更新订单支付状态
+        // 统一走 markOrderPaid（单一消费点：订单置 PAID + 原子消费券/次卡）
+        return $this->markOrderPaid($outTradeNo, $transactionId, $totalFee / 100, 'wechat');
+    }
+
+    /**
+     * 标记订单支付成功（唯一消费点，支付成功时统一调用）
+     *
+     * 事务内：支付记录置 success（写 transaction_id / paid_at）→ 订单置 PAID +
+     * paid_at（支付记录列）→ 调 PriceCalculator::consume() 原子消费券/次卡 →
+     * 提交后 WebSocket 推送。
+     * 幂等：支付记录已 success 或订单已非 pending 时直接返回成功，不重复消费。
+     * 零元直通订单（全额优惠 paid_amount=0）由调用方传入 transactionId='FREE'、totalFee=0。
+     *
+     * @param string $outTradeNo    商户订单号（支付记录 payment_no 或订单 order_no）
+     * @param string $transactionId 交易号（零元直通传 'FREE'）
+     * @param float  $totalFee      实付金额（元）
+     * @param string $payType       支付方式 wechat/alipay
+     * @return array{success: bool, message: string}
+     */
+    public function markOrderPaid(string $outTradeNo, string $transactionId = '', float $totalFee = 0, string $payType = 'wechat'): array
+    {
         try {
             \support\Db::beginTransaction();
 
@@ -550,37 +569,71 @@ class WechatPayService
 
             if (!$payment) {
                 \support\Db::rollBack();
-                Log::error('[WechatPay notify] payment record not found: ' . $outTradeNo);
+                Log::error('[WechatPay markOrderPaid] payment record not found: ' . $outTradeNo);
                 return ['success' => false, 'message' => '支付记录未找到'];
             }
 
-            // 避免重复处理
+            // 幂等：支付记录已成功，直接返回，不重复消费
             if ($payment->status === \app\model\OrderPayment::STATUS_SUCCESS) {
                 \support\Db::rollBack();
-                Log::info('[WechatPay notify] payment already processed: ' . $outTradeNo);
+                Log::info('[WechatPay markOrderPaid] payment already processed: ' . $outTradeNo);
                 return ['success' => true, 'message' => 'OK'];
             }
 
-            // 更新支付记录
+            $order = \app\model\Order::find($payment->order_id);
+
+            // 幂等：订单已非 pending（如已取消），不再消费与改状态
+            if ($order && $order->status !== \app\model\Order::STATUS_PENDING) {
+                \support\Db::rollBack();
+                Log::info('[WechatPay markOrderPaid] order not pending, skip: ' . $outTradeNo . ', status: ' . $order->status);
+                return ['success' => true, 'message' => 'OK'];
+            }
+
+            // 更新支付记录（表无 paid_amount/openid 列，实付金额写 amount）
             $payment->transaction_id = $transactionId;
-            $payment->paid_amount = $totalFee / 100;
+            if ($totalFee > 0) {
+                $payment->amount = $totalFee;
+            }
             $payment->paid_at = date('Y-m-d H:i:s');
-            $payment->pay_type = 'wechat';
-            $payment->openid = $openid;
+            $payment->pay_type = $payType;
             $payment->status = \app\model\OrderPayment::STATUS_SUCCESS;
             $payment->save();
 
-            // 更新订单状态
-            $order = \app\model\Order::find($payment->order_id);
-            if ($order && $order->status === \app\model\Order::STATUS_PENDING) {
+            if ($order) {
+                // 原子消费券/次卡（唯一消费点；失败抛异常整体回滚）
+                $consumed = PriceCalculator::consume(
+                    $order->items()->get()->map(static function ($item) {
+                        return [
+                            'target_type' => $item->target_type,
+                            'target_id'   => $item->target_id,
+                            'price'       => $item->price,
+                            'quantity'    => $item->quantity,
+                        ];
+                    })->all(),
+                    [
+                        'user_id'              => (int) $order->user_id,
+                        'order_id'             => (int) $order->id,
+                        'user_coupon_id'       => (int) $order->user_coupon_id ?: null,
+                        'member_card_usage_id' => (int) $order->member_card_usage_id ?: null,
+                    ]
+                );
+
+                // 次卡消费后回写首条使用记录 ID（列语义：次卡使用记录ID）
+                if (!empty($consumed['member_card_usage_id'])) {
+                    $order->member_card_usage_id = (int) $consumed['member_card_usage_id'];
+                }
+
+                // 更新订单状态
                 $order->status = \app\model\Order::STATUS_PAID;
-                $order->paid_amount = $totalFee / 100;
+                if ($totalFee > 0) {
+                    $order->paid_amount = $totalFee;
+                }
                 $order->save();
             }
 
             \support\Db::commit();
 
-            Log::info('[WechatPay notify] payment success, out_trade_no: ' . $outTradeNo);
+            Log::info('[WechatPay markOrderPaid] payment success, out_trade_no: ' . $outTradeNo);
 
             // WebSocket 实时推送
             if ($order) {
@@ -590,7 +643,7 @@ class WechatPayService
             return ['success' => true, 'message' => 'OK'];
         } catch (\Throwable $e) {
             \support\Db::rollBack();
-            Log::error('[WechatPay notify] exception: ' . $e->getMessage() . ', out_trade_no: ' . $outTradeNo);
+            Log::error('[WechatPay markOrderPaid] exception: ' . $e->getMessage() . ', out_trade_no: ' . $outTradeNo);
             return ['success' => false, 'message' => '处理异常: ' . $e->getMessage()];
         }
     }
@@ -627,57 +680,8 @@ class WechatPayService
             return ['success' => false, 'message' => '签名验证失败'];
         }
 
-        try {
-            \support\Db::beginTransaction();
-
-            $payment = \app\model\OrderPayment::where('payment_no', $outTradeNo)
-                ->orWhere(function ($query) use ($outTradeNo) {
-                    $query->whereHas('order', function ($q) use ($outTradeNo) {
-                        $q->where('order_no', $outTradeNo);
-                    });
-                })
-                ->first();
-
-            if (!$payment) {
-                \support\Db::rollBack();
-                Log::error('[Alipay notify] payment record not found: ' . $outTradeNo);
-                return ['success' => false, 'message' => '支付记录未找到'];
-            }
-
-            if ($payment->status === \app\model\OrderPayment::STATUS_SUCCESS) {
-                \support\Db::rollBack();
-                return ['success' => true, 'message' => 'already processed'];
-            }
-
-            $payment->transaction_id = $tradeNo;
-            $payment->paid_amount = $totalAmount;
-            $payment->paid_at = date('Y-m-d H:i:s');
-            $payment->pay_type = 'alipay';
-            $payment->status = \app\model\OrderPayment::STATUS_SUCCESS;
-            $payment->save();
-
-            $order = \app\model\Order::find($payment->order_id);
-            if ($order && $order->status === \app\model\Order::STATUS_PENDING) {
-                $order->status = \app\model\Order::STATUS_PAID;
-                $order->paid_amount = $totalAmount;
-                $order->save();
-            }
-
-            \support\Db::commit();
-
-            Log::info('[Alipay notify] payment success, out_trade_no: ' . $outTradeNo);
-
-            // WebSocket 实时推送
-            if ($order) {
-                $this->pushPaymentSuccess($order);
-            }
-
-            return ['success' => true, 'message' => 'success'];
-        } catch (\Throwable $e) {
-            \support\Db::rollBack();
-            Log::error('[Alipay notify] exception: ' . $e->getMessage());
-            return ['success' => false, 'message' => '处理异常'];
-        }
+        // 统一走 markOrderPaid（单一消费点：订单置 PAID + 原子消费券/次卡）
+        return $this->markOrderPaid($outTradeNo, $tradeNo, $totalAmount, 'alipay');
     }
 
     /**

@@ -9,3 +9,6 @@ parameters:
         - app/process/*
         - app/queue/*
         - support/bootstrap.php
+    bootstrapFiles:
+        # 跨应用共享类（与服务端同一实现），供 WithdrawalController/RefundWorkflowController 委托
+        - ../service/app/common/TechnicianWithdrawalService.php
