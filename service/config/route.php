@@ -196,6 +196,7 @@ Route::group('/api/order', function () {
     Route::post('/cancel/{id}', v('order', 'OrderController', 'cancel'));
     Route::post('/pay/{id}', v('order', 'OrderController', 'pay'));
     Route::post('/refund/{id}', v('order', 'OrderController', 'refund'));
+    Route::post('/reschedule/{id}', v('order', 'OrderController', 'reschedule'));
     // @deprecated 遗留入口（核销码走 URL 路径），仅保留兼容，不再推荐使用；新入口见下方 verify-by-code
     Route::post('/verify/{id}', v('order', 'OrderController', 'verify'));
     // 扫码核销（技师端，推荐唯一入口）：核销码放请求体，POST body {code}
@@ -248,6 +249,9 @@ Route::group('/api/wallet', function () {
 Route::group('/api/marketing', function () {
     Route::get('/coupons', v('marketing', 'CouponController', 'index'));
     Route::post('/coupons/receive', v('marketing', 'CouponController', 'receive'));
+    Route::post('/coupons/transfer', v('marketing', 'CouponController', 'transfer'));
+    Route::post('/coupons/claim', v('marketing', 'CouponController', 'claim'));
+    Route::get('/coupons/transfers', v('marketing', 'CouponController', 'transfers'));
     Route::get('/cards', v('marketing', 'CardController', 'index'));
     Route::post('/cards/buy', v('marketing', 'CardController', 'buy'));
     Route::get('/cards/my', v('marketing', 'CardController', 'my'));
