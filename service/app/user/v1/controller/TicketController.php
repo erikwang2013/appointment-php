@@ -117,8 +117,9 @@ class TicketController extends BaseController
 
     /**
      * 关闭工单
-     * POST /api/tickets/{id}/close
+     * POST /api/tickets/{id}/close  body: {rating?}
      * 仅本人可关闭；pending/processing 可关，resolved/closed 不可关。
+     * 可选 rating（1-5 整数）：提供则记录评分与评分时间，未提供跳过保持 NULL（兼容旧客户端）。
      */
     public function close(Request $request, ?string $id)
     {
@@ -131,6 +132,16 @@ class TicketController extends BaseController
         $ticket = Ticket::where('user_id', $userId)->where('id', $ticketId)->first();
         if (!$ticket) {
             return $this->error('工单不存在', 404);
+        }
+
+        $rawRating = $request->input('rating');
+        if ($rawRating !== null && $rawRating !== '') {
+            $rating = filter_var($rawRating, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1, 'max_range' => 5]]);
+            if ($rating === false) {
+                return $this->error('评分需为1-5的整数', 422);
+            }
+            $ticket->rating   = $rating;
+            $ticket->rated_at = date('Y-m-d H:i:s');
         }
 
         if (!in_array($ticket->status, ['pending', 'processing'], true)) {

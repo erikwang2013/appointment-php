@@ -20,6 +20,7 @@ class Ticket extends Model
     protected $fillable = [
         'user_id', 'category', 'description', 'images',
         'status', 'admin_id', 'reply_content', 'replied_at',
+        'rating', 'rated_at',
     ];
 
     protected $casts = [
@@ -27,6 +28,8 @@ class Ticket extends Model
         'images'     => 'array',
         'admin_id'   => 'string',
         'replied_at' => 'datetime',
+        'rating'     => 'integer',
+        'rated_at'   => 'datetime',
     ];
 
     public function user()

@@ -60,6 +60,36 @@ class TicketController extends BaseController
     }
 
     /**
+     * 满意度统计
+     * GET /admin/tickets/satisfaction
+     * 返回工单总数/已评分数/平均分（1 位小数）/评分分布（1-5 星各数量）。
+     */
+    public function satisfaction(Request $request): Response
+    {
+        $total = Ticket::count();
+        $rated = Ticket::whereNotNull('rating')->count();
+
+        $avg = Ticket::whereNotNull('rating')->avg('rating');
+
+        $counts = Ticket::whereNotNull('rating')
+            ->selectRaw('rating, COUNT(*) AS cnt')
+            ->groupBy('rating')
+            ->pluck('cnt', 'rating');
+        $distribution = [];
+        for ($i = 1; $i <= 5; $i++) {
+            $distribution[$i] = (int) ($counts[$i] ?? 0);
+        }
+
+        return $this->success([
+            'total'        => $total,
+            'rated_count'  => $rated,
+            'unrated_count'=> $total - $rated,
+            'average'      => number_format((float) $avg, 1),
+            'distribution' => $distribution,
+        ]);
+    }
+
+    /**
      * 回复工单
      * POST /admin/tickets/{id}/reply  body: {reply_content, status?}
      */
