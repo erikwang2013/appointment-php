@@ -18,6 +18,8 @@ use app\model\OrderItem;
 use app\model\OrderPayment;
 use app\model\OrderRefund;
 use app\model\OrderVerification;
+use app\model\Promotion;
+use app\model\PromotionParticipant;
 use app\model\TechnicianEarning;
 use app\model\TechnicianProfile;
 use app\model\User;
@@ -91,6 +93,78 @@ class OrderController extends BaseController
         }
         if ($request->input('user_coupon_id') !== null && $userCouponId === null) {
             return $this->error('优惠券ID无效', 422);
+        }
+
+        // ── 拼团下单（传 promotion_id 时走拼团价）──
+        // 校验：仅 group_buy 类型、活动进行中、调用者是参与者、未满员（已成团锁定拒绝）；
+        // 拼团价 = 原价 × discount_percent/100，与优惠券/次卡/积分互斥（禁用叠加）
+        $promotionId = $request->input('promotion_id');
+        $participantId = null;
+        $promotion = null;
+        if ($promotionId !== null) {
+            $promotionId = $this->decodeId((string) $promotionId);
+            if ($promotionId === null) {
+                return $this->error('活动不存在', 422);
+            }
+
+            $promotion = Promotion::withCount('participants')->find($promotionId);
+            if (!$promotion) {
+                return $this->error('活动不存在', 422);
+            }
+            if ($promotion->type !== Promotion::TYPE_GROUP_BUY) {
+                return $this->error('该活动不支持拼团下单', 422);
+            }
+
+            $now = date('Y-m-d H:i:s');
+            // 惰性关闭：拼团到期未满员 → 关闭活动，并批量取消该活动已创建的未支付订单
+            if ($promotion->status == 1
+                && $promotion->end_at < $now
+                && $promotion->participants_count < $promotion->min_people) {
+                $promotion->status = 0;
+                $promotion->save();
+                $this->cancelGroupBuyOrders($promotionId, '拼团未成团自动取消');
+                return $this->error('拼团已结束，未成团', 422);
+            }
+
+            if ($promotion->status != 1) {
+                return $this->error('活动不存在或已结束');
+            }
+            if ($now < $promotion->start_at || $now > $promotion->end_at) {
+                return $this->error('活动不在有效时间内');
+            }
+            // 已成团锁定：满员后不再接受拼团下单
+            if ($promotion->participants_count >= $promotion->min_people) {
+                return $this->error('已成团，该活动已锁定', 422);
+            }
+
+            // 调用者必须是参与者
+            $participant = PromotionParticipant::where('promotion_id', $promotionId)
+                ->where('user_id', $userId)
+                ->first();
+            if (!$participant) {
+                return $this->error('您未参与该活动，请先参与拼团', 422);
+            }
+
+            // 订单首条 service 项必须为活动关联服务（活动未绑定服务时跳过）
+            if ((int) $promotion->service_id > 0) {
+                $firstServiceId = null;
+                foreach ($items as $item) {
+                    if (($item['target_type'] ?? 'service') === 'service') {
+                        $firstServiceId = (int) ($item['target_id'] ?? 0);
+                        break;
+                    }
+                }
+                if ($firstServiceId !== (int) $promotion->service_id) {
+                    return $this->error('订单服务与拼团活动不匹配', 422);
+                }
+            }
+
+            // 拼团订单禁用优惠券/次卡/积分叠加（拼团价已含折扣）
+            if ($couponId !== null || $userCouponId !== null || $memberCardUsageId !== null || $usePoints > 0) {
+                return $this->error('拼团订单不支持叠加其他优惠', 422);
+            }
+
+            $participantId = $participant->id;
         }
 
         // 预约订单需要技师和服务时间（必填校验，不依赖锁）
@@ -167,6 +241,14 @@ class OrderController extends BaseController
                 'use_points'           => $usePoints,
             ]);
 
+            // 拼团价 = 原价 × discount_percent/100（叠加优惠已在进入事务前拒绝）
+            if ($promotion !== null) {
+                $total = (float) $pricing['total_amount'];
+                $groupPrice = round($total * $promotion->discount_percent / 100, 2);
+                $pricing['discount_amount'] = round($total - $groupPrice, 2);
+                $pricing['paid_amount'] = $groupPrice;
+            }
+
             $order = Order::create([
                 'id'                   => $orderId,
                 'order_no'             => $orderNo,
@@ -180,6 +262,8 @@ class OrderController extends BaseController
                 'coupon_id'            => (int)($pricing['coupon_id'] ?? 0),
                 'user_coupon_id'       => (int)($pricing['user_coupon_id'] ?? 0),
                 'member_card_usage_id' => (int)($pricing['member_card_usage_id'] ?? 0),
+                'promotion_id'         => $promotionId,
+                'participant_id'       => $participantId,
                 'service_time'         => $serviceTime ?: null,
                 'status'               => Order::STATUS_PENDING,
                 'remark'               => $remark,
@@ -577,6 +661,16 @@ class OrderController extends BaseController
             }
             if ($order->status !== Order::STATUS_PENDING) {
                 return $this->error('当前订单状态不可支付');
+            }
+
+            // 拼团订单懒判定：活动已关闭（到期未成团）→ 自动取消订单，拒绝支付
+            if ((int) $order->promotion_id > 0 && $this->isGroupBuyClosed((int) $order->promotion_id)) {
+                $order->status = Order::STATUS_CANCELLED;
+                $order->cancel_reason = '拼团未成团自动取消';
+                $order->cancel_at = now();
+                $order->save();
+                $this->releaseTechnicianLock($order);
+                return $this->error('拼团未成团，订单已自动取消', 422);
             }
 
             // 积分抵扣（可选，use_points 缺省 0 走原逻辑）：余额校验 → 抵扣额计算 → 消费流水写入
@@ -1558,6 +1652,43 @@ class OrderController extends BaseController
                 ? '订单取消退还积分（订单 ' . $order->order_no . '）'
                 : '订单退款退还积分（退款单 ' . $refundRecord->refund_no . '）',
         ]);
+    }
+
+    /**
+     * 批量取消活动下未支付的拼团订单（拼团到期未成团懒判定时调用，幂等：仅 pending 单受影响）
+     */
+    private function cancelGroupBuyOrders(int $promotionId, string $reason): void
+    {
+        Order::where('promotion_id', $promotionId)
+            ->where('status', Order::STATUS_PENDING)
+            ->update([
+                'status'        => Order::STATUS_CANCELLED,
+                'cancel_reason' => $reason,
+                'cancel_at'     => now(),
+            ]);
+    }
+
+    /**
+     * 拼团活动是否已关闭（懒判定：到期未满员则关闭活动并取消其未支付订单）
+     */
+    private function isGroupBuyClosed(int $promotionId): bool
+    {
+        $promotion = Promotion::withCount('participants')->find($promotionId);
+        if (!$promotion) {
+            return true;
+        }
+        if ($promotion->status != 1) {
+            return true;
+        }
+        if ($promotion->type === Promotion::TYPE_GROUP_BUY
+            && $promotion->end_at < date('Y-m-d H:i:s')
+            && $promotion->participants_count < $promotion->min_people) {
+            $promotion->status = 0;
+            $promotion->save();
+            $this->cancelGroupBuyOrders($promotionId, '拼团未成团自动取消');
+            return true;
+        }
+        return false;
     }
 
     /**

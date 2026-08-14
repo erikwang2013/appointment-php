@@ -220,6 +220,8 @@ class PromotionController extends BaseController
                 return $this->error('参与失败，请稍后重试');
             }
 
+            $originalPrice = (float) ($promotion->service->price ?? 0);
+
             return $this->success([
                 'participant' => $participant,
                 'current_count' => $newCount,
@@ -229,6 +231,10 @@ class PromotionController extends BaseController
                 'is_full' => $promotion->type === Promotion::TYPE_FLASH_SALE
                     && $promotion->max_people > 0
                     && $newCount >= $promotion->max_people,
+                // 拼团折扣信息（下单时传 promotion_id 以拼团价结算）
+                'discount_percent' => $promotion->discount_percent,
+                'original_price' => $originalPrice,
+                'group_price' => round($originalPrice * $promotion->discount_percent / 100, 2),
             ], '参与成功');
         } finally {
             // 仅持有者释放（token 校验），防止误删他人锁
