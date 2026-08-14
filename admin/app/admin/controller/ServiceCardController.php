@@ -13,7 +13,6 @@ use app\model\SystemConfig;
 use support\Request;
 use support\Response;
 use Illuminate\Support\Facades\DB;
-use Erikwang2013\PosterPhp\Poster;
 
 /**
  * 卡项设计控制器
@@ -206,7 +205,6 @@ class ServiceCardController extends BaseController
      */
     public function destroy(Request $request, string $hashid): Response
     {
-        Poster::verify($request);
 
         $id = $this->decodeId($hashid);
         $card = $this->findCardById((string) $id);

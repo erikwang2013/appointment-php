@@ -12,7 +12,6 @@ use app\model\OrderPayment;
 use support\Redis;
 use support\Request;
 use support\Response;
-use Erikwang2013\PosterPhp\Poster;
 
 class AppointmentOrderController extends BaseController
 {
@@ -102,7 +101,6 @@ class AppointmentOrderController extends BaseController
      */
     public function cancel(Request $request, string $hashid): Response
     {
-        Poster::verify($request);
 
         $id    = $this->decodeId($hashid);
         $order = Order::find($id);

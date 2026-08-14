@@ -10,7 +10,6 @@ namespace app\admin\controller;
 use app\model\Moment;
 use support\Request;
 use support\Response;
-use Erikwang2013\PosterPhp\Poster;
 
 class MomentController extends BaseController
 {
@@ -67,7 +66,6 @@ class MomentController extends BaseController
      */
     public function audit(Request $request, string $hashid): Response
     {
-        Poster::verify($request);
 
         $id     = $this->decodeId($hashid);
         $moment = Moment::find($id);
@@ -97,7 +95,6 @@ class MomentController extends BaseController
      */
     public function destroy(Request $request, string $hashid): Response
     {
-        Poster::verify($request);
 
         $id     = $this->decodeId($hashid);
         $moment = Moment::find($id);

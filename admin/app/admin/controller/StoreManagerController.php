@@ -12,7 +12,6 @@ use app\model\AdminRole;
 use app\model\Store;
 use support\Request;
 use support\Response;
-use Erikwang2013\PosterPhp\Poster;
 
 class StoreManagerController extends BaseController
 {
@@ -183,7 +182,6 @@ class StoreManagerController extends BaseController
      */
     public function destroy(Request $request, string $hashid): Response
     {
-        Poster::verify($request);
 
         $id   = $this->decodeId($hashid);
         $user = AdminUser::find($id);

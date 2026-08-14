@@ -16,7 +16,7 @@ use app\model\OrderReview;
 use app\model\Store;
 use app\model\TechnicianProfile;
 use app\model\TechnicianWithdrawal;
-use support\DB;
+use Illuminate\Database\Capsule\Manager as DB;
 use support\Redis;
 use support\Request;
 use support\Response;

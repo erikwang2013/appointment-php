@@ -9,7 +9,6 @@ namespace app\admin\controller;
 
 use support\Request;
 use support\Response;
-use Erikwang2013\PosterPhp\Poster;
 
 /**
  * 数据库备份管理控制器
@@ -76,7 +75,6 @@ class DbBackupController extends BaseController
      */
     public function create(Request $request): Response
     {
-        Poster::verify($request);
 
         $dbConfig = config('database.connections.mysql', []);
         $host     = $dbConfig['host'] ?? '127.0.0.1';
@@ -140,7 +138,6 @@ class DbBackupController extends BaseController
      */
     public function restore(Request $request, string $filename): Response
     {
-        Poster::verify($request);
 
         $filename = basename($filename);
         $filepath = $this->backupDir . $filename;
@@ -208,7 +205,6 @@ class DbBackupController extends BaseController
      */
     public function destroy(Request $request, string $filename): Response
     {
-        Poster::verify($request);
 
         $filename = basename($filename);
         $filepath = $this->backupDir . $filename;

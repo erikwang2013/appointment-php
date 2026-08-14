@@ -11,7 +11,6 @@ use app\common\TechnicianWithdrawalService;
 use app\model\TechnicianWithdrawal;
 use support\Request;
 use support\Response;
-use Erikwang2013\PosterPhp\Poster;
 
 class RefundWorkflowController extends BaseController
 {
@@ -70,7 +69,6 @@ class RefundWorkflowController extends BaseController
      */
     public function approve(Request $request, string $hashid): Response
     {
-        Poster::verify($request);
 
         $id         = $this->decodeId($hashid);
         $withdrawal = TechnicianWithdrawal::find($id);
@@ -142,7 +140,6 @@ class RefundWorkflowController extends BaseController
      */
     public function reject(Request $request, string $hashid): Response
     {
-        Poster::verify($request);
 
         $id         = $this->decodeId($hashid);
         $withdrawal = TechnicianWithdrawal::find($id);

@@ -12,7 +12,6 @@ use support\Request;
 use support\Response;
 use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\DB;
-use Erikwang2013\PosterPhp\Poster;
 
 /**
  * 系统监控面板控制器
@@ -77,7 +76,6 @@ class SystemMonitorController extends BaseController
      */
     public function clearCache(Request $request): Response
     {
-        Poster::verify($request);
 
         $prefix = $request->input('prefix', '');
         $deletedCount = 0;

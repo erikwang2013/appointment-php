@@ -12,7 +12,6 @@ use app\model\OrderReview;
 use app\model\OrderRefund;
 use support\Request;
 use support\Response;
-use Erikwang2013\PosterPhp\Poster;
 
 class MallOrderController extends BaseController
 {
@@ -145,7 +144,6 @@ class MallOrderController extends BaseController
      */
     public function reviewAudit(Request $request): Response
     {
-        Poster::verify($request);
 
         $reviewId = $request->input('review_id', '');
         $action   = $request->input('action', ''); // approve / reject
