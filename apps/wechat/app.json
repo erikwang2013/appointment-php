@@ -16,7 +16,10 @@
     "pages/marketing/coupons",
     "pages/points/index",
     "pages/gift-cards/index",
-    "pages/message/index"
+    "pages/message/index",
+    "pages/favorite/index",
+    "pages/referral/index",
+    "pages/feedback/index"
   ],
   "window": {
     "backgroundTextStyle": "light",

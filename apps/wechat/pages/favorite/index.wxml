@@ -1,0 +1,24 @@
+<view class="container">
+  <block wx:for="{{list}}" wx:key="id">
+    <view class="card fav-item">
+      <image wx:if="{{item.image}}" src="{{item.image}}" class="fav-img" mode="aspectFill"/>
+      <view wx:else class="fav-img fav-img-empty">🖼️</view>
+      <view class="fav-body">
+        <text class="fav-title">{{item.title}}</text>
+        <text class="fav-sub">{{item.subtitle}}</text>
+        <text class="fav-type">{{item.target_type === 'service' ? '服务' : '技师'}}</text>
+      </view>
+      <button size="mini" class="unfav-btn" bindtap="onUnfavorite" data-id="{{item.id}}">取消收藏</button>
+    </view>
+  </block>
+
+  <view wx:if="{{list.length === 0 && !loading}}" class="empty">
+    <text class="empty-icon">❤️</text>
+    <text class="empty-text">暂无收藏</text>
+  </view>
+
+  <view class="load-more" wx:if="{{list.length > 0}}">
+    <text wx:if="{{loading}}">加载中...</text>
+    <text wx:else>共 {{list.length}} 条收藏</text>
+  </view>
+</view>

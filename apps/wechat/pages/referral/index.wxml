@@ -1,0 +1,59 @@
+<view class="container">
+  <!-- 推广码 -->
+  <view class="card code-card">
+    <text class="code-label">我的推广码</text>
+    <text class="code-value">{{info.referral_code || '--'}}</text>
+    <button size="mini" class="copy-btn" bindtap="onCopyCode">复制</button>
+  </view>
+
+  <!-- 推广统计 -->
+  <view class="card stats-card">
+    <view class="stat-item">
+      <text class="stat-num">{{info.referral_count || 0}}</text>
+      <text class="stat-label">推荐人数</text>
+    </view>
+    <view class="stat-item">
+      <text class="stat-num">{{info.first_order_count || 0}}</text>
+      <text class="stat-label">首单人数</text>
+    </view>
+    <view class="stat-item">
+      <text class="stat-num">{{info.earned_points || 0}}</text>
+      <text class="stat-label">奖励积分</text>
+    </view>
+  </view>
+
+  <!-- 邀请链接 -->
+  <view class="card">
+    <view class="link-head">
+      <text class="link-label">邀请链接</text>
+      <button size="mini" class="copy-btn" bindtap="onCopyUrl">复制</button>
+    </view>
+    <text class="link-url" user-select="true">{{inviteUrl || '加载中...'}}</text>
+    <text class="link-tip">好友通过此链接注册，您可获得推广奖励</text>
+  </view>
+
+  <!-- 被推荐用户 -->
+  <view class="card">
+    <view class="referred-head">
+      <text class="referred-title">被推荐用户</text>
+      <text class="referred-count" wx:if="{{referred.length}}">共 {{referred.length}} 人</text>
+    </view>
+    <block wx:for="{{referred}}" wx:key="id">
+      <view class="referred-item">
+        <image wx:if="{{item.avatar}}" src="{{item.avatar}}" class="avatar"/>
+        <view wx:else class="avatar avatar-empty">👤</view>
+        <view class="referred-body">
+          <text class="referred-name">{{item.nickname || '用户'}}</text>
+          <text class="referred-time">注册于 {{item.registered_text}}</text>
+        </view>
+        <view class="referred-right">
+          <text class="order-badge {{item.has_first_order ? 'ok' : 'pending'}}">{{item.has_first_order ? '已首单' : '待首单'}}</text>
+          <text class="reward-text" wx:if="{{item.reward_text}}">{{item.reward_text}}</text>
+        </view>
+      </view>
+    </block>
+    <view wx:if="{{referred.length === 0}}" class="referred-empty">暂无被推荐用户</view>
+  </view>
+
+  <view class="load-more" wx:if="{{loading}}">加载中...</view>
+</view>
