@@ -4,6 +4,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'member_card_list_page.dart';
 import 'member_controller.dart';
 
 /// 会员管理列表页（只读：列表 + 详情，后端无新增/编辑路由）
@@ -21,9 +22,23 @@ class MemberListPage extends GetView<MemberController> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Header
-        const Row(
+        Row(
           children: [
-            Text('会员管理', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+            const Text('会员管理', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+            const Spacer(),
+            OutlinedButton.icon(
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => Scaffold(
+                    appBar: AppBar(),
+                    body: const Padding(padding: EdgeInsets.all(16), child: MemberCardListPage()),
+                  ),
+                ),
+              ),
+              icon: const Icon(Icons.style, size: 18),
+              label: const Text('会员卡定义'),
+            ),
           ],
         ),
         const SizedBox(height: 12),

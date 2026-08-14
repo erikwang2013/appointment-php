@@ -296,6 +296,14 @@ INSERT INTO `erik_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, 
 (21000000000000123, 0, '技师等级查询', 'get.admin/technician-tiers', 3, '', '', 1, NOW(), NOW()),
 (21000000000000124, 0, '技师等级更新', 'put.admin/technician-tiers', 3, '', '', 2, NOW(), NOW());
 
+-- API 权限: 会员卡定义（S10，id 与迁移 2026_08_14_000008 对齐）
+INSERT INTO `erik_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
+(21000000000000365, 0, '会员卡定义列表', 'get.admin/member-cards', 3, '', '', 164, NOW(), NOW()),
+(21000000000000366, 0, '创建会员卡定义', 'post.admin/member-cards', 3, '', '', 165, NOW(), NOW()),
+(21000000000000367, 0, '会员卡定义详情', 'get.admin/member-cards/{id}', 3, '', '', 166, NOW(), NOW()),
+(21000000000000368, 0, '更新会员卡定义', 'put.admin/member-cards/{id}', 3, '', '', 167, NOW(), NOW()),
+(21000000000000369, 0, '删除会员卡定义', 'delete.admin/member-cards/{id}', 3, '', '', 168, NOW(), NOW());
+
 -- ============================================================
 -- 超级管理员角色 (ID=10000000000000001) 关联所有权限
 -- ============================================================
@@ -349,6 +357,7 @@ CREATE TABLE IF NOT EXISTS `erik_user` (
     `gender` TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '性别: 0=未知 1=男 2=女',
     `user_type` VARCHAR(20) NOT NULL DEFAULT 'customer' COMMENT '用户类型: customer=客户 technician=技师。技师同时拥有客户功能',
     `active_role` VARCHAR(20) NOT NULL DEFAULT 'customer' COMMENT '当前活跃身份: customer=客户 technician=技师',
+    `member_level` VARCHAR(20) NOT NULL DEFAULT '' COMMENT '会员等级',
     `referral_code` VARCHAR(20) NOT NULL DEFAULT '' COMMENT '个人推荐码',
     `referrer_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '推荐人用户ID',
     `status` TINYINT UNSIGNED NOT NULL DEFAULT 1 COMMENT '状态: 0=禁用 1=启用',

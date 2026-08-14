@@ -48,7 +48,7 @@ class MemberController extends BaseController
             $query->whereDate('created_at', '<=', $regDateEnd);
         }
         if ($memberLevel !== null && $memberLevel !== '') {
-            $query->where('member_level', (int) $memberLevel);
+            $query->where('member_level', (string) $memberLevel);
         }
 
         $total = $query->count();

@@ -151,6 +151,9 @@ Route::group('/admin', function () {
     // 会员管理
     Route::resource('/members', app\admin\controller\MemberController::class);
 
+    // 会员卡定义管理（S10）
+    Route::resource('/member-cards', app\admin\controller\MemberCardController::class);
+
     // 提现管理
     Route::resource('/withdrawals', app\admin\controller\WithdrawalController::class);
     Route::post('/withdrawals/{id}/approve', [app\admin\controller\WithdrawalController::class, 'approve']);
