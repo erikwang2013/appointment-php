@@ -34,6 +34,11 @@ class AutoCancelTimer
     private const SCAN_INTERVAL = 30;
 
     /**
+     * 预约前提醒扫描间隔（秒）：2h 窗口内多次扫描靠幂等查重兜底
+     */
+    private const REMINDER_SCAN_INTERVAL = 60;
+
+    /**
      * M7: 核销后未完成自动确认完成的时间（小时）
      *
      * 设计文档语义为"3 天内自动确认"，此处按业务取 24h（核销后服务时长一般远小于 1 天），
@@ -57,6 +62,25 @@ class AutoCancelTimer
         Timer::add(self::SCAN_INTERVAL, function (): void {
             $this->scanRefundCompensation();
         });
+        // 预约前提醒：服务开始前 2h~1h 窗口内生成站内通知（60s 扫描，幂等查重兜底）
+        Timer::add(self::REMINDER_SCAN_INTERVAL, function (): void {
+            $this->scanReminders();
+        });
+    }
+
+    /**
+     * 预约前提醒扫描（60s 间隔）
+     *
+     * 委托 NotificationReminderService：扫描服务开始前 2h~1h 窗口内 status=paid
+     * 的订单，写站内通知（幂等：同订单同标题仅一条）。订阅消息降级逻辑见该服务。
+     */
+    public function scanReminders(): void
+    {
+        try {
+            (new \app\common\NotificationReminderService())->sendReminderForDueOrders();
+        } catch (\Throwable $e) {
+            Log::error('[AutoCancelTimer] reminder scan failed: ' . $e->getMessage());
+        }
     }
 
     /**
