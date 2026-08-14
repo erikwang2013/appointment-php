@@ -350,6 +350,32 @@ Route::group('/api/invoices', function () {
 ]);
 
 // ============================================================
+// 常用发票抬头接口（JWT + ApiVersion）
+// ============================================================
+Route::group('/api/invoice-titles', function () {
+    Route::post('/', v('user', 'InvoiceTitleController', 'store'));
+    Route::get('/', v('user', 'InvoiceTitleController', 'index'));
+    Route::put('/{id}', v('user', 'InvoiceTitleController', 'update'));
+    Route::delete('/{id}', v('user', 'InvoiceTitleController', 'destroy'));
+    Route::post('/{id}/default', v('user', 'InvoiceTitleController', 'setDefault'));
+})->middleware([
+    app\middleware\ApiVersion::class,
+    app\middleware\Auth::class,
+]);
+
+// ============================================================
+// 浏览足迹接口（JWT + ApiVersion）——最近浏览服务
+// ============================================================
+Route::group('/api/browse-history', function () {
+    Route::get('/', v('api', 'BrowseHistoryController', 'index'));
+    Route::delete('/', v('api', 'BrowseHistoryController', 'clear'));
+    Route::delete('/{item_id}', v('api', 'BrowseHistoryController', 'destroy'));
+})->middleware([
+    app\middleware\ApiVersion::class,
+    app\middleware\Auth::class,
+]);
+
+// ============================================================
 // 社区圈子接口（JWT + ApiVersion）
 // ============================================================
 Route::group('/api/community', function () {

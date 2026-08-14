@@ -147,6 +147,11 @@ Route::group('/admin', function () {
     Route::put('/reviews/{id}/audit', [app\admin\controller\ReviewController::class, 'audit']);
     Route::delete('/reviews/{id}', [app\admin\controller\ReviewController::class, 'destroy']);
 
+    // 评价图片审核（带图评价隐藏/恢复；静态路由先于 resource 定义，避免被 {id} 变量路由 shadow）
+    Route::get('/review-audit', [app\admin\controller\ReviewAuditController::class, 'index']);
+    Route::post('/review-audit/{id}/hide', [app\admin\controller\ReviewAuditController::class, 'hide']);
+    Route::post('/review-audit/{id}/restore', [app\admin\controller\ReviewAuditController::class, 'restore']);
+
     // 优惠券
     Route::resource('/coupons', app\admin\controller\CouponController::class);
 
@@ -166,6 +171,7 @@ Route::group('/admin', function () {
     Route::post('/invoices/{id}/reject', [app\admin\controller\InvoiceController::class, 'reject']);
 
     // 客服工单（静态路由必须先于 resource 定义，避免被 {id} 变量路由 shadow）
+    Route::get('/tickets/satisfaction', [app\admin\controller\TicketController::class, 'satisfaction']);
     Route::get('/tickets', [app\admin\controller\TicketController::class, 'index']);
     Route::post('/tickets/{id}/reply', [app\admin\controller\TicketController::class, 'reply']);
 
