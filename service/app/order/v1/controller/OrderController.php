@@ -105,9 +105,12 @@ class OrderController extends BaseController
             return $this->error('优惠券ID无效', 422);
         }
 
-        // ── 拼团下单（传 promotion_id 时走拼团价）──
-        // 校验：仅 group_buy 类型、活动进行中、调用者是参与者、未满员（已成团锁定拒绝）；
-        // 拼团价 = 原价 × discount_percent/100，与优惠券/次卡/积分互斥（禁用叠加）
+        // ── 活动下单（传 promotion_id 时走活动价：拼团/秒杀）──
+        // 拼团：仅 group_buy、活动进行中、调用者是参与者、未满员（已成团锁定拒绝）；
+        //       拼团价 = 原价 × discount_percent/100
+        // 秒杀：仅 flash_sale、活动进行中、调用者是参与者、服务匹配、未售罄（max_people 为库存，无成团概念）；
+        //       秒杀价 = 原价 × (1 - discount_percent/100)
+        // 两者均与优惠券/次卡/积分互斥（禁用叠加）
         $promotionId = $request->input('promotion_id');
         $participantId = null;
         $promotion = null;
@@ -121,13 +124,14 @@ class OrderController extends BaseController
             if (!$promotion) {
                 return $this->error('活动不存在', 422);
             }
-            if ($promotion->type !== Promotion::TYPE_GROUP_BUY) {
-                return $this->error('该活动不支持拼团下单', 422);
+            if (!in_array($promotion->type, [Promotion::TYPE_GROUP_BUY, Promotion::TYPE_FLASH_SALE], true)) {
+                return $this->error('该活动不支持下单', 422);
             }
 
             $now = date('Y-m-d H:i:s');
             // 惰性关闭：拼团到期未满员 → 关闭活动，并批量取消该活动已创建的未支付订单
-            if ($promotion->status == 1
+            if ($promotion->type === Promotion::TYPE_GROUP_BUY
+                && $promotion->status == 1
                 && $promotion->end_at < $now
                 && $promotion->participants_count < $promotion->min_people) {
                 $promotion->status = 0;
@@ -140,11 +144,18 @@ class OrderController extends BaseController
                 return $this->error('活动不存在或已结束');
             }
             if ($now < $promotion->start_at || $now > $promotion->end_at) {
-                return $this->error('活动不在有效时间内');
+                return $this->error('活动不在有效时间内', 422);
             }
             // 已成团锁定：满员后不再接受拼团下单
-            if ($promotion->participants_count >= $promotion->min_people) {
+            if ($promotion->type === Promotion::TYPE_GROUP_BUY
+                && $promotion->participants_count >= $promotion->min_people) {
                 return $this->error('已成团，该活动已锁定', 422);
+            }
+            // 秒杀售罄：库存以 max_people 计，抢光后不再接受下单（无成团概念）
+            if ($promotion->type === Promotion::TYPE_FLASH_SALE
+                && $promotion->max_people > 0
+                && $promotion->participants_count >= $promotion->max_people) {
+                return $this->error('已抢光', 422);
             }
 
             // 调用者必须是参与者
@@ -152,7 +163,8 @@ class OrderController extends BaseController
                 ->where('user_id', $userId)
                 ->first();
             if (!$participant) {
-                return $this->error('您未参与该活动，请先参与拼团', 422);
+                $tip = $promotion->type === Promotion::TYPE_FLASH_SALE ? '请先参与秒杀' : '请先参与拼团';
+                return $this->error('您未参与该活动，' . $tip, 422);
             }
 
             // 订单首条 service 项必须为活动关联服务（活动未绑定服务时跳过）
@@ -165,13 +177,15 @@ class OrderController extends BaseController
                     }
                 }
                 if ($firstServiceId !== (int) $promotion->service_id) {
-                    return $this->error('订单服务与拼团活动不匹配', 422);
+                    $label = $promotion->type === Promotion::TYPE_FLASH_SALE ? '秒杀' : '拼团';
+                    return $this->error("订单服务与{$label}活动不匹配", 422);
                 }
             }
 
-            // 拼团订单禁用优惠券/次卡/积分叠加（拼团价已含折扣）
+            // 活动订单禁用优惠券/次卡/积分叠加（活动价已含折扣）
             if ($couponId !== null || $userCouponId !== null || $memberCardUsageId !== null || $usePoints > 0) {
-                return $this->error('拼团订单不支持叠加其他优惠', 422);
+                $label = $promotion->type === Promotion::TYPE_FLASH_SALE ? '秒杀' : '拼团';
+                return $this->error("{$label}订单不支持叠加其他优惠", 422);
             }
 
             $participantId = $participant->id;
@@ -251,12 +265,15 @@ class OrderController extends BaseController
                 'use_points'           => $usePoints,
             ]);
 
-            // 拼团价 = 原价 × discount_percent/100（叠加优惠已在进入事务前拒绝）
+            // 活动价（叠加优惠已在进入事务前拒绝）：拼团价 = 原价 × discount_percent/100；
+            // 秒杀价 = 原价 × (1 - discount_percent/100)
             if ($promotion !== null) {
                 $total = (float) $pricing['total_amount'];
-                $groupPrice = round($total * $promotion->discount_percent / 100, 2);
-                $pricing['discount_amount'] = round($total - $groupPrice, 2);
-                $pricing['paid_amount'] = $groupPrice;
+                $promoPrice = $promotion->type === Promotion::TYPE_FLASH_SALE
+                    ? round($total * (100 - $promotion->discount_percent) / 100, 2)
+                    : round($total * $promotion->discount_percent / 100, 2);
+                $pricing['discount_amount'] = round($total - $promoPrice, 2);
+                $pricing['paid_amount'] = $promoPrice;
             }
 
             $order = Order::create([
@@ -681,6 +698,16 @@ class OrderController extends BaseController
                 $order->save();
                 $this->releaseTechnicianLock($order);
                 return $this->error('拼团未成团，订单已自动取消', 422);
+            }
+
+            // 秒杀订单懒判定：活动已过期 → 自动取消订单并释放技师锁，拒绝支付
+            if ((int) $order->promotion_id > 0 && $this->isFlashSaleClosed((int) $order->promotion_id)) {
+                $order->status = Order::STATUS_CANCELLED;
+                $order->cancel_reason = '秒杀活动已结束自动取消';
+                $order->cancel_at = now();
+                $order->save();
+                $this->releaseTechnicianLock($order);
+                return $this->error('秒杀活动已结束，订单已自动取消', 422);
             }
 
             // 积分抵扣（可选，use_points 缺省 0 走原逻辑）：余额校验 → 抵扣额计算 → 消费流水写入
@@ -1860,6 +1887,28 @@ class OrderController extends BaseController
             $promotion->status = 0;
             $promotion->save();
             $this->cancelGroupBuyOrders($promotionId, '拼团未成团自动取消');
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * 秒杀活动是否已结束（懒判定：过期则关闭活动并取消其未支付订单，与 isGroupBuyClosed 同模式）
+     */
+    private function isFlashSaleClosed(int $promotionId): bool
+    {
+        $promotion = Promotion::find($promotionId);
+        if (!$promotion) {
+            return true;
+        }
+        if ($promotion->status != 1) {
+            return true;
+        }
+        if ($promotion->type === Promotion::TYPE_FLASH_SALE
+            && $promotion->end_at < date('Y-m-d H:i:s')) {
+            $promotion->status = 0;
+            $promotion->save();
+            $this->cancelGroupBuyOrders($promotionId, '秒杀活动已结束自动取消');
             return true;
         }
         return false;
