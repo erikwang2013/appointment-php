@@ -50,6 +50,8 @@ class NotificationReminderService
     public const SCENE_REFUND = 'refund';
     /** 订单事件订阅消息场景：核销成功 */
     public const SCENE_VERIFIED = 'verified';
+    /** 订单事件订阅消息场景：预约改期成功 */
+    public const SCENE_RESCHEDULE = 'reschedule';
 
     /**
      * 订阅消息模板字段 key（对应小程序后台审核通过的模板字段名，
@@ -83,6 +85,11 @@ class NotificationReminderService
             'title'        => '订单已核销',
             'template_env' => 'WECHAT_SUBSCRIBE_TEMPLATE_VERIFIED',
             'data_keys'    => ['service' => 'thing1', 'time' => 'time2', 'store' => 'thing3'],
+        ],
+        self::SCENE_RESCHEDULE => [
+            'title'        => '预约改期成功',
+            'template_env' => 'WECHAT_SUBSCRIBE_TEMPLATE_RESCHEDULE',
+            'data_keys'    => ['service' => 'thing1', 'order_no' => 'thing2', 'time' => 'time3'],
         ],
     ];
 
@@ -513,6 +520,8 @@ class NotificationReminderService
                 . number_format((float) ($extra['refund_amount'] ?? 0), 2)
                 . '，款项将原路退回至支付账户。',
             self::SCENE_VERIFIED => '您的订单 ' . $orderNo . ' 已核销，服务即将开始，祝您体验愉快。',
+            self::SCENE_RESCHEDULE => '您的订单 ' . $orderNo . ' 已改期至 '
+                . ($order->service_time ? $order->service_time->format('Y-m-d H:i') : '') . '，请准时到达。',
             default => '',
         };
     }
@@ -540,6 +549,11 @@ class NotificationReminderService
                 $keys['service'] => ['value' => $this->truncate($this->firstServiceName($order), 20)],
                 $keys['time']    => ['value' => $order->service_time ? $order->service_time->format('Y-m-d H:i') : ''],
                 $keys['store']   => ['value' => $this->truncate((string) (Store::where('id', $order->store_id)->value('name') ?? ''), 20)],
+            ],
+            self::SCENE_RESCHEDULE => [
+                $keys['service']  => ['value' => $this->truncate($this->firstServiceName($order), 20)],
+                $keys['order_no'] => ['value' => $orderNo],
+                $keys['time']     => ['value' => $order->service_time ? $order->service_time->format('Y-m-d H:i') : ''],
             ],
             default => [],
         };
