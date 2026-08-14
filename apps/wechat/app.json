@@ -12,7 +12,7 @@
     "pages/auth/forget-password",
     "pages/tech-work/index",
     "pages/marketing/coupons",
-    "pages/message/list"
+    "pages/message/index"
   ],
   "window": {
     "backgroundTextStyle": "light",

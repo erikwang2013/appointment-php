@@ -6,3 +6,7 @@
 .menu-grid { display: flex; flex-wrap: wrap; }
 .menu-item { width: 25%; text-align: center; padding: 20rpx 0; }
 .menu-icon { font-size: 48rpx; display: block; margin-bottom: 8rpx; }
+.entry-row { display: flex; align-items: center; padding: 28rpx 24rpx; }
+.entry-icon { font-size: 40rpx; margin-right: 20rpx; }
+.entry-name { flex: 1; font-size: 30rpx; }
+.entry-arrow { color: #c0c0c0; font-size: 40rpx; }

@@ -1,0 +1,32 @@
+<view class="container">
+  <view class="toolbar">
+    <text class="toolbar-title">全部消息</text>
+    <text class="read-all" wx:if="{{hasUnread}}" bindtap="onReadAll">全部已读</text>
+  </view>
+
+  <block wx:for="{{list}}" wx:key="id">
+    <view class="card msg-item {{item.is_read ? '' : 'unread'}}" bindtap="onRead" data-index="{{index}}">
+      <view class="msg-icon-wrap"><text class="msg-icon">{{item.icon}}</text></view>
+      <view class="msg-body">
+        <view class="msg-head">
+          <text class="msg-title">{{item.title}}</text>
+          <text class="msg-type">{{item.type_label}}</text>
+        </view>
+        <text class="msg-content">{{item.content}}</text>
+        <text class="msg-time">{{item.time_text}}</text>
+      </view>
+      <text wx:if="{{!item.is_read}}" class="unread-dot"></text>
+    </view>
+  </block>
+
+  <view wx:if="{{list.length === 0 && !loading}}" class="empty">
+    <text class="empty-icon">🔔</text>
+    <text class="empty-text">暂无消息</text>
+  </view>
+
+  <view class="load-more" wx:if="{{list.length > 0}}">
+    <text wx:if="{{loading}}">加载中...</text>
+    <text wx:elif="{{hasMore}}">上拉加载更多</text>
+    <text wx:else>没有更多了</text>
+  </view>
+</view>
