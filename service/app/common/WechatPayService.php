@@ -655,6 +655,18 @@ class WechatPayService
                 $order->save();
             }
 
+            // 消费成长值入账（每实付 1 元 1 点；幂等由上方支付记录/订单状态复验早退保证
+            // 仅首次入账；失败仅记日志，不影响支付主流程）
+            try {
+                $growthValue = (int) floor((float) $payment->amount);
+                if ($order && $growthValue > 0) {
+                    \app\model\UserGrowth::add($order->user_id, \app\model\UserGrowth::TYPE_CONSUME, $growthValue);
+                }
+            } catch (\Throwable $e) {
+                Log::warning('[WechatPay markOrderPaid] growth record failed: ' . $e->getMessage()
+                    . ', out_trade_no: ' . $outTradeNo);
+            }
+
             \support\Db::commit();
 
             Log::info('[WechatPay markOrderPaid] payment success, out_trade_no: ' . $outTradeNo);

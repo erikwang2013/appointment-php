@@ -11,6 +11,7 @@ use app\model\Notification;
 use app\model\Order;
 use app\model\OrderReview;
 use app\model\TechnicianProfile;
+use app\model\UserGrowth;
 use support\Log;
 use Webman\Http\Request;
 
@@ -79,6 +80,13 @@ class ReviewController extends BaseController
             TierRatingService::evaluate((string) $order->technician_id);
         } catch (\Throwable $e) {
             Log::warning('[ReviewController] tier evaluate failed: ' . $e->getMessage());
+        }
+
+        // 成长值入账（评价 +20；失败仅记日志不影响评价主流程。追评 append 不入账）
+        try {
+            UserGrowth::add($userId, UserGrowth::TYPE_REVIEW, UserGrowth::VALUE_REVIEW);
+        } catch (\Throwable $e) {
+            Log::warning('[ReviewController] growth record failed: ' . $e->getMessage());
         }
 
         return $this->success($review, '评价成功');

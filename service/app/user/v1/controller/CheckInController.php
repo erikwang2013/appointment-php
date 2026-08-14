@@ -7,6 +7,7 @@ namespace app\user\v1\controller;
 
 use app\common\BaseController;
 use app\model\CheckIn;
+use app\model\UserGrowth;
 use app\model\UserPoints;
 use support\Db;
 use support\Log;
@@ -93,6 +94,13 @@ class CheckInController extends BaseController
                     . ($bonus > 0 ? " (含连续{$consecutiveDays}天奖励+{$bonus})" : ''),
                 'expires_at' => UserPoints::expiryAt(),
             ]);
+
+            // 成长值入账（签到 +10；失败仅记日志不影响签到主流程）
+            try {
+                UserGrowth::add($userId, UserGrowth::TYPE_SIGNIN, UserGrowth::VALUE_SIGNIN);
+            } catch (\Throwable $e) {
+                Log::warning('[CheckInController] growth record failed: ' . $e->getMessage());
+            }
 
             Db::commit();
 
