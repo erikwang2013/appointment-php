@@ -1,4 +1,5 @@
 const api = require('../../../utils/api');
+const subscribe = require('../../../utils/subscribe');
 
 Page({
   data: {
@@ -104,6 +105,8 @@ Page({
       const res = await api.authPost('/order', orderData);
       const order = res.data;
       wx.showToast({ title: '订单创建成功', icon: 'success' });
+      // 预约成功即请求订阅授权（用户手势回调内），拒绝/失败静默处理
+      subscribe.requestSubscribe(['order_confirm', 'service_reminder', 'technician_assigned']);
       // 拉起支付（微信 sign_params / 余额 balance）；零元单服务端直接返回支付成功
       try {
         const payData = channel === 'balance' ? { pay_channel: 'balance' } : {};

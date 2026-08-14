@@ -1,4 +1,5 @@
 const api = require('../../utils/api');
+const subscribe = require('../../utils/subscribe');
 const REFUND_STATUS_TEXT = { pending: '退款处理中', success: '已退款', failed: '退款失败' };
 Page({
   data: { order: null, paying: false },
@@ -34,6 +35,7 @@ Page({
         });
       });
       wx.showToast({ title: '支付成功', icon: 'success' });
+      subscribe.requestSubscribe(['order_confirm', 'service_reminder', 'technician_assigned']);
       this.loadDetail(order.id);
     } catch (e) {
       if (e && e.message && String(e.message).indexOf('cancel') >= 0) {
@@ -53,6 +55,7 @@ Page({
     try {
       await api.authPost('/order/pay/' + order.id, { pay_channel: 'balance' });
       wx.showToast({ title: '余额支付成功', icon: 'success' });
+      subscribe.requestSubscribe(['order_confirm', 'service_reminder', 'technician_assigned']);
       this.loadDetail(order.id);
     } catch (e) {
       wx.showToast({ title: (e && e.message) || '余额支付失败', icon: 'none' });
