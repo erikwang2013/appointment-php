@@ -28,7 +28,7 @@ class ReviewController extends GetxController {
     loading.value = true;
     try {
       if (reset) page.value = 1;
-      final data = await ApiService.to.get(
+      final data = await ApiService().get(
         '/admin/reviews',
         params: {
           'page': page.value,
@@ -79,7 +79,7 @@ class ReviewController extends GetxController {
   Future<void> audit(Map<String, dynamic> item, String action) async {
     try {
       final id = item['id'];
-      await ApiService.to.put(
+      await ApiService().put(
         '/admin/reviews/$id/audit',
         data: {'action': action},
       );
@@ -97,7 +97,7 @@ class ReviewController extends GetxController {
   /// 删除评价
   Future<void> remove(Map<String, dynamic> item) async {
     try {
-      await ApiService.to.delete('/admin/reviews/${item['id']}');
+      await ApiService().delete('/admin/reviews/${item['id']}');
       reviews.removeWhere((e) => e['id'] == item['id']);
       total.value -= 1;
       Get.snackbar('成功', '已删除');

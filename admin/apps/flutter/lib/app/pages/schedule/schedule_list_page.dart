@@ -53,14 +53,15 @@ class ScheduleListPage extends GetView<ScheduleController> {
             SizedBox(
               width: 200,
               child: DropdownButtonFormField<String>(
-                value: ctrl.technicianId.value.isEmpty ? null : ctrl.technicianId.value,
+                key: ValueKey(ctrl.technicianId.value),
+                initialValue: ctrl.technicianId.value.isEmpty ? null : ctrl.technicianId.value,
                 isExpanded: true,
                 decoration: const InputDecoration(labelText: '技师', isDense: true),
                 items: [
                   const DropdownMenuItem(value: '', child: Text('全部技师')),
                   ...ctrl.technicians.map((t) => DropdownMenuItem(
                         value: t['id'].toString(),
-                        child: Text(t['real_name'] ?? ('技师#' + t['id'].toString())),
+                        child: Text(t['real_name'] ?? '技师#${t['id']}'),
                       )),
                 ],
                 onChanged: (v) => ctrl.applyFilter(techId: v),
@@ -91,7 +92,6 @@ class ScheduleListPage extends GetView<ScheduleController> {
                   DataColumn(label: Text('操作')),
                 ],
                 rows: ctrl.schedules.map((s) {
-                  final id = s['id'].toString();
                   final slots = (s['time_slots'] as List<dynamic>? ?? [])
                       .map((slot) => '${slot['start']}-${slot['end']}')
                       .join('、');

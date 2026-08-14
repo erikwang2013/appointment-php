@@ -112,7 +112,7 @@ class _ServiceCardFormPageState extends State<ServiceCardFormPage> {
                 ),
                 const SizedBox(height: 16),
                 DropdownButtonFormField<String>(
-                  value: _type,
+                  initialValue: _type,
                   decoration: const InputDecoration(labelText: '类型'),
                   items: const [
                     DropdownMenuItem(value: 'package', child: Text('套餐')),
@@ -175,7 +175,7 @@ class _ServiceCardFormPageState extends State<ServiceCardFormPage> {
                 ),
                 const SizedBox(height: 16),
                 DropdownButtonFormField<int>(
-                  value: _status,
+                  initialValue: _status,
                   decoration: const InputDecoration(labelText: '状态'),
                   items: const [
                     DropdownMenuItem(value: 1, child: Text('启用')),

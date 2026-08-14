@@ -1,6 +1,5 @@
 // Copyright (c) 2026 erik <erik@erik.xyz> — https://erik.xyz
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import '../services/auth_service.dart';
 import '../pages/user/user_list_page.dart';
@@ -344,8 +343,9 @@ class _AdminLayoutState extends State<AdminLayout> {
                 TextButton(
                   onPressed: () async {
                     Navigator.pop(ctx);
+                    final navigator = Navigator.of(context);
                     await AuthService.clearToken();
-                    Navigator.of(context).pushReplacementNamed('/login');
+                    navigator.pushReplacementNamed('/login');
                   },
                   child: const Text('确定退出', style: TextStyle(color: Colors.red)),
                 ),

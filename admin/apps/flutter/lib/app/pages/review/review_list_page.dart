@@ -28,7 +28,7 @@ class ReviewListPage extends GetView<ReviewController> {
                 onRefresh: () => controller.fetchData(reset: true),
                 child: ListView.separated(
                   itemCount: controller.reviews.length + 1,
-                  separatorBuilder: (_, __) => const Divider(height: 1),
+                  separatorBuilder: (_, _) => const Divider(height: 1),
                   itemBuilder: (context, index) {
                     if (index == controller.reviews.length) {
                       return Padding(

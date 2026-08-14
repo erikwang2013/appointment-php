@@ -113,7 +113,7 @@ class _AnnouncementFormPageState extends State<AnnouncementFormPage> {
                 ),
                 const SizedBox(height: 16),
                 DropdownButtonFormField<int>(
-                  value: _status,
+                  initialValue: _status,
                   decoration: const InputDecoration(labelText: '状态'),
                   items: const [
                     DropdownMenuItem(value: 1, child: Text('已发布')),

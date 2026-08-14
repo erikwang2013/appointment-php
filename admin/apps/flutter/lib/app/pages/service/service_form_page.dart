@@ -133,17 +133,17 @@ class _ServiceFormPageState extends State<ServiceFormPage> {
                     final nested = data['category'] is Map
                         ? (data['category'] as Map)['name']?.toString()
                         : null;
-                    categoryName = nested ?? ('分类#' + _categoryId!);
+                    categoryName = nested ?? '分类#$_categoryId';
                     items.add(DropdownMenuItem(value: _categoryId, child: Text(categoryName!)));
                   }
                   return DropdownButtonFormField<String>(
-                    value: _categoryId,
+                    initialValue: _categoryId,
                     isExpanded: true,
                     decoration: const InputDecoration(labelText: '服务分类'),
                     validator: (v) => (v == null || v.isEmpty) ? '请选择服务分类' : null,
                     items: items,
                     onChanged: (v) => setState(() => _categoryId = v),
-                    hint: categoryName == null ? const Text('请选择服务分类') : Text(categoryName),
+                    hint: Text(categoryName ?? '请选择服务分类'),
                   );
                 }),
                 const SizedBox(height: 16),
@@ -220,7 +220,7 @@ class _ServiceFormPageState extends State<ServiceFormPage> {
                 ),
                 const SizedBox(height: 16),
                 DropdownButtonFormField<int>(
-                  value: _status,
+                  initialValue: _status,
                   decoration: const InputDecoration(labelText: '上架状态'),
                   items: const [
                     DropdownMenuItem(value: 1, child: Text('上架')),

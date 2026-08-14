@@ -113,7 +113,7 @@ class _FaqFormPageState extends State<FaqFormPage> {
                 ),
                 const SizedBox(height: 16),
                 DropdownButtonFormField<int>(
-                  value: _status,
+                  initialValue: _status,
                   decoration: const InputDecoration(labelText: '状态'),
                   items: const [
                     DropdownMenuItem(value: 1, child: Text('显示')),

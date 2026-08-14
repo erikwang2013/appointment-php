@@ -2,7 +2,6 @@
  * Copyright (c) 2026 erik <erik@erik.xyz> — https://erik.xyz
  */
 
-import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../services/api_service.dart';
 
@@ -222,11 +221,11 @@ String verifyTypeLabel(String? type) {
 String specText(dynamic spec) {
   if (spec == null) return '-';
   if (spec is List) {
-    final parts = (spec as List).map((e) => e.toString()).where((e) => e.isNotEmpty).toList();
+    final parts = spec.map((e) => e.toString()).where((e) => e.isNotEmpty).toList();
     return parts.isEmpty ? '-' : parts.join('、');
   }
   if (spec is Map) {
-    final parts = (spec as Map).values.map((e) => e.toString()).where((e) => e.isNotEmpty).toList();
+    final parts = spec.values.map((e) => e.toString()).where((e) => e.isNotEmpty).toList();
     return parts.isEmpty ? '-' : parts.join('、');
   }
   final text = spec.toString().trim();

@@ -39,7 +39,8 @@ class WithdrawalListPage extends GetView<WithdrawalController> {
             SizedBox(
               width: 150,
               child: DropdownButtonFormField<String>(
-                value: ctrl.status.value.isEmpty ? null : ctrl.status.value,
+                key: ValueKey(ctrl.status.value),
+                initialValue: ctrl.status.value.isEmpty ? null : ctrl.status.value,
                 isExpanded: true,
                 decoration: const InputDecoration(labelText: '状态', isDense: true),
                 items: [

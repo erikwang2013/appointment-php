@@ -72,7 +72,8 @@ class _OrderListPageState extends State<OrderListPage> {
             SizedBox(
               width: 160,
               child: DropdownButtonFormField<String>(
-                value: ctrl.statusFilter.value ?? '',
+                key: ValueKey(ctrl.statusFilter.value ?? ''),
+                initialValue: ctrl.statusFilter.value ?? '',
                 isExpanded: true,
                 decoration: const InputDecoration(labelText: '订单状态', isDense: true),
                 items: const [

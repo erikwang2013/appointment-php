@@ -129,7 +129,7 @@ class _ScheduleFormPageState extends State<ScheduleFormPage> {
                   }
                   String? techName;
                   final items = ctrl.technicians.map((t) {
-                    final name = t['real_name'] ?? ('技师#' + t['id'].toString());
+                    final name = t['real_name'] ?? '技师#${t['id']}';
                     if (t['id'].toString() == _technicianId) techName = name;
                     return DropdownMenuItem<String>(
                       value: t['id'].toString(),
@@ -138,11 +138,11 @@ class _ScheduleFormPageState extends State<ScheduleFormPage> {
                   }).toList();
                   // 编辑模式下技师列表未加载完时，value 必须仍在 items 中
                   if (isEdit && techName == null && _technicianId != null) {
-                    techName = '技师#' + _technicianId!;
+                    techName = '技师#$_technicianId';
                     items.add(DropdownMenuItem(value: _technicianId, child: Text(techName!)));
                   }
                   return DropdownButtonFormField<String>(
-                    value: _technicianId,
+                    initialValue: _technicianId,
                     isExpanded: true,
                     decoration: const InputDecoration(labelText: '技师'),
                     validator: (v) => (v == null || v.isEmpty) ? '请选择技师' : null,
@@ -150,7 +150,7 @@ class _ScheduleFormPageState extends State<ScheduleFormPage> {
                     onChanged: isEdit
                         ? null
                         : (v) => setState(() => _technicianId = v),
-                    hint: techName == null ? const Text('请选择技师') : Text(techName),
+                    hint: Text(techName ?? '请选择技师'),
                   );
                 }),
                 const SizedBox(height: 16),
@@ -207,7 +207,7 @@ class _ScheduleFormPageState extends State<ScheduleFormPage> {
                 const SizedBox(height: 16),
                 // 状态
                 DropdownButtonFormField<int>(
-                  value: _status,
+                  initialValue: _status,
                   decoration: const InputDecoration(labelText: '状态'),
                   items: const [
                     DropdownMenuItem(value: 1, child: Text('可预约')),

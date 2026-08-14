@@ -50,7 +50,8 @@ class ServiceListPage extends GetView<ServiceController> {
             SizedBox(
               width: 200,
               child: DropdownButtonFormField<String>(
-                value: ctrl.categoryFilter.value ?? '',
+                key: ValueKey(ctrl.categoryFilter.value ?? ''),
+                initialValue: ctrl.categoryFilter.value ?? '',
                 isExpanded: true,
                 decoration: const InputDecoration(labelText: '服务分类', isDense: true),
                 items: [
@@ -90,7 +91,6 @@ class ServiceListPage extends GetView<ServiceController> {
                   DataColumn(label: Text('操作')),
                 ],
                 rows: ctrl.services.map((s) {
-                  final id = s['id'].toString();
                   final categoryName = s['category'] is Map
                       ? (s['category'] as Map)['name']?.toString()
                       : null;
