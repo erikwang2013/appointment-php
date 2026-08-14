@@ -18,11 +18,11 @@ class PromotionParticipant extends Model
     protected $keyType = 'string';
     public $timestamps = true;
 
-    // ── 参与状态常量 ──
-    public const STATUS_PENDING   = 'pending';
-    public const STATUS_JOINED    = 'joined';
-    public const STATUS_PAID      = 'paid';
-    public const STATUS_COMPLETED = 'completed';
+    // ── 参与状态常量（与 erik_promotion_participant.status tinyint 一致）──
+    public const STATUS_PENDING   = 0;
+    public const STATUS_JOINED    = 1;
+    public const STATUS_PAID      = 2;
+    public const STATUS_COMPLETED = 3;
 
     protected $fillable = [
         'promotion_id', 'user_id', 'order_id', 'status',

@@ -75,7 +75,21 @@ class PromotionController extends BaseController
             ->withCount('participants')
             ->find($decodedId);
 
-        if (!$promotion || $promotion->status != 1) {
+        if (!$promotion) {
+            return $this->error('活动不存在或已结束');
+        }
+
+        // 惰性关闭：拼团到期未满员 → 关闭，避免状态残留
+        $now = date('Y-m-d H:i:s');
+        if ($promotion->status == 1
+            && $promotion->type === Promotion::TYPE_GROUP_BUY
+            && $promotion->end_at < $now
+            && $promotion->participants_count < $promotion->min_people) {
+            $promotion->status = 0;
+            $promotion->save();
+        }
+
+        if ($promotion->status != 1) {
             return $this->error('活动不存在或已结束');
         }
 
@@ -105,69 +119,122 @@ class PromotionController extends BaseController
             return $this->error('活动不存在');
         }
 
+        $now = date('Y-m-d H:i:s');
         $promotion = Promotion::withCount('participants')->find($decodedId);
 
         if (!$promotion || $promotion->status != 1) {
             return $this->error('活动不存在或已结束');
         }
 
-        $now = date('Y-m-d H:i:s');
+        // 惰性关闭：拼团到期未满员 → 关闭，已参与用户提示未成团
+        if ($promotion->type === Promotion::TYPE_GROUP_BUY
+            && $promotion->end_at < $now
+            && $promotion->participants_count < $promotion->min_people) {
+            $promotion->status = 0;
+            $promotion->save();
+            return $this->error('拼团已结束，未成团', 422);
+        }
+
+        // 已成团锁定：满员拼团拒绝新参与者
+        if ($promotion->type === Promotion::TYPE_GROUP_BUY
+            && $promotion->participants_count >= $promotion->min_people) {
+            return $this->error('已成团，该活动已锁定', 422);
+        }
+
         if ($now < $promotion->start_at || $now > $promotion->end_at) {
             return $this->error('活动不在有效时间内');
         }
 
-        // 检查是否已参与
+        // 秒杀库存上限（无锁预检，并发下由下方 NX 锁内复验兜底）
+        if ($promotion->type === Promotion::TYPE_FLASH_SALE
+            && $promotion->max_people > 0
+            && $promotion->participants_count >= $promotion->max_people) {
+            return $this->error('已抢光', 422);
+        }
+
+        // 幂等：同一用户重复参与
         $existing = PromotionParticipant::where('promotion_id', $decodedId)
             ->where('user_id', $userId)
             ->first();
 
         if ($existing) {
-            return $this->error('您已参与该活动');
+            return $this->error('您已参与该活动', 422);
         }
 
-        // 检查是否达到最大参与人数
-        if ($promotion->max_people > 0 && $promotion->participants_count >= $promotion->max_people) {
-            return $this->error('活动已满员');
+        // 并发防护：活动级 Redis NX 锁（30s TTL 兜底），锁内复验库存/幂等/成团，防秒杀超卖
+        $lockKey = "promotion_join:{$decodedId}";
+        $token = uniqid((string)$userId, true);
+        if (!Redis::connection()->set($lockKey, $token, 'EX', 30, 'NX')) {
+            return $this->error('参与人数过多，请稍后重试');
         }
 
-        $newCount = $promotion->participants_count + 1;
-
-        // 判断是否成团：团购模式下达到最低人数
-        if ($promotion->type === Promotion::TYPE_GROUP_BUY && $newCount >= $promotion->min_people) {
-            $participantStatus = PromotionParticipant::STATUS_JOINED;
-        } else {
-            $participantStatus = PromotionParticipant::STATUS_PENDING;
-        }
-
-        Db::beginTransaction();
         try {
-            $participant = PromotionParticipant::create([
-                'id' => PromotionParticipant::generateId(),
-                'promotion_id' => $decodedId,
-                'user_id' => $userId,
-                'status' => $participantStatus,
-            ]);
+            $freshCount = PromotionParticipant::where('promotion_id', $decodedId)->count();
 
-            // 如果达到最低人数，更新所有参与者的状态
-            if ($promotion->type === Promotion::TYPE_GROUP_BUY && $newCount >= $promotion->min_people) {
-                PromotionParticipant::where('promotion_id', $decodedId)
-                    ->where('status', PromotionParticipant::STATUS_PENDING)
-                    ->update(['status' => PromotionParticipant::STATUS_JOINED]);
+            if ($promotion->type === Promotion::TYPE_FLASH_SALE
+                && $promotion->max_people > 0
+                && $freshCount >= $promotion->max_people) {
+                return $this->error('已抢光', 422);
             }
 
-            Db::commit();
+            $existing = PromotionParticipant::where('promotion_id', $decodedId)
+                ->where('user_id', $userId)
+                ->first();
+
+            if ($existing) {
+                return $this->error('您已参与该活动', 422);
+            }
+
+            if ($promotion->type === Promotion::TYPE_GROUP_BUY
+                && $freshCount >= $promotion->min_people) {
+                return $this->error('已成团，该活动已锁定', 422);
+            }
+
+            $newCount = $freshCount + 1;
+            $isLocked = $promotion->type === Promotion::TYPE_GROUP_BUY && $newCount >= $promotion->min_people;
+            $participantStatus = $isLocked
+                ? PromotionParticipant::STATUS_JOINED
+                : PromotionParticipant::STATUS_PENDING;
+
+            Db::beginTransaction();
+            try {
+                $participant = PromotionParticipant::create([
+                    'id' => PromotionParticipant::generateId(),
+                    'promotion_id' => $decodedId,
+                    'user_id' => $userId,
+                    'status' => $participantStatus,
+                ]);
+
+                // 达到最低人数：将全部 pending 参与者提升为 joined
+                if ($isLocked) {
+                    PromotionParticipant::where('promotion_id', $decodedId)
+                        ->where('status', PromotionParticipant::STATUS_PENDING)
+                        ->update(['status' => PromotionParticipant::STATUS_JOINED]);
+                }
+
+                Db::commit();
+            } catch (\Throwable $e) {
+                Db::rollBack();
+                // M3: 内部异常详情仅记日志，对外返回通用文案
+                Log::error('[PromotionController] join failed: ' . $e->getMessage());
+                return $this->error('参与失败，请稍后重试');
+            }
 
             return $this->success([
                 'participant' => $participant,
                 'current_count' => $newCount,
                 'min_people' => $promotion->min_people,
-                'is_locked' => $promotion->type === Promotion::TYPE_GROUP_BUY && $newCount >= $promotion->min_people,
+                'max_people' => $promotion->max_people,
+                'is_locked' => $isLocked,
+                'is_full' => $promotion->type === Promotion::TYPE_FLASH_SALE
+                    && $promotion->max_people > 0
+                    && $newCount >= $promotion->max_people,
             ], '参与成功');
-        } catch (\Throwable $e) {
-            Db::rollBack();
-            // M3: 内部异常详情仅记日志，对外返回通用文案
-            Log::error('[PromotionController] join failed: ' . $e->getMessage());
-            return $this->error('参与失败，请稍后重试');
+        } finally {
+            // 仅持有者释放（token 校验），防止误删他人锁
+            if ((string) Redis::get($lockKey) === $token) {
+                Redis::del($lockKey);
+            }
         }
     }
 
