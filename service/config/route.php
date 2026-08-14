@@ -190,6 +190,8 @@ Route::group('/api/order', function () {
     Route::post('/pay/{id}', v('order', 'OrderController', 'pay'));
     Route::post('/refund/{id}', v('order', 'OrderController', 'refund'));
     Route::post('/verify/{id}', v('order', 'OrderController', 'verify'));
+    // 扫码核销（技师端）：核销码放请求体，POST body {code}
+    Route::post('/verify-by-code', v('order', 'OrderController', 'verifyByCode'));
 
     Route::post('/waitlist', v('order', 'WaitlistController', 'store'));
     Route::get('/waitlist', v('order', 'WaitlistController', 'index'));

@@ -194,12 +194,10 @@ class AdminPermissionTest extends TestCase
             }
         }
 
-        // 2. 两份种子文件中的权限 slug 全集
+        // 2. 各份权限种子文件（文件名含 permission）中的权限 slug 全集
+        //    用 glob 自动发现，新增迁移文件无需再改本测试
         $seeded = [];
-        foreach ([
-            __DIR__ . '/../database/migrations/2026_05_20_000001_seed_permissions.sql',
-            __DIR__ . '/../database/migrations/2026_08_14_000001_sec_fix_permission_gaps.sql',
-        ] as $file) {
+        foreach (glob(__DIR__ . '/../database/migrations/*permission*.sql') as $file) {
             $sql = file_get_contents($file);
             preg_match_all("/'([a-z]+\.[a-z0-9\/{}_-]+)'/", $sql, $sm);
             foreach ($sm[1] as $slug) {

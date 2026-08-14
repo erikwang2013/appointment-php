@@ -9,6 +9,7 @@ import '../pages/config/config_page.dart';
 import '../pages/log/log_page.dart';
 import '../pages/dashboard/dashboard_page.dart';
 import '../pages/profile/profile_page.dart';
+import '../pages/verification/verification_list_page.dart';
 import '../pages/schedule/schedule_list_page.dart';
 
 class AdminLayout extends StatefulWidget {
@@ -35,6 +36,7 @@ class _AdminLayoutState extends State<AdminLayout> {
     RoleListPage(),
     ConfigPage(),
     LogPage(),
+    VerificationListPage(),
     ScheduleListPage(),
   ];
 
@@ -201,6 +203,11 @@ class _AdminLayoutState extends State<AdminLayout> {
         icon: Icon(Icons.description, size: 20),
         label: Text('操作日志'),
         selectedIcon: Icon(Icons.description, size: 20),
+      ),
+      NavigationDrawerDestination(
+        icon: Icon(Icons.qr_code, size: 20),
+        label: Text('核销记录'),
+        selectedIcon: Icon(Icons.qr_code, size: 20),
       ),
       NavigationDrawerDestination(
         icon: Icon(Icons.calendar_month, size: 20),

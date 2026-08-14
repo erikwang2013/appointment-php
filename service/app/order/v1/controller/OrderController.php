@@ -804,12 +804,43 @@ class OrderController extends BaseController
     }
 
     /**
-     * 核销订单
+     * 核销订单（核销码走 URL 路径）
      * POST /api/order/verify/{id}
      *
      * @param string $code 核销码（从路由参数 {id} 获取）
      */
     public function verify(Request $request, string $code)
+    {
+        $code = trim((string) $code);
+        if ($code === '') {
+            return $this->error('核销码不能为空');
+        }
+        return $this->doVerify($request, $code);
+    }
+
+    /**
+     * 扫码核销订单（核销码走请求体，供技师端小程序 wx.scanCode 调用）
+     * POST /api/order/verify-by-code
+     *
+     * body: { code: string, verify_type?: string, location?: string }
+     */
+    public function verifyByCode(Request $request)
+    {
+        $code = trim((string) $request->input('code', ''));
+        if ($code === '') {
+            return $this->error('核销码不能为空');
+        }
+        return $this->doVerify($request, $code);
+    }
+
+    /**
+     * 核销公共逻辑（verify / verifyByCode 共用）
+     *
+     * 状态机：paid/confirmed → serving（记录 service_start_at）；
+     * 幂等：同一核销码重复核销返回已核销（不报错）；
+     * M1：仅订单所属技师（已审核）可核销，拒绝任意登录用户越权操作。
+     */
+    private function doVerify(Request $request, string $code)
     {
         $userId = $request->user_id;
 
@@ -819,14 +850,15 @@ class OrderController extends BaseController
             return $this->error('核销码无效', 404);
         }
 
-        if ($verification->verified_at) {
-            return $this->error('该核销码已被使用');
-        }
-
         $order = Order::find($verification->order_id);
 
         if (!$order) {
             return $this->error('关联订单不存在', 404);
+        }
+
+        // 幂等：已核销直接返回成功，不重复推进状态（客户端可据此提示「已核销」）
+        if ($verification->verified_at) {
+            return $this->success(['already_verified' => true, 'order' => $order], '该订单已核销');
         }
 
         // B1: 统一 per-order 互斥锁，防核销与退款/取消并发
@@ -842,13 +874,13 @@ class OrderController extends BaseController
             if (!$verification) {
                 return $this->error('核销码无效', 404);
             }
-            if ($verification->verified_at) {
-                return $this->error('该核销码已被使用');
-            }
-
             $order = Order::find($verification->order_id);
             if (!$order) {
                 return $this->error('关联订单不存在', 404);
+            }
+            // 幂等（锁内复查，防并发重复核销）
+            if ($verification->verified_at) {
+                return $this->success(['already_verified' => true, 'order' => $order], '该订单已核销');
             }
             if (!in_array($order->status, [Order::STATUS_PAID, Order::STATUS_CONFIRMED], true)) {
                 return $this->error('当前订单状态不可核销');
@@ -887,12 +919,34 @@ class OrderController extends BaseController
                 return $this->error('核销失败，请稍后重试');
             }
 
+            // 站内消息通知用户（非阻塞，失败不影响主流程）
+            $this->notifyVerified($order);
+
             // WebSocket 实时推送
             $this->pushOrderUpdate($order);
 
             return $this->success($order, '核销成功');
         } finally {
             $this->releaseLock($lockKey, $lockToken);
+        }
+    }
+
+    /**
+     * 核销成功后发送站内消息通知用户（type='order'，非阻塞）
+     */
+    private function notifyVerified(Order $order): void
+    {
+        try {
+            Notification::create([
+                'id'       => Notification::generateId(),
+                'user_id'  => $order->user_id,
+                'type'     => 'order',
+                'title'    => '订单已核销',
+                'content'  => '您的订单 ' . $order->order_no . ' 已核销，服务即将开始，祝您体验愉快。',
+                'order_id' => $order->id,
+            ]);
+        } catch (\Throwable $e) {
+            Log::warning('[OrderController] notifyVerified failed: ' . $e->getMessage());
         }
     }
 
