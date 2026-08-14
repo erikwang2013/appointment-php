@@ -7,30 +7,35 @@ flowchart TD
     A["用户浏览服务项目"] --> B["选择门店/技师/时间"]
     B --> C["填写备注"]
     C --> D{"选择优惠券?"}
-    D -->|"使用"| E["抵扣金额"]
+    D -->|"使用"| E["优惠券抵扣金额"]
     D -->|"不用"| F["原价下单"]
-    E --> G["阅读服务协议"]
+    E --> G["下单算价（不消费）<br/>PriceCalculator 纯计算<br/>券 fixed/percent + 次卡 times<br/>min_amount 基于原价"]
     F --> G
-    G --> H["提交订单"]
-    H --> I{"Redis 锁定技师<br/>SETNX 3分钟"}
-    I -->|"锁定成功"| J["创建订单 pending"]
-    I -->|"已被锁定"| K["提示技师繁忙"]
-    J --> L["调用微信支付"]
-    L --> M{"支付结果"}
-    M -->|"成功"| N["订单 → paid<br/>通知用户+技师"]
-    M -->|"失败/取消"| O["订单保持 pending<br/>15分钟后自动取消"]
-    N --> P["技师确认服务开始"]
-    P --> Q["订单 → serving"]
-    Q --> R["服务完成"]
-    R --> S["技师扫码核销"]
-    S --> T["订单 → completed"]
-    T --> U["用户评价（文字+图片）"]
-    U --> V["订单 → reviewed ✅"]
+    G --> H["阅读服务协议"]
+    H --> I["提交订单"]
+    I --> J{"Redis 锁定技师<br/>SETNX 3分钟"}
+    J -->|"锁定成功"| K["创建订单 pending"]
+    J -->|"已被锁定"| L["提示技师繁忙"]
+    K --> M{"应付金额?"}
+    M -->|"零元"| N["FREE 直通<br/>transaction_id = 'FREE'+支付单号<br/>订单 → paid"]
+    M -->|"金额 > 0"| O["调用微信支付<br/>pay_lock 防并发重复支付"]
+    O --> P{"支付结果"}
+    P -->|"成功"| Q["支付成功回调消费<br/>markOrderPaid 单一消费点<br/>原子扣减券/次卡<br/>订单 → paid"]
+    P -->|"失败/取消"| R["订单保持 pending<br/>15分钟后自动取消"]
+    N --> S["技师确认服务开始"]
+    Q --> S
+    S --> T["订单 → serving"]
+    T --> U["服务完成"]
+    U --> V["技师扫码核销"]
+    V --> W["订单 → completed"]
+    W --> X["用户评价（文字+图片）"]
+    X --> Y["订单 → reviewed ✅"]
 
     style A fill:#e3f2fd,stroke:#1565c0,color:#333
-    style V fill:#c8e6c9,stroke:#2e7d32,color:#333
-    style K fill:#ffcdd2,stroke:#c62828,color:#333
-    style O fill:#fff9c4,stroke:#f9a825,color:#333
+    style Y fill:#c8e6c9,stroke:#2e7d32,color:#333
+    style L fill:#ffcdd2,stroke:#c62828,color:#333
+    style R fill:#fff9c4,stroke:#f9a825,color:#333
+    style N fill:#c8e6c9,stroke:#2e7d32,color:#333
 ```
 
 ## 2. 支付与退款流程
@@ -38,15 +43,16 @@ flowchart TD
 ```mermaid
 flowchart TD
     subgraph 支付流程["正向支付流程"]
-        P1["创建支付记录"] --> P2["调用微信统一下单"]
+        P1["创建支付记录"] --> P2["微信统一下单<br/>pay_lock 防并发<br/>out_trade_no = order_no 幂等"]
         P2 --> P3["前端调起支付"]
         P3 --> P4["微信回调 notify"]
-        P4 --> P5["验签 + 更新订单 paid"]
-        P5 --> P6["通知用户+技师<br/>模板消息推送"]
+        P4 --> P5["验签通过"]
+        P5 --> P6["markOrderPaid 幂等<br/>券/次卡仅此一次消费"]
+        P6 --> P7["订单 → paid<br/>通知用户+技师"]
     end
 
     subgraph 退款流程["退款流程"]
-        R1["用户申请退款"] --> R2{"退款规则判定"}
+        R1["用户申请退款<br/>refund_lock 防并发"] --> R2{"退款规则判定"}
         R2 -->|"下单≤15min 或 距开始>6h"| R3["退款 100%"]
         R2 -->|"距开始≤6h"| R4["退款 90%"]
         R2 -->|"已开始未确认"| R5["退款 80%"]
@@ -55,12 +61,15 @@ flowchart TD
         R4 --> R7
         R5 --> R7
         R7 --> R8["两级审批<br/>店长→财务"]
-        R8 --> R9["订单 → refunded<br/>微信退款到账"]
+        R8 --> R9["两段式退款<br/>事务内建退款记录<br/>事务外微信退款 IO"]
+        R9 -->|"微信失败"| R10["回滚订单 PAID<br/>可重试退款"]
+        R9 -->|"退款成功"| R11["订单 → refunded<br/>微信退款到账"]
     end
 
-    style P5 fill:#c8e6c9,stroke:#2e7d32,color:#333
+    style P6 fill:#c8e6c9,stroke:#2e7d32,color:#333
     style R6 fill:#ffcdd2,stroke:#c62828,color:#333
-    style R9 fill:#c8e6c9,stroke:#2e7d32,color:#333
+    style R11 fill:#c8e6c9,stroke:#2e7d32,color:#333
+    style R10 fill:#fff9c4,stroke:#f9a825,color:#333
 ```
 
 ## 3. 技师提现流程

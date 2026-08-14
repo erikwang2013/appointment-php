@@ -19,6 +19,8 @@ graph TB
             MKT["营销模块<br/>marketing/<br/>优惠券/会员卡/积分"]
             CTN["内容模块<br/>content/<br/>轮播图/公告/通知"]
             LBS["LBS模块<br/>lbs/<br/>城市/附近门店"]
+            CACHE["Redis 列表缓存<br/>svc:* 前缀 setex 300s<br/>分类/项目/产品/技师/内容<br/>卡项/营销列表接口<br/>admin 写路径 clearSvcCache() 失效"]
+            RES["响应契约<br/>success/paginate code=0<br/>错误码非 0<br/>与小程序约定匹配"]
         end
     end
 
@@ -26,11 +28,12 @@ graph TB
         MW2["中间件链<br/>Cors → Security → RateLimit → AdminAuth → RBAC → OperationLog"]
         ADMIN_API["管理API<br/>admin/controller/<br/>仪表盘/用户/技师/门店/服务<br/>订单/优惠券/财务/内容/设置"]
         FLUTTER_WEB["Flutter Web 前端<br/>admin/apps/flutter/<br/>PC管理后台界面"]
+        MODEL["模型共享<br/>admin/app/model<br/>39 个 symlink<br/>→ service/app/model 同一实现"]
     end
 
     subgraph 数据层["数据层"]
         MySQL[("MySQL 8.0<br/>55+ 表 · erik_ 前缀<br/>BIGINT Snowflake 主键")]
-        Redis[("Redis<br/>缓存/限流/Session<br/>队列/技师锁")]
+        Redis[("Redis<br/>缓存/限流/Session<br/>队列/技师锁<br/>svc:* 列表缓存")]
         ES[("Elasticsearch<br/>全文检索<br/>webman-scout 自动同步")]
     end
 
@@ -76,8 +79,8 @@ graph TB
     classDef security fill:#fff8e1,stroke:#f9a825,stroke-width:2px,color:#f57f17
 
     class WX,APP terminal
-    class MW1,API模块,PUB,USER,TECH,SVC,ORD,MKT,CTN,LBS service
-    class MW2,ADMIN_API,FLUTTER_WEB admin
+    class MW1,API模块,PUB,USER,TECH,SVC,ORD,MKT,CTN,LBS,CACHE,RES service
+    class MW2,ADMIN_API,FLUTTER_WEB,MODEL admin
     class MySQL,Redis,ES data
     class WXPAY,SMS,MAP,OSS external
     class SEC,JWT,ENC,POSTER security

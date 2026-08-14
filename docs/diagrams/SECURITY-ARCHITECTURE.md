@@ -9,7 +9,7 @@ graph TB
     end
 
     subgraph 接入防护["第二层：接入防护"]
-        CORS["Cors 中间件<br/>CORS_ALLOW_ORIGIN<br/>6个安全响应头<br/>OPTIONS 预检"]
+        CORS["Cors 中间件<br/>CORS_ALLOW_ORIGIN 白名单<br/>* 回显 · 未配置仅同源<br/>6个安全响应头<br/>OPTIONS 预检"]
     end
 
     subgraph 攻击检测["第三层：攻击检测"]
@@ -22,7 +22,7 @@ graph TB
     end
 
     subgraph 身份认证["第五层：身份认证"]
-        AUTH["Auth 中间件<br/>JWT Bearer Token (7天)<br/>密码 bcrypt 哈希<br/>Token 刷新 + 黑名单<br/>登录锁定: 5次失败→15min<br/>并发限制: 最多3个Token"]
+        AUTH["Auth 中间件<br/>JWT Bearer Token (7天)<br/>JWT_SECRET_KEY 强制配置<br/>缺失/公开默认值拒绝启动<br/>密码 bcrypt 哈希<br/>Token 刷新 + 黑名单<br/>登录锁定: 5次失败→15min<br/>并发限制: 最多3个Token"]
         TECH_AUTH["TechnicianAuth<br/>技师档案校验<br/>approved 状态检查"]
         ADMIN_AUTH["AdminAuth<br/>Admin端JWT认证<br/>Token黑名单"]
     end
@@ -34,9 +34,15 @@ graph TB
 
     subgraph 数据安全["第七层：数据安全"]
         ENC_API["API层加密<br/>erikwang2013/encryption<br/>敏感字段加解密"]
-        ENC_DB["DB层加密<br/>erikwang2013/encryptable<br/>Model trait自动加解密<br/>phone/wx_openid/real_name"]
+        ENC_DB["DB层加密<br/>erikwang2013/encryptable<br/>Model trait自动加解密<br/>只加密 real_name/id_card 等<br/>phone/wx_openid 必须明文存储<br/>（登录/查重依赖明文查询）"]
         HASHID["ID加解密<br/>erikwang2013/hashids<br/>对外隐藏真实ID<br/>递归编码/解码"]
-        SLOG["安全日志<br/>敏感数据不入日志<br/>OperationLog 8端来源"]
+        SLOG["安全日志<br/>M3 异常统一脱敏<br/>通用文案 + Log::error<br/>敏感数据不入日志<br/>OperationLog 8端来源"]
+    end
+
+    subgraph 管理端防护["第八层：管理端防护"]
+        EXCEL["导出防护<br/>safeCellValue()<br/>= + - @ / Tab/CR 开头<br/>前缀 ' 转义防公式注入"]
+        UPLOAD["上传校验<br/>finfo magic bytes<br/>MIME 与扩展名不匹配<br/>→ 422 拒绝"]
+        INSTALL["安装锁<br/>已安装(installed=1<br/>或存在管理员)<br/>→ 404 禁用安装向导"]
     end
 
     请求["HTTP Request"] --> WAF
@@ -56,7 +62,10 @@ graph TB
     ENC_API --> ENC_DB
     ENC_DB --> HASHID
     HASHID --> SLOG
-    SLOG --> 响应["HTTP Response<br/>数据已加密+编码"]
+    SLOG --> EXCEL
+    EXCEL --> UPLOAD
+    UPLOAD --> INSTALL
+    INSTALL --> 响应["HTTP Response<br/>数据已加密+编码"]
 
     classDef layer1 fill:#e3f2fd,stroke:#1565c0,stroke-width:2px,color:#01579b
     classDef layer2 fill:#bbdefb,stroke:#1976d2,stroke-width:2px,color:#01579b
@@ -65,6 +74,7 @@ graph TB
     classDef layer5 fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#1b5e20
     classDef layer6 fill:#e1bee7,stroke:#7b1fa2,stroke-width:2px,color:#4a148c
     classDef layer7 fill:#d7ccc8,stroke:#5d4037,stroke-width:2px,color:#3e2723
+    classDef layer8 fill:#cfd8dc,stroke:#37474f,stroke-width:2px,color:#263238
     classDef reject fill:#ff5252,stroke:#b71c1c,stroke-width:2px,color:#fff
 
     class WAF layer1
@@ -74,6 +84,7 @@ graph TB
     class AUTH,TECH_AUTH,ADMIN_AUTH layer5
     class RBAC,POSTER layer6
     class ENC_API,ENC_DB,HASHID,SLOG layer7
+    class EXCEL,UPLOAD,INSTALL layer8
     class 拒绝,限流拒绝 reject
 ```
 
@@ -84,9 +95,9 @@ graph LR
     subgraph 组件["安全组件"]
         C1["security-php<br/>━━━━━━━━<br/>31种攻击检测<br/>XSS/SQL注入/CSRF<br/>路径遍历/文件包含<br/>CSRF Origin检测"]
         C2["encryption<br/>━━━━━━━━<br/>AES-256-CBC<br/>API层加解密<br/>密钥轮换支持"]
-        C3["encryptable<br/>━━━━━━━━<br/>DB字段自动加解密<br/>VARCHAR(500)<br/>加密膨胀兼容"]
+        C3["encryptable<br/>━━━━━━━━<br/>DB字段自动加解密<br/>只加密 real_name/id_card 等<br/>phone/wx_openid 明文存储<br/>VARCHAR(500) 加密膨胀兼容"]
         C4["hashids<br/>━━━━━━━━<br/>ID编码/解码<br/>递归处理关联<br/>对外隐藏真实ID"]
-        C5["jwt-webman<br/>━━━━━━━━<br/>Bearer Token<br/>7天+刷新+黑名单<br/>并发≤3个"]
+        C5["jwt-webman<br/>━━━━━━━━<br/>Bearer Token<br/>JWT_SECRET_KEY 强制配置<br/>缺失/默认值拒绝启动<br/>7天+刷新+黑名单<br/>并发≤3个"]
         C6["poster-php<br/>━━━━━━━━<br/>操作前随机验证<br/>删除/审核/提现<br/>防误操作"]
         C7["snowflake-php<br/>━━━━━━━━<br/>BIGINT分布式ID<br/>非自增防遍历<br/>全局唯一"]
     end
@@ -168,18 +179,19 @@ flowchart LR
         I1["明文手机号"]
         I2["明文身份证"]
         I3["明文OpenID"]
+        I4["明文姓名"]
     end
 
     subgraph API加密["API层 (encryption)"]
-        E1["encrypt(phone)<br/>→ ciphertext"]
-        E2["encrypt(id_card)<br/>→ ciphertext"]
-        E3["encrypt(openid)<br/>→ ciphertext"]
+        E1["encrypt(id_card)<br/>→ ciphertext"]
+        E2["encrypt(real_name)<br/>→ ciphertext"]
     end
 
-    subgraph DB存储["DB层 (encryptable)"]
-        D1["erik_user.phone<br/>VARCHAR(500)<br/>自动加解密"]
-        D2["erik_technician_profile<br/>.id_card VARCHAR(500)"]
-        D3["erik_user.wx_openid<br/>VARCHAR(500)"]
+    subgraph DB存储["DB层存储"]
+        D1["erik_user.phone<br/>明文存储<br/>登录/查重依赖明文查询"]
+        D2["erik_technician_profile<br/>.id_card VARCHAR(500)<br/>encryptable 加密"]
+        D3["erik_user.wx_openid<br/>明文存储"]
+        D4["erik_user.real_name<br/>encryptable 加密"]
     end
 
     subgraph ID处理["ID处理 (hashids + snowflake)"]
@@ -194,9 +206,10 @@ flowchart LR
         O3["响应头含安全策略<br/>CSP/CORS/HSTS"]
     end
 
-    I1 --> E1 --> D1
-    I2 --> E2 --> D2
-    I3 --> E3 --> D3
+    I1 --> D1
+    I2 --> E1 --> D2
+    I3 --> D3
+    I4 --> E2 --> D4
     D1 --> H1 --> H2 --> H3
     H3 --> O1
     D1 --> O2
@@ -208,9 +221,9 @@ flowchart LR
     classDef id fill:#e8f5e9,stroke:#2e7d32,color:#333
     classDef output fill:#f3e5f5,stroke:#7b1fa2,color:#333
 
-    class I1,I2,I3 input
-    class E1,E2,E3 encrypt
-    class D1,D2,D3 db
+    class I1,I2,I3,I4 input
+    class E1,E2 encrypt
+    class D1,D2,D3,D4 db
     class H1,H2,H3 id
     class O1,O2,O3 output
 ```
