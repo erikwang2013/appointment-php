@@ -27,6 +27,10 @@ class WechatTemplateMessageService
     private const REDIS_ACCESS_TOKEN_KEY = 'wechat:access_token';
     private const ACCESS_TOKEN_TTL = 7200; // 2 小时
 
+    // 订阅消息走小程序 access_token，与公众号模板消息 token 相互独立
+    private const REDIS_SUBSCRIBE_ACCESS_TOKEN_KEY = 'wechat:subscribe_access_token';
+    private const SUBSCRIBE_ACCESS_TOKEN_TTL = 7000; // 微信实际 7200s，提前 5 分钟过期
+
     public function __construct()
     {
         $configs = Db::table('erik_system_config')
@@ -162,15 +166,125 @@ class WechatTemplateMessageService
     }
 
     /**
+     * 发送小程序订阅消息（/cgi-bin/message/subscribe/send）
+     *
+     * 与公众号模板消息（template/send）是微信两个独立 API：
+     * - 走小程序自己的 access_token（WECHAT_SUBSCRIBE_APP_ID/APP_SECRET，独立 redis 缓存）；
+     * - data 的 key 是小程序后台模板的字段名（thing1/time2/...），由调用方按模板传入；
+     * - 用户须先在小程序内订阅过该模板（wx.requestSubscribeMessage），
+     *   否则微信返回 43101（user refuse）。
+     *
+     * @param string $openid     用户 openid（小程序侧）
+     * @param string $templateId 订阅消息模板 ID
+     * @param array  $data       [字段名 => ['value' => 值], ...]
+     * @param string $page       点击消息跳转的小程序页面（可选）
+     * @return array 微信原始响应：['errcode' => 0, 'errmsg' => 'ok'] 为成功；
+     *               本地失败返回 ['errcode' => -1, 'errmsg' => 原因]
+     */
+    public function sendSubscribeMessage(string $openid, string $templateId, array $data, string $page = ''): array
+    {
+        if (empty($openid)) {
+            Log::warning('[WechatTemplateMsg] subscribe send: openid 不能为空');
+            return ['errcode' => -1, 'errmsg' => 'openid 不能为空'];
+        }
+
+        if (empty($templateId)) {
+            Log::warning('[WechatTemplateMsg] subscribe send: template_id 未配置');
+            return ['errcode' => -1, 'errmsg' => '订阅模板ID未配置'];
+        }
+
+        $accessToken = $this->getSubscribeAccessToken();
+        if (empty($accessToken)) {
+            return ['errcode' => -1, 'errmsg' => '获取订阅消息 access_token 失败'];
+        }
+
+        $postData = [
+            'touser'      => $openid,
+            'template_id' => $templateId,
+            'data'        => $data,
+        ];
+        if ($page !== '') {
+            $postData['page'] = $page;
+        }
+
+        try {
+            $sendUrl  = self::SUBSCRIBE_SEND_URL . '?access_token=' . $accessToken;
+            $body     = json_encode($postData, JSON_UNESCAPED_UNICODE);
+            $response = $this->httpPost($sendUrl, $body);
+
+            if (empty($response)) {
+                Log::error('[WechatTemplateMsg] subscribe send response empty');
+                return ['errcode' => -1, 'errmsg' => '微信接口无响应'];
+            }
+
+            $result = json_decode($response, true);
+            if (!is_array($result)) {
+                return ['errcode' => -1, 'errmsg' => '响应解析失败'];
+            }
+
+            $errcode = $result['errcode'] ?? -1;
+            if ($errcode !== 0) {
+                Log::error("[WechatTemplateMsg] subscribe send failed: errcode={$errcode}, errmsg="
+                    . ($result['errmsg'] ?? ''));
+            }
+
+            return $result;
+        } catch (\Throwable $e) {
+            Log::error('[WechatTemplateMsg] subscribe send exception: ' . $e->getMessage());
+            return ['errcode' => -1, 'errmsg' => '发送异常: ' . $e->getMessage()];
+        }
+    }
+
+    /**
      * 获取/缓存微信 access_token
      *
      * @return string access_token 字符串，失败返回空字符串
      */
     public function getAccessToken(): string
     {
+        return $this->fetchAccessToken(
+            $this->appId,
+            $this->appSecret,
+            self::REDIS_ACCESS_TOKEN_KEY,
+            self::ACCESS_TOKEN_TTL
+        );
+    }
+
+    /**
+     * 获取/缓存小程序订阅消息专用 access_token
+     *
+     * 订阅消息走小程序自己的凭据（WECHAT_SUBSCRIBE_APP_ID/APP_SECRET），
+     * 与公众号 token（getAccessToken）独立缓存，互不覆盖。
+     *
+     * @return string access_token 字符串，失败返回空字符串
+     */
+    public function getSubscribeAccessToken(): string
+    {
+        $appId     = (string)(getenv('WECHAT_SUBSCRIBE_APP_ID') ?: '');
+        $appSecret = (string)(getenv('WECHAT_SUBSCRIBE_APP_SECRET') ?: '');
+
+        if ($appId === '' || $appSecret === '') {
+            Log::error('[WechatTemplateMsg] WECHAT_SUBSCRIBE_APP_ID/APP_SECRET 未配置，'
+                . '无法获取订阅消息 access_token');
+            return '';
+        }
+
+        return $this->fetchAccessToken(
+            $appId,
+            $appSecret,
+            self::REDIS_SUBSCRIBE_ACCESS_TOKEN_KEY,
+            self::SUBSCRIBE_ACCESS_TOKEN_TTL
+        );
+    }
+
+    /**
+     * 获取 access_token 通用实现：redis 缓存 → 微信接口 → 回写缓存
+     */
+    private function fetchAccessToken(string $appId, string $appSecret, string $redisKey, int $ttl): string
+    {
         // 从 Redis 获取缓存
         try {
-            $cached = Redis::connection()->get(self::REDIS_ACCESS_TOKEN_KEY);
+            $cached = Redis::connection()->get($redisKey);
             if ($cached && is_string($cached)) {
                 return $cached;
             }
@@ -178,15 +292,15 @@ class WechatTemplateMessageService
             Log::warning('[WechatTemplateMsg] Redis get failed: ' . $e->getMessage());
         }
 
-        if (empty($this->appId) || empty($this->appSecret)) {
+        if (empty($appId) || empty($appSecret)) {
             Log::error('[WechatTemplateMsg] app_id or app_secret not configured');
             return '';
         }
 
         $url = self::ACCESS_TOKEN_URL . '?' . http_build_query([
             'grant_type' => 'client_credential',
-            'appid'      => $this->appId,
-            'secret'     => $this->appSecret,
+            'appid'      => $appId,
+            'secret'     => $appSecret,
         ]);
 
         try {
@@ -205,7 +319,7 @@ class WechatTemplateMessageService
             }
 
             $accessToken = $data['access_token'] ?? '';
-            $expiresIn   = (int) ($data['expires_in'] ?? self::ACCESS_TOKEN_TTL);
+            $expiresIn   = (int) ($data['expires_in'] ?? $ttl);
 
             if (empty($accessToken)) {
                 Log::error('[WechatTemplateMsg] get access_token failed: ' . ($data['errmsg'] ?? 'unknown'));
@@ -213,9 +327,9 @@ class WechatTemplateMessageService
             }
 
             // 缓存到 Redis，提前 5 分钟过期
-            $ttl = max($expiresIn - 300, 60);
+            $cacheTtl = max(min($expiresIn, $ttl) - 300, 60);
             try {
-                Redis::connection()->set(self::REDIS_ACCESS_TOKEN_KEY, $accessToken, 'EX', $ttl);
+                Redis::connection()->set($redisKey, $accessToken, 'EX', $cacheTtl);
             } catch (\Throwable $e) {
                 Log::warning('[WechatTemplateMsg] Redis set failed: ' . $e->getMessage());
             }

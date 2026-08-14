@@ -17,13 +17,14 @@ class Notification extends Model
 
     protected $fillable = [
         'user_id', 'type', 'title', 'content',
-        'order_id', 'is_read', 'read_at',
+        'order_id', 'is_read', 'read_at', 'push_sent_at',
     ];
 
     protected $casts = [
-        'user_id' => 'string',
-        'is_read' => 'integer',
-        'read_at' => 'datetime',
+        'user_id'     => 'string',
+        'is_read'     => 'integer',
+        'read_at'     => 'datetime',
+        'push_sent_at' => 'datetime',
     ];
 
     /**

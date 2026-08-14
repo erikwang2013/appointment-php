@@ -45,6 +45,16 @@ class NotificationReminderService
     private const REMINDER_TYPE  = 'order';
 
     /**
+     * 订阅消息模板字段 key（对应小程序后台审核通过的模板字段名，
+     * 如模板字段名不同可在此调整；thing 字段值上限 20 字符）
+     */
+    private const SUBSCRIBE_DATA_KEYS = [
+        'service' => 'thing1', // 预约项目
+        'time'    => 'time2',  // 开始时间
+        'store'   => 'thing3', // 门店
+    ];
+
+    /**
      * 扫描所有到期预约并生成提醒通知
      *
      * @param int|null $nowTimestamp 当前时间戳（测试可注入；null 取 time()）
@@ -123,11 +133,12 @@ class NotificationReminderService
                 return false; // 已提醒过，跳过
             }
 
-            $content = $this->buildContent($order, $ctx);
+            $content        = $this->buildContent($order, $ctx);
+            $notificationId = Notification::generateId();
 
             // 写站内通知（与 AutoCancelTimer 同模式：Db::table 直插含 id）
             Db::table('erik_notification')->insert([
-                'id'         => Notification::generateId(),
+                'id'         => $notificationId,
                 'user_id'    => $order->user_id,
                 'type'       => self::REMINDER_TYPE,
                 'title'      => self::REMINDER_TITLE,
@@ -138,8 +149,8 @@ class NotificationReminderService
                 'updated_at' => date('Y-m-d H:i:s'),
             ]);
 
-            // 订阅消息钩子：未配置微信模板时仅站内通知（可配置降级）
-            $this->sendSubscribeReminder($order, $ctx, $content);
+            // 订阅消息钩子：未配置微信模板时仅站内通知（可配置降级）；失败不影响主流程
+            $this->sendSubscribeReminder($order, $ctx, $content, $notificationId);
 
             return true;
         });
@@ -148,30 +159,136 @@ class NotificationReminderService
     /**
      * 微信订阅消息发送钩子（可配置降级）
      *
-     * 当前仅实现站内通知闭环；订阅消息发送留待商户凭证就绪后接入
-     * （小程序订阅消息走 /cgi-bin/message/subscribe/send，需 access_token +
-     * 用户订阅授权记录 + 模板 ID）。配置项见 .env.example 的 WECHAT_SUBSCRIBE_* 注释块。
+     * 发送链路：WechatTemplateMessageService::sendSubscribeMessage（小程序
+     * subscribe/send，独立 access_token）。前置条件：
+     * 1) WECHAT_SUBSCRIBE_TEMPLATE_ID/APP_ID/APP_SECRET 三件套齐全；
+     * 2) 用户 erik_user.wx_openid 非空（订阅消息按 openid 投递）；
+     * 3) 用户已在小程序内订阅过该模板（未订阅微信返回 43101）。
      *
-     * @return bool 是否已发送（未配置/未实现时恒为 false，仅降级日志）
+     * 幂等：推送成功（微信 errcode=0）才写 erik_notification.push_sent_at；
+     * 已写入则跳过，防止 60s 定时扫描重复推送。失败不写标记（下次扫描
+     * 可重试，扫描查重上限 60s 一次，可接受）。异常不影响主流程。
+     *
+     * @param Order       $order          订单
+     * @param array       $ctx            preloadContext() 预取上下文（可空）
+     * @param string      $content        站内通知内容（兼容保留，未使用）
+     * @param string|null $notificationId 已写入的通知 ID（processOrder 传入；
+     *                                    直接调用时为 null 则按订单查）
+     * @return bool 是否推送成功（未配置/无 openid/微信失败均 false）
      */
-    public function sendSubscribeReminder(Order $order, array $ctx = [], string $content = ''): bool
-    {
-        $templateId = (string)(getenv('WECHAT_SUBSCRIBE_TEMPLATE_ID') ?: '');
+    public function sendSubscribeReminder(
+        Order $order,
+        array $ctx = [],
+        string $content = '',
+        ?string $notificationId = null
+    ): bool {
+        try {
+            $templateId = (string)(getenv('WECHAT_SUBSCRIBE_TEMPLATE_ID') ?: '');
+            $appId      = (string)(getenv('WECHAT_SUBSCRIBE_APP_ID') ?: '');
+            $appSecret  = (string)(getenv('WECHAT_SUBSCRIBE_APP_SECRET') ?: '');
 
-        if ($templateId === '') {
-            Log::info('[NotificationReminder] WECHAT_SUBSCRIBE_TEMPLATE_ID 未配置，'
-                . '跳过订阅消息（仅站内通知）order=' . $order->id);
+            if ($templateId === '' || $appId === '' || $appSecret === '') {
+                Log::info('[NotificationReminder] WECHAT_SUBSCRIBE_* 未配置齐全，'
+                    . '跳过订阅消息（仅站内通知）order=' . $order->id);
+                return false;
+            }
+
+            // 幂等：该通知已推送过订阅消息则不再推送
+            $notificationId ??= (string)(Notification::where('order_id', $order->id)
+                ->where('type', self::REMINDER_TYPE)
+                ->where('title', self::REMINDER_TITLE)
+                ->value('id') ?? '');
+            if ($notificationId !== '') {
+                $pushSentAt = Notification::where('id', $notificationId)->value('push_sent_at');
+                if ($pushSentAt !== null) {
+                    Log::info('[NotificationReminder] 订阅消息已推送过（push_sent_at 已写入），'
+                        . '跳过 order=' . $order->id);
+                    return false;
+                }
+            }
+
+            // 用户 openid 缺失则无法投递
+            $openid = (string)(User::where('id', $order->user_id)->value('wx_openid') ?? '');
+            if ($openid === '') {
+                Log::info('[NotificationReminder] 用户无 wx_openid，无法发送订阅消息 order=' . $order->id);
+                return false;
+            }
+
+            $result = $this->makeWechatService()->sendSubscribeMessage(
+                $openid,
+                $templateId,
+                $this->buildSubscribeData($order, $ctx)
+            );
+
+            if (($result['errcode'] ?? -1) === 0) {
+                // 推送成功才写"已推送"标记；失败不写（下次扫描可重试）
+                if ($notificationId !== '') {
+                    Db::table('erik_notification')
+                        ->where('id', $notificationId)
+                        ->update(['push_sent_at' => date('Y-m-d H:i:s')]);
+                }
+                Log::info('[NotificationReminder] 订阅消息发送成功 order=' . $order->id);
+                return true;
+            }
+
+            Log::error('[NotificationReminder] 订阅消息发送失败 order=' . $order->id
+                . ' errcode=' . ($result['errcode'] ?? -1)
+                . ' errmsg=' . ($result['errmsg'] ?? 'unknown'));
+            return false;
+        } catch (\Throwable $e) {
+            Log::error('[NotificationReminder] sendSubscribeReminder exception: ' . $e->getMessage());
             return false;
         }
+    }
 
-        // TODO(订阅消息): 商户凭证就绪后接入小程序 subscribe/send——
-        // 复用 WechatTemplateMessageService 的 access_token 缓存，并校验
-        // UserDevice 订阅授权记录。当前仅占位，不写死不可测的发送代码。
-        Log::info('[NotificationReminder] 订阅消息发送未实现（TODO），仅站内通知 order=' . $order->id);
-        return false;
+    /**
+     * 发送器工厂（测试可覆写注入 fake，避免真实 HTTP）
+     */
+    protected function makeWechatService(): WechatTemplateMessageService
+    {
+        return new WechatTemplateMessageService();
     }
 
     // ── 内部方法 ──
+
+    /**
+     * 组装订阅消息 data：预约项目 / 开始时间 / 门店（字段 key 见 SUBSCRIBE_DATA_KEYS）
+     */
+    private function buildSubscribeData(Order $order, array $ctx): array
+    {
+        $serviceName = '';
+        if (!empty($ctx['items'][$order->id])) {
+            $names = [];
+            foreach ($ctx['items'][$order->id] as $item) {
+                if (!empty($item->name)) {
+                    $names[] = (string) $item->name;
+                }
+            }
+            $serviceName = implode('、', $names);
+        }
+
+        $store     = $ctx['stores'][$order->store_id] ?? null;
+        $storeName = (string)($store->name ?? '');
+
+        return [
+            self::SUBSCRIBE_DATA_KEYS['service'] => ['value' => $this->truncate($serviceName, 20)],
+            self::SUBSCRIBE_DATA_KEYS['time']    => [
+                'value' => $order->service_time ? $order->service_time->format('Y-m-d H:i') : '',
+            ],
+            self::SUBSCRIBE_DATA_KEYS['store']   => ['value' => $this->truncate($storeName, 20)],
+        ];
+    }
+
+    /**
+     * 按字符数截断（thing 字段值上限 20 字符，避免微信 47003 报错）
+     */
+    private function truncate(string $value, int $length): string
+    {
+        if (function_exists('mb_substr')) {
+            return mb_substr($value, 0, $length);
+        }
+        return substr($value, 0, $length);
+    }
 
     /**
      * 批量预取技师昵称 / 门店 / 服务名，返回上下文映射

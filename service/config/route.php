@@ -189,8 +189,9 @@ Route::group('/api/order', function () {
     Route::post('/cancel/{id}', v('order', 'OrderController', 'cancel'));
     Route::post('/pay/{id}', v('order', 'OrderController', 'pay'));
     Route::post('/refund/{id}', v('order', 'OrderController', 'refund'));
+    // @deprecated 遗留入口（核销码走 URL 路径），仅保留兼容，不再推荐使用；新入口见下方 verify-by-code
     Route::post('/verify/{id}', v('order', 'OrderController', 'verify'));
-    // 扫码核销（技师端）：核销码放请求体，POST body {code}
+    // 扫码核销（技师端，推荐唯一入口）：核销码放请求体，POST body {code}
     Route::post('/verify-by-code', v('order', 'OrderController', 'verifyByCode'));
 
     Route::post('/waitlist', v('order', 'WaitlistController', 'store'));
