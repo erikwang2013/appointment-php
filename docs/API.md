@@ -303,6 +303,9 @@
 | GET | `/api/user/referral` | 推广信息 (推荐码/推荐人数/首单人数/获得积分) |
 | GET | `/api/user/referral/qrcode` | 推广二维码 (推荐码+邀请链接) |
 | GET | `/api/user/referral/referred-users` | 已推荐用户列表 |
+| GET | `/api/user/referral/earnings` | 分销返佣明细 (分页: 被推荐人昵称/头像/订单号/金额/发放时间) |
+
+**分销返佣**: 被推荐人首单 completed 后发放，金额 = paid_amount × reward_rate（erik_system_config referral.reward_rate，默认 0.05，非法值回落常量）。行锁 + rewarded_at 判空 + 首单复查三重幂等；入账 WalletTxn type=referral_reward。
 
 ---
 
@@ -358,7 +361,7 @@
 
 | 方法 | 路径 | 说明 |
 |------|------|------|
-| POST | `/api/order` | 创建订单 (order_type/items/store_id/technician_id/service_time/coupon_id/user_coupon_id/remark) |
+| POST | `/api/order` | 创建订单 (order_type/items/store_id/technician_id/service_time/coupon_id/user_coupon_id/promotion_id/remark) |
 | GET | `/api/order/list` | 订单列表 (?status=&page=1) |
 | GET | `/api/order/detail/{id}` | 订单详情 |
 | POST | `/api/order/cancel/{id}` | 取消订单 (reason) |
@@ -378,6 +381,10 @@
 
 **积分抵现**: 支付请求体可选传 `use_points`（整数）。SUM 聚合校验积分余额（erik_user_points 的 balance 列为单次增量快照，不可直接当余额），抵扣额 = floor(use_points / config('app.points_rate', 100)) 元，实付金额 = 原应付 - 抵扣额（下限 0.01，超出应付按应付满减不浪费积分）。成功时写 type=consume/source=points_offset 消费流水（幂等，重试不重复扣）。余额不足 422。
 
+**积分回补**: 取消/退款时归还 points_offset 消耗的积分（type=earn/source=points_refund）：取消全额、退款按比例，5 挂接点幂等（refundOffsetPoints）。
+
+**拼团下单（第16轮）**: 创建订单可选传 `promotion_id`（hashid）。校验：仅 group_buy 类型、活动有效期内、调用者是参与者、未满员（已成团锁定 422）、订单服务与活动匹配；拼团价 = 原价 × discount_percent/100，禁用优惠券/次卡/积分叠加（传任一即 422）。订单落库 promotion_id/participant_id；支付完全复用 `POST /api/order/pay/{id}`，pay 时懒判定活动已关闭（到期未成团）→ 订单自动取消并释放技师锁。
+
 ### 4.1 售后接口（需JWT认证）
 
 | 方法 | 路径 | 说明 |
@@ -387,6 +394,19 @@
 | GET | `/api/aftersales/{id}` | 售后详情（归属校验 404） |
 
 **售后状态**: pending(待审核) → approved(通过) / rejected(拒绝)。approved 仅状态流转，退款动作沿用 `POST /api/order/refund/{id}`。
+
+---
+
+### 4.2 拼团/秒杀接口（需JWT认证）
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/api/promotions` | 活动列表 (?type=group_buy/flash_sale) |
+| GET | `/api/promotions/{id}` | 活动详情（含参与人数/是否成团） |
+| GET | `/api/promotions/{id}/participants` | 参与列表 |
+| POST | `/api/promotions/join/{id}` | 参与活动（第15轮完善：响应含 discount_percent/original_price/group_price） |
+
+**参与规则**: flash_sale 以 max_people 为库存上限，Redis NX 锁防超卖；重复参与 422；group_buy 满员（≥min_people）锁定、已成团后新参与 422；到期未满员惰性关闭（show/join 时 status 置 0）。join 后按拼团价下单见「拼团下单（第16轮）」。
 
 ---
 
@@ -404,6 +424,8 @@
 | GET | `/api/marketing/gift-cards/my` | 我的礼品卡 (redeem记录) |
 | POST | `/api/marketing/gift-cards/redeem` | 兑换礼品卡 (cash类型兑换后充值钱包余额) |
 | GET | `/api/marketing/points` | 积分流水 (?type=earn/use/expire&source=order/referral/gift_card/check_in/admin) |
+| GET | `/api/marketing/points-exchange` | 积分兑换商品列表（上架 + 实时剩余库存 + 已兑数） |
+| POST | `/api/marketing/points-exchange/{id}` | 兑换 (type=coupon 发券 / wallet 入账 / gift_card 卡密返回) |
 
 **次卡**: cards/my 返回 card_id/name/type/services/total_times/used_times/remaining_times/start_at/end_at/status（实时计算）。核销成功返回 {order_id, usage_id, remaining_times}；错误码: 无效 hashid 422、次数不足 422、已过期 400、非本人 404、Redis 防重 400。
 
@@ -431,11 +453,24 @@
 | POST | `/api/wallet/recharge` | 创建充值单 (amount: 元) |
 | POST | `/api/wallet/recharge/{id}/pay` | 充值单发起支付 (微信) |
 
-**流水**: wallet_txn 类型: recharge / consume / refund / gift_card，分页返回。
+**流水**: wallet_txn 类型: recharge / consume / refund / gift_card / referral_reward(分销返佣) / points_exchange(积分兑换入账)，分页返回。
 
 **充值**: `POST /api/wallet/recharge` 传 amount（元）创建充值单，返回充值单 hashid。`POST /api/wallet/recharge/{id}/pay` 发起微信支付，响应含 sign_params（同订单支付模式）；支付回调以 R 前缀的 out_trade_no 区分充值单与订单。
 
 **余额支付**: 订单支付请求体传 `pay_channel: "balance"` 使用钱包余额；微信退款与余额退款均将金额回充至钱包余额。
+
+---
+
+### 8. 店长工作台接口（需JWT认证）
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/api/store-manager/overview` | 今日概览 (今日订单数/今日营收/进行中/技师数/核销数) |
+| GET | `/api/store-manager/orders` | 门店订单列表 (?status=&page=&limit=) |
+| GET | `/api/store-manager/technicians` | 技师列表（含今日排班） |
+| GET | `/api/store-manager/revenue` | 近 7 天营收聚合 |
+
+**store_id 隔离**: requireStoreId() 强制当前用户绑定门店（erik_user.store_id），无门店 403；所有查询按 store_id 过滤。
 
 ---
 
@@ -472,6 +507,36 @@
 | DELETE | `/admin/member-cards/{id}` | 删除卡 (有用户持卡时拒绝) |
 
 权限ID: 365-369。
+
+### 门店工作台（第15轮）
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/admin/stores/workbench-overview` | 门店工作台概览 (?store_id=hashid：今日订单数/今日营收/进行中/技师数/今日核销，口径与 service 端一致) |
+| GET | `/admin/orders` | 订单列表新增 store_id 筛选 (hashid 解码) |
+
+权限ID: 372。
+
+### 积分兑换商品（第16轮）
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/admin/points-exchange-goods` | 商品列表 (?keyword/status/page/per_page) |
+| POST | `/admin/points-exchange-goods` | 新增商品 (type=coupon/gift_card/wallet；coupon 传 hashid、wallet/gift_card 传金额元) |
+| PUT | `/admin/points-exchange-goods/{id}` | 更新商品 |
+| DELETE | `/admin/points-exchange-goods/{id}` | 删除商品 |
+| POST | `/admin/points-exchange-goods/{id}/toggle-status` | 上下架切换 |
+| GET | `/admin/points-exchange-goods/{id}/exchanges` | 兑换记录列表（含用户手机号 + result 快照） |
+
+权限ID: 373-378。
+
+### 返佣记录（第16轮）
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/admin/referral-rewards` | 返佣记录 (?keyword=&page=&limit=，仅已发放记录，推荐人/被推荐人昵称或手机号筛选，hashid 编码) |
+
+权限ID: 379。
 
 ### 角色权限
 

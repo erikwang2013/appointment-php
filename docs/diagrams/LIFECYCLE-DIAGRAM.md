@@ -136,3 +136,29 @@ stateDiagram-v2
 
     note right of blacklisted: 加入JWT黑名单<br/>立即失效
 ```
+
+## 7. 拼团活动生命周期
+
+```mermaid
+stateDiagram-v2
+    [*] --> ongoing: 后台创建并上架
+
+    ongoing --> full: 参与人数 ≥ min_people<br/>(满员锁定，拒绝新参与)
+
+    ongoing --> closed: 到期未满员<br/>(惰性判定：show/join 时关闭)
+
+    full --> closed: 到期
+
+    ongoing --> joined: 用户参与 join<br/>(Redis NX 防超卖，重复参与 422)
+
+    joined --> group_paid: 以拼团价下单并支付<br/>(拼团价=原价×discount_percent)
+
+    joined --> cancelled: 活动关闭未成团<br/>(订单自动取消，释放技师锁)
+
+    group_paid --> [*]: 正常订单生命周期
+    cancelled --> [*]
+    closed --> [*]
+
+    note right of joined: 拼团订单禁用优惠券/次卡/积分叠加
+    note right of closed: 已参与用户提示"未成团"
+```

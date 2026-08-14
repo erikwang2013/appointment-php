@@ -2,7 +2,7 @@
 
 A three-platform appointment service management platform: WeChat Mini Program + Flutter App (same-account role switching) + PC Admin Dashboard.
 
-> **Status**: All complete | 109 Controllers | 103 Models | 344 tests (service 240 / admin 104) | 56+ Tables | 273 Routes
+> **Status**: All complete | 113 Controllers | 107 Models | 388 tests (service 282 / admin 106) | 74 Tables | 286 Routes
 
 ## Project Structure
 
@@ -119,10 +119,18 @@ cd ../service/ && cp .env.docker .env && docker-compose up -d
 | Points System | Check-in points; consumption points floor(paid×1) on verification (order_id idempotent, balance snapshot); pro-rata clawback on refund; paged details with type/source filters |
 | Membership Management | erik_user.member_level column (migration 000008); admin member-card full CRUD (permissions 365-369) |
 | Mini Program Ordering Flow | Service detail → confirm order (coupon pick / threshold grey-out / client-side estimate) → POST /order → WeChat/balance payment; 20 mini program pages |
+| Group-buy / Flash-sale | join with Redis NX anti-oversell + duplicate 422 + full-group lock + lazy expiry close; group-buy order via store with promotion_id at discounted price (discount_percent), stacking with coupons/cards/points disabled, auto-cancel + technician lock release when group fails |
+| Store Manager Workbench | service /api/store-manager 4 endpoints (overview/orders/technicians/revenue) with mandatory store_id isolation (403 without store); admin workbench overview + order store_id filter + Flutter page + permission 372 |
+| Referral Reward | first completed order of referred user pays referrer paid_amount × reward_rate (system config, default 0.05) into wallet (WalletTxn referral_reward); row-lock + null-check + first-order recheck triple idempotency; earnings list + admin records view (permission 379) |
+| Points Exchange Mall | goods/exchange-record tables; exchange with Redis NX + row-lock anti-oversell + uk_user_goods once-per-user; coupon grant / wallet credit / gift-card code results; admin CRUD + on-off + records (permissions 373-378) |
 
 > Round-8 maintenance fixes: removed 12 latent Poster::verify fatals; DashboardController stats switched to Capsule Manager queries.
 >
 > Round-14 additions: subscribe-message authorization (mini program requestSubscribeMessage, template IDs in erik_system_config.wechat_app.template_ids); points cash-offset at payment (use_points, 100 points = 1 yuan, idempotent consume ledger); after-sale refund/exchange flow (erik_order_aftersale + /api/aftersales + admin review, permissions 370/371).
+>
+> Round-15 additions: points refund/compensation on cancel/refund (refundOffsetPoints, 5 idempotent hooks); PromotionParticipant status switched to integer constants (fixes join 1366 breakage under strict mode).
+>
+> Round-16 additions: points exchange (PointsExchangeController, type=consume/source=exchange); group-buy ordering (erik_order promotion_id/participant_id columns); referral rewards (ReferralRewardService hooked into WorkController::complete).
 
 ## Documentation
 

@@ -169,6 +169,7 @@
 | 消费返积分 | 核销时 floor(paid×1)，order_id 幂等，balance 快照 |
 | 退款回扣 | clawbackOrderPoints 按比例回扣（3 处接入） |
 | 积分抵现 | 支付时传 use_points，100 积分=1 元（config app.points_rate），SUM 聚合校验余额，消费流水 source=points_offset 幂等 |
+| 积分回补（第15轮） | 取消/退款归还 points_offset 积分：refundOffsetPoints 5 挂接点（doCancel 3 路径/doRefund 微信事务/creditRefundToWallet/completeOneRefundCompensation），source=points_refund 幂等 |
 | 积分明细 | GET /api/marketing/points 分页 + type/source 过滤，type 统一为 earn |
 
 ### 16. 小程序下单链路（第10轮）
@@ -203,11 +204,48 @@
 | 我的售后 | GET /api/aftersales 分页列表 + GET /api/aftersales/{id} 详情 |
 | 审核流转 | 管理端 approve/reject（rejected 必填 remark）；approved 仅状态流转，退款沿用订单退款接口 |
 
+### 20. 拼团/秒杀（第15轮）
+
+| 功能 | 说明 |
+|------|------|
+| 活动列表/详情 | GET /api/promotions + /api/promotions/{id}，type 过滤 group_buy/flash_sale |
+| 参与 | POST /api/promotions/join/{id}：Redis NX 锁防超卖（flash_sale 以 max_people 为库存上限）、重复参与 422、group_buy 满员锁定、到期未满员惰性关闭（show/join 时 status 置 0） |
+| 参与列表 | GET /api/promotions/{id}/participants |
+| 状态修复 | PromotionParticipant 状态改整型常量 0/1/2/3（修复严格模式下 join 1366 损坏） |
+
+### 21. 拼团成团下单（第16轮）
+
+| 功能 | 说明 |
+|------|------|
+| 拼团价 | join 响应返回 discount_percent/original_price/group_price |
+| 拼团下单 | POST /api/order 传 promotion_id：校验仅 group_buy/活动有效/调用者是参与者/未满员/服务匹配；拼团价=原价×discount_percent/100，禁用优惠券/次卡/积分叠加（422） |
+| 订单标记 | erik_order 新增 promotion_id/participant_id 列 + 索引 |
+| 未成团处理 | 到期未满员→活动关闭+批量取消该活动 pending 订单（幂等）；pay() 懒判定已关闭则自动取消订单并释放技师锁 |
+
+### 22. 分销返佣（第16轮）
+
+| 功能 | 说明 |
+|------|------|
+| 发放规则 | 被推荐人首单 completed 后发放：金额=paid_amount×reward_rate（erik_system_config referral.reward_rate 默认 0.05，非法回落常量），>0 才发 |
+| 挂接点 | ReferralRewardService::handleOrderCompleted 挂接 WorkController::complete 事务内（serving→completed 唯一入口，核销 verify 只到 serving 不触发），失败整体回滚可重试 |
+| 幂等 | erik_user_referral 行锁 lockForUpdate + rewarded_at 判空 + 锁内首单复查（并发/重复调用只发一次） |
+| 入账 | 钱包行锁累加 + WalletTxn type='referral_reward'（balance_after + 订单号 remark）；推荐记录写 reward_type/reward_amount/rewarded_at/first_order_at |
+| 明细 | GET /api/user/referral/earnings 分页（被推荐人昵称/头像/订单号/金额/时间） |
+
+### 23. 积分兑换商城（第16轮）
+
+| 功能 | 说明 |
+|------|------|
+| 兑换商品 | erik_points_exchange_goods：type=coupon/gift_card/wallet，points_cost/value（DECIMAL(25,2) 防雪崩 ID 精度丢失）/stock/status |
+| 商品列表 | GET /api/marketing/points-exchange：上架商品 + 实时剩余库存 + 已兑数 |
+| 兑换 | POST /api/marketing/points-exchange/{id}：Redis NX 锁 + 商品行锁防超兑；积分 SUM 校验（不足 422）+ UserPoints type='consume' source='exchange' 扣减；coupon 发券 / wallet 余额入账（WalletTxn points_exchange）/ gift_card 卡密返回 |
+| 幂等 | uk_user_goods 唯一索引同用户同商品限一次 + 锁内复验 + 1062 兜底；兑换记录快照 erik_user_points_exchange |
+
 ---
 
 ## 二、管理后台（PC Web）
 
-Flutter Web 单页应用，共 20 个页面：dashboard/用户/角色/配置/日志/核销/排班/服务/技师/订单/优惠券/会员/次卡/公告/FAQ/提现/评价/报表/个人中心。
+Flutter Web 单页应用，共 21 个页面：dashboard/用户/角色/配置/日志/核销/排班/服务/技师/订单/优惠券/会员/次卡/公告/FAQ/提现/评价/报表/个人中心/门店工作台。
 
 ### 1. 首页仪表盘
 
@@ -319,3 +357,18 @@ Flutter Web 单页应用，共 20 个页面：dashboard/用户/角色/配置/日
 - erik_order_aftersale 表（迁移 000009）：type=refund/exchange，status=pending/approved/rejected/completed
 - AftersaleController：GET /admin/aftersales（分页+status/uid/order_no 筛选）+ POST /admin/aftersales/{id}/review（approve/reject+remark）
 - Flutter 售后管理页（列表+审核对话框，权限 370/371），布局已注册
+
+### 16. 店长工作台（第15轮）
+
+- service /api/store-manager：overview（今日订单/营收/进行中/技师数/核销数）+ orders（分页+状态筛选）+ technicians（含今日排班）+ revenue（近 7 天聚合），requireStoreId() 强制 store_id 隔离（无门店 403）
+- admin StoreController::workbenchOverview（GET /admin/stores/workbench-overview?store_id=，口径与 service 一致）+ AppointmentOrderController 订单列表 store_id 筛选（hashid 解码）
+- Flutter 门店工作台页：门店下拉 + 状态筛选 + 5 张概览卡片 + 订单 DataTable + 分页（权限 372）
+
+### 17. 积分兑换商品（第16轮）
+
+- PointsExchangeGoodsController：GET/POST/PUT/DELETE /admin/points-exchange-goods + POST {id}/toggle-status（上下架）+ GET {id}/exchanges（兑换记录，含手机号+result JSON 解析）
+- 迁移 000012（两表）+ 000013（权限 373-378）已应用
+
+### 18. 返佣记录（第16轮）
+
+- ReferralRewardController：GET /admin/referral-rewards（仅 rewarded_at 非空记录，分页 + keyword 筛选推荐人/被推荐人昵称或手机号，hashid 编码，权限 379）

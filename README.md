@@ -2,7 +2,7 @@
 
 三端预约服务管理平台：用户端微信小程序 + Flutter APP（同账号身份切换）、PC管理后台。
 
-> **项目状态**: 全部完成 ✅ | 109 控制器 | 103 模型 | 344 测试（service 240 / admin 104） | 56+ 数据表 | 273 路由
+> **项目状态**: 全部完成 ✅ | 113 控制器 | 107 模型 | 388 测试（service 282 / admin 106） | 74 数据表 | 286 路由
 
 ## 项目结构
 
@@ -119,8 +119,16 @@ cd ../service/ && cp .env.docker .env && docker-compose up -d
 | 积分体系 | 签到返积分；核销消费返积分 floor(paid×1)（order_id 幂等，balance 快照）；退款按比例回扣；明细分页 + type/source 过滤 |
 | 会员管理 | erik_user.member_level 列（迁移 000008）；管理端会员卡完整 CRUD（权限 365-369） |
 | 小程序下单链路 | 服务详情 → 确认订单（选券/门槛置灰/客户端预估金额）→ POST /order → 微信/余额支付；小程序共 20 个页面 |
+| 拼团/秒杀闭环 | join Redis NX 防超卖 + 重复参与 422 + 满员锁定 + 到期惰性关闭；成团下单 store 传 promotion_id 以拼团价（discount_percent）下单，禁用优惠券/次卡/积分叠加，未成团自动取消订单并释放技师锁 |
+| 店长工作台 | service /api/store-manager 4 接口（overview/orders/technicians/revenue）store_id 强制隔离（无门店 403）；admin 门店工作台概览 + 订单 store_id 筛选 + Flutter 页面 + 权限 372 |
+| 分销返佣 | 被推荐人首单 completed 后按 paid_amount × reward_rate（系统配置，默认 0.05）给推荐人返佣入钱包（WalletTxn referral_reward）；行锁+判空+首单复查三重幂等；earnings 明细 + admin 记录查看（权限 379） |
+| 积分兑换商城 | 兑换商品/兑换记录两表；兑换接口 Redis NX + 行锁防超兑 + uk_user_goods 同用户限一次；coupon 发券 / wallet 入账 / gift_card 卡密三结果；admin CRUD + 上下架 + 记录（权限 373-378） |
 
 > 第 8 轮运维性修复：移除 12 处 Poster::verify 潜伏 fatal；DashboardController 统计改用 Capsule Manager 查询。
+>
+> Round-15 补充：积分回补（取消/退款归还 points_offset 积分，refundOffsetPoints 5 挂接点幂等）；PromotionParticipant 状态改整型常量（修复严格模式下 join 1366 损坏）。
+>
+> Round-16 补充：积分兑换（PointsExchangeController，类型 consume/source=exchange）；拼团下单（erik_order 新增 promotion_id/participant_id 列）；分销返佣（ReferralRewardService 挂接 WorkController::complete）。
 
 ## 文档导航
 
