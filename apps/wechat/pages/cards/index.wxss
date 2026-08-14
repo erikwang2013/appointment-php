@@ -1,0 +1,81 @@
+.container {
+  padding: 24rpx;
+}
+
+.card-item {
+  padding: 28rpx;
+  margin-bottom: 24rpx;
+  border-radius: 16rpx;
+}
+
+.card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.card-name {
+  font-size: 32rpx;
+  font-weight: 600;
+}
+
+.card-status {
+  font-size: 24rpx;
+}
+
+.card-status.ok {
+  color: #07c160;
+}
+
+.card-status.muted {
+  color: #999;
+}
+
+.progress-row {
+  display: flex;
+  align-items: center;
+  margin-top: 20rpx;
+}
+
+.progress-bar {
+  flex: 1;
+  height: 12rpx;
+  background: #eee;
+  border-radius: 6rpx;
+  overflow: hidden;
+  margin-right: 16rpx;
+}
+
+.progress-inner {
+  height: 100%;
+  background: #07c160;
+  border-radius: 6rpx;
+}
+
+.progress-text {
+  font-size: 22rpx;
+  color: #666;
+}
+
+.card-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 20rpx;
+}
+
+.card-meta {
+  font-size: 24rpx;
+  color: #999;
+}
+
+.card-foot button {
+  margin: 0;
+}
+
+.empty {
+  padding: 120rpx 0;
+  text-align: center;
+  color: #999;
+  font-size: 28rpx;
+}

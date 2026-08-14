@@ -231,6 +231,8 @@ Route::group('/api/marketing', function () {
     Route::post('/coupons/receive', v('marketing', 'CouponController', 'receive'));
     Route::get('/cards', v('marketing', 'CardController', 'index'));
     Route::post('/cards/buy', v('marketing', 'CardController', 'buy'));
+    Route::get('/cards/my', v('marketing', 'CardController', 'my'));
+    Route::post('/cards/use', v('marketing', 'CardController', 'use'));
     Route::get('/points', v('marketing', 'PointController', 'index'));
     Route::get('/gift-cards', v('marketing', 'GiftCardController', 'index'));
     Route::post('/gift-cards/redeem', v('marketing', 'GiftCardController', 'redeem'));

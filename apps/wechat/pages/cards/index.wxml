@@ -1,0 +1,24 @@
+<view class="container">
+  <block wx:if="{{cards.length > 0}}">
+    <view class="card-item card" wx:for="{{cards}}" wx:key="id">
+      <view class="card-head">
+        <text class="card-name">{{item.name}}</text>
+        <text class="card-status {{item.status === 'active' ? 'ok' : 'muted'}}">{{item.status === 'active' ? '可用' : (item.status === 'used_up' ? '已用完' : '已过期')}}</text>
+      </view>
+      <view class="progress-row">
+        <view class="progress-bar">
+          <view class="progress-inner" style="width: {{item.total_times > 0 ? (item.used_times / item.total_times * 100) : 0}}%"></view>
+        </view>
+        <text class="progress-text">{{item.used_times}}/{{item.total_times}}</text>
+      </view>
+      <view class="card-foot">
+        <text class="card-meta">剩余 {{item.remaining_times}} 次</text>
+        <text class="card-meta">有效期至 {{item.end_at || '长期'}}</text>
+        <button wx:if="{{item.status === 'active' && item.remaining_times > 0}}" size="mini" bindtap="onUse" data-index="{{index}}">核销</button>
+      </view>
+    </view>
+  </block>
+  <view wx:else class="empty">
+    <text>暂无可用次卡</text>
+  </view>
+</view>
