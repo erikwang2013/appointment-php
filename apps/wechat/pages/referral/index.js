@@ -1,4 +1,5 @@
 const api = require('../../utils/api');
+const drawQrcode = require('../../utils/qrcode');
 
 // 契约对齐：ReferralController
 // GET /user/referral          → { referral_code, referral_count, first_order_count, earned_points }
@@ -50,7 +51,7 @@ Page({
         inviteUrl: qrcodeRes.data && qrcodeRes.data.invite_url || '',
         referred: (referredRes.data || []).map(decorateReferred),
         loaded: true
-      });
+      }, () => this.drawQrcode());
     } catch (e) {
       wx.showToast({ title: '加载失败', icon: 'none' });
     } finally {
@@ -63,6 +64,20 @@ Page({
     const code = this.data.info && this.data.info.referral_code;
     if (!code) return;
     wx.setClipboardData({ data: code });
+  },
+
+  drawQrcode() {
+    const url = this.data.inviteUrl;
+    if (!url) return;
+    drawQrcode({
+      canvasId: 'inviteQr',
+      _this: this,
+      text: url,
+      width: 200,
+      height: 200,
+      foreground: '#333333',
+      background: '#ffffff'
+    });
   },
 
   onCopyUrl() {

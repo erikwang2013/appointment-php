@@ -6,6 +6,14 @@
     <button size="mini" class="copy-btn" bindtap="onCopyCode">复制</button>
   </view>
 
+  <!-- 邀请二维码 -->
+  <view class="card qr-card">
+    <text class="qr-title">邀请二维码</text>
+    <canvas canvas-id="inviteQr" class="qr-canvas"/>
+    <text class="qr-tip" wx:if="{{!inviteUrl}}">加载中...</text>
+    <text class="qr-tip" wx:else>微信扫码注册，您可获得推广奖励</text>
+  </view>
+
   <!-- 推广统计 -->
   <view class="card stats-card">
     <view class="stat-item">
