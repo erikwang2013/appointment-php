@@ -36,4 +36,19 @@ class GrowthLevel extends Model
     {
         return self::orderBy('min_growth')->get()->all();
     }
+
+    /**
+     * 按累计成长值取当前等级（allLevels 已按 min_growth 升序，取最后一个达标档位）
+     */
+    public static function levelForGrowth(int|string $totalGrowth): ?self
+    {
+        $totalGrowth = (int) $totalGrowth;
+        $current = null;
+        foreach (self::allLevels() as $level) {
+            if ((int) $level->min_growth <= $totalGrowth) {
+                $current = $level;
+            }
+        }
+        return $current;
+    }
 }

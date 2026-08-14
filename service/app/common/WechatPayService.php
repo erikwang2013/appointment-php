@@ -655,10 +655,17 @@ class WechatPayService
                 $order->save();
             }
 
-            // 消费成长值入账（每实付 1 元 1 点；幂等由上方支付记录/订单状态复验早退保证
-            // 仅首次入账；失败仅记日志，不影响支付主流程）
+            // 消费成长值入账（每实付 1 元 1 点 × 当前等级积分倍率；幂等由上方支付记录/订单状态复验早退保证
+            // 仅首次入账；失败仅记日志，不影响支付主流程）。倍率按支付时点等级确定
+            // （入账前累计成长值取档，本单成长值不参与抬级）
             try {
-                $growthValue = (int) floor((float) $payment->amount);
+                $growthValue = 0;
+                if ($order) {
+                    $level = \app\model\GrowthLevel::levelForGrowth(\app\model\UserGrowth::totalFor($order->user_id));
+                    $benefits = $level ? (array) $level->benefits : [];
+                    $multiplier = (float) ($benefits['points_multiplier'] ?? 1.0);
+                    $growthValue = (int) floor((float) $payment->amount * $multiplier);
+                }
                 if ($order && $growthValue > 0) {
                     \app\model\UserGrowth::add($order->user_id, \app\model\UserGrowth::TYPE_CONSUME, $growthValue);
                 }

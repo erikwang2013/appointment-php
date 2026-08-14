@@ -11,6 +11,7 @@ use app\common\PriceCalculator;
 use app\common\PushService;
 use app\common\WechatPayService;
 use app\common\WechatTemplateMessageService;
+use app\model\GrowthLevel;
 use app\model\MemberCardUsage;
 use app\model\Notification;
 use app\model\Order;
@@ -25,6 +26,7 @@ use app\model\TechnicianEarning;
 use app\model\TechnicianProfile;
 use app\model\User;
 use app\model\UserCoupon;
+use app\model\UserGrowth;
 use app\model\UserMemberCard;
 use app\model\UserPoints;
 use app\model\UserWallet;
@@ -276,6 +278,14 @@ class OrderController extends BaseController
                 $pricing['paid_amount'] = $promoPrice;
             }
 
+            // 成长等级折扣（仅标准订单；拼团/秒杀已在前置校验禁用其他优惠叠加，此处跳过）：
+            // 在券/次卡优惠后的应付金额上按等级 discount_rate 再折（与优惠券可叠加，
+            // 叠加顺序：券/次卡 → 等级折扣）；折扣额并入 discount_amount、备注追加说明（可追溯）；
+            // 最低价保护：折扣后实付 > 0 且不小于 0.01 元
+            if ($promotion === null) {
+                $this->applyGrowthDiscount($userId, $pricing, $remark);
+            }
+
             $order = Order::create([
                 'id'                   => $orderId,
                 'order_no'             => $orderNo,
@@ -353,6 +363,44 @@ class OrderController extends BaseController
         $this->pushOrderUpdate($order);
 
         return $this->success($order, '订单创建成功');
+    }
+
+    /**
+     * 应用成长等级折扣（仅标准订单调用）
+     *
+     * 等级权益 discount_rate（如 0.95 = 95 折）作用于券/次卡优惠后的应付金额，
+     * 折扣额并入 discount_amount，订单备注追加「等级折扣」说明以便追溯；
+     * 无权益（青铜档 discount_rate=1.0 或未建档用户）不产生任何折扣。
+     * 最低价保护：折扣后实付必须 > 0 且不小于 0.01 元（分制下限 100）。
+     *
+     * @param int|string $userId  用户 ID
+     * @param array  $pricing PriceCalculator::calculate 结果，按引用修改 discount_amount/paid_amount
+     * @param string $remark  订单备注，按引用追加等级折扣说明
+     */
+    private function applyGrowthDiscount(int|string $userId, array &$pricing, string &$remark): void
+    {
+        $level = GrowthLevel::levelForGrowth(UserGrowth::totalFor($userId));
+        $benefits = $level ? (array) $level->benefits : [];
+        $rate = (float) ($benefits['discount_rate'] ?? 1.0);
+        if ($rate <= 0 || $rate >= 1) {
+            return; // 无折扣权益
+        }
+
+        $baseFen = (int) round((float) $pricing['paid_amount'] * 100);
+        if ($baseFen < 100) {
+            return; // 应付已低于最低价，不再叠加
+        }
+
+        $discountedFen = max(100, (int) round($baseFen * $rate));
+        $discountFen = $baseFen - $discountedFen;
+        if ($discountFen <= 0) {
+            return;
+        }
+
+        $pricing['discount_amount'] = round((float) $pricing['discount_amount'] + $discountFen / 100, 2);
+        $pricing['paid_amount'] = round($discountedFen / 100, 2);
+        $label = rtrim(rtrim(sprintf('%.1f', $rate * 10), '0'), '.');
+        $remark = trim($remark . sprintf('（等级折扣：%s %s折，优惠¥%.2f）', $level->name, $label, $discountFen / 100));
     }
 
     /**
