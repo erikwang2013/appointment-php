@@ -1,4 +1,16 @@
-const baseUrl = 'http://localhost:8788/api';
+const DEFAULT_BASE_URL = 'http://localhost:8788/api';
+
+// baseUrl 支持环境配置：优先取 app.js globalData.baseUrl（可在构建/发布时按环境修改），
+// 兜底使用本地开发默认地址。延迟求值以兼容 getApp() 注册时序。
+function getBaseUrl() {
+  try {
+    const app = getApp();
+    if (app && app.globalData && app.globalData.baseUrl) {
+      return app.globalData.baseUrl;
+    }
+  } catch (e) {}
+  return DEFAULT_BASE_URL;
+}
 
 function request(method, url, data, auth = false) {
   return new Promise((resolve, reject) => {
@@ -8,7 +20,7 @@ function request(method, url, data, auth = false) {
       if (token) header['Authorization'] = 'Bearer ' + token;
     }
     wx.request({
-      url: baseUrl + url,
+      url: getBaseUrl() + url,
       method,
       data,
       header,

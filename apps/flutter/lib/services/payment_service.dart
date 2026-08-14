@@ -13,8 +13,8 @@ class PaymentService extends GetxService {
     required String payType, // 'wechat' | 'alipay'
   }) async {
     // 1. 调用后端创建支付记录，获取支付参数
-    final res = await _api.post('/order/pay/$orderId', data: {'pay_type': payType});
-    final data = res.data['data'] as Map<String, dynamic>;
+    // ApiService 已统一剥壳：post 直接返回响应体 data
+    final data = await _api.post('/order/pay/$orderId', data: {'pay_type': payType}) as Map<String, dynamic>;
 
     // 2. 根据支付类型调起SDK
     switch (payType) {
@@ -72,8 +72,8 @@ class PaymentService extends GetxService {
 
   /// 查询支付状态
   Future<Map<String, dynamic>> queryStatus(String orderId) async {
-    final res = await _api.get('/order/payment-status/$orderId');
-    return res.data['data'] as Map<String, dynamic>;
+    // ApiService 已统一剥壳：get 直接返回响应体 data
+    return await _api.get('/order/payment-status/$orderId') as Map<String, dynamic>;
   }
 
   /// 处理支付回调（供微信/支付宝回调页面调用）

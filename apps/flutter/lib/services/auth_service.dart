@@ -37,17 +37,12 @@ class AuthService extends GetxService {
   Future<void> login(String phone, String password) async {
     try {
       isLoading.value = true;
-      final res = await ApiService.to.post('/auth/login', data: {
+      // POST /api/auth/login → data: {token, user:{id,phone,nickname,avatar,active_role,referral_code,...}}
+      final data = await ApiService.to.post('/auth/login', data: {
         'phone': phone,
         'password': password,
-      });
-      final data = res.data;
-      token.value = data['token'];
-      user.value = data['user'];
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('token', data['token'] ?? '');
-      await prefs.setString('user', data['user']?['name'] ?? '');
-      await prefs.setString('role', activeRole.value);
+      }) as Map<String, dynamic>;
+      await _applyAuth(data);
     } finally {
       isLoading.value = false;
     }
@@ -56,49 +51,45 @@ class AuthService extends GetxService {
   Future<void> loginByWechat(String code) async {
     try {
       isLoading.value = true;
-      final res = await ApiService.to.post('/auth/wechat-login', data: {
+      // POST /api/wechat/mini-login → data: {token, is_new_user, need_phone, user:{id,nickname,avatar,phone}}
+      final data = await ApiService.to.post('/wechat/mini-login', data: {
         'code': code,
-      });
-      final data = res.data;
-      token.value = data['token'];
-      user.value = data['user'];
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('token', data['token'] ?? '');
-      await prefs.setString('user', data['user']?['name'] ?? '');
+      }) as Map<String, dynamic>;
+      await _applyAuth(data);
     } finally {
       isLoading.value = false;
     }
   }
 
   Future<void> sendCode(String phone) async {
-    await ApiService.to.post('/auth/send-code', data: {'phone': phone});
+    // POST /api/captcha/send → data: {phone, expire_in}
+    await ApiService.to.post('/captcha/send', data: {'phone': phone});
   }
 
   Future<void> register(String phone, String password, String code, {String? referral}) async {
     try {
       isLoading.value = true;
-      final res = await ApiService.to.post('/auth/register', data: {
+      // POST /api/auth/register：服务端读 referral_code（或 invite_code），并要求 confirm_password 一致
+      final data = await ApiService.to.post('/auth/register', data: {
         'phone': phone,
         'password': password,
+        'confirm_password': password,
         'code': code,
-        if (referral != null && referral.isNotEmpty) 'referral': referral,
-      });
-      final data = res.data;
-      token.value = data['token'];
-      user.value = data['user'];
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('token', data['token'] ?? '');
-      await prefs.setString('user', data['user']?['name'] ?? '');
+        if (referral != null && referral.isNotEmpty) 'referral_code': referral,
+      }) as Map<String, dynamic>;
+      await _applyAuth(data);
     } finally {
       isLoading.value = false;
     }
   }
 
   Future<void> resetPassword(String phone, String code, String newPassword) async {
-    await ApiService.to.post('/auth/reset-password', data: {
+    // POST /api/auth/forget-password：服务端要求 confirm_password 与 password 一致
+    await ApiService.to.post('/auth/forget-password', data: {
       'phone': phone,
       'code': code,
       'password': newPassword,
+      'confirm_password': newPassword,
     });
   }
 
@@ -125,10 +116,28 @@ class AuthService extends GetxService {
 
   Future<void> fetchUserProfile() async {
     try {
-      final res = await ApiService.to.get('/user/profile');
-      user.value = res.data;
+      final data = await ApiService.to.get('/user/profile') as Map<String, dynamic>;
+      user.value = data;
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('user', res.data?['name'] ?? '');
+      await prefs.setString('user', data['nickname']?.toString() ?? '');
     } catch (_) {}
+  }
+
+  /// 统一应用登录态：解析剥壳后的 data（{token, user}），落盘 token/user/role
+  Future<void> _applyAuth(Map<String, dynamic> data) async {
+    final tokenStr = data['token'] as String? ?? '';
+    final userData = data['user'];
+    final userMap = userData is Map<String, dynamic> ? userData : null;
+
+    token.value = tokenStr.isNotEmpty ? tokenStr : null;
+    user.value = userMap;
+    if (userMap != null && userMap['active_role'] != null) {
+      activeRole.value = userMap['active_role'].toString();
+    }
+
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('token', tokenStr);
+    await prefs.setString('user', (userMap?['nickname'] ?? userMap?['phone'] ?? '').toString());
+    await prefs.setString('role', activeRole.value);
   }
 }

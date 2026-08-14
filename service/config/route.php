@@ -197,6 +197,11 @@ Route::group('/api/order', function () {
 
     Route::post('/signature', v('order', 'SignatureController', 'store'));
     Route::get('/signature/{order_id}', v('order', 'SignatureController', 'show'));
+
+    // ── 购物车（Redis 存储，键 cart:{user_id}）──
+    Route::get('/cart', v('order', 'CartController', 'index'));
+    Route::post('/cart', v('order', 'CartController', 'store'));
+    Route::delete('/cart', v('order', 'CartController', 'destroy'));
 })->middleware([
     app\middleware\ApiVersion::class,
     app\middleware\Auth::class,

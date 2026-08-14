@@ -2,13 +2,12 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:dio/dio.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
+import '../../services/api_service.dart';
 
 class DashboardController extends GetxController {
-  final Dio _dio = Dio(BaseOptions(baseUrl: 'http://localhost:8787'));
   final isLoading = true.obs;
 
   final stats = <Map<String, dynamic>>[].obs;
@@ -39,9 +38,10 @@ class DashboardController extends GetxController {
   Future<void> loadData() async {
     try {
       isLoading.value = true;
-      final response = await _dio.get('/admin/dashboard');
-      if (response.data['code'] == 0) {
-        final data = response.data['data'];
+      // 统一走 ApiService（baseUrl 支持 --dart-define API_BASE_URL 覆盖），不再硬编码 localhost
+      final response = await ApiService().get('/admin/dashboard');
+      if (response['code'] == 0) {
+        final data = response['data'] as Map<String, dynamic>? ?? const {};
         stats.value = List<Map<String, dynamic>>.from(data['stats'] ?? []);
         trends.value = Map<String, dynamic>.from(data['trends'] ?? {});
         recentLogs.value = List<Map<String, dynamic>>.from(data['recent_logs'] ?? []);
