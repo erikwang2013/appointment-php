@@ -58,8 +58,9 @@ Page({
     });
   },
   goDetail(e) {
+    // 服务项点击进入服务详情（item.id 为 hashid，原样透传）
     const id = e.currentTarget.dataset.id;
-    wx.navigateTo({ url: '/pages/service/list?categoryId=' + id });
+    wx.navigateTo({ url: '/pages/service/detail?id=' + id });
   },
   onReachBottom() {
     if (this.data.hasMore) {

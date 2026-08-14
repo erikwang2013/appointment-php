@@ -1,0 +1,49 @@
+<view class="page">
+  <view wx:if="{{!loading && service}}" class="detail">
+    <image class="banner" src="{{service.image}}" mode="aspectFill" />
+    <view class="card">
+      <view class="flex-between">
+        <text class="name">{{service.name}}</text>
+        <text class="price">¥{{service.price}}</text>
+      </view>
+      <text class="desc text-gray">{{service.description}}</text>
+      <text class="meta text-gray" wx:if="{{service.duration}}">时长约 {{service.duration}} 分钟</text>
+    </view>
+
+    <view class="card" wx:if="{{technicians.length > 0}}">
+      <view class="row-label">选择技师</view>
+      <picker range="{{technicians}}" range-key="name" value="{{technicianIndex}}" bindchange="onTechnicianChange">
+        <view class="row-value {{technicianIndex >= 0 ? 'selected' : 'placeholder'}}">
+          {{technicianIndex >= 0 ? technicians[technicianIndex].name : '请选择技师'}}
+        </view>
+      </picker>
+    </view>
+
+    <view class="card">
+      <view class="row">
+        <text class="row-label">预约日期</text>
+        <picker mode="date" value="{{date}}" start="{{date}}" bindchange="onDateChange">
+          <view class="row-value">{{date}}</view>
+        </picker>
+      </view>
+      <view class="row">
+        <text class="row-label">预约时间</text>
+        <picker mode="time" value="{{time}}" bindchange="onTimeChange">
+          <view class="row-value">{{time}}</view>
+        </picker>
+      </view>
+    </view>
+
+    <view class="card">
+      <view class="row-label">备注</view>
+      <textarea class="remark" placeholder="选填，如特殊需求" value="{{remark}}" bindinput="onRemarkInput" maxlength="200" />
+    </view>
+  </view>
+
+  <view wx:if="{{loading}}" class="empty text-gray flex-center">加载中...</view>
+  <view wx:if="{{!loading && !service}}" class="empty text-gray flex-center">服务不存在或已下架</view>
+
+  <view class="bottom-bar" wx:if="{{service}}">
+    <button class="btn-primary" bindtap="goConfirm">立即预约</button>
+  </view>
+</view>

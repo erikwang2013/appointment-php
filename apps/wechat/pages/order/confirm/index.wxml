@@ -1,0 +1,41 @@
+<view class="page">
+  <view class="card flex-row">
+    <image class="thumb" src="{{service.image}}" mode="aspectFill" />
+    <view class="flex-1">
+      <text class="name">{{service.name}}</text>
+      <text class="price">¥{{service.price}}</text>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="row"><text class="row-label">技师</text><text class="row-value">{{technicianName || '未选择'}}</text></view>
+    <view class="row"><text class="row-label">服务时间</text><text class="row-value">{{serviceTime}}</text></view>
+    <view class="row"><text class="row-label">备注</text><text class="row-value">{{remark || '无'}}</text></view>
+  </view>
+
+  <view class="card">
+    <view class="row-label">优惠券</view>
+    <view class="coupon-item {{coupon.usable ? '' : 'disabled'}}"
+          wx:for="{{coupons}}" wx:key="id"
+          data-index="{{index}}" bindtap="onCouponTap">
+      <view class="flex-1">
+        <text class="coupon-name">{{coupon.coupon.name}}</text>
+        <text class="coupon-desc text-gray">{{couponText(coupon)}} · 满{{coupon.coupon.min_amount}}可用</text>
+      </view>
+      <text class="coupon-check" wx:if="{{selectedCoupon && selectedCoupon.id === item.id}}">已选</text>
+      <text class="coupon-desc text-gray" wx:elif="{{!coupon.usable}}">未达门槛</text>
+    </view>
+    <view wx:if="{{coupons.length === 0 && !loadingCoupons}}" class="coupon-empty text-gray">暂无可用优惠券</view>
+  </view>
+
+  <view class="card summary">
+    <view class="row"><text class="row-label">服务金额</text><text class="row-value">¥{{total}}</text></view>
+    <view class="row"><text class="row-label">优惠</text><text class="row-value discount">-¥{{discount}}</text></view>
+    <view class="row"><text class="row-label">实付</text><text class="row-value pay">¥{{total - discount}}</text></view>
+  </view>
+
+  <view class="actions">
+    <button class="btn-primary" data-channel="wechat" bindtap="onCreate" disabled="{{paying}}">微信支付</button>
+    <button class="btn-balance" data-channel="balance" bindtap="onCreate" disabled="{{paying}}">余额支付</button>
+  </view>
+</view>
