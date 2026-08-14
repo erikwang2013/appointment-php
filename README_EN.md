@@ -2,7 +2,7 @@
 
 A three-platform appointment service management platform: WeChat Mini Program + Flutter App (same-account role switching) + PC Admin Dashboard.
 
-> **Status**: All complete | 104 Controllers | 58 Models | 323 tests (service 219 / admin 104) | 55+ Tables | 242 Routes
+> **Status**: All complete | 109 Controllers | 103 Models | 344 tests (service 240 / admin 104) | 56+ Tables | 273 Routes
 
 ## Project Structure
 
@@ -121,6 +121,8 @@ cd ../service/ && cp .env.docker .env && docker-compose up -d
 | Mini Program Ordering Flow | Service detail → confirm order (coupon pick / threshold grey-out / client-side estimate) → POST /order → WeChat/balance payment; 20 mini program pages |
 
 > Round-8 maintenance fixes: removed 12 latent Poster::verify fatals; DashboardController stats switched to Capsule Manager queries.
+>
+> Round-14 additions: subscribe-message authorization (mini program requestSubscribeMessage, template IDs in erik_system_config.wechat_app.template_ids); points cash-offset at payment (use_points, 100 points = 1 yuan, idempotent consume ledger); after-sale refund/exchange flow (erik_order_aftersale + /api/aftersales + admin review, permissions 370/371).
 
 ## Documentation
 

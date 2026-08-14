@@ -13,6 +13,7 @@ stateDiagram-v2
     paid --> confirmed: 技师确认接单<br/>回调原子消费<br/>优惠券扣减/次卡扣次
     paid --> cancelled: 用户取消<br/>(按退款规则)
     paid --> refunding: 用户申请退款
+    paid --> aftersale: 申请售后<br/>(退款/换货)
 
     confirmed --> serving: 服务开始
 
@@ -21,9 +22,14 @@ stateDiagram-v2
     serving --> refunding: 异常退款<br/>(退80%)
 
     completed --> reviewed: 用户评价
+    completed --> aftersale: 申请售后<br/>(退款/换货)
 
     refunding --> refunded: 审核通过<br/>原路退回/余额回充<br/>优惠券归还 + 积分回扣
     refunding --> paid: 审核驳回
+
+    aftersale --> refunded: 审核通过-退款<br/>沿用订单退款接口
+    aftersale --> paid: 审核拒绝
+    aftersale --> [*]: 审核通过-换货<br/>状态流转完成
 
     reviewed --> [*]
     cancelled --> [*]

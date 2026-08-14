@@ -362,7 +362,7 @@
 | GET | `/api/order/list` | 订单列表 (?status=&page=1) |
 | GET | `/api/order/detail/{id}` | 订单详情 |
 | POST | `/api/order/cancel/{id}` | 取消订单 (reason) |
-| POST | `/api/order/pay/{id}` | 发起支付 (pay_channel: wechat/balance) |
+| POST | `/api/order/pay/{id}` | 发起支付 (pay_channel: wechat/balance, use_points: 可选积分抵现) |
 | POST | `/api/order/refund/{id}` | 申请退款 |
 | POST | `/api/order/verify/{id}` | 核销 (code: 二维码值) |
 
@@ -375,6 +375,18 @@
 **优惠券抵扣**: 创建订单可选传 user_coupon_id（hashid）。错误码: 他人券 404、门槛不足/已过期/已下架/已使用 422、非法 hashid 422。抵扣两段式：下单时 PriceCalculator.applyCoupon 只读校验并计算抵扣金额写入 discount_amount；支付成功后 consume 将优惠券置为 used；退款时 restoreCouponAndCard 幂等归还。
 
 **余额支付与退款**: 支付请求体传 `pay_channel: "balance"` 使用钱包余额；微信退款与余额退款均将金额回充至钱包余额。
+
+**积分抵现**: 支付请求体可选传 `use_points`（整数）。SUM 聚合校验积分余额（erik_user_points 的 balance 列为单次增量快照，不可直接当余额），抵扣额 = floor(use_points / config('app.points_rate', 100)) 元，实付金额 = 原应付 - 抵扣额（下限 0.01，超出应付按应付满减不浪费积分）。成功时写 type=consume/source=points_offset 消费流水（幂等，重试不重复扣）。余额不足 422。
+
+### 4.1 售后接口（需JWT认证）
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| POST | `/api/aftersales` | 申请售后 (order_id hashid/type: refund|exchange/reason)，校验本人订单 404、状态 paid+completed 才可申请 422、同单进行中售后去重 422 |
+| GET | `/api/aftersales` | 我的售后列表 (?status=&page=1&limit=) |
+| GET | `/api/aftersales/{id}` | 售后详情（归属校验 404） |
+
+**售后状态**: pending(待审核) → approved(通过) / rejected(拒绝)。approved 仅状态流转，退款动作沿用 `POST /api/order/refund/{id}`。
 
 ---
 

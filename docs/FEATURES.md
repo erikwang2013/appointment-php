@@ -1,6 +1,6 @@
 # 功能说明
 
-> **项目状态**: 全部完成 ✅ | 101 控制器 | 58 模型 | 323 测试（service 219 / admin 104） | WebSocket | 支付回调 | 叫号 | 考核 | 社区
+> **项目状态**: 全部完成 ✅ | 109 控制器 | 103 模型 | 344 测试（service 240 / admin 104） | WebSocket | 支付回调 | 叫号 | 考核 | 社区
 
 ## 一、用户端（微信小程序 + Flutter APP）
 
@@ -168,6 +168,7 @@
 | 签到返积分 | CheckIn 每日签到 |
 | 消费返积分 | 核销时 floor(paid×1)，order_id 幂等，balance 快照 |
 | 退款回扣 | clawbackOrderPoints 按比例回扣（3 处接入） |
+| 积分抵现 | 支付时传 use_points，100 积分=1 元（config app.points_rate），SUM 聚合校验余额，消费流水 source=points_offset 幂等 |
 | 积分明细 | GET /api/marketing/points 分页 + type/source 过滤，type 统一为 earn |
 
 ### 16. 小程序下单链路（第10轮）
@@ -185,6 +186,22 @@
 | 收藏 | favorite 收藏页（user 页入口） |
 | 推广 | referral：邀请码/链接复制/被推荐用户列表 |
 | 反馈 | feedback 反馈表单 |
+
+### 18. 订阅消息授权（第14轮）
+
+| 功能 | 说明 |
+|------|------|
+| 订阅授权 | utils/subscribe.js 集中管理模板 ID（键名与服务端 erik_system_config.wechat_app.template_ids 对齐） |
+| 触发场景 | 预约成功/支付成功后手势回调内 wx.requestSubscribeMessage，未配置模板 ID 或用户拒绝均静默 |
+| 服务端链路 | WechatTemplateMessageService 发送 + NotificationReminderService 预约前 2h~1h 提醒 + AutoCancelTimer 进程扫描 |
+
+### 19. 售后退换货（第14轮）
+
+| 功能 | 说明 |
+|------|------|
+| 申请售后 | POST /api/aftersales：type=refund/exchange，校验本人订单/paid+completed/同单去重 |
+| 我的售后 | GET /api/aftersales 分页列表 + GET /api/aftersales/{id} 详情 |
+| 审核流转 | 管理端 approve/reject（rejected 必填 remark）；approved 仅状态流转，退款沿用订单退款接口 |
 
 ---
 
@@ -296,3 +313,9 @@ Flutter Web 单页应用，共 20 个页面：dashboard/用户/角色/配置/日
 - erik_user.member_level 会员等级列（迁移 000008）
 - MemberCardController 完整 CRUD（权限 365-369）：GET/POST/PUT/DELETE /admin/member-cards
 - Flutter 会员卡定义管理页
+
+### 15. 售后管理（第14轮）
+
+- erik_order_aftersale 表（迁移 000009）：type=refund/exchange，status=pending/approved/rejected/completed
+- AftersaleController：GET /admin/aftersales（分页+status/uid/order_no 筛选）+ POST /admin/aftersales/{id}/review（approve/reject+remark）
+- Flutter 售后管理页（列表+审核对话框，权限 370/371），布局已注册
