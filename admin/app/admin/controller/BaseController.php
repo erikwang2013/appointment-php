@@ -75,9 +75,21 @@ class BaseController
      */
     protected function clearSvcCache(): void
     {
-        foreach (Redis::keys('svc:*') as $key) {
-            Redis::del($key);
-        }
+        // P5: Redis::keys('svc:*') 为 O(N) 全量扫描，会阻塞 Redis 单线程；
+        // 改为 SCAN 游标迭代删除（增量、不阻塞）。
+        // 客户端为 phpredis，经 Illuminate PhpRedisConnection::scan 包装后返回
+        // [下一游标, 键列表]，迭代完成（游标回 0 且本批无键）时返回 false。
+        $cursor = null;
+        do {
+            $result = Redis::connection()->scan($cursor, ['match' => 'svc:*', 'count' => 100]);
+            if ($result === false) {
+                break; // 迭代完成
+            }
+            [$cursor, $keys] = $result;
+            foreach ($keys as $key) {
+                Redis::del($key);
+            }
+        } while ($cursor !== 0);
     }
 
     /**

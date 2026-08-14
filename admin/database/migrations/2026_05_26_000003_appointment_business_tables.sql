@@ -1049,3 +1049,23 @@ ADD COLUMN IF NOT EXISTS `status` VARCHAR(20) NOT NULL DEFAULT 'active' COMMENT 
 
 ALTER TABLE `erik_order`
 ADD KEY `idx_tech_service_time` (`technician_id`, `service_time`);
+
+-- ============================================================
+-- [第4轮审计 P1/P2/P4] 收益/提现/卡券查询复合索引
+-- idx_tech_status:            收益汇总 (technician_id, status) — EarningController/WithdrawController 汇总聚合
+--                              （erik_technician_withdrawal 已存在 idx_tech_status，不重复添加）
+-- idx_tech_status_created:    markCompleted 核销按 created_at 顺序取 settled 收益
+-- idx_status_end (coupon):    expireCoupons EXISTS 子查询按 end_at 范围过滤
+-- idx_status_end (user_card): expireMemberCards 按 status=active + end_at 范围过滤
+-- ============================================================
+ALTER TABLE `erik_technician_earnings`
+ADD KEY `idx_tech_status` (`technician_id`, `status`);
+
+ALTER TABLE `erik_technician_earnings`
+ADD KEY `idx_tech_status_created` (`technician_id`, `status`, `created_at`);
+
+ALTER TABLE `erik_coupon`
+ADD KEY `idx_status_end` (`status`, `end_at`);
+
+ALTER TABLE `erik_user_member_card`
+ADD KEY `idx_status_end` (`status`, `end_at`);

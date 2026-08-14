@@ -44,16 +44,17 @@ class WithdrawController extends BaseController
             return $this->error('请填写收款账户信息');
         }
 
-        // 计算可用余额
-        $settledTotal = TechnicianEarning::where('technician_id', $technicianId)
-            ->where('status', 'settled')
-            ->sum('amount');
+        // 计算可用余额（P1: settled/withdrawn 合并为一次 GROUP BY status 聚合，走 idx_tech_status）
+        $summary = TechnicianEarning::where('technician_id', $technicianId)
+            ->whereIn('status', ['settled', 'withdrawn'])
+            ->selectRaw('status, SUM(amount) AS total')
+            ->groupBy('status')
+            ->pluck('total', 'status');
 
-        $withdrawnTotal = TechnicianEarning::where('technician_id', $technicianId)
-            ->where('status', 'withdrawn')
-            ->sum('amount');
+        $settledTotal = (float)($summary['settled'] ?? 0);
+        $withdrawnTotal = (float)($summary['withdrawn'] ?? 0);
 
-        $balance = (float)$settledTotal - (float)$withdrawnTotal;
+        $balance = $settledTotal - $withdrawnTotal;
 
         if ($amount > $balance) {
             return $this->error('可提现余额不足');

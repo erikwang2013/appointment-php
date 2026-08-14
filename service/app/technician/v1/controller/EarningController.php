@@ -27,28 +27,29 @@ class EarningController extends BaseController
 
         $today = date('Y-m-d');
 
-        // 今日收入 (type=commission, status in pending/settled)
+        // P1: 汇总聚合合并 —— pending/settled/withdrawn 三态合并为一次 GROUP BY status
+        // 聚合（走 idx_tech_status 复合索引），替代原先 4 次独立 SUM 全量扫描
+        $summary = TechnicianEarning::where('technician_id', $technicianId)
+            ->selectRaw('status, SUM(amount) AS total')
+            ->groupBy('status')
+            ->pluck('total', 'status');
+
+        // 待结算 (status=pending)
+        $pendingSettlement = (float)($summary['pending'] ?? 0);
+
+        // 已结算 - 已提现 = 可用余额
+        $settledTotal = (float)($summary['settled'] ?? 0);
+        $withdrawnTotal = (float)($summary['withdrawn'] ?? 0);
+
+        $balance = $settledTotal - $withdrawnTotal;
+
+        // 今日收入 (type=commission, status in pending/settled, 当日)
+        // 聚合条件含 type + 日期维度，无法并入上述 status 分组，独立一次 SUM
         $todayIncome = TechnicianEarning::where('technician_id', $technicianId)
             ->where('type', 'commission')
             ->whereIn('status', ['pending', 'settled'])
             ->whereDate('created_at', $today)
             ->sum('amount');
-
-        // 待结算 (status=pending)
-        $pendingSettlement = TechnicianEarning::where('technician_id', $technicianId)
-            ->where('status', 'pending')
-            ->sum('amount');
-
-        // 已结算 - 已提现 = 可用余额
-        $settledTotal = TechnicianEarning::where('technician_id', $technicianId)
-            ->where('status', 'settled')
-            ->sum('amount');
-
-        $withdrawnTotal = TechnicianEarning::where('technician_id', $technicianId)
-            ->where('status', 'withdrawn')
-            ->sum('amount');
-
-        $balance = (float)$settledTotal - (float)$withdrawnTotal;
 
         // 收益明细
         $earnings = TechnicianEarning::where('technician_id', $technicianId)

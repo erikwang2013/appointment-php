@@ -9,6 +9,7 @@ use app\model\TechnicianEarning;
 use app\model\TechnicianWithdrawal;
 use support\Db;
 use support\Log;
+use support\Redis;
 
 /**
  * 技师提现服务
@@ -41,47 +42,97 @@ class TechnicianWithdrawalService
      */
     public function approveAndTransfer(TechnicianWithdrawal $w): array
     {
-        // 技师微信 openid：TechnicianWithdrawal → TechnicianProfile → User
-        $user = $w->technician ? $w->technician->user : null;
-        if (!$user || empty($user->wx_openid)) {
-            Log::error('[Withdrawal] technician openid missing, withdrawal_no: ' . $w->withdrawal_no);
-            return ['success' => false, 'message' => '技师未绑定微信，无法转账'];
+        // P2: 并发防护 —— 参考 order_lock 模式（Redis NX EX + 状态复验），
+        // 同一笔提现同时只允许一个转账流程执行，杜绝并发双打款 + 重复核销。
+        // 锁获取语义：
+        //  - NX 失败（锁已被占用）→ 直接拒绝，提示正在处理中；
+        //  - Redis 异常 → 降级跳过互斥（可用性优先），但仍走 DB 状态复验与事务核销。
+        $lockKey  = 'withdrawal_lock:' . $w->id;
+        $token    = bin2hex(random_bytes(16));
+        $locked   = false;
+        try {
+            $locked = (bool) Redis::connection()->set($lockKey, $token, 'EX', 60, 'NX');
+        } catch (\Throwable $e) {
+            Log::warning('[Withdrawal] lock unavailable, skip mutex, withdrawal_no: ' . $w->withdrawal_no . ', error: ' . $e->getMessage());
+        }
+        if (!$locked) {
+            return ['success' => false, 'message' => '该提现正在处理中，请稍后重试'];
         }
 
-        $amount = (float) $w->actual_amount;
-        if ($amount <= 0) {
-            Log::error('[Withdrawal] invalid actual_amount, withdrawal_no: ' . $w->withdrawal_no);
-            return ['success' => false, 'message' => '提现金额无效'];
-        }
-
-        // 微信 IO 在事务外执行
-        $payService = $this->payService ?? new WechatPayService();
-        $result = $payService->transferToWallet($user->wx_openid, $w->withdrawal_no, $amount, '技师提现');
-
-        if (!empty($result['error'])) {
-            Log::error('[Withdrawal] transfer failed, withdrawal_no: ' . $w->withdrawal_no . ', error: ' . $result['error']);
-            if (!$this->markFailed($w, $result['error'])) {
-                Log::error('[Withdrawal] mark failed persist error, withdrawal_no: ' . $w->withdrawal_no);
-                return ['success' => false, 'message' => '转账失败，且状态落库失败，请人工核对'];
+        try {
+            // 状态复验：以 DB 最新状态为准
+            $fresh = TechnicianWithdrawal::find($w->id);
+            if ($fresh && $fresh->status === 'completed') {
+                // 幂等：已完成（转账 + 核销均落库），不再重复打款/核销
+                return ['success' => true, 'message' => '转账成功'];
             }
-            return ['success' => false, 'message' => '转账失败: ' . $result['error']];
-        }
+            if ($fresh && !in_array($fresh->status, ['pending', 'approved'], true)) {
+                return ['success' => false, 'message' => '提现状态已变化，无法转账'];
+            }
+            $w = $fresh ?? $w;
 
-        if (!$this->markCompleted($w, (string) ($result['payment_no'] ?? ''))) {
-            Log::error('[Withdrawal] mark completed persist error, withdrawal_no: ' . $w->withdrawal_no);
-            return ['success' => false, 'message' => '转账成功但状态落库失败，请人工核对'];
-        }
+            // 技师微信 openid：TechnicianWithdrawal → TechnicianProfile → User
+            $user = $w->technician ? $w->technician->user : null;
+            if (!$user || empty($user->wx_openid)) {
+                Log::error('[Withdrawal] technician openid missing, withdrawal_no: ' . $w->withdrawal_no);
+                return ['success' => false, 'message' => '技师未绑定微信，无法转账'];
+            }
 
-        return ['success' => true, 'message' => '转账成功'];
+            $amount = (float) $w->actual_amount;
+            if ($amount <= 0) {
+                Log::error('[Withdrawal] invalid actual_amount, withdrawal_no: ' . $w->withdrawal_no);
+                return ['success' => false, 'message' => '提现金额无效'];
+            }
+
+            // 微信 IO 在事务外执行
+            $payService = $this->payService ?? new WechatPayService();
+            $result = $payService->transferToWallet($user->wx_openid, $w->withdrawal_no, $amount, '技师提现');
+
+            if (!empty($result['error'])) {
+                Log::error('[Withdrawal] transfer failed, withdrawal_no: ' . $w->withdrawal_no . ', error: ' . $result['error']);
+                if (!$this->markFailed($w, $result['error'])) {
+                    Log::error('[Withdrawal] mark failed persist error, withdrawal_no: ' . $w->withdrawal_no);
+                    return ['success' => false, 'message' => '转账失败，且状态落库失败，请人工核对'];
+                }
+                return ['success' => false, 'message' => '转账失败: ' . $result['error']];
+            }
+
+            if (!$this->markCompleted($w, (string) ($result['payment_no'] ?? ''))) {
+                Log::error('[Withdrawal] mark completed persist error, withdrawal_no: ' . $w->withdrawal_no);
+                return ['success' => false, 'message' => '转账成功但状态落库失败，请人工核对'];
+            }
+
+            return ['success' => true, 'message' => '转账成功'];
+        } finally {
+            $this->releaseWithdrawalLock($lockKey, $token);
+        }
+    }
+
+    /**
+     * 释放提现互斥锁（仅当持有者 token 匹配时删除，防误删他人锁）
+     */
+    private function releaseWithdrawalLock(string $lockKey, string $token): void
+    {
+        try {
+            $redis = Redis::connection();
+            if ((string) ($redis->get($lockKey) ?? '') === $token) {
+                $redis->del($lockKey);
+            }
+        } catch (\Throwable $e) {
+            Log::warning('[Withdrawal] release lock failed, key: ' . $lockKey . ', error: ' . $e->getMessage());
+        }
     }
 
     /**
      * 独立小事务落库：转账成功
      *
      * M2: 同事务内把该技师已 settled 的收益按 created_at 顺序原子标记 withdrawn，
-     * 累计至本次提现额（跨记录时最后一条整条标记，因标记以记录为单位；
-     * 提现额 ≤ 可提现余额，故不会超扣）。可提现余额口径 = sum(settled) - sum(withdrawn)，
-     * 此处标记后余额随之扣减，杜绝无限重复提现。
+     * 累计至本次实际到账金额 actual_amount（手续费部分不属于技师，不计入核销额度；
+     * 跨记录时最后一条整条标记，因标记以记录为单位；核销额度 ≤ 可提现余额，故不会超扣）。
+     * 可提现余额口径 = sum(settled) - sum(withdrawn)，此处标记后余额随之扣减，杜绝无限重复提现。
+     *
+     * P2: 一次性取满足条件的收益行并 lockForUpdate 行锁（并发下防止同一批收益被重复核销），
+     * 再以单条 UPDATE ... WHERE id IN 批量落库，替代原先全量 get + 逐行 save（无索引 filesort + N 次写）。
      *
      * @return bool 落库成功返回 true，DB 异常返回 false（供调用方对账）
      */
@@ -96,20 +147,28 @@ class TechnicianWithdrawalService
             }
             $w->save();
 
-            // 扣减可提现余额：按 created_at 顺序标记 settled 收益为 withdrawn，累计至本次提现额
-            $remaining = (float) $w->amount;
-            $earnings = TechnicianEarning::where('technician_id', $w->technician_id)
-                ->where('status', 'settled')
-                ->orderBy('created_at')
-                ->orderBy('id')
-                ->get();
-            foreach ($earnings as $earning) {
-                if ($remaining <= 0) {
-                    break;
+            // 扣减可提现余额：按 created_at 顺序核销 settled 收益为 withdrawn，累计至本次实际到账金额
+            $remaining = (float) $w->actual_amount;
+            if ($remaining > 0) {
+                $earnings = TechnicianEarning::where('technician_id', $w->technician_id)
+                    ->where('status', 'settled')
+                    ->orderBy('created_at')
+                    ->orderBy('id')
+                    ->lockForUpdate()
+                    ->get();
+
+                $ids = [];
+                foreach ($earnings as $earning) {
+                    if ($remaining <= 0) {
+                        break;
+                    }
+                    $ids[] = $earning->id;
+                    $remaining -= (float) $earning->amount;
                 }
-                $earning->status = 'withdrawn';
-                $earning->save();
-                $remaining -= (float) $earning->amount;
+                if ($ids) {
+                    TechnicianEarning::whereIn('id', $ids)
+                        ->update(['status' => 'withdrawn']);
+                }
             }
 
             Db::commit();

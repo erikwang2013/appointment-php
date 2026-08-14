@@ -7,9 +7,11 @@ use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\Test;
 use app\common\TechnicianWithdrawalService;
 use app\common\WechatPayService;
+use app\model\TechnicianEarning;
 use app\model\TechnicianProfile;
 use app\model\TechnicianWithdrawal;
 use app\model\User;
+use support\Redis;
 
 /**
  * TechnicianWithdrawalService 单元测试（本次返工新增：审核通过后转账）
@@ -35,8 +37,24 @@ class TechnicianWithdrawalServiceTest extends TestCase
     /** @var int[] 用例创建的用户 ID */
     private array $userIds = [];
 
+    /** @var string[] 用例创建的收益流水 ID */
+    private array $earningIds = [];
+
+    /** @var string[] 用例写入的 Redis 锁 key（提现互斥） */
+    private array $redisKeys = [];
+
     protected function tearDown(): void
     {
+        foreach ($this->redisKeys as $key) {
+            try {
+                Redis::del($key);
+            } catch (\Throwable) {
+                // Redis 不可用时静默
+            }
+        }
+        foreach ($this->earningIds as $id) {
+            TechnicianEarning::where('id', $id)->delete();
+        }
         foreach ($this->withdrawalNos as $no) {
             TechnicianWithdrawal::where('withdrawal_no', $no)->delete();
         }
@@ -46,6 +64,8 @@ class TechnicianWithdrawalServiceTest extends TestCase
         foreach ($this->userIds as $id) {
             User::where('id', $id)->forceDelete();
         }
+        $this->redisKeys = [];
+        $this->earningIds = [];
         $this->withdrawalNos = [];
         $this->technicianIds = [];
         $this->userIds = [];
@@ -90,6 +110,33 @@ class TechnicianWithdrawalServiceTest extends TestCase
         ]);
         $this->withdrawalNos[] = $w->withdrawal_no;
         return $w;
+    }
+
+    /** 造 settled 收益流水（createdAt 可显式指定以控制核销顺序） */
+    private function makeSettledEarning(TechnicianProfile $technician, float $amount, ?string $createdAt = null): TechnicianEarning
+    {
+        $e = TechnicianEarning::create([
+            'id'            => TechnicianEarning::generateId(),
+            'technician_id' => $technician->id,
+            'order_id'      => 0,
+            'type'          => 'commission',
+            'amount'        => number_format($amount, 2, '.', ''),
+            'status'        => 'settled',
+        ]);
+        if ($createdAt !== null) {
+            $e->created_at = $createdAt;
+            $e->save();
+        }
+        $this->earningIds[] = $e->id;
+        return $e;
+    }
+
+    /** 查询技师下指定状态的收益合计 */
+    private function earningSum(TechnicianProfile $technician, string $status): float
+    {
+        return (float) TechnicianEarning::where('technician_id', $technician->id)
+            ->where('status', $status)
+            ->sum('amount');
     }
 
     // ── 成功分支 ──
@@ -213,5 +260,100 @@ class TechnicianWithdrawalServiceTest extends TestCase
 
         $this->assertFalse($result['success']);
         $this->assertSame('提现金额无效', $result['message']);
+    }
+
+    // ── P2: 核销语义（按 actual_amount，created_at 顺序，批量 UPDATE）──
+
+    #[Test] public function mark_completed_writes_off_earnings_by_actual_amount_in_created_at_order(): void
+    {
+        $user = $this->makeUser('oX_writeoff_order');
+        $technician = $this->makeTechnician($user);
+        $w = $this->makeWithdrawal($technician, 60.0); // 提现 100，实际到账 60
+
+        // settled 收益 100：先入账 60，后入账 40
+        $older = $this->makeSettledEarning($technician, 60.0, '2026-08-01 10:00:00');
+        $newer = $this->makeSettledEarning($technician, 40.0, '2026-08-01 10:00:01');
+
+        $mock = $this->createMock(WechatPayService::class);
+        $mock->method('transferToWallet')->willReturn(['payment_no' => 'WXPAYNO_WO1', 'result' => []]);
+
+        $result = (new TechnicianWithdrawalService($mock))->approveAndTransfer($w);
+        $this->assertTrue($result['success']);
+
+        // 核销额度 = actual_amount 60：仅最早一条 60 被核销，后一条 40 保持 settled
+        $this->assertSame('withdrawn', TechnicianEarning::find($older->id)->status);
+        $this->assertSame('settled', TechnicianEarning::find($newer->id)->status);
+        $this->assertEqualsWithDelta(60.0, $this->earningSum($technician, 'withdrawn'), 0.01);
+    }
+
+    #[Test] public function mark_completed_marks_last_record_whole_when_remaining_overflows(): void
+    {
+        $user = $this->makeUser('oX_writeoff_whole');
+        $technician = $this->makeTechnician($user);
+        $w = $this->makeWithdrawal($technician, 95.0); // 实际到账 95
+
+        // settled 收益 100：50 + 50，核销以记录为单位，最后一条整条标记
+        $this->makeSettledEarning($technician, 50.0, '2026-08-01 10:00:00');
+        $this->makeSettledEarning($technician, 50.0, '2026-08-01 10:00:01');
+
+        $mock = $this->createMock(WechatPayService::class);
+        $mock->method('transferToWallet')->willReturn(['payment_no' => 'WXPAYNO_WO2', 'result' => []]);
+
+        $result = (new TechnicianWithdrawalService($mock))->approveAndTransfer($w);
+        $this->assertTrue($result['success']);
+
+        // 50 核销后剩余 45，第二条 50 整条标记（标记以记录为单位，与既有语义一致）
+        $this->assertEqualsWithDelta(100.0, $this->earningSum($technician, 'withdrawn'), 0.01);
+    }
+
+    // ── P2: 并发防护 / 幂等 ──
+
+    #[Test] public function approve_and_transfer_completed_twice_transfers_and_writes_off_only_once(): void
+    {
+        $user = $this->makeUser('oX_idempotent');
+        $technician = $this->makeTechnician($user);
+        $w = $this->makeWithdrawal($technician, 60.0);
+        $e1 = $this->makeSettledEarning($technician, 60.0, '2026-08-01 10:00:00');
+        $e2 = $this->makeSettledEarning($technician, 40.0, '2026-08-01 10:00:01');
+
+        // 第一次：正常转账成功
+        $mock1 = $this->createMock(WechatPayService::class);
+        $mock1->expects($this->once())->method('transferToWallet')->willReturn(['payment_no' => 'WXPAYNO_IDEM', 'result' => []]);
+        $result1 = (new TechnicianWithdrawalService($mock1))->approveAndTransfer($w);
+        $this->assertTrue($result1['success']);
+        $this->assertSame('completed', TechnicianWithdrawal::find($w->id)->status);
+        $this->assertSame('withdrawn', TechnicianEarning::find($e1->id)->status);
+
+        // 第二次（重复 complete）：状态复验命中 completed → 幂等成功，不再打款/核销
+        $mock2 = $this->createMock(WechatPayService::class);
+        $mock2->expects($this->never())->method('transferToWallet');
+        $result2 = (new TechnicianWithdrawalService($mock2))->approveAndTransfer($w);
+        $this->assertTrue($result2['success']);
+        $this->assertSame('转账成功', $result2['message']);
+
+        // 核销未重复：第二条收益仍未核销
+        $this->assertSame('settled', TechnicianEarning::find($e2->id)->status);
+        $this->assertEqualsWithDelta(60.0, $this->earningSum($technician, 'withdrawn'), 0.01);
+    }
+
+    #[Test] public function approve_and_transfer_rejected_while_mutex_lock_held(): void
+    {
+        $user = $this->makeUser('oX_mutex');
+        $technician = $this->makeTechnician($user);
+        $w = $this->makeWithdrawal($technician);
+
+        // 模拟另一请求已持有互斥锁（Redis NX EX）
+        $lockKey = 'withdrawal_lock:' . $w->id;
+        Redis::set($lockKey, 'other-token', 'EX', 60);
+        $this->redisKeys[] = $lockKey;
+
+        $mock = $this->createMock(WechatPayService::class);
+        $mock->expects($this->never())->method('transferToWallet');
+
+        $result = (new TechnicianWithdrawalService($mock))->approveAndTransfer($w);
+
+        $this->assertFalse($result['success']);
+        $this->assertSame('该提现正在处理中，请稍后重试', $result['message']);
+        $this->assertSame('pending', TechnicianWithdrawal::find($w->id)->status);
     }
 }

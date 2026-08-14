@@ -79,9 +79,13 @@ class TechnicianController extends BaseController
 
         $paginator = $query->paginate($perPage, ['erik_technician_profile.*'], 'page', $page);
 
+        // P3: 一次 whereIn 预取本页技师的近7天排班并内存组装最早时段，
+        // 替代原先 map() 内每项 getEarliestSlot() 一次查询（每页15人 = 16 次查询 → 2 次）
+        $earliestMap = $this->prefetchEarliestSlots($paginator->getCollection()->pluck('id')->all());
+
         // 格式化输出
-        $items = $paginator->getCollection()->map(function ($profile) {
-            $earliestSlot = $this->getEarliestSlot($profile->id);
+        $items = $paginator->getCollection()->map(function ($profile) use ($earliestMap) {
+            $earliestSlot = $earliestMap[$profile->id] ?? null;
 
             return [
                 'id' => $profile->id,
@@ -242,9 +246,9 @@ class TechnicianController extends BaseController
     }
 
     /**
-     * 获取技师最早可用时段
+     * 获取技师最早可用时段（单技师查询，供详情等场景使用）
      *
-     * @param string $technicianId
+     * @param int|string $technicianId
      * @return string|null
      */
     private function getEarliestSlot(int|string $technicianId): ?string
@@ -258,6 +262,52 @@ class TechnicianController extends BaseController
             ->orderBy('date')
             ->first();
 
+        return $schedule ? $this->earliestSlotOfSchedule($schedule) : null;
+    }
+
+    /**
+     * P3: 批量预取多个技师的近7天排班，内存组装每技师最早可用时段。
+     * 与原 getEarliestSlot 语义一致：仅取每技师日期最早的排班计算（首个排班无可用时段即视为不可约）。
+     *
+     * @param array $technicianIds
+     * @return array<string, string> technician_id => 最早时段（date + start）
+     */
+    private function prefetchEarliestSlots(array $technicianIds): array
+    {
+        $map = [];
+        if (empty($technicianIds)) {
+            return $map;
+        }
+
+        $today = date('Y-m-d');
+        $endDate = date('Y-m-d', strtotime('+6 days'));
+
+        $schedules = TechnicianSchedule::whereIn('technician_id', $technicianIds)
+            ->where('status', 1)
+            ->whereBetween('date', [$today, $endDate])
+            ->orderBy('date')
+            ->orderBy('id')
+            ->get();
+
+        foreach ($schedules as $schedule) {
+            $technicianId = $schedule->technician_id;
+            if (isset($map[$technicianId])) {
+                continue; // 仅首个（日期最早）排班参与计算，与 first() 语义一致
+            }
+            $map[$technicianId] = $this->earliestSlotOfSchedule($schedule);
+        }
+
+        return $map;
+    }
+
+    /**
+     * 从单条排班记录计算最早可用时段
+     *
+     * @param TechnicianSchedule|null $schedule
+     * @return string|null
+     */
+    private function earliestSlotOfSchedule(?TechnicianSchedule $schedule): ?string
+    {
         if (!$schedule || empty($schedule->time_slots)) {
             return null;
         }
