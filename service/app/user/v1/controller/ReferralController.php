@@ -6,6 +6,7 @@ declare(strict_types=1);
 namespace app\user\v1\controller;
 
 use app\common\BaseController;
+use app\model\Order;
 use app\model\User;
 use app\model\UserReferral;
 use support\Db;
@@ -121,5 +122,40 @@ class ReferralController extends BaseController
         }
 
         return $this->success($result);
+    }
+
+    /**
+     * 获取推荐返佣明细（分页）
+     * GET /api/user/referral/earnings
+     *
+     * 当前用户作为推荐人已发放的返佣记录：
+     * 被推荐人昵称/头像、触发订单号（该被推荐人第一笔已完成订单）、金额、发放时间。
+     */
+    public function earnings(Request $request)
+    {
+        $userId = $request->user_id;
+
+        $perPage = min(max((int) $request->input('per_page', 15), 1), 50);
+        $paginator = UserReferral::where('referrer_id', $userId)
+            ->whereNotNull('rewarded_at')
+            ->orderBy('rewarded_at', 'desc')
+            ->orderBy('id', 'desc')
+            ->paginate($perPage);
+
+        foreach ($paginator->getCollection() as $referral) {
+            $referredUser = User::find($referral->referred_user_id);
+            $rewardOrder = Order::where('user_id', $referral->referred_user_id)
+                ->where('status', Order::STATUS_COMPLETED)
+                ->orderBy('service_end_at', 'asc')
+                ->orderBy('id', 'asc')
+                ->first();
+
+            $referral->nickname  = $referredUser ? (string) $referredUser->nickname : '';
+            $referral->avatar    = $referredUser ? (string) $referredUser->avatar : '';
+            $referral->order_no  = $rewardOrder ? (string) $rewardOrder->order_no : '';
+            $referral->reward_amount = (float) ($referral->reward_amount ?? 0);
+        }
+
+        return $this->paginate($paginator);
     }
 }

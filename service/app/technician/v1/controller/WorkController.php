@@ -6,6 +6,7 @@ declare(strict_types=1);
 namespace app\technician\v1\controller;
 
 use app\common\BaseController;
+use app\common\ReferralRewardService;
 use app\model\Notification;
 use app\model\Order;
 use support\Db;
@@ -223,6 +224,8 @@ class WorkController extends BaseController
             $locked->status = Order::STATUS_COMPLETED;
             $locked->service_end_at = now();
             $locked->save();
+            // 分销返佣：首单完成发放（同事务、幂等，失败整体回滚可重试）
+            ReferralRewardService::handleOrderCompleted($locked);
             Db::commit();
         } catch (\Throwable $e) {
             Db::rollBack();
