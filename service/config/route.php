@@ -180,6 +180,9 @@ Route::group('/api/technician', function () {
     Route::get('/exams', v('technician', 'ExamController', 'index'));
     Route::post('/exam/start/{id}', v('technician', 'ExamController', 'start'));
     Route::post('/exam/submit/{id}', v('technician', 'ExamController', 'submit'));
+
+    // ── 评价回复 ──
+    Route::post('/review/reply/{order_id}', v('technician', 'ReviewController', 'reply'));
 })->middleware([
     app\middleware\ApiVersion::class,
     app\middleware\Auth::class,

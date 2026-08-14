@@ -75,6 +75,19 @@ class ReviewController extends BaseController
     }
 
     /**
+     * 评价回复详情（技师回复内容与时间，未回复时 reply 为空串）
+     */
+    public function reply(Request $request, string $hashid): Response
+    {
+        $id = $this->decodeId($hashid);
+        $review = OrderReview::with(['user', 'order.technician'])->find($id);
+        if (!$review) {
+            return $this->fail('评价不存在', 404);
+        }
+        return $this->success($this->decorate($review));
+    }
+
+    /**
      * 审核操作: show（恢复可见）/ hide（隐藏）
      */
     public function audit(Request $request, string $hashid): Response

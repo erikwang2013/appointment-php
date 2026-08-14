@@ -253,6 +253,45 @@ class ReviewControllerTest extends TestCase
         $this->assertSame(422, $resp['code']);
     }
 
+    // ── 回复查看 ──
+
+    #[Test]
+    public function reply_returns_empty_when_not_replied(): void
+    {
+        $resp = $this->body($this->controller()->reply(
+            $this->makeRequest('GET', "/admin/reviews/{$this->reviewHashid}/reply"), $this->reviewHashid
+        ));
+        $this->assertSame(0, $resp['code']);
+        $this->assertSame('', $resp['data']['reply']);
+        $this->assertArrayHasKey('replied_at', $resp['data']);
+    }
+
+    #[Test]
+    public function reply_returns_content_when_replied(): void
+    {
+        $review = OrderReview::find($this->reviewId);
+        $review->reply = '感谢您的评价，欢迎再来';
+        $review->replied_at = date('Y-m-d H:i:s');
+        $review->save();
+
+        $resp = $this->body($this->controller()->reply(
+            $this->makeRequest('GET', "/admin/reviews/{$this->reviewHashid}/reply"), $this->reviewHashid
+        ));
+        $this->assertSame(0, $resp['code']);
+        $this->assertSame('感谢您的评价，欢迎再来', $resp['data']['reply']);
+        $this->assertNotNull($resp['data']['replied_at']);
+    }
+
+    #[Test]
+    public function reply_returns_404_for_missing(): void
+    {
+        $missingHashid = HashidsService::encode(99999999999999);
+        $resp = $this->body($this->controller()->reply(
+            $this->makeRequest('GET', "/admin/reviews/{$missingHashid}/reply"), $missingHashid
+        ));
+        $this->assertSame(404, $resp['code']);
+    }
+
     // ── 删除 ──
 
     #[Test]
