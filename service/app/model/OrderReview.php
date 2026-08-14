@@ -21,6 +21,7 @@ class OrderReview extends Model
     protected $fillable = [
         'id', 'order_id', 'user_id', 'technician_id',
         'rating', 'content', 'images', 'reply', 'replied_at', 'status',
+        'append_content', 'append_images', 'append_at',
     ];
 
     protected $casts = [
@@ -28,6 +29,8 @@ class OrderReview extends Model
         'images' => 'array',
         'replied_at' => 'datetime',
         'status' => 'integer',
+        'append_images' => 'array',
+        'append_at' => 'datetime',
     ];
 
     // ── 评价状态常量 ──
