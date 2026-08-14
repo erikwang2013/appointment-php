@@ -139,6 +139,12 @@ Route::group('/admin', function () {
     Route::get('/order-verifications', [app\admin\controller\OrderVerificationController::class, 'index']);
     Route::get('/order-verifications/{id}', [app\admin\controller\OrderVerificationController::class, 'show']);
 
+    // 评价管理（列表 / 详情 / 审核 / 删除）
+    Route::get('/reviews', [app\admin\controller\ReviewController::class, 'index']);
+    Route::get('/reviews/{id}', [app\admin\controller\ReviewController::class, 'show']);
+    Route::put('/reviews/{id}/audit', [app\admin\controller\ReviewController::class, 'audit']);
+    Route::delete('/reviews/{id}', [app\admin\controller\ReviewController::class, 'destroy']);
+
     // 优惠券
     Route::resource('/coupons', app\admin\controller\CouponController::class);
 
