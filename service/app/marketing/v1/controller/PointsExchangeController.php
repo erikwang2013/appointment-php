@@ -100,7 +100,8 @@ class PointsExchangeController extends BaseController
         // 积分余额 SUM 聚合（balance 列仅是单次增量快照，不可作为余额依据）
         $earned    = (int) UserPoints::where('user_id', $userId)->where('type', 'earn')->sum('points');
         $consumed  = (int) UserPoints::where('user_id', $userId)->whereIn('type', ['consume', 'use'])->sum('points');
-        $available = $earned + $consumed; // consume/use 行为负值
+        $expired   = (int) UserPoints::where('user_id', $userId)->where('type', 'expire')->sum('points');
+        $available = $earned + $consumed + $expired; // consume/use/expire 行为负值
         if ($available < $goods->points_cost) {
             return $this->error('积分不足', 422);
         }

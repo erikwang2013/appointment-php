@@ -81,7 +81,7 @@ class CheckInController extends BaseController
                 'consecutive_days' => $consecutiveDays,
             ]);
 
-            // 发放积分
+            // 发放积分（expires_at = 发放时间 + points.expiry_days，到期由 PointsExpiryTimer 扣减）
             UserPoints::create([
                 'id' => UserPoints::generateId(),
                 'user_id' => $userId,
@@ -91,6 +91,7 @@ class CheckInController extends BaseController
                 'source' => 'check_in',
                 'description' => '每日签到奖励'
                     . ($bonus > 0 ? " (含连续{$consecutiveDays}天奖励+{$bonus})" : ''),
+                'expires_at' => UserPoints::expiryAt(),
             ]);
 
             Db::commit();

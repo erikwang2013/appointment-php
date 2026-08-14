@@ -49,6 +49,11 @@ return [
         'handler' => \app\process\AutoCancelTimer::class,
         'count' => 1,
     ],
+    // Points expiry timer (runs every 60 seconds)
+    'points_expiry' => [
+        'handler' => \app\process\PointsExpiryTimer::class,
+        'count' => 1,
+    ],
     // File update detection and automatic reload
     'monitor' => [
         'handler' => app\process\Monitor::class,

@@ -917,12 +917,14 @@ CREATE TABLE IF NOT EXISTS `erik_user_points` (
     `source` VARCHAR(50) NOT NULL DEFAULT '' COMMENT '来源: order=消费 referral=推荐 gift_card=礼品卡兑换 admin=后台调整',
     `order_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '关联订单ID',
     `description` VARCHAR(255) NOT NULL DEFAULT '' COMMENT '说明',
+    `expires_at` DATETIME DEFAULT NULL COMMENT '积分到期时间（NULL=永不过期；earn 类型落库时=发放时间+points.expiry_days）',
     `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
 
     PRIMARY KEY (`id`),
     KEY `idx_user_id` (`user_id`),
     KEY `idx_type` (`type`),
-    KEY `idx_created_at` (`created_at`)
+    KEY `idx_created_at` (`created_at`),
+    KEY `idx_expires_at` (`expires_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='积分流水表';
 
 -- 礼品卡表
