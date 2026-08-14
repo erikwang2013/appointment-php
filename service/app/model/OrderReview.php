@@ -51,6 +51,14 @@ class OrderReview extends Model
     }
 
     /**
+     * 按订单查找评价（order/technician 两端 ReviewController 共用）
+     */
+    public static function findByOrderId(string $orderId): ?self
+    {
+        return static::where('order_id', $orderId)->first();
+    }
+
+    /**
      * 生成 snowflake ID
      */
     public static function generateId(): string

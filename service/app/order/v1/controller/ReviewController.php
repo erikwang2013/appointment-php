@@ -42,7 +42,7 @@ class ReviewController extends BaseController
         }
 
         // 检查是否已评价
-        $existing = OrderReview::where('order_id', $orderId)->first();
+        $existing = OrderReview::findByOrderId($orderId);
         if ($existing) {
             return $this->error('该订单已评价');
         }

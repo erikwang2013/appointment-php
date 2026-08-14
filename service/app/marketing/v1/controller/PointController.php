@@ -34,7 +34,7 @@ class PointController extends BaseController
             ->paginate($perPage);
 
         return json([
-            'code' => 200,
+            'code' => 0,
             'message' => 'success',
             'data' => [
                 'balance' => $balance,

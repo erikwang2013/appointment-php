@@ -116,6 +116,13 @@ class CouponController extends BaseController
                 'coupon_id' => $userCoupon->coupon_id,
                 'status' => $userCoupon->status,
             ], '领取成功');
+        } catch (\Illuminate\Database\QueryException $e) {
+            Db::rollBack();
+            // uk_user_coupon(user_id, coupon_id) 唯一键冲突：并发重复领取，幂等返回已领取
+            if (($e->errorInfo[1] ?? null) === 1062) {
+                return $this->error('您已领取过该优惠券');
+            }
+            return $this->error('领取失败，请稍后重试');
         } catch (\Throwable $e) {
             Db::rollBack();
             return $this->error('领取失败，请稍后重试');

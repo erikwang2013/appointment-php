@@ -82,6 +82,7 @@ class ServiceController extends BaseController
         $service->status         = (int) $request->input('status', 1);
         $service->save();
 
+        $this->clearSvcCache();
         return $this->success($this->encodeIds($service->toArray()), '创建成功');
     }
 
@@ -125,6 +126,7 @@ class ServiceController extends BaseController
         }
         $service->save();
 
+        $this->clearSvcCache();
         return $this->success($this->encodeIds($service->toArray()), '更新成功');
     }
 
@@ -146,6 +148,7 @@ class ServiceController extends BaseController
         }
 
         $service->delete();
+        $this->clearSvcCache();
         return $this->success([], '删除成功');
     }
 }

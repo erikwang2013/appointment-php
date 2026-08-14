@@ -24,9 +24,10 @@ class Cors implements MiddlewareInterface
             $response = $next($request);
         }
 
-        // 设置 CORS 响应头，来源可通过 CORS_ALLOW_ORIGIN 环境变量配置
+        // 设置 CORS 响应头：来源通过 CORS_ALLOW_ORIGIN 环境变量配置（逗号分隔白名单或 *）；
+        // 未配置时默认仅允许同源（Origin 与请求 Host 一致才回显），不再默认放行任意跨域
         $response->withHeaders([
-            'Access-Control-Allow-Origin' => getenv('CORS_ALLOW_ORIGIN') ?: '*',
+            'Access-Control-Allow-Origin' => $this->resolveAllowedOrigin($request),
             'Access-Control-Allow-Methods' => 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
             'Access-Control-Allow-Headers' => 'Authorization, Content-Type, X-Requested-With, API-Version, Accept, Origin, X-CSRF-Token',
             'Access-Control-Max-Age' => '86400',
@@ -44,5 +45,38 @@ class Cors implements MiddlewareInterface
         ]);
 
         return $response;
+    }
+
+    /**
+     * M5: 计算允许回显的 Origin
+     * - CORS_ALLOW_ORIGIN 配置为 * 时回显 *；
+     * - 配置为逗号分隔白名单时，仅当请求 Origin 在白名单内回显；
+     * - 未配置时默认仅允许同源：请求 Origin 的 host:port 与请求 Host 一致才回显。
+     */
+    private function resolveAllowedOrigin(Request $request): string
+    {
+        $configured = trim((string) getenv('CORS_ALLOW_ORIGIN'));
+        $origin = (string) $request->header('origin', '');
+
+        if ($configured === '*') {
+            return '*';
+        }
+
+        if ($configured !== '') {
+            $allowList = array_map('trim', explode(',', $configured));
+            return in_array($origin, $allowList, true) ? $origin : '';
+        }
+
+        // 未配置：默认仅允许同源
+        if ($origin === '') {
+            return '';
+        }
+        $originHost = parse_url($origin, PHP_URL_HOST);
+        if ($originHost === null || $originHost === '') {
+            return '';
+        }
+        $originPort = parse_url($origin, PHP_URL_PORT);
+        $originAuthority = $originPort === null ? $originHost : $originHost . ':' . $originPort;
+        return $originAuthority === $request->host() ? $origin : '';
     }
 }

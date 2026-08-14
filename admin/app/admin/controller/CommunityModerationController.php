@@ -8,6 +8,7 @@ namespace app\admin\controller;
 use app\model\Comment;
 use app\model\Post;
 use support\Db;
+use support\Log;
 use support\Request;
 use support\Response;
 
@@ -143,7 +144,9 @@ class CommunityModerationController extends BaseController
             Db::commit();
         } catch (\Throwable $e) {
             Db::rollBack();
-            return $this->fail('删除失败: ' . $e->getMessage());
+            // M3: 内部异常详情仅记日志，对外返回通用文案
+            Log::error('[CommunityModerationController] delete failed: ' . $e->getMessage());
+            return $this->fail('删除失败，请稍后重试');
         }
 
         return $this->success([], '已删除');

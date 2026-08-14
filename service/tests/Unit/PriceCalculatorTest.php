@@ -111,7 +111,11 @@ class PriceCalculatorTest extends TestCase
             'type'        => 'times',
             'price'       => 100,
             'total_times' => $totalTimes,
-            'services'    => array_map('strval', $serviceIds),
+            // 与生产一致：services 存对象数组 [{"service_id":..,"times":..}]（见迁移注释与种子数据）
+            'services'    => array_map(
+                fn($sid) => ['service_id' => (string) $sid, 'times' => 1],
+                $serviceIds
+            ),
             'status'      => 1, // erik_member_card.status 为 tinyint
         ]);
         $this->memberCardIds[] = $card->id;
@@ -334,6 +338,24 @@ class PriceCalculatorTest extends TestCase
         $this->assertSame(100.0, $result['discount_amount']);
         $this->assertSame(30.0, $result['paid_amount']);
         // 未消费前回传卡片 ID，供支付成功时 consume() 定位
+        $this->assertSame((int) $userCard->id, $result['member_card_usage_id']);
+    }
+
+    #[Test] public function calculate_times_card_services_object_array_format_hits(): void
+    {
+        // 回归：erik_member_card.services 为对象数组 [{"service_id":..,"times":..}]（迁移注释 + demo_seeds.sql 格式），
+        // 此前按标量数组解析导致次卡抵扣完全失效
+        $userId = $this->newUserId();
+        $userCard = $this->makeTimesCard($userId, ['S1'], 5, 1);
+
+        $result = PriceCalculator::calculate(
+            [$this->item('S1', 50, 1)],
+            ['user_id' => $userId, 'member_card_usage_id' => $userCard->id]
+        );
+
+        $this->assertSame(50.0, $result['total_amount']);
+        $this->assertSame(50.0, $result['discount_amount']);
+        $this->assertSame(0.0, $result['paid_amount']);
         $this->assertSame((int) $userCard->id, $result['member_card_usage_id']);
     }
 

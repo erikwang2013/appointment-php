@@ -7,6 +7,7 @@ declare(strict_types=1);
 
 namespace app\admin\controller;
 
+use support\Log;
 use support\Request;
 use support\Response;
 use Illuminate\Support\Facades\Redis;
@@ -109,7 +110,9 @@ class SystemMonitorController extends BaseController
                 'prefix'       => $prefix ?: 'erik:cache:/erik:dashboard:/erik:query:',
             ], "已清除 {$deletedCount} 个缓存键");
         } catch (\Throwable $e) {
-            return $this->fail('清除缓存失败: ' . $e->getMessage(), 500);
+            // M3: 内部异常详情仅记日志，对外返回通用文案
+            Log::error('[SystemMonitorController] clear cache failed: ' . $e->getMessage());
+            return $this->fail('清除缓存失败，请稍后重试', 500);
         }
     }
 

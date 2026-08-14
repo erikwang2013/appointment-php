@@ -15,6 +15,7 @@ use app\model\OrderItem;
 use app\model\OrderPayment;
 use app\model\OrderRefund;
 use app\model\OrderVerification;
+use app\model\TechnicianProfile;
 use app\model\User;
 use Illuminate\Support\Facades\Redis;
 use support\Db;
@@ -173,10 +174,15 @@ class OrderController extends BaseController
 
             // 生成核销码（仅预约订单）
             if ($orderType === Order::ORDER_TYPE_APPOINTMENT) {
+                $verifyCode = OrderVerification::generateCode();
+                // erik_order_verification.uk_code 唯一索引：核销码禁止为空
+                if ($verifyCode === '') {
+                    throw new \RuntimeException('核销码生成失败');
+                }
                 OrderVerification::create([
                     'id'       => OrderVerification::generateId(),
                     'order_id' => $order->id,
-                    'code'     => OrderVerification::generateCode(),
+                    'code'     => $verifyCode,
                 ]);
             }
 
@@ -187,11 +193,13 @@ class OrderController extends BaseController
             if ($lockKey) {
                 Redis::connection()->del($lockKey);
             }
-            // 计价引擎的业务校验错误（券已被使用/次数不足等）直接透出
+            // 计价引擎的业务校验错误（券已被使用/次数不足等）为业务文案，直接透出
             if ($e instanceof \InvalidArgumentException) {
                 return $this->error($e->getMessage());
             }
-            return $this->error('订单创建失败: ' . $e->getMessage());
+            // M3: 内部异常详情仅记日志，对外返回通用文案
+            Log::error('[OrderController] order create failed: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            return $this->error('订单创建失败，请稍后重试');
         }
 
         $order->load(['items', 'payment']);
@@ -329,7 +337,9 @@ class OrderController extends BaseController
             Db::commit();
         } catch (\Throwable $e) {
             Db::rollBack();
-            return $this->error('取消订单失败: ' . $e->getMessage());
+            // M3: 内部异常详情仅记日志，对外返回通用文案
+            Log::error('[OrderController] order cancel failed: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            return $this->error('取消订单失败，请稍后重试');
         }
 
         // 阶段二：事务外调微信退款
@@ -566,7 +576,9 @@ class OrderController extends BaseController
             Db::commit();
         } catch (\Throwable $e) {
             Db::rollBack();
-            return $this->error('申请退款失败: ' . $e->getMessage());
+            // M3: 内部异常详情仅记日志，对外返回通用文案
+            Log::error('[OrderController] order refund apply failed: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            return $this->error('申请退款失败，请稍后重试');
         }
 
         // 阶段二：事务外调微信退款
@@ -653,6 +665,14 @@ class OrderController extends BaseController
 
         if (!in_array($order->status, [Order::STATUS_PAID, Order::STATUS_CONFIRMED], true)) {
             return $this->error('当前订单状态不可核销');
+        }
+
+        // M1: 水平越权防护 —— 仅订单所属技师（已审核）可核销，拒绝任意登录用户越权操作
+        $technician = TechnicianProfile::where('user_id', $userId)
+            ->where('status', 'approved')
+            ->first();
+        if (!$technician || (string)$order->technician_id !== (string)$technician->id) {
+            return $this->error('无权限核销该订单', 403);
         }
 
         $verifyType = $request->input('verify_type', OrderVerification::VERIFY_TYPE_SCAN);

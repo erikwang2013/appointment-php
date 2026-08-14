@@ -10,6 +10,7 @@ use app\model\Comment;
 use app\model\Post;
 use Illuminate\Support\Facades\Redis;
 use support\Db;
+use support\Log;
 use Webman\Http\Request;
 
 /**
@@ -140,7 +141,9 @@ class CommunityCommentController extends BaseController
             Db::commit();
         } catch (\Throwable $e) {
             Db::rollBack();
-            return $this->error('删除失败: ' . $e->getMessage());
+            // M3: 内部异常详情仅记日志，对外返回通用文案
+            Log::error('[CommunityCommentController] delete failed: ' . $e->getMessage());
+            return $this->error('删除失败，请稍后重试');
         }
 
         return $this->success(null, '评论已删除');

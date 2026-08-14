@@ -149,6 +149,7 @@ class TechnicianController extends BaseController
         }
         $profile->save();
 
+        $this->clearSvcCache();
         return $this->success($this->encodeIds($profile->toArray()), '更新成功');
     }
 
@@ -178,6 +179,7 @@ class TechnicianController extends BaseController
         $profile->audited_at = date('Y-m-d H:i:s');
         $profile->save();
 
+        $this->clearSvcCache();
         return $this->success(
             $this->encodeIds($profile->toArray()),
             $action === 'approve' ? '审核通过' : '已驳回'
@@ -198,7 +200,7 @@ class TechnicianController extends BaseController
         }
 
         $profile->delete();
-
+        $this->clearSvcCache();
         return $this->success([], '删除成功');
     }
 
@@ -267,6 +269,7 @@ class TechnicianController extends BaseController
             $schedule->status = 1;
             $schedule->save();
 
+            $this->clearSvcCache();
             return $this->success($this->encodeIds($schedule->toArray()), '排班创建成功');
         }
 
@@ -327,6 +330,7 @@ class TechnicianController extends BaseController
                 $ts->save();
             }
 
+            $this->clearSvcCache();
             return $this->success([], '服务分配更新成功');
         }
 
@@ -416,6 +420,7 @@ class TechnicianController extends BaseController
             $config->save();
         }
 
+        $this->clearSvcCache();
         return $this->success($request->all(), '性别限制更新成功');
     }
 

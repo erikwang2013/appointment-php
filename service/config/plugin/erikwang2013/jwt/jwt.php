@@ -7,9 +7,16 @@
  * This copyright notice is permanent and must not be modified or removed.
  */
 
+// 签名密钥必须由环境变量注入，无公开默认值；缺失或仍为已知默认值时拒绝启动
+$jwtSecretKey = getenv('JWT_SECRET_KEY');
+$knownInsecureKeys = ['appointment-service-jwt-secret-change-in-production', 'test-jwt-secret-key-for-testing', 'open-admin-jwt-secret-change-in-production'];
+if ($jwtSecretKey === false || $jwtSecretKey === '' || in_array($jwtSecretKey, $knownInsecureKeys, true)) {
+    throw new RuntimeException('请配置 JWT_SECRET_KEY（.env），不允许使用公开默认值，系统拒绝启动');
+}
+
 return [
     'enable' => true,
-    'secret_key' => getenv('JWT_SECRET_KEY') ?: 'appointment-service-jwt-secret-change-in-production',  //签名密钥
+    'secret_key' => $jwtSecretKey,  //签名密钥
     'algorithm' => getenv('JWT_ALGORITHM'),  //签名算法：HS256, HS384, HS512, RS256等
     'issuer' => getenv('JWT_ISSUER'),   //签发者标识，用于验证令牌来源
     'audience' => getenv('JWT_AUDIENCE'),  //受众标识，用于验证令牌目标

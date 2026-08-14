@@ -19,10 +19,10 @@ class BaseController
      * 返回成功响应
      * @param mixed $data 响应数据，会自动编码其中的 id 字段
      * @param string $message 提示信息
-     * @param int $code HTTP 状态码
+     * @param int $code 业务码（成功 0，与小程序/admin Flutter 端约定一致）
      * @return Response
      */
-    protected function success(mixed $data = null, string $message = 'success', int $code = 200): Response
+    protected function success(mixed $data = null, string $message = 'success', int $code = 0): Response
     {
         if ($data !== null) {
             $data = $this->encodeIds($data);
@@ -61,7 +61,7 @@ class BaseController
         $items = $paginator->items();
 
         return json([
-            'code' => 200,
+            'code' => 0,
             'message' => 'success',
             'data' => $this->encodeIds($items),
             'meta' => [

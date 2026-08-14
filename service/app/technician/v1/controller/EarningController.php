@@ -56,7 +56,7 @@ class EarningController extends BaseController
             ->paginate($perPage, ['*'], 'page', $page);
 
         return json([
-            'code' => 200,
+            'code' => 0,
             'message' => 'success',
             'data' => [
                 'summary' => [

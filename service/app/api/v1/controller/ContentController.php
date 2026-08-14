@@ -9,6 +9,7 @@ use app\common\BaseController;
 use app\model\Announcement;
 use app\model\Banner;
 use app\model\Faq;
+use support\Redis;
 use Webman\Http\Request;
 
 /**
@@ -28,13 +29,22 @@ class ContentController extends BaseController
     {
         $position = $request->input('position', 'home');
 
+        // Redis 缓存 5 分钟（读多写少），管理端写操作按 svc:* 前缀失效
+        $cacheKey = 'svc:content:banners:' . $position;
+        $cached = Redis::get($cacheKey);
+        if ($cached !== null && $cached !== false) {
+            return json(json_decode($cached, true));
+        }
+
         $banners = Banner::where('position', $position)
             ->where('status', 1)
             ->orderBy('sort')
             ->orderBy('id')
             ->get();
 
-        return $this->success($banners->toArray());
+        $response = $this->success($banners->toArray());
+        Redis::setex($cacheKey, 300, $response->rawBody());
+        return $response;
     }
 
     /**
@@ -50,6 +60,13 @@ class ContentController extends BaseController
         $page = (int)($request->input('page', 1));
         $perPage = (int)($request->input('per_page', 15));
 
+        // Redis 缓存 5 分钟（读多写少，按参数哈希分键）
+        $cacheKey = 'svc:content:articles:' . md5(json_encode([$type, $page, $perPage]));
+        $cached = Redis::get($cacheKey);
+        if ($cached !== null && $cached !== false) {
+            return json(json_decode($cached, true));
+        }
+
         if ($type === 'faq') {
             $query = Faq::where('status', 1)
                 ->orderBy('sort')
@@ -63,7 +80,9 @@ class ContentController extends BaseController
 
         $paginator = $query->paginate($perPage, ['*'], 'page', $page);
 
-        return $this->paginate($paginator);
+        $response = $this->paginate($paginator);
+        Redis::setex($cacheKey, 300, $response->rawBody());
+        return $response;
     }
 
     /**

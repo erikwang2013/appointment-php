@@ -11,6 +11,7 @@ use app\model\User;
 use app\model\UserCoupon;
 use app\model\UserMemberCard;
 use support\Db;
+use support\Log;
 use Webman\Http\Request;
 
 /**
@@ -155,7 +156,9 @@ class MemberBenefitController extends BaseController
                         ];
                     } catch (\Throwable $e) {
                         Db::rollBack();
-                        return $this->error('生日券生成失败: ' . $e->getMessage());
+                        // M3: 内部异常详情仅记日志，对外返回通用文案
+                        Log::error('[MemberBenefitController] birthday coupon create failed: ' . $e->getMessage());
+                        return $this->error('生日券生成失败，请稍后重试');
                     }
                 } else {
                     $result['message'] = '暂无可用生日优惠券';

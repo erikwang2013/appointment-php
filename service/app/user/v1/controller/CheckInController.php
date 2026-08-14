@@ -9,6 +9,7 @@ use app\common\BaseController;
 use app\model\CheckIn;
 use app\model\UserPoints;
 use support\Db;
+use support\Log;
 use Webman\Http\Request;
 
 /**
@@ -104,7 +105,9 @@ class CheckInController extends BaseController
             ], '签到成功');
         } catch (\Throwable $e) {
             Db::rollBack();
-            return $this->error('签到失败: ' . $e->getMessage());
+            // M3: 内部异常详情仅记日志，对外返回通用文案
+            Log::error('[CheckInController] checkin failed: ' . $e->getMessage());
+            return $this->error('签到失败，请稍后重试');
         }
     }
 

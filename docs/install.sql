@@ -339,9 +339,9 @@ ADD KEY `idx_source` (`source`);
 -- 统一用户表
 CREATE TABLE IF NOT EXISTS `erik_user` (
     `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
-    `phone` VARCHAR(500) NOT NULL DEFAULT '' COMMENT '手机号（加密存储）',
+    `phone` VARCHAR(500) NOT NULL DEFAULT '' COMMENT '手机号（明文存储）',
     `password` VARCHAR(255) NOT NULL DEFAULT '' COMMENT '密码（bcrypt哈希）',
-    `wx_openid` VARCHAR(500) NOT NULL DEFAULT '' COMMENT '微信OpenID（加密存储）',
+    `wx_openid` VARCHAR(500) NOT NULL DEFAULT '' COMMENT '微信OpenID（明文存储）',
     `wx_unionid` VARCHAR(500) NOT NULL DEFAULT '' COMMENT '微信UnionID（加密存储）',
     `avatar` VARCHAR(500) NOT NULL DEFAULT '' COMMENT '头像URL',
     `nickname` VARCHAR(100) NOT NULL DEFAULT '' COMMENT '用户昵称',
@@ -501,6 +501,7 @@ CREATE TABLE IF NOT EXISTS `erik_technician_withdrawal` (
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_withdrawal_no` (`withdrawal_no`),
     KEY `idx_technician_id` (`technician_id`),
+    KEY `idx_tech_status` (`technician_id`, `status`),
     KEY `idx_status` (`status`),
     KEY `idx_created_at` (`created_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='技师提现记录表';
@@ -642,9 +643,9 @@ CREATE TABLE IF NOT EXISTS `erik_order` (
     `total_amount` DECIMAL(10,2) NOT NULL DEFAULT 0.00 COMMENT '订单总金额（元）',
     `discount_amount` DECIMAL(10,2) NOT NULL DEFAULT 0.00 COMMENT '优惠金额（元）',
     `paid_amount` DECIMAL(10,2) NOT NULL DEFAULT 0.00 COMMENT '实付金额（元）',
-    `coupon_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '使用的优惠券ID',
-    `user_coupon_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '用户优惠券记录ID',
-    `member_card_usage_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '次卡使用记录ID',
+    `coupon_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '使用的优惠券ID，0 表示未使用',
+    `user_coupon_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '用户优惠券记录ID，0 表示未使用',
+    `member_card_usage_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '次卡使用记录ID，0 表示未使用',
     `service_time` DATETIME DEFAULT NULL COMMENT '预约服务时间',
     `status` VARCHAR(20) NOT NULL DEFAULT 'pending' COMMENT '订单状态: pending=待支付 paid=已支付 confirmed=已确认 serving=服务中 completed=已完成 cancelled=已取消 refunding=退款中 refunded=已退款',
     `cancel_reason` VARCHAR(255) NOT NULL DEFAULT '' COMMENT '取消原因',
@@ -662,7 +663,10 @@ CREATE TABLE IF NOT EXISTS `erik_order` (
     KEY `idx_status` (`status`),
     KEY `idx_order_type` (`order_type`),
     KEY `idx_service_time` (`service_time`),
-    KEY `idx_created_at` (`created_at`)
+    KEY `idx_created_at` (`created_at`),
+    KEY `idx_user_status` (`user_id`, `status`),
+    KEY `idx_tech_status` (`technician_id`, `status`),
+    KEY `idx_status_created` (`status`, `created_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='订单主表';
 
 -- 订单明细表
@@ -696,7 +700,7 @@ CREATE TABLE IF NOT EXISTS `erik_order_payment` (
     `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_payment_no` (`payment_no`),
-    UNIQUE KEY `uk_transaction_id` (`transaction_id`),
+    KEY `idx_transaction_id` (`transaction_id`),
     KEY `idx_order_id` (`order_id`),
     KEY `idx_status` (`status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='支付记录表';
@@ -792,6 +796,7 @@ CREATE TABLE IF NOT EXISTS `erik_user_coupon` (
     `used_at` DATETIME DEFAULT NULL COMMENT '使用时间',
     `received_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '领取时间',
     PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_user_coupon` (`user_id`, `coupon_id`),
     KEY `idx_user_id` (`user_id`),
     KEY `idx_coupon_id` (`coupon_id`),
     KEY `idx_status` (`status`)
@@ -1009,6 +1014,7 @@ CREATE TABLE IF NOT EXISTS `erik_notification` (
 
     PRIMARY KEY (`id`),
     KEY `idx_user_id` (`user_id`),
+    KEY `idx_user_read` (`user_id`, `is_read`),
     KEY `idx_type` (`type`),
     KEY `idx_is_read` (`is_read`),
     KEY `idx_created_at` (`created_at`)

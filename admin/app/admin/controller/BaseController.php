@@ -10,6 +10,7 @@ namespace app\admin\controller;
 use app\common\HashidsService;
 use app\common\SnowflakeService;
 use app\model\AdminUser;
+use support\Redis;
 use support\Request;
 use support\Response;
 
@@ -65,6 +66,18 @@ class BaseController
     protected function generateId(): int
     {
         return SnowflakeService::generate();
+    }
+
+    /**
+     * 清除 service 端读缓存（svc: 前缀）
+     * 管理端对缓存数据（服务/分类/轮播/公告/FAQ/技师/套餐/活动等）写操作后调用，
+     * 保证读多写少的接口缓存及时失效
+     */
+    protected function clearSvcCache(): void
+    {
+        foreach (Redis::keys('svc:*') as $key) {
+            Redis::del($key);
+        }
     }
 
     /**

@@ -69,6 +69,7 @@ class AnnouncementController extends BaseController
         $announcement->status  = (int) $request->input('status', 0);
         $announcement->save();
 
+        $this->clearSvcCache();
         return $this->success($this->encodeIds($announcement->toArray()), '创建成功');
     }
 
@@ -109,6 +110,7 @@ class AnnouncementController extends BaseController
         }
         $announcement->save();
 
+        $this->clearSvcCache();
         return $this->success($this->encodeIds($announcement->toArray()), '更新成功');
     }
 
@@ -130,6 +132,7 @@ class AnnouncementController extends BaseController
         }
 
         $announcement->delete();
+        $this->clearSvcCache();
         return $this->success([], '删除成功');
     }
 
@@ -154,6 +157,7 @@ class AnnouncementController extends BaseController
         }
         $announcement->save();
 
+        $this->clearSvcCache();
         return $this->success(
             $this->encodeIds($announcement->toArray()),
             $action === 'publish' ? '已发布' : '已取消发布'

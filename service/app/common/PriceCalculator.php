@@ -222,8 +222,20 @@ class PriceCalculator
      */
     private static function matchCardServices(UserMemberCard $userCard, array $items): array
     {
+        // services 存储为对象数组：[{"service_id":..,"times":..}]（见迁移 erik_member_card.services 注释与种子数据），
+        // 统一用 array_column 取 service_id；兼容历史标量数组 [sid1, sid2]
+        $cardServices = (array) ($userCard->card->services ?? []);
+        if (is_array(reset($cardServices))) {
+            $serviceIds = array_column($cardServices, 'service_id');
+        } else {
+            $serviceIds = $cardServices;
+        }
+
         $cardServiceMap = [];
-        foreach ((array) ($userCard->card->services ?? []) as $sid) {
+        foreach ($serviceIds as $sid) {
+            if ($sid === null || $sid === '') {
+                continue;
+            }
             $cardServiceMap[(string) $sid] = true;
         }
 

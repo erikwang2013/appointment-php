@@ -29,9 +29,16 @@ class OrderController extends BaseController
         // 服务字段（service_id/service_name/price）在 erik_order_item 明细表中，
         // 通过子查询取每个订单最早的一条明细（MIN(id)，snowflake 按时间递增）关联；
         // erik_order 表无 service_date 列，由 service_time 推导日期
+        // 子查询限定在当前技师的订单范围内（走 erik_order_item.idx_order_id），
+        // 避免对全表做 MIN(id) GROUP BY 扫描
         $firstItem = Db::table('erik_order_item')
             ->select('order_id')
             ->selectRaw('MIN(id) AS first_item_id')
+            ->whereIn('order_id', function ($q) use ($technicianId) {
+                $q->select('id')
+                    ->from('erik_order')
+                    ->where('technician_id', $technicianId);
+            })
             ->groupBy('order_id');
 
         $query = Db::table('erik_order')

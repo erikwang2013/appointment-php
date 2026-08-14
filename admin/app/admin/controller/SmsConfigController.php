@@ -8,6 +8,7 @@ declare(strict_types=1);
 namespace app\admin\controller;
 
 use app\model\SystemConfig;
+use support\Log;
 use support\Request;
 use support\Response;
 
@@ -160,7 +161,9 @@ class SmsConfigController extends BaseController
 
             return $this->fail('测试短信发送失败: ' . ($result['message'] ?? '未知错误'), 500);
         } catch (\Throwable $e) {
-            return $this->fail('测试短信发送异常: ' . $e->getMessage(), 500);
+            // M3: 内部异常详情仅记日志，对外返回通用文案
+            Log::error('[SmsConfigController] test sms send failed: ' . $e->getMessage());
+            return $this->fail('测试短信发送异常，请稍后重试', 500);
         }
     }
 

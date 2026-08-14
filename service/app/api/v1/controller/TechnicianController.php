@@ -11,6 +11,7 @@ use app\model\Service;
 use app\model\TechnicianProfile;
 use app\model\TechnicianSchedule;
 use app\model\TechnicianService;
+use support\Redis;
 use Webman\Http\Request;
 
 /**
@@ -34,6 +35,13 @@ class TechnicianController extends BaseController
         $gender = $request->input('gender');
         $page = (int)($request->input('page', 1));
         $perPage = (int)($request->input('per_page', 15));
+
+        // Redis 缓存 5 分钟（读多写少，按参数哈希分键），管理端写操作按 svc:* 前缀失效
+        $cacheKey = 'svc:technician:list:' . md5(json_encode([$lat, $lng, $serviceId, $gender, $page, $perPage]));
+        $cached = Redis::get($cacheKey);
+        if ($cached !== null && $cached !== false) {
+            return json(json_decode($cached, true));
+        }
 
         $query = TechnicianProfile::where('status', 'approved')
             ->with('user');
@@ -90,7 +98,9 @@ class TechnicianController extends BaseController
 
         $paginator->setCollection($items);
 
-        return $this->paginate($paginator);
+        $response = $this->paginate($paginator);
+        Redis::setex($cacheKey, 300, $response->rawBody());
+        return $response;
     }
 
     /**

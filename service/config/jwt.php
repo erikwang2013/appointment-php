@@ -9,9 +9,16 @@ declare(strict_types=1);
  * 此文件为应用层参考配置，需与插件配置保持一致的 env 变量名
  * @link https://github.com/erikwang2013/jwt-webman
  */
+// JWT 签名密钥，必须通过环境变量注入，无公开默认值；缺失或仍为已知默认值时拒绝启动
+$secret = getenv('JWT_SECRET_KEY');
+$knownInsecureKeys = ['appointment-service-jwt-secret-change-in-production', 'test-jwt-secret-key-for-testing', 'open-admin-jwt-secret-change-in-production'];
+if ($secret === false || $secret === '' || in_array($secret, $knownInsecureKeys, true)) {
+    throw new RuntimeException('请配置 JWT_SECRET_KEY（.env），不允许使用公开默认值，系统拒绝启动');
+}
+
 return [
     // JWT 签名密钥，生产环境请使用 64 位以上随机字符串并通过环境变量注入
-    'secret' => getenv('JWT_SECRET_KEY') ?: 'appointment-service-jwt-secret-change-in-production',
+    'secret' => $secret,
 
     // 签名算法，支持 HS256/HS384/HS512/RS256
     'algorithm' => getenv('JWT_ALGORITHM') ?: 'HS256',

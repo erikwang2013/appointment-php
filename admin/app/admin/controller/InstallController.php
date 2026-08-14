@@ -9,6 +9,7 @@ namespace app\admin\controller;
 
 use support\Request;
 use support\Response;
+use support\Db;
 
 /**
  * 一键安装向导
@@ -18,6 +19,11 @@ class InstallController
 {
     public function index(Request $request): Response
     {
+        // C2: 已安装的系统禁止再次进入安装向导，防止重置超级管理员
+        if ($this->isInstalled()) {
+            return response('系统已安装，安装向导已禁用', 404);
+        }
+
         $step = (int)($request->get('step', '1'));
 
         if ($request->method() === 'POST') {
@@ -85,6 +91,35 @@ class InstallController
         return $this->render('步骤 4/4 · 安装中', $this->htmlStep4());
     }
 
+    /**
+     * 判断系统是否已完成安装
+     * 标记写入 erik_system_config（group=system, key=installed, value=1）；
+     * 兼容历史安装（无标记但已存在管理员账号）视为已安装。
+     * 注意: 不能以 erik_system_config 表是否存在或 app_name 配置判定 ——
+     * install.sql 会种子化 app_name，仅导入 SQL 未建管理员的全新库仍应允许安装。
+     */
+    private function isInstalled(): bool
+    {
+        try {
+            $pdo = Db::connection()->getPdo();
+        } catch (\Throwable $e) {
+            // 数据库不可达视为未安装，允许进入安装向导
+            return false;
+        }
+        try {
+            $stmt = $pdo->query("SELECT COUNT(*) FROM `erik_system_config` WHERE `key`='installed' AND `value`='1'");
+            if ((int)$stmt->fetchColumn() > 0) {
+                return true;
+            }
+            // 管理员账号仅由安装向导创建（install.sql 不种子 admin_user），存在即视为已安装
+            $stmt = $pdo->query("SELECT COUNT(*) FROM `erik_admin_user`");
+            return (int)$stmt->fetchColumn() > 0;
+        } catch (\Throwable $e) {
+            // 表不存在（全新库）视为未安装
+            return false;
+        }
+    }
+
     private function handlePost(Request $request, int $step): Response
     {
         return match ($step) {
@@ -107,6 +142,12 @@ class InstallController
         if (empty($db['host']) || empty($db['database']) || empty($db['username'])) {
             session()->set('install_db', $db);
             session()->set('install_error', '请填写完整的数据库连接信息');
+            return redirect('/install?step=2');
+        }
+        // H1: 数据库名白名单校验，禁止注入反引号/分号/路径字符
+        if (!preg_match('/^[a-zA-Z0-9_\-]+$/', $db['database'])) {
+            session()->set('install_db', $db);
+            session()->set('install_error', '数据库名称只能包含字母、数字、下划线和中划线');
             return redirect('/install?step=2');
         }
         try {
@@ -132,6 +173,11 @@ class InstallController
 
     private function postStep3(Request $request): Response
     {
+        // 未通过数据库配置（step 2）不允许跳级到管理员账号步骤
+        if (!session('install_db_ok')) {
+            return redirect('/install?step=2');
+        }
+
         $adm = [
             'username' => trim($request->post('username', 'admin')),
             'password' => trim($request->post('password', '')),
@@ -231,6 +277,19 @@ class InstallController
             $logs[] = ['name' => "应用名称: {$adm['app_name']}", 'ok' => true];
         } catch (\PDOException $e) {
             $logs[] = ['name' => '应用名称 (跳过)', 'ok' => true];
+        }
+
+        // C2: 写入"已安装"标记，防止安装向导被再次执行重置管理员
+        try {
+            $markId = $this->snowflake();
+            $pdo->prepare(
+                "INSERT INTO `erik_system_config` (`id`,`group`,`key`,`value`,`type`,`description`)
+                 VALUES (:id,'system','installed','1','string','系统安装状态（1=已安装，安装向导自动禁用）')
+                 ON DUPLICATE KEY UPDATE `value`=VALUES(`value`)"
+            )->execute(['id' => $markId]);
+            $logs[] = ['name' => '写入已安装标记', 'ok' => true];
+        } catch (\PDOException $e) {
+            $errs[] = '写入已安装标记失败: ' . $e->getMessage();
         }
 
         // Write .env

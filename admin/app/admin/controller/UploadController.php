@@ -70,6 +70,27 @@ class UploadController extends BaseController
             }
         }
 
+        // M4: 魔数校验 —— 以文件真实内容识别 MIME，防止伪造客户端 MIME 声明上传恶意文件
+        $finfo = new \finfo(FILEINFO_MIME_TYPE);
+        $realMime = $file->getRealPath() ? $finfo->file($file->getRealPath()) : false;
+        if (!$realMime) {
+            return $this->fail('无法读取文件内容', 422);
+        }
+        // xlsx/docx 为 ZIP 容器，finfo 识别为 application/zip 等，同族放行
+        $magicMap = [
+            'jpg'  => ['image/jpeg'],
+            'jpeg' => ['image/jpeg'],
+            'png'  => ['image/png'],
+            'gif'  => ['image/gif'],
+            'pdf'  => ['application/pdf'],
+            'xlsx' => ['application/zip', 'application/x-zip-compressed', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'],
+            'docx' => ['application/zip', 'application/x-zip-compressed', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
+        ];
+        $realAllowed = $magicMap[$ext] ?? [];
+        if (!in_array($realMime, $realAllowed, true)) {
+            return $this->fail('文件内容与扩展名不匹配，拒绝上传', 422);
+        }
+
         $dateDir  = date('Y-m-d');
         $filename = md5(uniqid((string) mt_rand(), true)) . '.' . $ext;
         $relativePath = "/upload/{$dateDir}/{$filename}";

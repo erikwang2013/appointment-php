@@ -77,6 +77,7 @@ class ServiceCategoryController extends BaseController
         $category->status    = (int) $request->input('status', 1);
         $category->save();
 
+        $this->clearSvcCache();
         return $this->success($this->encodeIds($category->toArray()), '创建成功');
     }
 
@@ -126,6 +127,7 @@ class ServiceCategoryController extends BaseController
         }
         $category->save();
 
+        $this->clearSvcCache();
         return $this->success($this->encodeIds($category->toArray()), '更新成功');
     }
 
@@ -152,6 +154,7 @@ class ServiceCategoryController extends BaseController
         }
 
         $category->delete();
+        $this->clearSvcCache();
         return $this->success([], '删除成功');
     }
 
@@ -178,6 +181,7 @@ class ServiceCategoryController extends BaseController
             }
         }
 
+        $this->clearSvcCache();
         return $this->success([], '排序更新成功');
     }
 }

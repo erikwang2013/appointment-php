@@ -99,6 +99,10 @@ class GiftCardController extends BaseController
 
         // 生成唯一兑换码
         $code = strtoupper(substr(md5(uniqid((string) random_int(0, 99999), true)), 0, 12));
+        // erik_gift_card.uk_code 唯一索引：兑换码禁止为空
+        if ($code === '') {
+            return $this->error('兑换码生成失败，请重试');
+        }
 
         $giftCard = new GiftCard();
         $giftCard->id = GiftCard::generateId();

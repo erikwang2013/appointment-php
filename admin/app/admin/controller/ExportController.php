@@ -96,7 +96,7 @@ class ExportController extends BaseController
                         $value = str_repeat('*', 8); // id_card等彻底隐藏
                     }
                 }
-                $sheet->getCell($colIndex . $row)->setValue($value);
+                $sheet->getCell($colIndex . $row)->setValue($this->safeCellValue($value));
                 $sheet->getStyle($colIndex . $row)->applyFromArray($dataStyle);
                 $colIndex++;
             }
@@ -292,7 +292,7 @@ class ExportController extends BaseController
                     }
                 }
 
-                $sheet->getCell($colIndex . $row)->setValue($value);
+                $sheet->getCell($colIndex . $row)->setValue($this->safeCellValue($value));
                 $sheet->getStyle($colIndex . $row)->applyFromArray($dataStyle);
                 $colIndex++;
             }
@@ -558,6 +558,22 @@ class ExportController extends BaseController
             'admin_user' => ['phone', 'email', 'id_card'],
         ];
         return $maps[$table] ?? [];
+    }
+
+    /**
+     * M2: Excel 公式注入防护
+     * 字符串单元格若以公式触发符开头（= + - @ 或 Tab/CR），加单引号前缀使其按纯文本处理；
+     * 数字/日期等非字符串值保持原样。
+     */
+    private function safeCellValue(mixed $value): mixed
+    {
+        if (!is_string($value) || $value === '') {
+            return $value;
+        }
+        if (preg_match('/^[=+\-@\t\r]/', $value) === 1) {
+            return "'" . $value;
+        }
+        return $value;
     }
 
     private function downloadAndCleanup(string $tmpFile, string $filename): Response

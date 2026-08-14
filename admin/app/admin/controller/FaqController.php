@@ -69,6 +69,7 @@ class FaqController extends BaseController
         $faq->status  = (int) $request->input('status', 1);
         $faq->save();
 
+        $this->clearSvcCache();
         return $this->success($this->encodeIds($faq->toArray()), '创建成功');
     }
 
@@ -109,6 +110,7 @@ class FaqController extends BaseController
         }
         $faq->save();
 
+        $this->clearSvcCache();
         return $this->success($this->encodeIds($faq->toArray()), '更新成功');
     }
 
@@ -130,6 +132,7 @@ class FaqController extends BaseController
         }
 
         $faq->delete();
+        $this->clearSvcCache();
         return $this->success([], '删除成功');
     }
 
@@ -156,6 +159,7 @@ class FaqController extends BaseController
             }
         }
 
+        $this->clearSvcCache();
         return $this->success([], '排序更新成功');
     }
 }

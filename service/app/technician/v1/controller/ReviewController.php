@@ -30,7 +30,7 @@ class ReviewController extends BaseController
             return $this->error('订单ID无效');
         }
 
-        $review = OrderReview::where('order_id', $orderId)->first();
+        $review = OrderReview::findByOrderId($orderId);
         if (!$review) {
             return $this->error('评价不存在', 404);
         }

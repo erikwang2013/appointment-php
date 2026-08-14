@@ -15,7 +15,7 @@ class Cors implements MiddlewareInterface
 {
     public function process(Request $request, callable $handler): Response
     {
-        $origin = getenv('CORS_ALLOW_ORIGIN') ?: '*';
+        $origin = $this->resolveAllowedOrigin($request);
 
         if ($request->method() === 'OPTIONS') {
             return response('', 204, [
@@ -38,5 +38,38 @@ class Cors implements MiddlewareInterface
             'X-Permitted-Cross-Domain-Policies' => 'none',
         ]);
         return $response;
+    }
+
+    /**
+     * M5: 计算允许回显的 Origin
+     * - CORS_ALLOW_ORIGIN 配置为 * 时回显 *；
+     * - 配置为逗号分隔白名单时，仅当请求 Origin 在白名单内回显；
+     * - 未配置时默认仅允许同源：请求 Origin 的 host:port 与请求 Host 一致才回显。
+     */
+    private function resolveAllowedOrigin(Request $request): string
+    {
+        $configured = trim((string) getenv('CORS_ALLOW_ORIGIN'));
+        $origin = (string) $request->header('origin', '');
+
+        if ($configured === '*') {
+            return '*';
+        }
+
+        if ($configured !== '') {
+            $allowList = array_map('trim', explode(',', $configured));
+            return in_array($origin, $allowList, true) ? $origin : '';
+        }
+
+        // 未配置：默认仅允许同源
+        if ($origin === '') {
+            return '';
+        }
+        $originHost = parse_url($origin, PHP_URL_HOST);
+        if ($originHost === null || $originHost === '') {
+            return '';
+        }
+        $originPort = parse_url($origin, PHP_URL_PORT);
+        $originAuthority = $originPort === null ? $originHost : $originHost . ':' . $originPort;
+        return $originAuthority === $request->host() ? $origin : '';
     }
 }

@@ -9,6 +9,8 @@ use app\common\BaseController;
 use app\model\Promotion;
 use app\model\PromotionParticipant;
 use support\Db;
+use support\Log;
+use support\Redis;
 use Webman\Http\Request;
 
 /**
@@ -29,6 +31,13 @@ class PromotionController extends BaseController
         $type = $request->input('type', '');
         $now = date('Y-m-d H:i:s');
 
+        // Redis 缓存 5 分钟（读多写少；活动上下架最多延迟 5 分钟可见）
+        $cacheKey = 'svc:promotion:index:' . md5($type);
+        $cached = Redis::get($cacheKey);
+        if ($cached !== null && $cached !== false) {
+            return json(json_decode($cached, true));
+        }
+
         $query = Promotion::where('status', 1)
             ->where('start_at', '<=', $now)
             ->where('end_at', '>=', $now)
@@ -41,7 +50,9 @@ class PromotionController extends BaseController
 
         $promotions = $query->orderBy('start_at', 'desc')->get();
 
-        return $this->success($promotions);
+        $response = $this->success($promotions);
+        Redis::setex($cacheKey, 300, $response->rawBody());
+        return $response;
     }
 
     /**
@@ -154,7 +165,9 @@ class PromotionController extends BaseController
             ], '参与成功');
         } catch (\Throwable $e) {
             Db::rollBack();
-            return $this->error('参与失败: ' . $e->getMessage());
+            // M3: 内部异常详情仅记日志，对外返回通用文案
+            Log::error('[PromotionController] join failed: ' . $e->getMessage());
+            return $this->error('参与失败，请稍后重试');
         }
     }
 

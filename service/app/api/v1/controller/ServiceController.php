@@ -10,6 +10,7 @@ use app\model\Product;
 use app\model\Service;
 use app\model\ServiceCategory;
 use app\model\Store;
+use support\Redis;
 use Webman\Http\Request;
 
 /**
@@ -26,6 +27,13 @@ class ServiceController extends BaseController
      */
     public function categories()
     {
+        // Redis 缓存 5 分钟（读多写少），管理端写操作按 svc:* 前缀失效
+        $cacheKey = 'svc:service:categories';
+        $cached = Redis::get($cacheKey);
+        if ($cached !== null && $cached !== false) {
+            return json(json_decode($cached, true));
+        }
+
         $categories = ServiceCategory::where('status', 1)
             ->where('parent_id', 0)
             ->orderBy('sort')
@@ -36,7 +44,9 @@ class ServiceController extends BaseController
             $query->where('status', 1)->orderBy('sort')->orderBy('id');
         }]);
 
-        return $this->success($categories->toArray());
+        $response = $this->success($categories->toArray());
+        Redis::setex($cacheKey, 300, $response->rawBody());
+        return $response;
     }
 
     /**
@@ -58,6 +68,13 @@ class ServiceController extends BaseController
             return $this->searchServices($keyword, $categoryId, $page, $perPage, $sort);
         }
 
+        // Redis 缓存 5 分钟（读多写少，按参数哈希分键）
+        $cacheKey = 'svc:service:items:' . md5(json_encode([$categoryId, $page, $perPage, $sort]));
+        $cached = Redis::get($cacheKey);
+        if ($cached !== null && $cached !== false) {
+            return json(json_decode($cached, true));
+        }
+
         $query = Service::where('status', 1);
 
         if ($categoryId) {
@@ -72,7 +89,9 @@ class ServiceController extends BaseController
 
         $paginator = $query->with('category')->paginate($perPage, ['*'], 'page', $page);
 
-        return $this->paginate($paginator);
+        $response = $this->paginate($paginator);
+        Redis::setex($cacheKey, 300, $response->rawBody());
+        return $response;
     }
 
     /**
@@ -94,6 +113,13 @@ class ServiceController extends BaseController
             return $this->searchProducts($keyword, $categoryId, $page, $perPage, $sort);
         }
 
+        // Redis 缓存 5 分钟（读多写少，按参数哈希分键）
+        $cacheKey = 'svc:service:products:' . md5(json_encode([$categoryId, $page, $perPage, $sort]));
+        $cached = Redis::get($cacheKey);
+        if ($cached !== null && $cached !== false) {
+            return json(json_decode($cached, true));
+        }
+
         $query = Product::where('status', 1);
 
         if ($categoryId) {
@@ -108,7 +134,9 @@ class ServiceController extends BaseController
 
         $paginator = $query->paginate($perPage, ['*'], 'page', $page);
 
-        return $this->paginate($paginator);
+        $response = $this->paginate($paginator);
+        Redis::setex($cacheKey, 300, $response->rawBody());
+        return $response;
     }
 
     /**

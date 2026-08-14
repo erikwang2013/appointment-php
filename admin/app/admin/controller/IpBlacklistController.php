@@ -7,6 +7,7 @@ declare(strict_types=1);
 
 namespace app\admin\controller;
 
+use support\Log;
 use support\Request;
 use support\Response;
 use Illuminate\Support\Facades\Redis;
@@ -58,7 +59,9 @@ class IpBlacklistController extends BaseController
                 }
             }
         } catch (\Throwable $e) {
-            return $this->fail('无法读取黑名单数据: ' . $e->getMessage(), 500);
+            // M3: 内部异常详情仅记日志，对外返回通用文案
+            Log::error('[IpBlacklistController] read blacklist failed: ' . $e->getMessage());
+            return $this->fail('无法读取黑名单数据，请稍后重试', 500);
         }
 
         // 按封锁时间降序
@@ -124,7 +127,9 @@ class IpBlacklistController extends BaseController
 
             return $this->success($blockData, "IP {$ip} 已加入黑名单");
         } catch (\Throwable $e) {
-            return $this->fail('封锁失败: ' . $e->getMessage(), 500);
+            // M3: 内部异常详情仅记日志，对外返回通用文案
+            Log::error('[IpBlacklistController] block failed: ' . $e->getMessage());
+            return $this->fail('封锁失败，请稍后重试', 500);
         }
     }
 
@@ -151,7 +156,9 @@ class IpBlacklistController extends BaseController
 
             return $this->success([], "IP {$ip} 已从黑名单移除");
         } catch (\Throwable $e) {
-            return $this->fail('解封失败: ' . $e->getMessage(), 500);
+            // M3: 内部异常详情仅记日志，对外返回通用文案
+            Log::error('[IpBlacklistController] unblock failed: ' . $e->getMessage());
+            return $this->fail('解封失败，请稍后重试', 500);
         }
     }
 

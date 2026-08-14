@@ -13,6 +13,8 @@ use app\model\OrderItem;
 use app\model\OrderPayment;
 use app\model\OrderVerification;
 use support\Db;
+use support\Log;
+use support\Redis;
 use Webman\Http\Request;
 
 /**
@@ -33,13 +35,22 @@ class ServicePackageController extends BaseController
         $page = (int)($request->input('page', 1));
         $perPage = (int)($request->input('per_page', 15));
 
+        // Redis 缓存 5 分钟（读多写少，按参数哈希分键）
+        $cacheKey = 'svc:package:index:' . md5(json_encode([$page, $perPage]));
+        $cached = Redis::get($cacheKey);
+        if ($cached !== null && $cached !== false) {
+            return json(json_decode($cached, true));
+        }
+
         $query = ServicePackage::where('status', 1)
             ->orderBy('sort', 'desc')
             ->orderBy('id', 'desc');
 
         $paginator = $query->paginate($perPage, ['*'], 'page', $page);
 
-        return $this->paginate($paginator);
+        $response = $this->paginate($paginator);
+        Redis::setex($cacheKey, 300, $response->rawBody());
+        return $response;
     }
 
     /**
@@ -164,7 +175,9 @@ class ServicePackageController extends BaseController
             return $this->success($order, '套餐订单创建成功');
         } catch (\Throwable $e) {
             Db::rollBack();
-            return $this->error('套餐购买失败: ' . $e->getMessage());
+            // M3: 内部异常详情仅记日志，对外返回通用文案
+            Log::error('[ServicePackageController] package purchase failed: ' . $e->getMessage());
+            return $this->error('套餐购买失败，请稍后重试');
         }
     }
 }

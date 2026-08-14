@@ -70,6 +70,7 @@ class BannerController extends BaseController
         $banner->status     = (int) $request->input('status', 1);
         $banner->save();
 
+        $this->clearSvcCache();
         return $this->success($this->encodeIds($banner->toArray()), '创建成功');
     }
 
@@ -110,6 +111,7 @@ class BannerController extends BaseController
         }
         $banner->save();
 
+        $this->clearSvcCache();
         return $this->success($this->encodeIds($banner->toArray()), '更新成功');
     }
 
@@ -131,6 +133,7 @@ class BannerController extends BaseController
         }
 
         $banner->delete();
+        $this->clearSvcCache();
         return $this->success([], '删除成功');
     }
 
@@ -157,6 +160,7 @@ class BannerController extends BaseController
             }
         }
 
+        $this->clearSvcCache();
         return $this->success([], '排序更新成功');
     }
 }
