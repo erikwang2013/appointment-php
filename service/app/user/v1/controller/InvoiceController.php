@@ -7,6 +7,7 @@ namespace app\user\v1\controller;
 
 use app\common\BaseController;
 use app\model\Invoice;
+use app\model\InvoiceTitle;
 use app\model\Order;
 use app\model\WalletRecharge;
 use Illuminate\Database\QueryException;
@@ -48,6 +49,18 @@ class InvoiceController extends BaseController
         $title     = trim((string) $request->input('invoice_title', ''));
         $taxNo     = trim((string) $request->input('tax_no', ''));
         $email     = trim((string) $request->input('email', ''));
+
+        // 常用抬头带入：传 title_id 时抬头信息取自抬头库，忽略请求参数
+        $titleId = $this->decodeId((string) $request->input('title_id', ''));
+        if ($titleId !== null) {
+            $titleRow = InvoiceTitle::where('id', $titleId)->where('user_id', $userId)->first();
+            if (!$titleRow) {
+                return $this->error('抬头不存在', 404);
+            }
+            $titleType = (string) $titleRow->title_type;
+            $title     = (string) $titleRow->invoice_title;
+            $taxNo     = trim((string) ($titleRow->tax_no ?? ''));
+        }
 
         if ($orderId === null) {
             return $this->error('订单不存在', 404);
