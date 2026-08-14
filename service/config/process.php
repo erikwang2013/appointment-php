@@ -54,6 +54,16 @@ return [
         'handler' => \app\process\PointsExpiryTimer::class,
         'count' => 1,
     ],
+    // Service reminder timer (runs every 60 seconds)
+    'service_reminder' => [
+        'handler' => \app\process\ServiceReminderTimer::class,
+        'count' => 1,
+    ],
+    // Card/coupon expiry reminder timer (runs every 6 hours)
+    'expiry_reminder' => [
+        'handler' => \app\process\ExpiryReminderTimer::class,
+        'count' => 1,
+    ],
     // File update detection and automatic reload
     'monitor' => [
         'handler' => app\process\Monitor::class,

@@ -52,6 +52,10 @@ class NotificationReminderService
     public const SCENE_VERIFIED = 'verified';
     /** 订单事件订阅消息场景：预约改期成功 */
     public const SCENE_RESCHEDULE = 'reschedule';
+    /** 订阅消息场景：服务即将开始提醒（ServiceReminderTimer 定时器） */
+    public const SCENE_REMINDER = 'reminder';
+    /** 订阅消息场景：会员卡/优惠券到期提醒（ExpiryReminderTimer 定时器） */
+    public const SCENE_EXPIRY = 'expiry';
 
     /**
      * 订阅消息模板字段 key（对应小程序后台审核通过的模板字段名，
@@ -90,6 +94,16 @@ class NotificationReminderService
             'title'        => '预约改期成功',
             'template_env' => 'WECHAT_SUBSCRIBE_TEMPLATE_RESCHEDULE',
             'data_keys'    => ['service' => 'thing1', 'order_no' => 'thing2', 'time' => 'time3'],
+        ],
+        self::SCENE_REMINDER => [
+            'title'        => '预约即将开始',
+            'template_env' => 'WECHAT_SUBSCRIBE_TEMPLATE_REMINDER',
+            'data_keys'    => ['service' => 'thing1', 'time' => 'time2', 'store' => 'thing3'],
+        ],
+        self::SCENE_EXPIRY => [
+            'title'        => '权益即将到期',
+            'template_env' => 'WECHAT_SUBSCRIBE_TEMPLATE_EXPIRY',
+            'data_keys'    => ['name' => 'thing1', 'time' => 'time2'],
         ],
     ];
 
@@ -374,6 +388,81 @@ class NotificationReminderService
             return false;
         } catch (\Throwable $e) {
             Log::error('[NotificationReminder] sendSubscribeForOrderEvent exception: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * 定时器场景订阅消息发送（服务提醒 / 到期提醒，通知行由调用方进程先行写入）
+     *
+     * 与 sendSubscribeForOrderEvent 同一发送链路（WechatTemplateMessageService::
+     * sendSubscribeMessage，独立小程序 access_token）与幂等约定：
+     * - 调用方（ServiceReminderTimer / ExpiryReminderTimer）已写入站内通知行
+     *   （type=service_reminder/card_expiry/coupon_expiry），此处仅按通知 ID
+     *   定位并标记 push_sent_at，不重复写通知；
+     * - 微信订阅消息为可配置降级：模板 env key（WECHAT_SUBSCRIBE_TEMPLATE_*
+     *   + APP_ID/APP_SECRET）未配置、用户无 wx_openid 时仅站内通知；
+     * - 幂等：推送成功（微信 errcode=0）才写 push_sent_at；已写入则跳过。
+     *   失败不写标记——通知行判重不阻塞，下次扫描轮次仍可重试。
+     *
+     * @param string $scene          场景（SCENE_REMINDER / SCENE_EXPIRY）
+     * @param string $userId         用户 ID
+     * @param string $notificationId 已写入的站内通知 ID
+     * @param array  $data           订阅消息 data（key 见 SUBSCRIBE_EVENT_SCENES.data_keys）
+     * @return bool 是否推送成功（未配置/无 openid/微信失败均 false）
+     */
+    public function sendSubscribeForNotification(string $scene, string $userId, string $notificationId, array $data): bool
+    {
+        try {
+            $sceneConfig = self::SUBSCRIBE_EVENT_SCENES[$scene] ?? null;
+            if ($sceneConfig === null) {
+                Log::warning('[NotificationReminder] unknown subscribe scene: ' . $scene);
+                return false;
+            }
+
+            // 幂等：该通知已推送过订阅消息则不再推送（失败不写标记，下次扫描可重试）
+            $pushSentAt = Notification::where('id', $notificationId)->value('push_sent_at');
+            if ($pushSentAt !== null) {
+                Log::info('[NotificationReminder] 订阅消息已推送过（push_sent_at 已写入），'
+                    . '跳过 notification=' . $notificationId . ' scene=' . $scene);
+                return false;
+            }
+
+            // 模板/凭据未配置齐全 → 降级仅站内通知
+            $templateId = (string) (getenv($sceneConfig['template_env']) ?: '');
+            if ($templateId === ''
+                || (string) (getenv('WECHAT_SUBSCRIBE_APP_ID') ?: '') === ''
+                || (string) (getenv('WECHAT_SUBSCRIBE_APP_SECRET') ?: '') === ''
+            ) {
+                Log::info('[NotificationReminder] ' . $sceneConfig['template_env'] . ' 未配置齐全，'
+                    . '跳过订阅消息（仅站内通知）notification=' . $notificationId);
+                return false;
+            }
+
+            // 用户 openid 缺失则无法投递
+            $openid = (string) (User::where('id', $userId)->value('wx_openid') ?? '');
+            if ($openid === '') {
+                Log::info('[NotificationReminder] 用户无 wx_openid，无法发送订阅消息 user=' . $userId);
+                return false;
+            }
+
+            $result = $this->makeWechatService()->sendSubscribeMessage($openid, $templateId, $data);
+
+            if (($result['errcode'] ?? -1) === 0) {
+                // 推送成功才写"已推送"标记；失败不写（日志可追踪，不阻塞主流程）
+                Db::table('erik_notification')
+                    ->where('id', $notificationId)
+                    ->update(['push_sent_at' => date('Y-m-d H:i:s')]);
+                Log::info('[NotificationReminder] 订阅消息发送成功 notification=' . $notificationId . ' scene=' . $scene);
+                return true;
+            }
+
+            Log::error('[NotificationReminder] 订阅消息发送失败 notification=' . $notificationId . ' scene=' . $scene
+                . ' errcode=' . ($result['errcode'] ?? -1)
+                . ' errmsg=' . ($result['errmsg'] ?? 'unknown'));
+            return false;
+        } catch (\Throwable $e) {
+            Log::error('[NotificationReminder] sendSubscribeForNotification exception: ' . $e->getMessage());
             return false;
         }
     }
