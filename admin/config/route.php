@@ -241,6 +241,12 @@ Route::group('/admin', function () {
     Route::get('/technicians/{id}/service-restrictions', [app\admin\controller\TechnicianController::class, 'serviceRestrictions']);
     Route::post('/technicians/gender-restrictions', [app\admin\controller\TechnicianController::class, 'updateRestrictions']);
 
+    // 技师排班管理（列表联查当日预约占用，实现排班维护 + 占位可见闭环）
+    Route::get('/schedules', [app\admin\controller\TechnicianScheduleController::class, 'index']);
+    Route::post('/schedules', [app\admin\controller\TechnicianScheduleController::class, 'store']);
+    Route::delete('/schedules/{id}', [app\admin\controller\TechnicianScheduleController::class, 'destroy']);
+    Route::put('/schedules/{id}/rest', [app\admin\controller\TechnicianScheduleController::class, 'setRest']);
+
     // 系统监控
     Route::get('/system-monitor', [app\admin\controller\SystemMonitorController::class, 'index']);
     Route::get('/system-monitor/processes', [app\admin\controller\SystemMonitorController::class, 'processes']);

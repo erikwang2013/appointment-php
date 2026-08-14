@@ -9,6 +9,7 @@ import '../pages/config/config_page.dart';
 import '../pages/log/log_page.dart';
 import '../pages/dashboard/dashboard_page.dart';
 import '../pages/profile/profile_page.dart';
+import '../pages/schedule/schedule_list_page.dart';
 
 class AdminLayout extends StatefulWidget {
   final Widget child;
@@ -34,6 +35,7 @@ class _AdminLayoutState extends State<AdminLayout> {
     RoleListPage(),
     ConfigPage(),
     LogPage(),
+    ScheduleListPage(),
   ];
 
   ResponsiveBreakpointsData get _bp => ResponsiveBreakpoints.of(context);
@@ -199,6 +201,11 @@ class _AdminLayoutState extends State<AdminLayout> {
         icon: Icon(Icons.description, size: 20),
         label: Text('操作日志'),
         selectedIcon: Icon(Icons.description, size: 20),
+      ),
+      NavigationDrawerDestination(
+        icon: Icon(Icons.calendar_month, size: 20),
+        label: Text('排班管理'),
+        selectedIcon: Icon(Icons.calendar_month, size: 20),
       ),
     ];
   }
