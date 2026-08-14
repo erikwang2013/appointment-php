@@ -1,0 +1,63 @@
+.balance-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24rpx 30rpx;
+}
+
+.balance-label {
+  color: #999;
+  font-size: 26rpx;
+}
+
+.balance-value {
+  color: #e74c3c;
+  font-size: 36rpx;
+  font-weight: 600;
+}
+
+.card-item {
+  margin-bottom: 20rpx;
+  padding: 24rpx 30rpx;
+}
+
+.card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.card-name {
+  font-size: 30rpx;
+  font-weight: 600;
+}
+
+.card-type {
+  font-size: 22rpx;
+  color: #e74c3c;
+  background: #fdecea;
+  padding: 4rpx 14rpx;
+  border-radius: 8rpx;
+}
+
+.card-desc {
+  display: flex;
+  gap: 40rpx;
+  margin-top: 16rpx;
+  color: #999;
+  font-size: 24rpx;
+}
+
+.buy-btn {
+  margin-top: 20rpx;
+  background: #e74c3c;
+  color: #fff;
+  font-size: 24rpx;
+}
+
+.empty {
+  padding: 120rpx 0;
+  text-align: center;
+  color: #999;
+  font-size: 26rpx;
+}

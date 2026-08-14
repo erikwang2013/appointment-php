@@ -1,0 +1,22 @@
+<view class="container">
+  <view class="balance-bar card">
+    <text class="balance-label">我的余额</text>
+    <text class="balance-value">¥{{balance}}</text>
+  </view>
+  <block wx:if="{{cards.length > 0}}">
+    <view class="card-item card" wx:for="{{cards}}" wx:key="id">
+      <view class="card-head">
+        <text class="card-name">{{item.name}}</text>
+        <text class="card-type">{{item.type === 'vip' ? 'VIP年卡' : '月卡'}}</text>
+      </view>
+      <view class="card-desc">
+        <text>有效期 {{item.duration_days}} 天</text>
+        <text>价格 ¥{{item.price}}</text>
+      </view>
+      <button class="buy-btn" size="mini" bindtap="onBuy" data-index="{{index}}">余额购买</button>
+    </view>
+  </block>
+  <view wx:else class="empty">
+    <text>暂无可购买会员卡</text>
+  </view>
+</view>

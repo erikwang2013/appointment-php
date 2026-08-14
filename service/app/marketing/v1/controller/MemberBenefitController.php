@@ -39,11 +39,11 @@ class MemberBenefitController extends BaseController
         // 获取有效会员卡
         $memberCards = UserMemberCard::where('user_id', $userId)
             ->where('status', 'active')
-            ->with('memberCard')
+            ->with('card')
             ->orderBy('level', 'desc')
             ->get()
             ->map(function ($uc) {
-                $card = $uc->memberCard;
+                $card = $uc->card;
                 return [
                     'id' => $uc->id,
                     'card_id' => $card->id ?? null,

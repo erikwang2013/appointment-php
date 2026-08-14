@@ -247,6 +247,9 @@ Route::group('/api/marketing', function () {
 
     Route::get('/benefits', v('marketing', 'MemberBenefitController', 'index'));
     Route::get('/benefits/birthday', v('marketing', 'MemberBenefitController', 'birthday'));
+    Route::get('/member-cards', v('marketing', 'MemberCardController', 'index'));
+    Route::post('/member-cards/buy', v('marketing', 'MemberCardController', 'buy'));
+    Route::get('/member-cards/my', v('marketing', 'MemberCardController', 'my'));
 })->middleware([
     app\middleware\ApiVersion::class,
     app\middleware\Auth::class,
