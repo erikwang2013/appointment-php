@@ -8,6 +8,7 @@ namespace app\api\v1\controller;
 use app\common\BaseController;
 use app\common\NotificationReminderService;
 use app\common\WechatPayService;
+use app\model\Notification;
 use app\model\Order;
 use app\model\OrderPayment;
 use app\model\UserWallet;
@@ -223,6 +224,21 @@ class PaymentNotifyController extends BaseController
                 'recharge_id'  => $recharge->id,
                 'remark'       => '余额充值',
             ]);
+
+            // 站内通知与入账同事务原子提交：重复回调走行锁+status 复验早退，仅首次入账写通知；
+            // 通知写入失败只记日志，不阻塞主流程（幂等已由充值单状态保证）
+            try {
+                Notification::create([
+                    'id'         => Notification::generateId(),
+                    'user_id'    => (string) $recharge->user_id,
+                    'type'       => 'wallet_recharge',
+                    'title'      => '充值到账',
+                    'content'    => '您已成功充值 ¥' . number_format((float) $recharge->amount, 2, '.', ''),
+                    'is_read'    => 0,
+                ]);
+            } catch (\Throwable $e) {
+                Log::warning('[PaymentNotify] recharge notification write failed, order_no: ' . $outTradeNo . ': ' . $e->getMessage());
+            }
 
             Db::commit();
 
