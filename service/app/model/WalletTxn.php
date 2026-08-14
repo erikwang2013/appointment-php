@@ -21,13 +21,17 @@ class WalletTxn extends Model
     public const TYPE_RECHARGE  = 'recharge';
     public const TYPE_CONSUME   = 'consume';
     public const TYPE_REFUND    = 'refund';
-    public const TYPE_GIFT_CARD = 'gift_card';
+    public const TYPE_GIFT_CARD      = 'gift_card';
+    public const TYPE_POINTS_EXCHANGE = 'points_exchange';
+    public const TYPE_REFERRAL_REWARD = 'referral_reward';
 
     public const TYPE_TEXT = [
-        self::TYPE_RECHARGE  => '充值',
-        self::TYPE_CONSUME   => '消费',
-        self::TYPE_REFUND    => '退款',
-        self::TYPE_GIFT_CARD => '礼品卡',
+        self::TYPE_RECHARGE       => '充值',
+        self::TYPE_CONSUME        => '消费',
+        self::TYPE_REFUND         => '退款',
+        self::TYPE_GIFT_CARD      => '礼品卡',
+        self::TYPE_POINTS_EXCHANGE => '积分兑换',
+        self::TYPE_REFERRAL_REWARD => '推荐返佣',
     ];
 
     public $timestamps = false; // 表仅 created_at（DB 默认 CURRENT_TIMESTAMP）
