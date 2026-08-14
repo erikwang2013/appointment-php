@@ -9,6 +9,7 @@ namespace app\admin\controller;
 
 use app\model\TechnicianTierConfig;
 use app\model\TechnicianProfile;
+use support\Db;
 use support\Request;
 use support\Response;
 
@@ -113,5 +114,60 @@ class TechnicianTierController extends BaseController
             'summary'     => $summary,
             'evaluated_at' => date('Y-m-d H:i:s'),
         ], '等级评估完成（仅供参考，未自动写入）');
+    }
+
+    /**
+     * 等级变更日志（分页）
+     * GET /admin/technician-tiers/logs
+     * 来源：service 端 TierRatingService 自动评定写 erik_technician_tier_log。
+     */
+    public function logs(Request $request): Response
+    {
+        $page  = (int) $request->input('page', 1);
+        $limit = (int) $request->input('per_page', 15);
+        if ($limit < 1 || $limit > 100) {
+            $limit = 15;
+        }
+
+        $query = Db::table('erik_technician_tier_log as log')
+            ->leftJoin('erik_technician_profile as p', 'p.id', '=', 'log.technician_id')
+            ->leftJoin('erik_technician_tier_config as old_t', 'old_t.id', '=', 'log.old_tier_id')
+            ->leftJoin('erik_technician_tier_config as new_t', 'new_t.id', '=', 'log.new_tier_id');
+
+        $total = (clone $query)->count();
+
+        $list = $query->select([
+                'log.id',
+                'log.technician_id',
+                'log.old_tier_id',
+                'log.new_tier_id',
+                'log.reason',
+                'log.created_at',
+                'p.real_name',
+                'old_t.name as old_tier_name',
+                'new_t.name as new_tier_name',
+            ])
+            ->orderBy('log.id', 'desc')
+            ->offset(($page - 1) * $limit)
+            ->limit($limit)
+            ->get()
+            ->map(function ($row) {
+                $row->id = $this->encodeId((int) $row->id);
+                $row->technician_id = $this->encodeId((int) $row->technician_id);
+                if ($row->old_tier_id) {
+                    $row->old_tier_id = $this->encodeId((int) $row->old_tier_id);
+                }
+                if ($row->new_tier_id) {
+                    $row->new_tier_id = $this->encodeId((int) $row->new_tier_id);
+                }
+                return $row;
+            });
+
+        return $this->success([
+            'list'  => $list,
+            'total' => $total,
+            'page'  => $page,
+            'per_page' => $limit,
+        ]);
     }
 }

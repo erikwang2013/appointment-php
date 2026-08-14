@@ -6,8 +6,10 @@ declare(strict_types=1);
 namespace app\technician\v1\controller;
 
 use app\common\BaseController;
+use app\common\TierRatingService;
 use app\model\TechnicianProfile;
 use app\model\User;
+use support\Log;
 use Webman\Http\Request;
 
 /**
@@ -29,6 +31,13 @@ class ProfileController extends BaseController
             return $this->error('技师档案不存在', 404);
         }
 
+        // 懒判定：查看资料时顺带评定等级（幂等：等级未变化不写日志不发通知）
+        try {
+            TierRatingService::evaluate($technicianId);
+        } catch (\Throwable $e) {
+            Log::warning('[ProfileController] tier evaluate failed: ' . $e->getMessage());
+        }
+        $profile = TechnicianProfile::find($technicianId);
         $profile->load('user');
 
         $data = $profile->toArray();

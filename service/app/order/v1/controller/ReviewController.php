@@ -6,8 +6,10 @@ declare(strict_types=1);
 namespace app\order\v1\controller;
 
 use app\common\BaseController;
+use app\common\TierRatingService;
 use app\model\Order;
 use app\model\OrderReview;
+use support\Log;
 use Webman\Http\Request;
 
 /**
@@ -69,6 +71,13 @@ class ReviewController extends BaseController
             'images'         => $images,
             'status'         => OrderReview::STATUS_VISIBLE,
         ]);
+
+        // 评价写入后懒判定技师等级（幂等：等级未变化不写日志不发通知）
+        try {
+            TierRatingService::evaluate((string) $order->technician_id);
+        } catch (\Throwable $e) {
+            Log::warning('[ReviewController] tier evaluate failed: ' . $e->getMessage());
+        }
 
         return $this->success($review, '评价成功');
     }

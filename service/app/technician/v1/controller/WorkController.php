@@ -7,6 +7,7 @@ namespace app\technician\v1\controller;
 
 use app\common\BaseController;
 use app\common\ReferralRewardService;
+use app\common\TierRatingService;
 use app\model\Notification;
 use app\model\Order;
 use support\Db;
@@ -234,6 +235,13 @@ class WorkController extends BaseController
         }
 
         $this->notifyUser($order, '服务已完成', '您的订单 ' . $order->order_no . ' 已完成，感谢您的光临，欢迎评价本次服务。');
+
+        // 完成订单后懒判定技师等级（幂等：等级未变化不写日志不发通知）
+        try {
+            TierRatingService::evaluate((string) $order->technician_id);
+        } catch (\Throwable $e) {
+            Log::warning('[WorkController] tier evaluate failed: ' . $e->getMessage());
+        }
 
         return $this->success($order, '完成服务成功');
     }

@@ -258,6 +258,7 @@ Route::group('/admin', function () {
     Route::get('/technician-tiers', [app\admin\controller\TechnicianTierController::class, 'index']);
     Route::put('/technician-tiers/{id}', [app\admin\controller\TechnicianTierController::class, 'update']);
     Route::post('/technician-tiers/assign', [app\admin\controller\TechnicianTierController::class, 'assign']);
+    Route::get('/technician-tiers/logs', [app\admin\controller\TechnicianTierController::class, 'logs']);
 
     // ============================================================
     // 卡项设计
