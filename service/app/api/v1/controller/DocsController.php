@@ -17,7 +17,7 @@ class DocsController
 
     private function buildSpec(): array
     {
-        $baseUrl = rtrim((string) config('app.url', 'http://localhost:8788'), '/');
+        $baseUrl = rtrim((string) config('app.url', 'http://localhost:8787'), '/');
 
         return [
             'openapi' => '3.0.3',

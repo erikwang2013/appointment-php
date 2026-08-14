@@ -204,8 +204,9 @@ Route::group('/admin', function () {
     Route::post('/training/remind/{technician_id}', [app\admin\controller\TrainingController::class, 'remind']);
 
     // 调度任务
+    // M9: auto-cancel 已下线——与 service 端 AutoCancelTimer（30s 有锁扫描）重复，
+    // 统一由 service 进程驱动；其余任务仍为 HTTP 触发（需 cron 接入）
     Route::get('/scheduled-tasks', [app\admin\controller\ScheduledTaskController::class, 'index']);
-    Route::post('/scheduled-tasks/auto-cancel', [app\admin\controller\ScheduledTaskController::class, 'autoCancel']);
     Route::post('/scheduled-tasks/auto-settle', [app\admin\controller\ScheduledTaskController::class, 'autoSettle']);
     Route::post('/scheduled-tasks/expire-coupons', [app\admin\controller\ScheduledTaskController::class, 'expireCoupons']);
     Route::post('/scheduled-tasks/expire-member-cards', [app\admin\controller\ScheduledTaskController::class, 'expireMemberCards']);
@@ -219,10 +220,8 @@ Route::group('/admin', function () {
     Route::get('/batch-messages/history', [app\admin\controller\BatchMessageController::class, 'history']);
     Route::post('/batch-messages/send', [app\admin\controller\BatchMessageController::class, 'send']);
 
-    // 退款审批工作流
-    Route::get('/refund-workflows/pending', [app\admin\controller\RefundWorkflowController::class, 'pending']);
-    Route::post('/refund-workflows/{id}/approve', [app\admin\controller\RefundWorkflowController::class, 'approve']);
-    Route::post('/refund-workflows/{id}/reject', [app\admin\controller\RefundWorkflowController::class, 'reject']);
+    // M6: 退款审批工作流已下线——该控制器操作的是技师提现（与用户退款无关），
+    // 用户退款由 service 端同步自动退款闭环完成，路由与控制器均已废弃
 
     // 技师等级
     Route::get('/technician-tiers', [app\admin\controller\TechnicianTierController::class, 'index']);

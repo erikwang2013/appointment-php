@@ -582,9 +582,15 @@ class WechatPayService
 
             $order = \app\model\Order::find($payment->order_id);
 
-            // 幂等：订单已非 pending（如已取消），不再消费与改状态
+            // 幂等：订单已非 pending（如已取消/已退款），不再消费与改状态
             if ($order && $order->status !== \app\model\Order::STATUS_PENDING) {
                 \support\Db::rollBack();
+
+                // B1 兜底：订单已 cancelled 但微信侧已扣款 → 支付记录置 success + 自动全额退款（两段式），绝不静默跳过
+                if ($order->status === \app\model\Order::STATUS_CANCELLED && $totalFee > 0) {
+                    return $this->autoRefundCancelledOrder($payment, $order, $transactionId, $totalFee);
+                }
+
                 Log::info('[WechatPay markOrderPaid] order not pending, skip: ' . $outTradeNo . ', status: ' . $order->status);
                 return ['success' => true, 'message' => 'OK'];
             }
@@ -646,6 +652,79 @@ class WechatPayService
             Log::error('[WechatPay markOrderPaid] exception: ' . $e->getMessage() . ', out_trade_no: ' . $outTradeNo);
             return ['success' => false, 'message' => '处理异常: ' . $e->getMessage()];
         }
+    }
+
+    /**
+     * B1 兜底：已取消订单收到支付回调 → 记录支付成功并自动全额退款（两段式）
+     *
+     * 阶段一：事务内支付记录置 success + 建退款单(pending)；
+     * 阶段二：事务外调微信退款；失败则退款单置 failed、支付记录回退 pending
+     * （回调返回失败 → 微信将重试通知，下次回调重新触发退款）。
+     *
+     * @return array{success: bool, message: string}
+     */
+    private function autoRefundCancelledOrder($payment, $order, string $transactionId, float $totalFee): array
+    {
+        // 阶段一：事务内支付记录置 success + 建退款单(pending)
+        try {
+            \support\Db::beginTransaction();
+            $payment->transaction_id = $transactionId;
+            $payment->amount = $totalFee;
+            $payment->paid_at = date('Y-m-d H:i:s');
+            $payment->status = \app\model\OrderPayment::STATUS_SUCCESS;
+            $payment->save();
+
+            $refundRecord = \app\model\OrderRefund::create([
+                'id'         => \app\model\OrderRefund::generateId(),
+                'order_id'   => $order->id,
+                'payment_id' => $payment->id,
+                'refund_no'  => \app\model\OrderRefund::generateRefundNo(),
+                'amount'     => $totalFee,
+                'ratio'      => 1.00,
+                'reason'     => '订单已取消，自动全额退款',
+                'status'     => \app\model\OrderRefund::STATUS_PENDING,
+            ]);
+            \support\Db::commit();
+        } catch (\Throwable $e) {
+            \support\Db::rollBack();
+            Log::error('[WechatPay autoRefundCancelledOrder] phase1 failed: ' . $e->getMessage() . ', order_no: ' . $order->order_no);
+            return ['success' => false, 'message' => '自动退款登记失败'];
+        }
+
+        // 阶段二：事务外调微信退款
+        $result = $this->refund($order->order_no, $refundRecord->refund_no, (float)$totalFee, (float)$totalFee);
+        if (!empty($result['error'])) {
+            Log::error('[WechatPay autoRefundCancelledOrder] refund failed, order_no: ' . $order->order_no . ', error: ' . $result['error']);
+            // 退款单置 failed，支付记录回退 pending（微信重试回调时重新触发退款）
+            try {
+                \support\Db::beginTransaction();
+                $refundRecord->status = \app\model\OrderRefund::STATUS_FAILED;
+                $refundRecord->save();
+                $payment->status = \app\model\OrderPayment::STATUS_PENDING;
+                $payment->save();
+                \support\Db::commit();
+            } catch (\Throwable $e2) {
+                \support\Db::rollBack();
+                Log::error('[WechatPay autoRefundCancelledOrder] rollback persist failed: ' . $e2->getMessage());
+            }
+            return ['success' => false, 'message' => '自动退款失败，微信将重试通知'];
+        }
+
+        // 退款成功：退款单置 success + refunded_at（订单保持 cancelled 终态）
+        try {
+            \support\Db::beginTransaction();
+            $refundRecord->status = \app\model\OrderRefund::STATUS_SUCCESS;
+            $refundRecord->refunded_at = date('Y-m-d H:i:s');
+            $refundRecord->save();
+            \support\Db::commit();
+        } catch (\Throwable $e2) {
+            \support\Db::rollBack();
+            Log::error('[WechatPay autoRefundCancelledOrder] success persist failed: ' . $e2->getMessage());
+            return ['success' => false, 'message' => '退款结果落库失败'];
+        }
+
+        Log::info('[WechatPay autoRefundCancelledOrder] cancelled order auto-refunded, order_no: ' . $order->order_no);
+        return ['success' => true, 'message' => 'OK'];
     }
 
     /**

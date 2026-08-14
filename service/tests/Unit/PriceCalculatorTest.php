@@ -251,17 +251,15 @@ class PriceCalculatorTest extends TestCase
 
     #[Test] public function calculate_fixed_coupon_by_definition_id(): void
     {
+        // M4: coupon_id 直通路径已禁用——券必须先领取（erik_user_coupon 领券记录），直通路径不校验有效期/状态且不消费
         $coupon = $this->makeCoupon('fixed', 5, 10);
 
-        $result = PriceCalculator::calculate(
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('请先领取优惠券');
+        PriceCalculator::calculate(
             [$this->item('S1', 12)],
             ['user_id' => $this->newUserId(), 'coupon_id' => $coupon->id]
         );
-
-        $this->assertSame(5.0, $result['discount_amount']);
-        $this->assertSame(7.0, $result['paid_amount']);
-        $this->assertSame((int) $coupon->id, $result['coupon_id']);
-        $this->assertNull($result['user_coupon_id']);
     }
 
     #[Test] public function calculate_rejects_used_user_coupon(): void
@@ -280,8 +278,9 @@ class PriceCalculatorTest extends TestCase
 
     #[Test] public function calculate_rejects_unknown_coupon(): void
     {
+        // M4: coupon_id 直通路径已禁用，未领取的券统一提示先领取（原提示 '优惠券不存在'）
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('优惠券不存在');
+        $this->expectExceptionMessage('请先领取优惠券');
         PriceCalculator::calculate(
             [$this->item('S1', 12)],
             ['user_id' => $this->newUserId(), 'coupon_id' => 999999999999999999]

@@ -74,6 +74,7 @@ class StoreController extends BaseController
         $store->images   = $request->input('images', []);
         $store->status   = (int) $request->input('status', 1);
         $store->save();
+        $this->clearSvcCache(); // 门店数据变更，失效 LBS 附近门店缓存（svc:lbs:stores:*）
 
         return $this->success($this->encodeIds($store->toArray()), '创建成功');
     }
@@ -128,6 +129,7 @@ class StoreController extends BaseController
             $store->status = (int) $request->input('status');
         }
         $store->save();
+        $this->clearSvcCache(); // 门店数据变更，失效 LBS 附近门店缓存（svc:lbs:stores:*）
 
         return $this->success($this->encodeIds($store->toArray()), '更新成功');
     }
@@ -150,6 +152,7 @@ class StoreController extends BaseController
         }
 
         $store->delete();
+        $this->clearSvcCache(); // 门店数据变更，失效 LBS 附近门店缓存（svc:lbs:stores:*）
         return $this->success([], '删除成功');
     }
 
@@ -166,6 +169,7 @@ class StoreController extends BaseController
 
         $store->status = $store->status === 1 ? 0 : 1;
         $store->save();
+        $this->clearSvcCache(); // 门店状态变更，失效 LBS 附近门店缓存（svc:lbs:stores:*）
 
         return $this->success(
             $this->encodeIds($store->toArray()),

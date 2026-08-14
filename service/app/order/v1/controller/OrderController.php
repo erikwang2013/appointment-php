@@ -10,13 +10,17 @@ use app\common\PriceCalculator;
 use app\common\PushService;
 use app\common\WechatPayService;
 use app\common\WechatTemplateMessageService;
+use app\model\MemberCardUsage;
 use app\model\Order;
 use app\model\OrderItem;
 use app\model\OrderPayment;
 use app\model\OrderRefund;
 use app\model\OrderVerification;
+use app\model\TechnicianEarning;
 use app\model\TechnicianProfile;
 use app\model\User;
+use app\model\UserCoupon;
+use app\model\UserMemberCard;
 use Illuminate\Support\Facades\Redis;
 use support\Db;
 use support\Log;
@@ -127,6 +131,17 @@ class OrderController extends BaseController
 
         Db::beginTransaction();
         try {
+            // B2: 排班冲突 DB 校验（防超卖兜底）——同技师同 service_time 已有 pending/paid 订单则拒绝
+            if ($orderType === Order::ORDER_TYPE_APPOINTMENT && $technicianId && $serviceTime) {
+                $conflict = Order::where('technician_id', $technicianId)
+                    ->where('service_time', $serviceTime)
+                    ->whereIn('status', [Order::STATUS_PENDING, Order::STATUS_PAID])
+                    ->exists();
+                if ($conflict) {
+                    throw new \InvalidArgumentException('该时段技师已被预约，请选择其他时间段');
+                }
+            }
+
             // 优惠计价引擎（互斥：次卡/券/积分 一次订单仅一种；内部全程按分计算）
             $pricing = PriceCalculator::calculate($items, [
                 'user_id'              => $userId,
@@ -241,6 +256,10 @@ class OrderController extends BaseController
      */
     public function show(Request $request, string $id)
     {
+        $id = $this->decodeId((string)$id);
+        if ($id === null) {
+            return $this->error('订单不存在', 404);
+        }
         $userId = $request->user_id;
 
         $order = Order::with(['items', 'payment', 'technician', 'store', 'verification', 'review'])
@@ -265,8 +284,13 @@ class OrderController extends BaseController
      */
     public function cancel(Request $request, string $id)
     {
+        $id = $this->decodeId((string)$id);
+        if ($id === null) {
+            return $this->error('订单不存在', 404);
+        }
         $userId = $request->user_id;
 
+        // B1: 统一 per-order 互斥锁（pay/cancel/refund/支付回调/自动取消共用 order_lock）
         $order = Order::where('user_id', $userId)
             ->where('id', $id)
             ->first();
@@ -275,18 +299,23 @@ class OrderController extends BaseController
             return $this->error('订单不存在', 404);
         }
 
-        if (!in_array($order->status, [Order::STATUS_PENDING, Order::STATUS_PAID], true)) {
-            return $this->error('当前订单状态不可取消');
-        }
-
-        // 防并发取消锁（NX EX 35s，token 校验释放），拿不到锁说明取消流程处理中
-        $lockKey = 'cancel_lock:' . $order->id;
+        $lockKey = 'order_lock:' . $order->id;
         $lockToken = $this->acquireLock($lockKey);
         if ($lockToken === null) {
             return $this->error('操作处理中，请稍后再试');
         }
 
         try {
+            // 锁内重新读取订单并校验状态（防并发：支付回调/自动取消与取消同锁互斥）
+            $order = Order::where('user_id', $userId)
+                ->where('id', $id)
+                ->first();
+            if (!$order) {
+                return $this->error('订单不存在', 404);
+            }
+            if (!in_array($order->status, [Order::STATUS_PENDING, Order::STATUS_PAID], true)) {
+                return $this->error('当前订单状态不可取消');
+            }
             return $this->doCancel($request, $order);
         } finally {
             $this->releaseLock($lockKey, $lockToken);
@@ -294,14 +323,44 @@ class OrderController extends BaseController
     }
 
     /**
-     * 取消订单（在 cancel_lock 内执行）
+     * 取消订单（在 order_lock 内执行）
      *
      * 阶段一：事务内建退款单(pending) + 订单置 cancelled 并提交；
      * 阶段二：事务外调微信退款；失败回滚订单为 paid（可重试），成功订单置 refunded。
+     * 优惠归还（M3）：仅订单终态为 cancelled/refunded 时归还券/次卡（退款失败回滚则保持已消费）。
      */
     private function doCancel(Request $request, Order $order)
     {
         $cancelReason = $request->input('cancel_reason', '');
+
+        // B1.3: cancel 前查微信——订单存在 pending 支付记录时，先确认微信侧未支付；
+        // 若微信侧已支付（回调未达），先落库对齐为 paid，再走退款路径而非置 cancelled。
+        $payment = $order->payment()->first();
+        if ($payment && $payment->status === OrderPayment::STATUS_PENDING) {
+            $queryResult = (new WechatPayService())->queryOrder($order->order_no);
+            if (!empty($queryResult['error'])) {
+                return $this->error('无法确认支付状态，请稍后再试');
+            }
+            $tradeState = (string)($queryResult['trade_state'] ?? '');
+            if ($tradeState === 'SUCCESS') {
+                // 微信侧已支付：标记支付成功（幂等单一消费点），订单对齐为 paid 后走退款路径
+                $mark = (new WechatPayService())->markOrderPaid(
+                    $payment->payment_no,
+                    (string)($queryResult['transaction_id'] ?? ''),
+                    (float)($queryResult['total_fee'] ?? 0) / 100,
+                    'wechat'
+                );
+                if (empty($mark['success'])) {
+                    return $this->error('支付状态同步失败，请稍后再试');
+                }
+                $order = $order->fresh();
+                if (!$order) {
+                    return $this->error('订单状态异常，请稍后再试');
+                }
+            } elseif (!in_array($tradeState, ['NOTPAY', 'CLOSED', 'REVOKED', 'USERPAYING', 'PAYERROR'], true)) {
+                return $this->error('支付状态异常，请稍后再试');
+            }
+        }
 
         // 阶段一：事务内建退款单(pending) + 订单置 cancelled 并提交；微信 IO 一律事务外
         $refundRecord = null;
@@ -371,7 +430,7 @@ class OrderController extends BaseController
                 return $this->error('退款处理失败请重试');
             }
 
-            // 小事务：退款单置 success + refunded_at，订单 refunded
+            // 小事务：退款单置 success + refunded_at，订单 refunded，归还券/次卡
             Db::beginTransaction();
             try {
                 $refundRecord->status = OrderRefund::STATUS_SUCCESS;
@@ -379,11 +438,23 @@ class OrderController extends BaseController
                 $refundRecord->save();
                 $order->status = Order::STATUS_REFUNDED;
                 $order->save();
+                // M3: 全额取消归还优惠券与次卡次数（与退款单同事务）
+                $this->restoreCouponAndCard($order);
                 Db::commit();
             } catch (\Throwable $e2) {
                 Db::rollBack();
                 Log::error('[OrderController] refund success persist failed: ' . $e2->getMessage());
                 return $this->error('退款处理失败请重试');
+            }
+        } else {
+            // 无退款路径的取消（未支付/全额优惠零元/比例=0）为终态 cancelled：归还券/次卡
+            Db::beginTransaction();
+            try {
+                $this->restoreCouponAndCard($order);
+                Db::commit();
+            } catch (\Throwable $e2) {
+                Db::rollBack();
+                Log::error('[OrderController] restore benefits on cancel failed: ' . $e2->getMessage());
             }
         }
 
@@ -402,8 +473,13 @@ class OrderController extends BaseController
      */
     public function pay(Request $request, string $id)
     {
+        $id = $this->decodeId((string)$id);
+        if ($id === null) {
+            return $this->error('订单不存在', 404);
+        }
         $userId = $request->user_id;
 
+        // B1: 统一 per-order 互斥锁（pay/cancel/refund/支付回调/自动取消共用 order_lock）
         $order = Order::where('user_id', $userId)
             ->where('id', $id)
             ->first();
@@ -412,18 +488,24 @@ class OrderController extends BaseController
             return $this->error('订单不存在', 404);
         }
 
-        if ($order->status !== Order::STATUS_PENDING) {
-            return $this->error('当前订单状态不可支付');
-        }
-
-        // 防并发支付锁（NX EX 35s，token 校验释放），拿不到锁说明支付流程处理中
-        $lockKey = 'pay_lock:' . $order->id;
+        $lockKey = 'order_lock:' . $order->id;
         $lockToken = $this->acquireLock($lockKey);
         if ($lockToken === null) {
             return $this->error('支付处理中，请稍后再试');
         }
 
         try {
+            // 锁内重新读取订单并校验状态
+            $order = Order::where('user_id', $userId)
+                ->where('id', $id)
+                ->first();
+            if (!$order) {
+                return $this->error('订单不存在', 404);
+            }
+            if ($order->status !== Order::STATUS_PENDING) {
+                return $this->error('当前订单状态不可支付');
+            }
+
             // 查找或创建支付记录
             $payment = OrderPayment::where('order_id', $order->id)->first();
 
@@ -507,8 +589,13 @@ class OrderController extends BaseController
      */
     public function refund(Request $request, string $id)
     {
+        $id = $this->decodeId((string)$id);
+        if ($id === null) {
+            return $this->error('订单不存在', 404);
+        }
         $userId = $request->user_id;
 
+        // B1: 统一 per-order 互斥锁（pay/cancel/refund/支付回调/自动取消共用 order_lock）
         $order = Order::where('user_id', $userId)
             ->where('id', $id)
             ->first();
@@ -517,23 +604,35 @@ class OrderController extends BaseController
             return $this->error('订单不存在', 404);
         }
 
-        if (!$order->isRefundable()) {
-            return $this->error('当前订单状态不可退款');
-        }
-
-        $ratio = $order->calcRefundRatio();
-        if ($ratio <= 0) {
-            return $this->error('当前订单不支持退款');
-        }
-
-        // 防并发退款锁（NX EX 35s，token 校验释放），拿不到锁说明退款流程处理中
-        $lockKey = 'refund_lock:' . $order->id;
+        $lockKey = 'order_lock:' . $order->id;
         $lockToken = $this->acquireLock($lockKey);
         if ($lockToken === null) {
             return $this->error('操作处理中，请稍后再试');
         }
 
         try {
+            // 锁内重新读取订单并校验状态
+            $order = Order::where('user_id', $userId)
+                ->where('id', $id)
+                ->first();
+            if (!$order) {
+                return $this->error('订单不存在', 404);
+            }
+
+            // M8: 核销即开始服务则不可退
+            if ($order->status === Order::STATUS_SERVING) {
+                return $this->error('服务已开始，不可退款');
+            }
+
+            if (!$order->isRefundable()) {
+                return $this->error('当前订单状态不可退款');
+            }
+
+            $ratio = $order->calcRefundRatio();
+            if ($ratio <= 0) {
+                return $this->error('当前订单不支持退款');
+            }
+
             return $this->doRefund($request, $order, $ratio);
         } finally {
             $this->releaseLock($lockKey, $lockToken);
@@ -607,7 +706,7 @@ class OrderController extends BaseController
             return $this->error('退款处理失败请重试');
         }
 
-        // 小事务：退款单置 success + refunded_at，订单 refunded
+        // 小事务：退款单置 success + refunded_at，订单 refunded；全额退款时归还券/次卡（M3）
         Db::beginTransaction();
         try {
             $refundRecord->status = OrderRefund::STATUS_SUCCESS;
@@ -615,6 +714,9 @@ class OrderController extends BaseController
             $refundRecord->save();
             $order->status = Order::STATUS_REFUNDED;
             $order->save();
+            if ($ratio >= 1.0) {
+                $this->restoreCouponAndCard($order);
+            }
             Db::commit();
         } catch (\Throwable $e2) {
             Db::rollBack();
@@ -663,38 +765,71 @@ class OrderController extends BaseController
             return $this->error('关联订单不存在', 404);
         }
 
-        if (!in_array($order->status, [Order::STATUS_PAID, Order::STATUS_CONFIRMED], true)) {
-            return $this->error('当前订单状态不可核销');
+        // B1: 统一 per-order 互斥锁，防核销与退款/取消并发
+        $lockKey = 'order_lock:' . $order->id;
+        $lockToken = $this->acquireLock($lockKey);
+        if ($lockToken === null) {
+            return $this->error('操作处理中，请稍后再试');
         }
 
-        // M1: 水平越权防护 —— 仅订单所属技师（已审核）可核销，拒绝任意登录用户越权操作
-        $technician = TechnicianProfile::where('user_id', $userId)
-            ->where('status', 'approved')
-            ->first();
-        if (!$technician || (string)$order->technician_id !== (string)$technician->id) {
-            return $this->error('无权限核销该订单', 403);
+        try {
+            // 锁内重新读取核销码与订单状态
+            $verification = OrderVerification::where('code', $code)->first();
+            if (!$verification) {
+                return $this->error('核销码无效', 404);
+            }
+            if ($verification->verified_at) {
+                return $this->error('该核销码已被使用');
+            }
+
+            $order = Order::find($verification->order_id);
+            if (!$order) {
+                return $this->error('关联订单不存在', 404);
+            }
+            if (!in_array($order->status, [Order::STATUS_PAID, Order::STATUS_CONFIRMED], true)) {
+                return $this->error('当前订单状态不可核销');
+            }
+
+            // M1: 水平越权防护 —— 仅订单所属技师（已审核）可核销，拒绝任意登录用户越权操作
+            $technician = TechnicianProfile::where('user_id', $userId)
+                ->where('status', 'approved')
+                ->first();
+            if (!$technician || (string)$order->technician_id !== (string)$technician->id) {
+                return $this->error('无权限核销该订单', 403);
+            }
+
+            $verifyType = $request->input('verify_type', OrderVerification::VERIFY_TYPE_SCAN);
+            $location   = $request->input('location', '');
+
+            $verification->verified_by  = $userId;
+            $verification->verify_type  = $verifyType;
+            $verification->location     = $location;
+            $verification->verified_at  = now();
+            $verification->save();
+
+            // 更新订单状态 + M1 生成技师收益（同事务；幂等：同 order_id 的 commission 不重复生成）
+            Db::beginTransaction();
+            try {
+                if ($order->status !== Order::STATUS_SERVING) {
+                    $order->status = Order::STATUS_SERVING;
+                    $order->service_start_at = now();
+                    $order->save();
+                }
+                $this->createCommissionEarning($order);
+                Db::commit();
+            } catch (\Throwable $e) {
+                Db::rollBack();
+                Log::error('[OrderController] verify persist failed: ' . $e->getMessage());
+                return $this->error('核销失败，请稍后重试');
+            }
+
+            // WebSocket 实时推送
+            $this->pushOrderUpdate($order);
+
+            return $this->success($order, '核销成功');
+        } finally {
+            $this->releaseLock($lockKey, $lockToken);
         }
-
-        $verifyType = $request->input('verify_type', OrderVerification::VERIFY_TYPE_SCAN);
-        $location   = $request->input('location', '');
-
-        $verification->verified_by  = $userId;
-        $verification->verify_type  = $verifyType;
-        $verification->location     = $location;
-        $verification->verified_at  = now();
-        $verification->save();
-
-        // 更新订单状态
-        if ($order->status !== Order::STATUS_SERVING) {
-            $order->status = Order::STATUS_SERVING;
-            $order->service_start_at = now();
-            $order->save();
-        }
-
-        // WebSocket 实时推送
-        $this->pushOrderUpdate($order);
-
-        return $this->success($order, '核销成功');
     }
 
     /**
@@ -729,6 +864,8 @@ class OrderController extends BaseController
 
     /**
      * 释放技师时间槽锁定
+     *
+     * B2: 校验持有者 token（锁值为下单用户 ID，仅归属匹配时删除，防误删他人锁）
      */
     private function releaseTechnicianLock(Order $order): void
     {
@@ -739,7 +876,110 @@ class OrderController extends BaseController
         $timeSlot = date('YmdHi', $order->service_time->getTimestamp());
         $lockKey = "technician_lock:{$order->technician_id}:{$timeSlot}";
 
-        Redis::connection()->del($lockKey);
+        $redis = Redis::connection();
+        if ((string)($redis->get($lockKey) ?? '') === (string)$order->user_id) {
+            $redis->del($lockKey);
+        }
+    }
+
+    /**
+     * M1: 核销成功后生成技师佣金收益（幂等：同订单同类型不重复生成）
+     *
+     * 金额 = 订单实付 × 佣金率（erik_technician_commission_config.commission_rate，百分比）。
+     * 状态初始 pending（待结算），由 autoSettle 置 settled，提现时置 withdrawn。
+     */
+    private function createCommissionEarning(Order $order): void
+    {
+        if (!$order->technician_id || (float)$order->paid_amount <= 0) {
+            return;
+        }
+
+        // 幂等：同 order_id 的 commission 收益已存在则不重复生成
+        $exists = TechnicianEarning::where('order_id', $order->id)
+            ->where('type', 'commission')
+            ->exists();
+        if ($exists) {
+            return;
+        }
+
+        $rate = (float) Db::table('erik_technician_commission_config')
+            ->where('technician_id', $order->technician_id)
+            ->value('commission_rate');
+        if ($rate <= 0) {
+            return; // 未配置佣金率则不生成收益
+        }
+
+        $amount = round((float)$order->paid_amount * $rate / 100, 2);
+        if ($amount <= 0) {
+            return;
+        }
+
+        TechnicianEarning::create([
+            'id'            => TechnicianEarning::generateId(),
+            'technician_id' => $order->technician_id,
+            'order_id'      => $order->id,
+            'type'          => 'commission',
+            'amount'        => $amount,
+            'description'   => '服务佣金（订单 ' . $order->order_no . '）',
+            'status'        => 'pending',
+        ]);
+    }
+
+    /**
+     * M3: 归还订单使用的优惠券与次卡次数（仅终态为 cancelled/refunded 时调用，幂等）
+     *
+     * - 优惠券：used → available（条件更新，防并发重复归还）
+     * - 次卡：按使用记录数扣回 used_times，used_up 恢复 active，使用记录软置 cancelled
+     */
+    private function restoreCouponAndCard(Order $order): void
+    {
+        // 优惠券归还（幂等：仅 status=used 时可置回 available）
+        if ((int)$order->user_coupon_id > 0) {
+            UserCoupon::where('id', $order->user_coupon_id)
+                ->where('status', 'used')
+                ->update(['status' => 'available', 'used_at' => null]);
+        }
+
+        $this->restoreMemberCardTimes($order);
+    }
+
+    /**
+     * M3: 次卡次数归还（consume 的逆操作）
+     *
+     * 订单的 member_card_usage_id 列在支付后回写为首条使用记录 ID（非卡片 ID），
+     * 因此按 order_id 查使用记录获取卡片与扣回次数。
+     */
+    private function restoreMemberCardTimes(Order $order): void
+    {
+        if ((int)$order->member_card_usage_id <= 0) {
+            return;
+        }
+
+        $usages = MemberCardUsage::where('order_id', $order->id)
+            ->where('status', 'active')
+            ->get();
+        if ($usages->isEmpty()) {
+            return;
+        }
+
+        $count  = $usages->count();
+        $cardId = (int)$usages->first()->user_card_id;
+
+        // 原子扣回（防并发重复归还）
+        UserMemberCard::where('id', $cardId)
+            ->whereRaw('used_times - ? >= 0', [$count])
+            ->decrement('used_times', $count);
+
+        // used_up → active 恢复
+        $card = UserMemberCard::find($cardId);
+        if ($card && $card->status === 'used_up' && (int)$card->used_times < (int)$card->total_times) {
+            $card->status = 'active';
+            $card->save();
+        }
+
+        // 使用记录软置 cancelled（保留审计轨迹）
+        MemberCardUsage::whereIn('id', $usages->pluck('id'))
+            ->update(['status' => 'cancelled']);
     }
 
     /**

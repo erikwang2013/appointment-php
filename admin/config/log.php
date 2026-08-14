@@ -16,6 +16,17 @@
  * @license   http://www.opensource.org/licenses/mit-license.php MIT License
  */
 
+// 日志级别由环境变量 LOG_LEVEL 控制（DEBUG/INFO/WARNING/ERROR/CRITICAL），默认 DEBUG
+// 生产环境建议设置 LOG_LEVEL=INFO，避免 DEBUG 日志刷盘
+$logLevelMap = [
+    'DEBUG'     => Monolog\Logger::DEBUG,
+    'INFO'      => Monolog\Logger::INFO,
+    'WARNING'   => Monolog\Logger::WARNING,
+    'ERROR'     => Monolog\Logger::ERROR,
+    'CRITICAL'  => Monolog\Logger::CRITICAL,
+];
+$logLevel = $logLevelMap[strtoupper((string)getenv('LOG_LEVEL', 'DEBUG'))] ?? Monolog\Logger::DEBUG;
+
 return [
     'default' => [
         'handlers' => [
@@ -24,7 +35,7 @@ return [
                 'constructor' => [
                     runtime_path() . '/logs/webman.log',
                     7, //$maxFiles
-                    Monolog\Logger::DEBUG,
+                    $logLevel,
                 ],
                 'formatter' => [
                     'class' => Monolog\Formatter\LineFormatter::class,

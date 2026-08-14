@@ -34,12 +34,24 @@ class AutoCancelTimer
     private const SCAN_INTERVAL = 30;
 
     /**
+     * M7: 核销后未完成自动确认完成的时间（小时）
+     *
+     * 设计文档语义为"3 天内自动确认"，此处按业务取 24h（核销后服务时长一般远小于 1 天），
+     * 如需调整仅改此常量（可配置化入口）。
+     */
+    private const AUTO_COMPLETE_HOURS = 24;
+
+    /**
      * 构造函数 — 注册定时器
      */
     public function __construct()
     {
         Timer::add(self::SCAN_INTERVAL, function (): void {
             $this->scanAndCancel();
+        });
+        // M7: serving 超时自动完成（与自动取消同频扫描）
+        Timer::add(self::SCAN_INTERVAL, function (): void {
+            $this->scanAndComplete();
         });
     }
 
@@ -79,6 +91,61 @@ class AutoCancelTimer
             }
         } catch (\Throwable $e) {
             Log::error('[AutoCancelTimer] Scan error: ' . $e->getMessage()
+                . "\n" . $e->getTraceAsString());
+        }
+    }
+
+    /**
+     * M7: 扫描核销后超时未完成的 serving 订单，自动置 completed
+     *
+     * 条件：status=serving 且 service_start_at < now - AUTO_COMPLETE_HOURS 小时。
+     * 与自动取消同模式（每批 50 条，lockForUpdate 防并发）。
+     */
+    public function scanAndComplete(): void
+    {
+        $cutoffTime = date('Y-m-d H:i:s', time() - self::AUTO_COMPLETE_HOURS * 3600);
+
+        try {
+            $orders = Order::where('status', Order::STATUS_SERVING)
+                ->where('service_start_at', '<', $cutoffTime)
+                ->limit(50)
+                ->get();
+
+            if ($orders->isEmpty()) {
+                return;
+            }
+
+            $completedCount = 0;
+
+            foreach ($orders as $order) {
+                try {
+                    $done = Db::transaction(function () use ($order): bool {
+                        $locked = Order::where('id', $order->id)
+                            ->where('status', Order::STATUS_SERVING)
+                            ->lockForUpdate()
+                            ->first();
+                        if (!$locked) {
+                            return false; // 已被其他进程处理
+                        }
+                        $locked->status = Order::STATUS_COMPLETED;
+                        $locked->service_end_at = date('Y-m-d H:i:s');
+                        $locked->save();
+                        return true;
+                    });
+                    if ($done) {
+                        $completedCount++;
+                    }
+                } catch (\Throwable $e) {
+                    Log::error('[AutoCancelTimer] Failed to auto-complete order '
+                        . ($order->id ?? 'unknown') . ': ' . $e->getMessage());
+                }
+            }
+
+            if ($completedCount > 0) {
+                Log::info('[AutoCancelTimer] Auto-completed ' . $completedCount . ' serving orders');
+            }
+        } catch (\Throwable $e) {
+            Log::error('[AutoCancelTimer] scanAndComplete error: ' . $e->getMessage()
                 . "\n" . $e->getTraceAsString());
         }
     }
@@ -147,6 +214,9 @@ class AutoCancelTimer
      * 释放技师排班锁定
      *
      * 从 schedule 的时间槽中移除原预约，恢复可用状态
+     * B2: 排班结构为 [{start:"09:00", end:"12:00", ...}]（见 ScheduleController::update
+     * 与 TechnicianController::schedule 的 status 默认 'available'），按 start/time 键匹配
+     * 并写回字符串 'available'，修复原逻辑按 $slot['time']/int 0 匹配导致的永久 no-op。
      *
      * @param string $technicianId 技师 ID
      * @param string $date         Y-m-d 格式日期
@@ -168,10 +238,16 @@ class AutoCancelTimer
                 return;
             }
 
+            $match = substr($timeSlot, 0, 5); // 'H:i:00' → 'H:i'
+
             // 恢复该时间槽为可用
             foreach ($slots as &$slot) {
-                if (isset($slot['time']) && $slot['time'] === $timeSlot) {
-                    $slot['status'] = 0;      // 0 = 可用
+                if (!is_array($slot)) {
+                    continue;
+                }
+                $slotTime = (string)($slot['start'] ?? $slot['time'] ?? '');
+                if ($slotTime !== '' && ($slotTime === $match || $slotTime === $timeSlot)) {
+                    $slot['status'] = 'available'; // 与排班读取端默认值一致（字符串）
                     $slot['order_id'] = null;
                     break;
                 }

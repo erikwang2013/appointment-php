@@ -666,6 +666,7 @@ CREATE TABLE IF NOT EXISTS `erik_order` (
     KEY `idx_created_at` (`created_at`),
     KEY `idx_user_status` (`user_id`, `status`),
     KEY `idx_tech_status` (`technician_id`, `status`),
+    KEY `idx_tech_service_time` (`technician_id`, `service_time`),
     KEY `idx_status_created` (`status`, `created_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='订单主表';
 
@@ -843,7 +844,9 @@ CREATE TABLE IF NOT EXISTS `erik_member_card_usage` (
     `user_card_id` BIGINT UNSIGNED NOT NULL COMMENT '用户会员卡ID',
     `order_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '关联订单ID',
     `service_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '使用的服务项目ID',
-    `used_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '使用时间',    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `used_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '使用时间',
+    `status` VARCHAR(20) NOT NULL DEFAULT 'active' COMMENT '状态: active=有效 cancelled=已撤销（退款/取消归还）',
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
 
     PRIMARY KEY (`id`),

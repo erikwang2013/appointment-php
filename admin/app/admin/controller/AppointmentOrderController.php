@@ -110,6 +110,11 @@ class AppointmentOrderController extends BaseController
             return $this->fail('订单已取消或已退款', 422);
         }
 
+        // M5: 已支付及以上状态拒绝直接取消（资金安全：直接置 cancelled 会导致已扣款无退款路径）
+        if (in_array($order->status, ['paid', 'confirmed', 'serving', 'completed', 'refunding'], true)) {
+            return $this->fail('已支付订单请走退款流程', 422);
+        }
+
         $reason = $request->input('cancel_reason', '平台取消');
         $order->status        = 'cancelled';
         $order->cancel_reason = $reason;

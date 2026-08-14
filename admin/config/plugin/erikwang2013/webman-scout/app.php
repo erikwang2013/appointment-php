@@ -47,6 +47,9 @@ return [
     |
     */
 
+    // 队列不可用：项目未安装 webman/redis-queue 依赖，也无 queue 消费进程。
+    // 若开启将产生无法被消费的孤儿队列。ES 同步需另行接入（当前为同步模式）。
+    // 生产保持 false/未设置即可；如需启用队列同步，需先引入 webman/redis-queue 并配置消费进程。
     'queue' => getenv('OPENSEARCH_SCOUT_QUEUE', false),
 
     /*

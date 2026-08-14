@@ -119,6 +119,13 @@ class TechnicianController extends BaseController
             return $this->error('技师不存在');
         }
 
+        // Redis 缓存 5 分钟（读多写少），管理端技师/排班写操作按 svc:* 前缀失效
+        $cacheKey = 'svc:technician:show:' . $decodedId;
+        $cached = Redis::get($cacheKey);
+        if ($cached !== null && $cached !== false) {
+            return json(json_decode($cached, true));
+        }
+
         $profile = TechnicianProfile::where('status', 'approved')
             ->with('user')
             ->find($decodedId);
@@ -182,7 +189,7 @@ class TechnicianController extends BaseController
                 ];
             });
 
-        return $this->success([
+        $response = $this->success([
             'id' => $profile->id,
             'name' => $profile->user->nickname ?? '',
             'avatar' => $profile->avatar ?? ($profile->user->avatar ?? ''),
@@ -195,6 +202,8 @@ class TechnicianController extends BaseController
             'reviews' => $reviews,
             'schedule' => $schedules,
         ]);
+        Redis::setex($cacheKey, 300, $response->rawBody());
+        return $response;
     }
 
     /**

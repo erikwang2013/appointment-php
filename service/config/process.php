@@ -23,8 +23,9 @@ global $argv;
 return [
     'webman' => [
         'handler' => Http::class,
-        'listen' => 'http://0.0.0.0:8798',
-        'count' => cpu_count() * 4,
+        // 业务 API 统一监听 8787（与 nginx proxy_pass http://app:8787、Dockerfile EXPOSE 8787 一致）
+        'listen' => 'http://0.0.0.0:8787',
+        'count' => (int)(getenv('PROCESS_COUNT') ?: (cpu_count() * 4)),
         'user' => '',
         'group' => '',
         'reusePort' => false,

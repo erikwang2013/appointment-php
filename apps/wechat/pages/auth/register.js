@@ -20,10 +20,10 @@ Page({
       wx.showToast({ title: '请输入手机号', icon: 'none' });
       return;
     }
-    api.post('/auth/send-sms', { phone: this.data.phone }).then(() => {
+    api.post('/captcha/send', { phone: this.data.phone }).then(() => {
       wx.showToast({ title: '验证码已发送', icon: 'success' });
     }).catch(err => {
-      wx.showToast({ title: err.msg || '发送失败', icon: 'none' });
+      wx.showToast({ title: err.message || '发送失败', icon: 'none' });
     });
   },
   doRegister() {
@@ -41,12 +41,12 @@ Page({
       return;
     }
     api.post('/auth/register', {
-      phone, code, password, referralCode
+      phone, code, password, confirm_password: confirmPassword, referral_code: referralCode
     }).then(res => {
       wx.showToast({ title: '注册成功', icon: 'success' });
       setTimeout(() => wx.navigateBack(), 1500);
     }).catch(err => {
-      wx.showToast({ title: err.msg || '注册失败', icon: 'none' });
+      wx.showToast({ title: err.message || '注册失败', icon: 'none' });
     });
   },
   goLogin() {

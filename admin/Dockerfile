@@ -17,11 +17,15 @@ RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
         oniguruma-dev \
         libxml2-dev \
         curl \
+        curl-dev \
+        libzip-dev \
         git \
         unzip \
     && docker-php-source extract
 
 # PHP 扩展
+# 环境要求（docs/INSTALL.md）: bcmath, curl, gd, mbstring, pdo, pdo_mysql, pcntl, redis
+# zip 为 phpspreadsheet（Excel 导入导出）必需
 RUN docker-php-ext-install -j$(nproc) \
         pdo pdo_mysql \
         pcntl \
@@ -30,7 +34,15 @@ RUN docker-php-ext-install -j$(nproc) \
         xml \
         dom \
         xmlwriter \
+        curl \
+        bcmath \
+        zip \
     && docker-php-ext-enable opcache pcntl
+
+# Redis 扩展（alpine 基础镜像不含 pecl 扩展，需单独编译安装）
+# 限流/缓存/Session 均依赖 ext-redis（webman/redis + illuminate/redis）
+RUN pecl install redis \
+    && docker-php-ext-enable redis
 
 # OPcache 生产配置
 RUN echo "opcache.enable=1" >> "$PHP_INI_DIR/php.ini" \

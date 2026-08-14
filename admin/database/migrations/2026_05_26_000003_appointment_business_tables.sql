@@ -1038,3 +1038,14 @@ CREATE TABLE IF NOT EXISTS `erik_waitlist` (
     KEY `idx_service_id` (`service_id`),
     KEY `idx_technician_id` (`technician_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='排队候补表';
+
+-- ============================================================
+-- [B2/M3 补充] 订单表技师-时段复合索引 + 次卡使用记录状态列
+-- idx_tech_service_time: 支撑下单排班冲突查询 (technician_id, service_time)
+-- erik_member_card_usage.status: 退款/取消归还次卡时软置 cancelled（保留审计轨迹）
+-- ============================================================
+ALTER TABLE `erik_member_card_usage`
+ADD COLUMN IF NOT EXISTS `status` VARCHAR(20) NOT NULL DEFAULT 'active' COMMENT '状态: active=有效 cancelled=已撤销（退款/取消归还）' AFTER `used_at`;
+
+ALTER TABLE `erik_order`
+ADD KEY `idx_tech_service_time` (`technician_id`, `service_time`);

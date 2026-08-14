@@ -112,7 +112,7 @@ mysql -u root -p open_admin < docs/install.sql
 ### 1.5 启动服务
 
 ```bash
-# 启动业务 API 服务（默认端口 8788）
+# 启动业务 API 服务（默认端口 8787）
 cd service/
 php start.php start -d
 
@@ -125,7 +125,7 @@ php start.php start -d
 
 ```bash
 # 业务 API
-curl http://localhost:8788/api/common/config
+curl http://localhost:8787/api/common/config
 
 # 管理后台健康检查
 curl http://localhost:8787/health

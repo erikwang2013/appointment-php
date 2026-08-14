@@ -5,7 +5,6 @@ declare(strict_types=1);
 
 namespace app\common;
 
-use app\model\Coupon;
 use app\model\MemberCardUsage;
 use app\model\UserCoupon;
 use app\model\UserMemberCard;
@@ -289,10 +288,21 @@ class PriceCalculator
             }
             $coupon = $userCoupon->coupon;
         } elseif ($couponId !== null) {
-            $coupon = Coupon::find($couponId);
-            if (!$coupon) {
-                throw new \InvalidArgumentException('优惠券不存在');
-            }
+            // M4: 禁用 coupon_id 直通路径——券必须先领取（erik_user_coupon 领券记录），
+            // 直通路径不校验有效期/状态且 consume() 不消费，可被无限复用
+            throw new \InvalidArgumentException('请先领取优惠券');
+        }
+
+        // M4: 券有效期与状态校验（start_at/end_at 窗口 + 上架状态）
+        $nowTs = time();
+        if ((int)($coupon->status ?? 1) !== 1) {
+            throw new \InvalidArgumentException('优惠券不可用');
+        }
+        if (!empty($coupon->start_at) && strtotime((string)$coupon->start_at) > $nowTs) {
+            throw new \InvalidArgumentException('优惠券尚未生效');
+        }
+        if (!empty($coupon->end_at) && strtotime((string)$coupon->end_at) < $nowTs) {
+            throw new \InvalidArgumentException('优惠券已过期');
         }
 
         // 使用门槛按原价 total_amount 判断

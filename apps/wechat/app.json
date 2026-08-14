@@ -2,11 +2,9 @@
   "pages": [
     "pages/home/index",
     "pages/service/list",
-    "pages/service/detail",
     "pages/cart/index",
     "pages/order/list",
     "pages/order/detail",
-    "pages/order/confirm",
     "pages/user/index",
     "pages/auth/login",
     "pages/auth/register",

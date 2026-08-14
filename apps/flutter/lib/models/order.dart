@@ -1,8 +1,8 @@
 class OrderModel {
-  final int id;
+  final String id;
   final String orderNo;
-  final int? userId;
-  final int? technicianId;
+  final String? userId;
+  final String? technicianId;
   final String? technicianName;
   final String? technicianAvatar;
   final double totalAmount;
@@ -16,7 +16,7 @@ class OrderModel {
   final String? storeAddress;
   final String? remark;
   final List<OrderItem>? items;
-  final int? couponId;
+  final String? couponId;
   final double? couponDiscount;
   final String? createdAt;
   final String? paidAt;
@@ -50,13 +50,16 @@ class OrderModel {
   });
 
   factory OrderModel.fromJson(Map<String, dynamic> json) {
+    final technician = json['technician'];
+    final store = json['store'];
+    final serviceTime = json['service_time']?.toString();
     return OrderModel(
-      id: json['id'] ?? 0,
+      id: json['id']?.toString() ?? '',
       orderNo: json['order_no'] ?? '',
-      userId: json['user_id'],
-      technicianId: json['technician_id'],
-      technicianName: json['technician_name'],
-      technicianAvatar: json['technician_avatar'],
+      userId: json['user_id']?.toString(),
+      technicianId: json['technician_id']?.toString(),
+      technicianName: technician is Map ? technician['nickname']?.toString() : null,
+      technicianAvatar: technician is Map ? technician['avatar']?.toString() : null,
       totalAmount: (json['total_amount'] is int)
           ? (json['total_amount'] as int).toDouble()
           : json['total_amount']?.toDouble() ?? 0.0,
@@ -68,22 +71,24 @@ class OrderModel {
           : json['paid_amount']?.toDouble(),
       status: json['status'] ?? 'pending',
       statusLabel: json['status_label'],
-      appointmentDate: json['appointment_date'],
-      appointmentTime: json['appointment_time'],
-      storeName: json['store_name'],
-      storeAddress: json['store_address'],
+      appointmentDate:
+          serviceTime != null && serviceTime.length >= 10 ? serviceTime.substring(0, 10) : null,
+      appointmentTime:
+          serviceTime != null && serviceTime.length >= 16 ? serviceTime.substring(11, 16) : null,
+      storeName: store is Map ? store['name']?.toString() : null,
+      storeAddress: store is Map ? store['address']?.toString() : null,
       remark: json['remark'],
       items: json['items'] != null
           ? (json['items'] as List).map((e) => OrderItem.fromJson(e)).toList()
           : null,
-      couponId: json['coupon_id'],
+      couponId: json['coupon_id']?.toString(),
       couponDiscount: (json['coupon_discount'] is int)
           ? (json['coupon_discount'] as int).toDouble()
           : json['coupon_discount']?.toDouble(),
       createdAt: json['created_at'],
       paidAt: json['paid_at'],
       completedAt: json['completed_at'],
-      cancelledAt: json['cancelled_at'],
+      cancelledAt: json['cancel_at'],
     );
   }
 
@@ -117,8 +122,8 @@ class OrderModel {
 }
 
 class OrderItem {
-  final int? id;
-  final int serviceId;
+  final String? id;
+  final String serviceId;
   final String serviceName;
   final String? serviceImage;
   final double price;
@@ -137,15 +142,15 @@ class OrderItem {
 
   factory OrderItem.fromJson(Map<String, dynamic> json) {
     return OrderItem(
-      id: json['id'],
-      serviceId: json['service_id'] ?? 0,
-      serviceName: json['service_name'] ?? '',
-      serviceImage: json['service_image'],
+      id: json['id']?.toString(),
+      serviceId: json['service_id']?.toString() ?? '',
+      serviceName: json['name'] ?? '',
+      serviceImage: json['cover_image'],
       price: (json['price'] is int)
           ? (json['price'] as int).toDouble()
           : json['price']?.toDouble() ?? 0.0,
       quantity: json['quantity'] ?? 1,
-      specs: json['specs'],
+      specs: json['spec_info'],
     );
   }
 
@@ -153,11 +158,11 @@ class OrderItem {
     return {
       'id': id,
       'service_id': serviceId,
-      'service_name': serviceName,
-      'service_image': serviceImage,
+      'name': serviceName,
+      'cover_image': serviceImage,
       'price': price,
       'quantity': quantity,
-      'specs': specs,
+      'spec_info': specs,
     };
   }
 }

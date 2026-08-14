@@ -28,10 +28,10 @@ Page({
       wx.showToast({ title: '请输入手机号', icon: 'none' });
       return;
     }
-    api.post('/auth/send-sms', { phone: this.data.phone }).then(() => {
+    api.post('/captcha/send', { phone: this.data.phone }).then(() => {
       wx.showToast({ title: '验证码已发送', icon: 'success' });
     }).catch(err => {
-      wx.showToast({ title: err.msg || '发送失败', icon: 'none' });
+      wx.showToast({ title: err.message || '发送失败', icon: 'none' });
     });
   },
   doLogin() {
@@ -45,29 +45,31 @@ Page({
       return;
     }
     const data = mode === 'password' ? { phone, password } : { phone, code };
-    api.get('/auth/login', data).then(res => {
+    const url = mode === 'password' ? '/auth/login' : '/auth/login-by-code';
+    api.post(url, data).then(res => {
       const token = res.data.token;
       wx.setStorageSync('token', token);
       getApp().globalData.token = token;
       wx.showToast({ title: '登录成功', icon: 'success' });
       setTimeout(() => wx.switchTab({ url: '/pages/home/index' }), 1000);
     }).catch(err => {
-      wx.showToast({ title: err.msg || '登录失败', icon: 'none' });
+      wx.showToast({ title: err.message || '登录失败', icon: 'none' });
     });
   },
   wechatLogin() {
-    wx.getUserProfile({
-      desc: '用于完善会员信息',
+    wx.login({
       success: (res) => {
-        const userInfo = res.userInfo;
-        getApp().globalData.userInfo = userInfo;
-        api.post('/auth/wechat-login', { userInfo }).then(res => {
+        if (!res.code) {
+          wx.showToast({ title: '微信登录失败', icon: 'none' });
+          return;
+        }
+        api.post('/wechat/mini-login', { code: res.code }).then(res => {
           wx.setStorageSync('token', res.data.token);
           getApp().globalData.token = res.data.token;
           wx.showToast({ title: '登录成功', icon: 'success' });
           setTimeout(() => wx.switchTab({ url: '/pages/home/index' }), 1000);
         }).catch(err => {
-          wx.showToast({ title: err.msg || '微信登录失败', icon: 'none' });
+          wx.showToast({ title: err.message || '微信登录失败', icon: 'none' });
         });
       }
     });

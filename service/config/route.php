@@ -288,5 +288,12 @@ Route::group('/api/print', function () {
     app\middleware\Auth::class,
 ]);
 
+// ============================================================
+// 健康检查（全局，无需认证，供 docker-compose healthcheck / 负载均衡探活）
+// ============================================================
+Route::get('/health', function () {
+    return json(['code' => 0, 'message' => 'ok']);
+});
+
 // 关闭默认路由
 Route::disableDefaultRoute();

@@ -5,6 +5,7 @@ declare(strict_types=1);
 
 namespace app\common;
 
+use app\model\TechnicianEarning;
 use app\model\TechnicianWithdrawal;
 use support\Db;
 use support\Log;
@@ -77,6 +78,11 @@ class TechnicianWithdrawalService
     /**
      * 独立小事务落库：转账成功
      *
+     * M2: 同事务内把该技师已 settled 的收益按 created_at 顺序原子标记 withdrawn，
+     * 累计至本次提现额（跨记录时最后一条整条标记，因标记以记录为单位；
+     * 提现额 ≤ 可提现余额，故不会超扣）。可提现余额口径 = sum(settled) - sum(withdrawn)，
+     * 此处标记后余额随之扣减，杜绝无限重复提现。
+     *
      * @return bool 落库成功返回 true，DB 异常返回 false（供调用方对账）
      */
     private function markCompleted(TechnicianWithdrawal $w, string $paymentNo): bool
@@ -89,6 +95,23 @@ class TechnicianWithdrawalService
                 $w->audit_remark = 'payment_no:' . $paymentNo . ($w->audit_remark ? '; ' . $w->audit_remark : '');
             }
             $w->save();
+
+            // 扣减可提现余额：按 created_at 顺序标记 settled 收益为 withdrawn，累计至本次提现额
+            $remaining = (float) $w->amount;
+            $earnings = TechnicianEarning::where('technician_id', $w->technician_id)
+                ->where('status', 'settled')
+                ->orderBy('created_at')
+                ->orderBy('id')
+                ->get();
+            foreach ($earnings as $earning) {
+                if ($remaining <= 0) {
+                    break;
+                }
+                $earning->status = 'withdrawn';
+                $earning->save();
+                $remaining -= (float) $earning->amount;
+            }
+
             Db::commit();
             return true;
         } catch (\Throwable $e) {

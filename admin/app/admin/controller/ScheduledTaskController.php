@@ -7,7 +7,6 @@ declare(strict_types=1);
 
 namespace app\admin\controller;
 
-use app\model\Order;
 use app\model\TechnicianEarning;
 use app\model\UserCoupon;
 use app\model\UserMemberCard;
@@ -24,7 +23,8 @@ class ScheduledTaskController extends BaseController
      */
     public function index(Request $request): Response
     {
-        $tasks = ['auto_cancel', 'auto_settle', 'expire_coupons', 'expire_member_cards'];
+        // M9: auto_cancel 已下线（service 端 AutoCancelTimer 统一驱动）
+        $tasks = ['auto_settle', 'expire_coupons', 'expire_member_cards'];
         $logs  = [];
 
         foreach ($tasks as $task) {
@@ -38,44 +38,6 @@ class ScheduledTaskController extends BaseController
         }
 
         return $this->success(['tasks' => $logs]);
-    }
-
-    /**
-     * 自动取消超时未支付订单
-     * 条件: status=pending 且 created_at < 30分钟前
-     */
-    public function autoCancel(Request $request): Response
-    {
-        $threshold = date('Y-m-d H:i:s', strtotime('-30 minutes'));
-        $now       = date('Y-m-d H:i:s');
-
-        $orders = Order::where('status', 'pending')
-            ->where('created_at', '<', $threshold)
-            ->get();
-
-        $cancelled = 0;
-        foreach ($orders as $order) {
-            $order->status = 'cancelled';
-            $order->cancel_reason = '超时未支付，系统自动取消';
-            $order->cancel_at = $now;
-            $order->save();
-            $cancelled++;
-
-            // 释放技师时间锁（如果已分配技师）
-            if ($order->technician_id > 0) {
-                // 技师锁释放逻辑：此处取消该时段的预约占用
-                // 实际实现需根据业务排班表处理
-            }
-        }
-
-        $this->recordTaskRun('auto_cancel', $cancelled);
-
-        return $this->success([
-            'task'         => 'auto_cancel',
-            'cancelled'    => $cancelled,
-            'threshold'    => '30分钟前（<' . $threshold . '）',
-            'executed_at'  => $now,
-        ], "已取消 {$cancelled} 个超时订单");
     }
 
     /**

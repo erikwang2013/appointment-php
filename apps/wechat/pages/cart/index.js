@@ -10,5 +10,5 @@ Page({
   onQuantityChange(e) { const { index, type } = e.currentTarget.dataset; const items = this.data.items; if (type === 'plus') items[index].quantity++; else if (items[index].quantity > 1) items[index].quantity--; this.setData({ items }); this.calcTotal(); },
   onSelect(e) { const { index } = e.currentTarget.dataset; this.data.items[index].selected = !this.data.items[index].selected; this.setData({ items: this.data.items }); this.calcTotal(); },
   onDelete(e) { const { index } = e.currentTarget.dataset; this.data.items.splice(index, 1); this.setData({ items: this.data.items }); this.calcTotal(); },
-  onCheckout() { wx.navigateTo({ url: '/pages/order/confirm' }); }
+  onCheckout() { wx.navigateTo({ url: '/pages/order/list' }); }
 });

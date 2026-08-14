@@ -17,6 +17,7 @@ class MemberCardUsage extends Model
 
     protected $fillable = [
         'user_card_id', 'order_id', 'service_id', 'used_at',
+        'status', // M3: active=有效 cancelled=已撤销（退款/取消归还）
     ];
 
     /**

@@ -2,7 +2,7 @@
 
 ## 概述
 
-- **业务API** (service/): `http://localhost:8788` — 为小程序/APP提供业务接口
+- **业务API** (service/): `http://localhost:8787` — 为小程序/APP提供业务接口
 - **管理后台API** (admin/): `http://localhost:8787` — 为管理后台Flutter Web提供接口
 - **认证方式**: Bearer Token (JWT), 请求头 `Authorization: Bearer <token>`
 - **版本控制**: 通过请求头 `API-Version: v1` 控制API版本，不在URL中体现。默认v1
@@ -12,7 +12,7 @@
 | 端 | OpenAPI文档地址 | 说明 |
 |------|------|------|
 | 管理端 | `GET http://localhost:8787/api/docs` | 管理后台API完整规范（OpenAPI 3.0 JSON） |
-| 客户端 | `GET http://localhost:8788/api/docs` | 业务API完整规范（OpenAPI 3.0 JSON） |
+| 客户端 | `GET http://localhost:8787/api/docs` | 业务API完整规范（OpenAPI 3.0 JSON） |
 
 可通过 Swagger UI 等工具导入上述地址查看交互式文档。
 
@@ -43,7 +43,7 @@
 
 ---
 
-## 一、业务API (service/ :8788)
+## 一、业务API (service/ :8787)
 
 ### 1. 公开接口（无需认证）
 

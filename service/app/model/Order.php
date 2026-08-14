@@ -123,8 +123,9 @@ class Order extends Model
      *
      * 下单15分钟内或距服务开始>6小时 → 全额退款 1.00
      * 距服务开始≤6小时 → 0.90
-     * 已开始但未确认 → 0.80
-     * 已确认服务 → 0（不可退）
+     * 已核销开始服务（serving）/ 已确认 / 已完成 → 0（不可退）
+     *
+     * 规则：核销即开始服务则不可退（M8），与 isRefundable()/refund() 保持一致。
      *
      * @return float 退款比例 0.00 ~ 1.00
      */
@@ -139,14 +140,9 @@ class Order extends Model
             return 1.00;
         }
 
-        // 服务已确认开始 → 不可退
-        if (in_array($this->status, [self::STATUS_CONFIRMED, self::STATUS_COMPLETED], true)) {
+        // 服务已开始（serving）/ 已确认 / 已完成 → 不可退
+        if (in_array($this->status, [self::STATUS_SERVING, self::STATUS_CONFIRMED, self::STATUS_COMPLETED], true)) {
             return 0.00;
-        }
-
-        // 已开始但未确认（serving 但未被 confirmed 阻挡，留此分支兜底）
-        if ($this->status === self::STATUS_SERVING) {
-            return 0.80;
         }
 
         // 距服务开始时间 > 6小时 → 全额
@@ -165,14 +161,12 @@ class Order extends Model
 
     /**
      * 判断订单是否可退款
-     * 状态为 paid / confirmed / serving 时可退
+     * 状态为 paid 时可退（confirmed/serving 不可退，核销即开始服务）
      */
     public function isRefundable(): bool
     {
         return in_array($this->status, [
             self::STATUS_PAID,
-            self::STATUS_CONFIRMED,
-            self::STATUS_SERVING,
         ], true);
     }
 

@@ -47,7 +47,7 @@ cd ../admin/ && cp .env.example .env && composer install
 mysql -u root -p < docs/install.sql
 
 # 3. Start services
-cd service/ && php start.php start -d   # Business API → :8788
+cd service/ && php start.php start -d   # Business API → :8787
 cd ../admin/ && php start.php start -d  # Admin API → :8787
 ```
 

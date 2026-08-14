@@ -1,17 +1,15 @@
 class ServiceModel {
-  final int id;
+  final String id;
   final String name;
   final String? description;
   final double price;
   final double? originalPrice;
   final String? coverImage;
   final List<String>? images;
-  final int? categoryId;
+  final String? categoryId;
   final String? categoryName;
   final int? duration;
   final int? salesCount;
-  final double? rating;
-  final bool? isHot;
   final List<ServiceSpec>? specs;
   final String? createdAt;
 
@@ -27,15 +25,14 @@ class ServiceModel {
     this.categoryName,
     this.duration,
     this.salesCount,
-    this.rating,
-    this.isHot,
     this.specs,
     this.createdAt,
   });
 
   factory ServiceModel.fromJson(Map<String, dynamic> json) {
+    final category = json['category'];
     return ServiceModel(
-      id: json['id'] ?? 0,
+      id: json['id']?.toString() ?? '',
       name: json['name'] ?? '',
       description: json['description'],
       price: (json['price'] is int)
@@ -46,12 +43,10 @@ class ServiceModel {
           : json['original_price']?.toDouble(),
       coverImage: json['cover_image'],
       images: json['images'] != null ? List<String>.from(json['images']) : null,
-      categoryId: json['category_id'],
-      categoryName: json['category_name'],
+      categoryId: json['category_id']?.toString(),
+      categoryName: category is Map ? category['name']?.toString() : null,
       duration: json['duration'],
-      salesCount: json['sales_count'],
-      rating: json['rating']?.toDouble(),
-      isHot: json['is_hot'],
+      salesCount: json['sales_volume'],
       specs: json['specs'] != null
           ? (json['specs'] as List).map((e) => ServiceSpec.fromJson(e)).toList()
           : null,
@@ -71,9 +66,7 @@ class ServiceModel {
       'category_id': categoryId,
       'category_name': categoryName,
       'duration': duration,
-      'sales_count': salesCount,
-      'rating': rating,
-      'is_hot': isHot,
+      'sales_volume': salesCount,
       'specs': specs?.map((e) => e.toJson()).toList(),
       'created_at': createdAt,
     };

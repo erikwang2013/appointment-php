@@ -48,7 +48,7 @@ Page({
   },
   goDetail(e) {
     const id = e.currentTarget.dataset.id;
-    wx.navigateTo({ url: '/pages/service/detail?id=' + id });
+    wx.navigateTo({ url: '/pages/service/list?categoryId=' + id });
   },
   onReachBottom() {
     if (this.data.hasMore) {

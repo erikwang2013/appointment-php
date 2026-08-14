@@ -7,7 +7,7 @@ graph TB
         APP["Flutter APP<br/>apps/flutter/<br/>iOS + Android<br/>GetX + Dio"]
     end
 
-    subgraph 业务服务层["业务服务层 :8788"]
+    subgraph 业务服务层["业务服务层 :8787"]
         direction TB
         MW1["中间件链<br/>Cors → Security → RateLimit"]
         subgraph API模块["API 路由模块"]

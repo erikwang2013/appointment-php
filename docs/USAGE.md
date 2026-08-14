@@ -69,7 +69,7 @@ Authorization: Bearer <JWT_TOKEN>
 API-Version: v1
 
 # 获取Token
-curl -X POST :8788/api/auth/login \
+curl -X POST :8787/api/auth/login \
   -H "API-Version: v1" \
   -d '{"phone":"13800138000","password":"abc123"}'
 ```
@@ -92,7 +92,7 @@ curl -X POST :8788/api/auth/login \
 | POST | `/api/user/switch-role` | 切换身份 |
 
 ### OpenAPI 文档
-- 业务API: `GET :8788/api/docs`
+- 业务API: `GET :8787/api/docs`
 - 管理后台API: `GET :8787/api/docs`
 
 可导入 Swagger UI 查看交互式文档。

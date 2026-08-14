@@ -15,6 +15,10 @@ use Erikwang2013\PosterPhp\Poster;
 
 class RefundWorkflowController extends BaseController
 {
+    // M6: 本控制器已废弃——全程操作的是技师提现（TechnicianWithdrawal + approveAndTransfer 转账），
+    // 与用户退款无关；用户退款由 service 端同步自动退款闭环完成。
+    // 已从 admin/config/route.php 移除 /refund-workflows/* 路由，本文件仅保留作历史参考，勿再挂载路由。
+
     /**
      * 待审批退款列表
      * 根据当前登录用户的角色返回其审批层级内的退款申请

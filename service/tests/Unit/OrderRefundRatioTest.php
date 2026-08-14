@@ -35,10 +35,11 @@ class OrderRefundRatioTest extends TestCase
         $this->assertEquals(0.90, $o->calcRefundRatio());
     }
 
-    #[Test] public function refund_80_serving(): void
+    #[Test] public function refund_zero_serving(): void
     {
+        // M8 规则：核销即开始服务则不可退（serving 0.80 → 0），与 isRefundable()/refund() 保持一致
         $o = $this->make(['status' => 'serving', 'created_at' => Carbon::now()->subHours(3), 'service_start_at' => Carbon::now()->subMinutes(10)]);
-        $this->assertEquals(0.80, $o->calcRefundRatio());
+        $this->assertEquals(0.0, $o->calcRefundRatio());
     }
 
     #[Test] public function refund_zero_completed(): void
