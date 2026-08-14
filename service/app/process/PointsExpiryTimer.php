@@ -5,6 +5,7 @@ declare(strict_types=1);
 
 namespace app\process;
 
+use app\common\NotificationReminderService;
 use app\model\Notification;
 use app\model\UserPoints;
 use support\Db;
@@ -135,6 +136,10 @@ class PointsExpiryTimer
      */
     private function notifyExpiry(string $userId, int $points): void
     {
+        // 消息偏好：用户关闭积分过期提醒则不写站内通知
+        if (!NotificationReminderService::notifySettingEnabled($userId, NotificationReminderService::NOTIFY_TYPE_POINTS_EXPIRY)) {
+            return;
+        }
         try {
             Db::table('erik_notification')->insert([
                 'id'         => Notification::generateId(),

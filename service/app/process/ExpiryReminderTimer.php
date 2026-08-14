@@ -120,6 +120,14 @@ class ExpiryReminderTimer
     /** 处理单张会员卡：锁行 + 查重 + 写站内通知 + 订阅消息（幂等） */
     private function processCard(UserMemberCard $card): bool
     {
+        // 消息偏好：用户关闭到期提醒则不写站内通知（订阅消息一并跳过；卡/券统一归 card_expiry）
+        if (!NotificationReminderService::notifySettingEnabled(
+            (string) $card->user_id,
+            NotificationReminderService::NOTIFY_TYPE_CARD_EXPIRY
+        )) {
+            return false;
+        }
+
         $notificationId = Db::transaction(function () use ($card): ?string {
             // 重新查询并加锁，串行化并发扫描
             $locked = UserMemberCard::where('id', $card->id)
@@ -213,6 +221,14 @@ class ExpiryReminderTimer
     /** 处理单张优惠券：锁行 + 查重 + 写站内通知 + 订阅消息（幂等） */
     private function processCoupon(UserCoupon $userCoupon): bool
     {
+        // 消息偏好：用户关闭到期提醒则不写站内通知（订阅消息一并跳过；卡/券统一归 card_expiry）
+        if (!NotificationReminderService::notifySettingEnabled(
+            (string) $userCoupon->user_id,
+            NotificationReminderService::NOTIFY_TYPE_CARD_EXPIRY
+        )) {
+            return false;
+        }
+
         $notificationId = Db::transaction(function () use ($userCoupon): ?string {
             // 重新查询并加锁，串行化并发扫描
             $locked = UserCoupon::where('id', $userCoupon->id)

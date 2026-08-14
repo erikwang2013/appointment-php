@@ -111,6 +111,14 @@ class ServiceReminderTimer
      */
     private function processOrder(Order $order, array $technicians): bool
     {
+        // 消息偏好：用户关闭服务提醒则不写站内通知（订阅消息一并跳过）
+        if (!NotificationReminderService::notifySettingEnabled(
+            (string) $order->user_id,
+            NotificationReminderService::NOTIFY_TYPE_SERVICE_REMINDER
+        )) {
+            return false;
+        }
+
         $notificationId = Db::transaction(function () use ($order, $technicians): ?string {
             // 重新查询并加锁，串行化并发扫描
             $locked = Order::where('id', $order->id)

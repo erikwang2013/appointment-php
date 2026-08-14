@@ -10,6 +10,7 @@ use app\model\Order;
 use app\model\OrderItem;
 use app\model\Store;
 use app\model\User;
+use app\model\UserNotifySetting;
 use support\Db;
 use support\Log;
 
@@ -56,6 +57,17 @@ class NotificationReminderService
     public const SCENE_REMINDER = 'reminder';
     /** 订阅消息场景：会员卡/优惠券到期提醒（ExpiryReminderTimer 定时器） */
     public const SCENE_EXPIRY = 'expiry';
+
+    /** 消息偏好类型：服务提醒（预约即将开始 / 服务即将开始） */
+    public const NOTIFY_TYPE_SERVICE_REMINDER = 'service_reminder';
+    /** 消息偏好类型：到期提醒（会员卡/优惠券到期，伞形覆盖 card_expiry + coupon_expiry） */
+    public const NOTIFY_TYPE_CARD_EXPIRY = 'card_expiry';
+    /** 消息偏好类型：积分过期 */
+    public const NOTIFY_TYPE_POINTS_EXPIRY = 'points_expiry';
+    /** 消息偏好类型：营销（预留，暂无写入路径） */
+    public const NOTIFY_TYPE_MARKETING = 'marketing';
+    /** 消息偏好类型：系统（订单支付/退款/核销/改期等交易事件，不可关闭） */
+    public const NOTIFY_TYPE_SYSTEM = 'system';
 
     /**
      * 订阅消息模板字段 key（对应小程序后台审核通过的模板字段名，
@@ -106,6 +118,35 @@ class NotificationReminderService
             'data_keys'    => ['name' => 'thing1', 'time' => 'time2'],
         ],
     ];
+
+    /** 订阅消息场景 → 消息偏好类型（订单交易事件归 system，不可关闭） */
+    private const SCENE_NOTIFY_TYPE_MAP = [
+        self::SCENE_PAY        => self::NOTIFY_TYPE_SYSTEM,
+        self::SCENE_REFUND     => self::NOTIFY_TYPE_SYSTEM,
+        self::SCENE_VERIFIED   => self::NOTIFY_TYPE_SYSTEM,
+        self::SCENE_RESCHEDULE => self::NOTIFY_TYPE_SYSTEM,
+        self::SCENE_REMINDER   => self::NOTIFY_TYPE_SERVICE_REMINDER,
+        self::SCENE_EXPIRY     => self::NOTIFY_TYPE_CARD_EXPIRY,
+    ];
+
+    /**
+     * 用户是否开启某类通知（erik_user_notify_setting 开关）
+     *
+     * 未插入行视为开启（默认开）；system 类型强制开启不可关闭。
+     * 本服务内写入路径与定时进程（ServiceReminderTimer/ExpiryReminderTimer/
+     * PointsExpiryTimer）在写站内通知前调用，关闭则该类型不写站内通知，
+     * 订阅消息一并跳过。
+     */
+    public static function notifySettingEnabled(string $userId, string $type): bool
+    {
+        if ($type === self::NOTIFY_TYPE_SYSTEM) {
+            return true;
+        }
+        $switch = UserNotifySetting::where('user_id', $userId)
+            ->where('type', $type)
+            ->value('switch');
+        return $switch === null ? true : (int) $switch === 1;
+    }
 
     /**
      * 扫描所有到期预约并生成提醒通知
@@ -166,6 +207,11 @@ class NotificationReminderService
     public function processOrder(Order $order, array $ctx = []): bool
     {
         return Db::transaction(function () use ($order, $ctx): bool {
+            // 消息偏好：用户关闭服务提醒则不写站内通知（订阅消息一并跳过）
+            if (!self::notifySettingEnabled((string) $order->user_id, self::NOTIFY_TYPE_SERVICE_REMINDER)) {
+                return false;
+            }
+
             // 重新查询并加锁，串行化并发扫描
             $locked = Order::where('id', $order->id)
                 ->where('status', Order::STATUS_PAID)
@@ -322,6 +368,14 @@ class NotificationReminderService
                 return false;
             }
 
+            // 消息偏好：该场景对应类型被关闭则跳过站内通知补建与订阅消息（订单交易事件归 system 不可关）
+            $notifyType = self::SCENE_NOTIFY_TYPE_MAP[$scene] ?? self::NOTIFY_TYPE_SYSTEM;
+            if (!self::notifySettingEnabled((string) $order->user_id, $notifyType)) {
+                Log::info('[NotificationReminder] 用户已关闭通知类型 ' . $notifyType
+                    . '，跳过 order=' . $order->id . ' scene=' . $scene);
+                return false;
+            }
+
             // 站内通知行 find-or-create：标题与主路径一致，主路径已写则复用不双写
             $title = $sceneConfig['title'];
             $notificationId = (string) (Notification::where('order_id', $order->id)
@@ -417,6 +471,14 @@ class NotificationReminderService
             $sceneConfig = self::SUBSCRIBE_EVENT_SCENES[$scene] ?? null;
             if ($sceneConfig === null) {
                 Log::warning('[NotificationReminder] unknown subscribe scene: ' . $scene);
+                return false;
+            }
+
+            // 消息偏好：该类型被关闭则跳过订阅消息（通知行由调用方先行写入，行写入已按其开关门控）
+            $notifyType = self::SCENE_NOTIFY_TYPE_MAP[$scene] ?? self::NOTIFY_TYPE_SYSTEM;
+            if (!self::notifySettingEnabled($userId, $notifyType)) {
+                Log::info('[NotificationReminder] 用户已关闭通知类型 ' . $notifyType
+                    . '，跳过订阅消息 notification=' . $notificationId . ' scene=' . $scene);
                 return false;
             }
 
