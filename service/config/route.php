@@ -317,6 +317,19 @@ Route::group('/api/queue', function () {
 ]);
 
 // ============================================================
+// 店长工作台接口（JWT + ApiVersion）——门店数据按登录用户 store_id 隔离
+// ============================================================
+Route::group('/api/store-manager', function () {
+    Route::get('/overview', v('api', 'StoreManagerController', 'overview'));
+    Route::get('/orders', v('api', 'StoreManagerController', 'orders'));
+    Route::get('/technicians', v('api', 'StoreManagerController', 'technicians'));
+    Route::get('/revenue', v('api', 'StoreManagerController', 'revenue'));
+})->middleware([
+    app\middleware\ApiVersion::class,
+    app\middleware\Auth::class,
+]);
+
+// ============================================================
 // 支付回调接口（不使用版本控制中间件，不进行JWT认证）
 // ============================================================
 Route::any('/payment/wechat-notify', [app\api\v1\controller\PaymentNotifyController::class, 'wechatNotify']);

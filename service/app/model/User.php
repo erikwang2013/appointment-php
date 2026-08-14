@@ -24,12 +24,13 @@ class User extends Model
         // phone/wx_openid/wx_unionid 必须明文存储：登录/查重/唯一键依赖明文精确查询，
         // 而加密包不支持对密文做等价查询（Encryption::db() 与自身加密格式不兼容，实测返回 NULL）
         'real_name' => Encryptable::class,
+        'store_id' => 'integer',
     ];
 
     protected $fillable = [
         'phone', 'password', 'wx_openid', 'wx_unionid', 'avatar', 'nickname',
         'real_name', 'gender', 'user_type', 'active_role', 'referral_code',
-        'referrer_id', 'status', 'last_login_at', 'last_login_ip',
+        'referrer_id', 'store_id', 'status', 'last_login_at', 'last_login_ip',
     ];
 
     protected $hidden = ['password', 'wx_openid', 'wx_unionid', 'deleted_at'];
