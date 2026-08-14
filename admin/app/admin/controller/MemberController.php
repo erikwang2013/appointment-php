@@ -117,7 +117,7 @@ class MemberController extends BaseController
         // 有效会员卡
         $cards = UserMemberCard::where('user_id', $id)
             ->where('status', 'active')
-            ->with('memberCard')
+            ->with('card')
             ->get()
             ->map(fn($c) => $this->encodeIds($c->toArray()));
 
