@@ -85,7 +85,7 @@ class CheckInController extends BaseController
             UserPoints::create([
                 'id' => UserPoints::generateId(),
                 'user_id' => $userId,
-                'type' => 'income',
+                'type' => 'earn',
                 'points' => $pointsAwarded,
                 'balance' => $pointsAwarded,
                 'source' => 'check_in',

@@ -887,6 +887,8 @@ class OrderController extends BaseController
             if ($this->shouldRestoreBenefits($ratio)) {
                 $this->restoreCouponAndCard($order);
             }
+            // 积分回扣（同事务，失败随退款回滚）：按退款比例回扣已返积分，幂等
+            $this->clawbackOrderPoints($order, $refundRecord);
             Db::commit();
         } catch (\Throwable $e2) {
             Db::rollBack();
@@ -1026,6 +1028,9 @@ class OrderController extends BaseController
             if ($this->shouldRestoreBenefits((float) $locked->ratio)) {
                 $this->restoreCouponAndCard($order);
             }
+
+            // 积分回扣（同事务，失败随退款回滚）：按退款比例回扣已返积分，幂等
+            $this->clawbackOrderPoints($order, $locked);
 
             Db::commit();
             return true;
@@ -1324,6 +1329,66 @@ class OrderController extends BaseController
     }
 
     /**
+     * 订单退款回扣积分（退款事务内调用，失败随退款整体回滚——与 rewardOrderPoints 对称）
+     *
+     * 规则：回扣 = floor(已返积分 × 本次退款金额 / 实付金额)，与 calcRefundAmount 同口径；
+     * 已返积分取该订单 source=order + type=earn 流水合计（未核销未返积分则为 0，直接跳过）。
+     * 幂等：同 order_id + source=order + type=use 的回扣流水已存在则不重复回扣
+     * （当前退款流程每订单至多一条成功退款单，订单 refunded 后不可再退，键唯一；
+     * 并发/补偿场景下与主路径行锁互斥，重复执行不产生第二笔回扣）。
+     * balance 为逐条快照：上一条余额 - 本次回扣（同 rewardOrderPoints 锁定最后一条流水防并发串行）。
+     */
+    private function clawbackOrderPoints(Order $order, OrderRefund $refundRecord): void
+    {
+        // 已返积分合计（未返积分则无需回扣）
+        $earned = (int) UserPoints::where('order_id', $order->id)
+            ->where('source', 'order')
+            ->where('type', 'earn')
+            ->sum('points');
+        if ($earned <= 0) {
+            return;
+        }
+
+        // 幂等：同订单的回扣流水已存在则不重复回扣
+        $exists = UserPoints::where('order_id', $order->id)
+            ->where('source', 'order')
+            ->where('type', 'use')
+            ->exists();
+        if ($exists) {
+            return;
+        }
+
+        $paid = (float) $order->paid_amount;
+        $refundAmount = (float) $refundRecord->amount;
+        if ($paid <= 0 || $refundAmount <= 0) {
+            return;
+        }
+
+        // 按退款金额比例回扣（向下取整，至多回扣已返积分）
+        $points = (int) floor($earned * $refundAmount / $paid);
+        if ($points <= 0) {
+            return;
+        }
+
+        // balance = 上一条余额 - 本次回扣（快照累加，锁最后一条流水防同用户并发串行）
+        $lastBalance = (int) (UserPoints::where('user_id', $order->user_id)
+            ->orderBy('created_at', 'desc')
+            ->lockForUpdate()
+            ->value('balance') ?? 0);
+
+        UserPoints::create([
+            'id'          => UserPoints::generateId(),
+            'user_id'     => $order->user_id,
+            'type'        => 'use',
+            'points'      => -$points,
+            'balance'     => $lastBalance - $points,
+            'source'      => 'order',
+            'order_id'    => $order->id,
+            'description' => '订单退款回扣积分（退款单 ' . $refundRecord->refund_no . '）',
+        ]);
+    }
+
+    /**
      * M3: 归还订单使用的优惠券与次卡次数（仅终态为 cancelled/refunded 时调用，幂等）
      *
      * - 优惠券：used → available（条件更新，防并发重复归还）
@@ -1484,6 +1549,9 @@ class OrderController extends BaseController
             if ($this->shouldRestoreBenefits((float) $locked->ratio)) {
                 $this->restoreCouponAndCard($order);
             }
+
+            // 积分回扣（幂等）：主路径落库失败由补偿补写时，回扣在此一并补写
+            $this->clawbackOrderPoints($order, $locked);
 
             // refunding → refunded；cancelled 保持终态
             if ($order->status === Order::STATUS_REFUNDING) {
