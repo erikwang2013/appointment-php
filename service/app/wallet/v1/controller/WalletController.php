@@ -151,7 +151,7 @@ class WalletController extends BaseController
         $type = (string) $request->input('type', '');
 
         $query = WalletTxn::where('user_id', $userId);
-        if (in_array($type, [WalletTxn::TYPE_RECHARGE, WalletTxn::TYPE_CONSUME, WalletTxn::TYPE_REFUND], true)) {
+        if (in_array($type, [WalletTxn::TYPE_RECHARGE, WalletTxn::TYPE_CONSUME, WalletTxn::TYPE_REFUND, WalletTxn::TYPE_GIFT_CARD], true)) {
             $query->where('type', $type);
         }
 

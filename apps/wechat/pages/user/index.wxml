@@ -25,5 +25,10 @@
     <text class="entry-name">我的次卡</text>
     <text class="entry-arrow">›</text>
   </view>
+  <view class="entry-row card" bindtap="onNav" data-url="/pages/gift-cards/index">
+    <text class="entry-icon">🎁</text>
+    <text class="entry-name">礼品卡</text>
+    <text class="entry-arrow">›</text>
+  </view>
   <view class="card"><button bindtap="onNav" data-url="/pages/auth/login">退出登录</button></view>
 </view>

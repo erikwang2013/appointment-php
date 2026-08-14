@@ -1,0 +1,22 @@
+<view class="container">
+  <view class="redeem-box card">
+    <input class="code-input" placeholder="请输入礼品卡兑换码" value="{{code}}" bindinput="onCodeInput"/>
+    <button size="mini" type="primary" bindtap="onRedeem" disabled="{{redeeming}}">{{redeeming?'兑换中...':'立即兑换'}}</button>
+  </view>
+
+  <view class="card">
+    <view class="section-title">我的礼品卡</view>
+    <view wx:if="{{!cards.length}}" class="empty">暂无礼品卡</view>
+    <view class="gift-item" wx:for="{{cards}}" wx:key="id">
+      <view class="gift-main">
+        <text class="gift-type">{{item.type==='cash'?'现金卡':'实物卡'}}</text>
+        <text class="gift-amount" wx:if="{{item.amount}}">¥{{item.amount}}</text>
+        <text class="gift-name" wx:elif="{{item.gift_name}}">{{item.gift_name}}</text>
+      </view>
+      <view class="gift-meta">
+        <text>{{item.status_text}}</text>
+        <text class="gift-time">{{item.used_at}}</text>
+      </view>
+    </view>
+  </view>
+</view>

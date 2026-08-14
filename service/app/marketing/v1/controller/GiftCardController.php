@@ -7,7 +7,10 @@ namespace app\marketing\v1\controller;
 
 use app\common\BaseController;
 use app\model\GiftCard;
+use app\model\UserWallet;
+use app\model\WalletTxn;
 use support\Db;
+use support\Log;
 use Webman\Http\Request;
 
 /**
@@ -31,8 +34,27 @@ class GiftCardController extends BaseController
     }
 
     /**
+     * 我的礼品卡列表
+     * GET /api/marketing/gift-cards/my
+     */
+    public function my(Request $request)
+    {
+        $userId = $request->user_id;
+
+        $giftCards = GiftCard::where('used_by', $userId)
+            ->orderBy('used_at', 'desc')
+            ->get();
+
+        return $this->success($giftCards);
+    }
+
+    /**
      * 兑换礼品卡
      * POST /api/marketing/gift-cards/redeem
+     *
+     * 幂等防双入账：事务内对礼品卡行 lockForUpdate + status 复验；
+     * cash 类型额外对钱包行 lockForUpdate（不存在则创建）→ balance 累加
+     * → 写流水(gift_card, balance_after)。全部单事务原子提交。
      */
     public function redeem(Request $request)
     {
@@ -54,14 +76,21 @@ class GiftCardController extends BaseController
 
         Db::beginTransaction();
         try {
+            // 行锁 + 状态复验（并发防双入账，锁内再校验一次 status）
+            $giftCard = GiftCard::where('id', $giftCard->id)->lockForUpdate()->first();
+            if (!$giftCard || $giftCard->status !== 'unused') {
+                Db::rollBack();
+                return $this->error('兑换码已被使用或已过期');
+            }
+
             $giftCard->status = 'used';
             $giftCard->used_by = $userId;
             $giftCard->used_at = date('Y-m-d H:i:s');
             $giftCard->save();
 
-            // 现金类型: 需增加钱包余额系统后启用
-            // 所需 schema: erik_user 添加 balance DECIMAL(10,2), 创建 erik_user_balance_log 表
-            // 实现后: $user->increment("balance", $giftCard->amount)
+            if ($giftCard->type === 'cash') {
+                $this->creditWallet($userId, (float) $giftCard->amount, $giftCard->code);
+            }
 
             Db::commit();
 
@@ -75,8 +104,41 @@ class GiftCardController extends BaseController
             ], '兑换成功');
         } catch (\Throwable $e) {
             Db::rollBack();
+            Log::error('[GiftCardController] redeem failed, code: ' . $code . ', error: ' . $e->getMessage());
             return $this->error('兑换失败，请稍后重试');
         }
+    }
+
+    /**
+     * 现金礼品卡入账钱包（必须在事务内调用，钱包行 lockForUpdate）
+     *
+     * @param string $userId
+     * @param float  $amount 入账金额（元）
+     * @param string $code   礼品卡兑换码（写入流水 remark）
+     */
+    private function creditWallet(string $userId, float $amount, string $code): void
+    {
+        // 钱包行锁（不存在则创建；并发首充由 uk_user_id 唯一约束兜底，冲突整体回滚）
+        $wallet = UserWallet::where('user_id', $userId)->lockForUpdate()->first();
+        if (!$wallet) {
+            $wallet = UserWallet::create([
+                'user_id'        => $userId,
+                'balance'        => 0.00,
+                'total_recharge' => 0.00,
+                'total_consume'  => 0.00,
+            ]);
+        }
+
+        $wallet->balance = round((float) $wallet->balance + $amount, 2);
+        $wallet->save();
+
+        WalletTxn::create([
+            'user_id'       => $userId,
+            'type'          => WalletTxn::TYPE_GIFT_CARD,
+            'amount'        => $amount,
+            'balance_after' => (float) $wallet->balance,
+            'remark'        => '礼品卡兑换 ' . $code,
+        ]);
     }
 
     /**

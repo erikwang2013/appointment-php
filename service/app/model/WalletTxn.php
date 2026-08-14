@@ -18,14 +18,16 @@ class WalletTxn extends Model
     protected $table = 'erik_wallet_txn';
 
     // ── 流水类型常量 ──
-    public const TYPE_RECHARGE = 'recharge';
-    public const TYPE_CONSUME  = 'consume';
-    public const TYPE_REFUND   = 'refund';
+    public const TYPE_RECHARGE  = 'recharge';
+    public const TYPE_CONSUME   = 'consume';
+    public const TYPE_REFUND    = 'refund';
+    public const TYPE_GIFT_CARD = 'gift_card';
 
     public const TYPE_TEXT = [
-        self::TYPE_RECHARGE => '充值',
-        self::TYPE_CONSUME  => '消费',
-        self::TYPE_REFUND   => '退款',
+        self::TYPE_RECHARGE  => '充值',
+        self::TYPE_CONSUME   => '消费',
+        self::TYPE_REFUND    => '退款',
+        self::TYPE_GIFT_CARD => '礼品卡',
     ];
 
     public $timestamps = false; // 表仅 created_at（DB 默认 CURRENT_TIMESTAMP）

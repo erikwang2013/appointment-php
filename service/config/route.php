@@ -241,6 +241,7 @@ Route::group('/api/marketing', function () {
     Route::post('/cards/use', v('marketing', 'CardController', 'use'));
     Route::get('/points', v('marketing', 'PointController', 'index'));
     Route::get('/gift-cards', v('marketing', 'GiftCardController', 'index'));
+    Route::get('/gift-cards/my', v('marketing', 'GiftCardController', 'my'));
     Route::post('/gift-cards/redeem', v('marketing', 'GiftCardController', 'redeem'));
     Route::post('/gift-cards/store', v('marketing', 'GiftCardController', 'store'));
 

@@ -12,6 +12,7 @@
     "pages/auth/forget-password",
     "pages/tech-work/index",
     "pages/marketing/coupons",
+    "pages/gift-cards/index",
     "pages/message/index"
   ],
   "window": {
