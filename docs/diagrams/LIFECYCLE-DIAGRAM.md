@@ -201,3 +201,25 @@ stateDiagram-v2
 
     note right of expired: 三层幂等：原行行锁复验<br/>+ id游标分页 + 通知仅扣减轮次产生
 ```
+
+## 10. 转账生命周期（第19轮：余额转账 + 积分转赠）
+
+```mermaid
+stateDiagram-v2
+    [*] --> validating: 发起转账<br/>(余额转账: 0.01-1000元/笔, 单日5000元<br/>积分转赠: 1-10000点, 单日10000点)
+
+    validating --> locked: 通过校验<br/>(Redis NX锁 30s + 双方行锁<br/>user_id升序防死锁)
+
+    locked --> completed: 事务提交<br/>(转出方扣减 + 接收方累加<br/>双流水 transfer_out/in 或 consume/earn<br/>转账记录 status=completed)
+
+    locked --> failed: 锁内复验失败<br/>(余额不足/超限额/接收人消失)
+    locked --> idempotent: client_token重复<br/>(SETNX 24h拦截, 余额转账)
+
+    completed --> notified: 接收方站内通知<br/>(balance_received / points_received)
+    completed --> [*]
+    failed --> [*]
+    idempotent --> [*]
+    notified --> [*]
+
+    note right of completed: 积分接收流水含 expires_at<br/>可被 PointsExpiryTimer 正常过期
+```

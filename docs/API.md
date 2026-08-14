@@ -307,6 +307,24 @@
 
 **分销返佣**: 被推荐人首单 completed 后发放，金额 = paid_amount × reward_rate（erik_system_config referral.reward_rate，默认 0.05，非法值回落常量）。行锁 + rewarded_at 判空 + 首单复查三重幂等；入账 WalletTxn type=referral_reward。
 
+#### 2.6 积分转赠（第19轮）
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| POST | `/api/user/points/transfer` | 积分转赠 (to_user_id hashid/points) |
+| GET | `/api/user/points/transfers` | 转赠记录 (?direction=sent/received&page=1) |
+
+**积分转赠**: 接收人 hashid 解码+存在性 404、转自己 422、点数 1-10000 422、余额 SUM 聚合不足 422、单日累计 10000 限额 422。并发防护：Redis NX 锁 points_transfer:{user} 30s → 事务内双方最后一条流水 lockForUpdate（user_id 升序防互转死锁）→ 锁内复验余额/限额/接收人。流水规范：发送方 type=consume/source=points_transfer 负值（balance=上条快照-本次），接收方 type=earn/source=points_transfer 正值含 expires_at（PointsExpiryTimer 可正常过期）；commit 后站内通知接收方 type='points_received'（失败仅 warn）。
+
+#### 2.7 消息偏好设置（第19轮）
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/api/user/notify-settings` | 查询通知开关（5 类全量） |
+| PUT | `/api/user/notify-settings` | 批量更新开关 (types: {service_reminder: 0/1, ...}) |
+
+**通知开关**: erik_user_notify_setting 表（user_id+type 复合唯一键，缺省行=默认开）。5 类：service_reminder 服务提醒 / card_expiry 到期提醒（卡+券统一伞形）/ points_expiry 积分过期 / marketing 营销（预留）/ system 系统（不可关，PUT 强制为 1）。门控：notifySettingEnabled 挂接 ServiceReminderTimer/ExpiryReminderTimer/PointsExpiryTimer 3 个定时器进程 + 订阅事件场景映射（PAY/REFUND/VERIFIED/RESCHEDULE→system 恒发，REMINDER→service_reminder，EXPIRY→card_expiry）；类型关闭时站内通知与订阅消息一并跳过。
+
 ---
 
 ### 3. 技师接口（需JWT + 技师身份）
@@ -373,6 +391,9 @@
 | POST | `/api/order/refund/{id}` | 申请退款 |
 | POST | `/api/order/verify/{id}` | 核销 (code: 二维码值) |
 | POST | `/api/order/reschedule/{id}` | 预约改期 (new_service_time 必填/reason 可选) |
+| GET | `/api/order/logistics/{id}` | 物流跟踪（第19轮，product 订单） |
+| POST | `/api/order/review/{order_id}` | 提交评价 (rating 1-5/content/images)（第19轮补注册） |
+| POST | `/api/order/review/{order_id}/append` | 评价追评 (content/images 逗号分隔)（第19轮） |
 
 **订单状态**: pending(待支付) → paid(已支付) → confirmed(已确认) → serving(服务中) → completed(已完成)
 
@@ -393,6 +414,10 @@
 **秒杀下单（第18轮）**: 创建订单传 `promotion_id`（flash_sale 类型）：秒杀价 = round(total × (100 − discount_percent)/100, 2)，与 PromotionController 秒杀价口径一致；校验：类型白名单 [group_buy, flash_sale]、活动进行中、调用者是参与者、服务匹配、售罄（participants_count ≥ max_people）422「已抢光」；禁用优惠券/次卡/积分叠加 422。pay() 懒判定 isFlashSaleClosed：秒杀过期 → 活动置 0 + 批量取消该活动 pending 订单 + 本单自动取消 + 释放技师锁。
 
 **预约改期（第17轮）**: `POST /api/order/reschedule/{id}` 传 new_service_time（必填）+ reason（可选），同技师换时间。规则：仅本人订单（非本人 404）、仅 appointment 类型且状态 pending/paid/confirmed 可改（其余 422）、距原服务开始 ≥ 6 小时（与全额退款窗口一致）方可改期。并发防护：B1 order_lock（与 pay/cancel/refund 同一互斥族）→ 新时段技师锁 Redis SETNX EX 180（并发改期防超卖）→ 事务内行锁重读 + B2 排班冲突 DB 校验（排除本单）→ 更新 service_time + 落 erik_order_reschedule 记录 → 释放原时段锁、新时段锁由本单持有 → SCENE_RESCHEDULE 订阅消息（未配置降级站内通知）。失败路径事务回滚同时释放新时段锁。
+
+**物流跟踪（第19轮）**: `GET /api/order/logistics/{id}` — 仅本人 product 订单可查（非本人/非商品/未发货统一 404）。读取 order.remark JSON（shipping_company/tracking_no/shipped_at，admin MallOrderController::ship() 发货时写入），parseShippingInfo/parseReceiver 双解析兜底旧格式；收货人手机号脱敏 138****5678。
+
+**评价（第19轮）**: `POST /api/order/review/{order_id}` 提交评价（rating 必填 1-5、content/images 可选）：非本人 404、非 completed 422、重复评价 400。`POST /api/order/review/{order_id}/append` 追评（content 必填、images 逗号分隔）：评价不存在/非本人统一 404、非 completed 422、重复追评 422、空内容 422；成功写 append_content/append_images(JSON)/append_at 并站内通知技师 type='review_append'，响应透出 append 字段。
 
 ### 4.1 售后接口（需JWT认证）
 
@@ -468,12 +493,17 @@
 | GET | `/api/wallet` | 钱包余额 + 流水分页 |
 | POST | `/api/wallet/recharge` | 创建充值单 (amount: 元) |
 | POST | `/api/wallet/recharge/{id}/pay` | 充值单发起支付 (微信) |
+| POST | `/api/wallet/transfer` | 余额转账 (to_user_id hashid/amount/remark 可选/client_token 可选)（第19轮） |
+| GET | `/api/wallet/transfers` | 转账记录 (?direction=out/in&page=1)（第19轮） |
+| GET | `/api/wallet/transfers/{id}` | 转账详情（仅双方可见，他人 404）（第19轮） |
 
 **流水**: wallet_txn 类型: recharge / consume / refund / gift_card / referral_reward(分销返佣) / points_exchange(积分兑换入账)，分页返回。
 
 **充值**: `POST /api/wallet/recharge` 传 amount（元）创建充值单，返回充值单 hashid。`POST /api/wallet/recharge/{id}/pay` 发起微信支付，响应含 sign_params（同订单支付模式）；支付回调以 R 前缀的 out_trade_no 区分充值单与订单。
 
 **余额支付**: 订单支付请求体传 `pay_channel: "balance"` 使用钱包余额；微信退款与余额退款均将金额回充至钱包余额。
+
+**余额转账（第19轮）**: `POST /api/wallet/transfer` — 接收人 hashid 解码+存在性 404、转自己 422、金额 0.01-1000/笔 422（DECIMAL 比对禁 float）、余额不足 422、单日累计 5000 元 422。并发/幂等：Redis NX 锁 wallet_transfer:{from} 30s 串行化转出方 → 事务内双方钱包行按 user_id 升序 lockForUpdate（固定顺序防死锁）→ 扣转出方 + 增接收方 + WalletTxn 双流水（transfer_out/transfer_in 含 balance_after 快照）+ 转账记录 completed + 接收方站内通知 type='balance_received'（失败仅记日志）。client_token 可选：成功后 SETNX 24h 防重复提交（失败请求不落 token 可重试）。
 
 ---
 

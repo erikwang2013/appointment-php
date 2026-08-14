@@ -2,7 +2,7 @@
 
 A three-platform appointment service management platform: WeChat Mini Program + Flutter App (same-account role switching) + PC Admin Dashboard.
 
-> **Status**: All complete | 113 Controllers | 110 Models | 444 tests (service 335 / admin 109) | 77 Tables | 293 Routes
+> **Status**: All complete | 116 Controllers | 113 Models | 481 tests (service 372 / admin 109) | 80 Tables | 303 Routes
 
 ## Project Structure
 
@@ -132,6 +132,11 @@ cd ../service/ && cp .env.docker .env && docker-compose up -d
 | Expiry Reminder | ExpiryReminderTimer 6h sweep of member cards/coupons expiring within 3 days → type=card_expiry/coupon_expiry + SCENE_EXPIRY subscribe message (order_id tracks source dedup) |
 | Review Reply | POST /api/technician/review/reply/{order_id}: non-owner 404, duplicate 422, in-app notification on success; erik_order_review replied_at column; admin reply detail (permission 381) |
 | Recharge Arrival Notify | in-app notification type='wallet_recharge' inside WeChat recharge callback transaction (reuses callback idempotency, atomic with status change, non-blocking on failure) |
+| Balance Transfer | POST /api/wallet/transfer user-to-user: amount 0.01-1000/once + daily 5000 cap; Redis NX lock + both-wallet row locks (ascending user_id anti-deadlock) + client_token 24h idempotency; WalletTxn transfer_out/transfer_in double ledger with balance_after snapshot; receiver in-app notification type='balance_received' |
+| Points Transfer | POST /api/user/points/transfer user-to-user: 1-10000 points + daily 10000 cap; Redis NX lock + last-ledger-row lockForUpdate both sides (ascending anti-deadlock) + recheck inside lock; sender consume / receiver earn double ledger (receiver rows carry expires_at for normal expiry); receiver in-app notification type='points_received' |
+| Review Append | POST /api/order/review/{order_id}/append: non-owner 404 / duplicate 422 / empty 422 / non-completed 422, technician in-app notification type='review_append' on success; erik_order_review append_content/append_images(JSON)/append_at columns; also registered the previously-unreachable user review-submit route and fixed its latent TypeError |
+| Logistics Tracking | GET /api/order/logistics/{id}: owner-only product orders (404 for non-owner/non-product/not-shipped); parses order.remark JSON (shipping_company/tracking_no/shipped_at written by admin ship()); receiver phone masked 138****5678 |
+| Notification Preferences | erik_user_notify_setting table (uk_user_type unique, absent row = enabled by default); GET/PUT /api/user/notify-settings; 5 types service_reminder/card_expiry/points_expiry/marketing/system (system always-on); notifySettingEnabled gates 3 timers + subscribe events, disabled type skips both in-app and subscribe messages |
 
 > Round-8 maintenance fixes: removed 12 latent Poster::verify fatals; DashboardController stats switched to Capsule Manager queries.
 >
@@ -146,6 +151,8 @@ cd ../service/ && cp .env.docker .env && docker-compose up -d
 > Round-17 fix: AutoCancelTimer notification insert now uses \support\Model::generateId() (previously called non-existent Snowflake::generate(), silently failing auto-cancel notifications).
 >
 > Round-18 additions: flash-sale ordering (store() flash_sale price path); service start reminder (ServiceReminderTimer + SCENE_REMINDER); member-card/coupon expiry reminder (ExpiryReminderTimer + SCENE_EXPIRY); technician review reply (reply endpoint + replied_at column + permission 381); recharge arrival notification (type='wallet_recharge' inside callback transaction).
+>
+> Round-19 additions: balance transfer (erik_wallet_transfer + WalletTransferController, dual row locks + client_token idempotency); points transfer (erik_user_points_transfer + PointsTransferController, daily cap + double ledger); review append (erik_order_review 3 append columns + append endpoint + store route registration); logistics tracking (logistics endpoint + remark JSON parsing + phone masking); notification preferences (erik_user_notify_setting + NotifySettingController + 3 timer gates).
 
 ## Documentation
 

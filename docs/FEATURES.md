@@ -302,6 +302,48 @@
 | 幂等 | 复用现有回调幂等（充值单行 lockForUpdate + status 复验，仅首次 pending→paid 走到通知）；通知与状态变更同事务原子提交，无 crash 间隙；验签失败/单不存在/金额不符不写通知 |
 | 容错 | 通知写入 try/catch，失败仅记 warning 日志不阻塞主流程 |
 
+### 31. 余额转账（第19轮）
+
+| 功能 | 说明 |
+|------|------|
+| 接口 | POST /api/wallet/transfer：接收人 hashid 解码+存在性 404、转自己 422、金额 0.01-1000/笔 422（DECIMAL 比对禁 float）、余额不足 422、单日累计 5000 元 422 |
+| 并发/幂等 | Redis NX 锁 wallet_transfer:{from} 30s 串行化转出方；事务内按双方 user_id 升序 lockForUpdate 钱包行（固定顺序防死锁）；client_token 成功后 SETNX 24h 防重复提交（失败请求不落 token 可重试） |
+| 入账 | 扣转出方 + 增接收方 + WalletTxn 双流水（transfer_out/transfer_in 含 balance_after 快照）+ 转账记录 completed + 接收方站内通知 type='balance_received'（失败仅记日志） |
+| 记录 | GET /api/wallet/transfers（direction=out/in 分页）+ GET /transfers/{id}（仅双方可见 404） |
+
+### 32. 积分转赠（第19轮）
+
+| 功能 | 说明 |
+|------|------|
+| 接口 | POST /api/user/points/transfer：接收人存在 404、转自己 422、点数 1-10000 422、余额 SUM 聚合不足 422、单日累计 10000 限额 422 |
+| 并发/幂等 | Redis NX 锁 points_transfer:{user} 30s；事务内双方最后一条流水 lockForUpdate（user_id 升序防互转死锁）+ 锁内复验余额/限额/接收人 |
+| 流水规范 | 发送方 type=consume source=points_transfer 负值（balance=上条快照-本次，与 points_offset/exchange 同口径）；接收方 type=earn source=points_transfer 正值含 expires_at（PointsExpiryTimer 可正常过期）；事务内写转赠记录，commit 后站内通知接收方 type='points_received' |
+| 记录 | GET /api/user/points/transfers（direction=sent/received 分页，对方昵称） |
+
+### 33. 评价追评 + 提交路由补全（第19轮）
+
+| 功能 | 说明 |
+|------|------|
+| 追评 | POST /api/order/review/{order_id}/append：评价不存在/非本人统一 404、非 completed 422、重复追评 422（append_content/append_at 任一非空即拒）、空内容 422；成功写 append_content/append_images(JSON)/append_at + 技师站内通知 type='review_append' |
+| 提交评价 | 补注册 POST /api/order/review/{order_id}（ReviewController::store 原无路由不可达）；顺带修复潜伏 TypeError：findByOrderId 收到 int 违反 string 签名（对照 append 的 (string) 转换），补注册即暴露调用即 500 |
+| 数据 | erik_order_review 增 append_content TEXT/append_images JSON/append_at DATETIME 三列（幂等迁移）；响应透出 append 字段 |
+
+### 34. 用户端物流跟踪（第19轮）
+
+| 功能 | 说明 |
+|------|------|
+| 接口 | GET /api/order/logistics/{id}：仅本人 product 订单可查（非本人/非商品/未发货统一 404） |
+| 数据 | 读取 order.remark JSON（shipping_company/tracking_no/shipped_at，由 admin MallOrderController::ship() 发货时写入）；parseShippingInfo/parseReceiver 双解析兜底旧格式 |
+| 脱敏 | 收货人手机号 maskPhone（138****5678），防泄露 |
+
+### 35. 消息偏好设置（第19轮）
+
+| 功能 | 说明 |
+|------|------|
+| 数据 | erik_user_notify_setting 表（user_id+type 复合唯一键 uk_user_type，缺省行=默认开）；5 类：service_reminder 服务提醒 / card_expiry 到期提醒（卡+券统一伞形）/ points_expiry 积分过期 / marketing 营销（预留）/ system 系统（不可关，PUT 强制为 1） |
+| 接口 | GET /api/user/notify-settings 返回 5 类全量开关；PUT 批量 upsert 不产生重复行 |
+| 门控 | NotificationReminderService::notifySettingEnabled 挂接 3 定时器进程（ServiceReminderTimer/ExpiryReminderTimer 卡+券/PointsExpiryTimer，定时器直插 erik_notification 表不走服务写入路径故各自加同款门控）+ 订阅事件（sendSubscribeForOrderEvent/Notification 场景映射 PAY/REFUND/VERIFIED/RESCHEDULE→system 恒发，REMINDER→service_reminder，EXPIRY→card_expiry）；类型关闭时站内通知与订阅消息一并跳过 |
+
 ---
 
 ## 二、管理后台（PC Web）

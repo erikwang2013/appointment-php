@@ -387,8 +387,12 @@ apps/flutter/
 | 订单 | erik_order_refund | 退款记录 |
 | 订单 | erik_order_review | 服务评价 |
 | 订单 | erik_order_verification | 核销记录 |
+| 订单 | erik_order_reschedule | 预约改期记录（第17轮） |
 | 营销 | erik_coupon | 优惠券定义 |
 | 营销 | erik_user_coupon | 用户优惠券 |
+| 营销 | erik_user_coupon_transfer | 优惠券转赠记录（第17轮） |
+| 营销 | erik_user_points_transfer | 积分转赠记录（第19轮） |
+| 营销 | erik_technician_tier_log | 技师等级变更日志（第17轮） |
 | 营销 | erik_member_card | 会员卡定义 |
 | 营销 | erik_user_member_card | 用户会员卡 |
 | 营销 | erik_member_card_usage | 次卡使用记录 |
@@ -399,6 +403,8 @@ apps/flutter/
 | 钱包 | erik_user_wallet | 用户钱包余额 |
 | 钱包 | erik_wallet_recharge | 钱包充值记录 |
 | 钱包 | erik_wallet_txn | 钱包交易流水 |
+| 钱包 | erik_wallet_transfer | 用户间转账记录（第19轮） |
+| 用户 | erik_user_notify_setting | 消息偏好设置（第19轮） |
 | 内容 | erik_banner | 轮播图 |
 | 内容 | erik_announcement | 公告 |
 | 内容 | erik_platform_agreement | 平台协议 |
