@@ -2,7 +2,7 @@
 
 三端预约服务管理平台：用户端微信小程序 + Flutter APP（同账号身份切换）、PC管理后台。
 
-> **项目状态**: 全部完成 ✅ | 113 控制器 | 110 模型 | 415 测试（service 309 / admin 106） | 77 数据表 | 291 路由
+> **项目状态**: 全部完成 ✅ | 113 控制器 | 110 模型 | 444 测试（service 335 / admin 109） | 77 数据表 | 293 路由
 
 ## 项目结构
 
@@ -127,6 +127,11 @@ cd ../service/ && cp .env.docker .env && docker-compose up -d
 | 优惠券转赠 | 8 位唯一转赠码（uk_code 兜底，7 天有效）；claim 防滥用：Redis NX 锁 + 行锁复验防双花、uk_user_coupon 限转赠一次、被转赠券不可再转、不可自领；懒过期恢复原券 |
 | 积分过期 | expires_at（默认 365 天，配置 points.expiry_days）；PointsExpiryTimer 60s 游标扫描写 type=expire 负值扣减（三层幂等）+ 聚合站内通知；过期积分不可抵现/兑换 |
 | 技师等级自动评定 | TierRatingService 实时统计订单量+均分回写 profile，按 tier_config 从高到低匹配；仅升级不降级（allowDowngrade 供人工重评）；变更落 erik_technician_tier_log + 站内通知；admin 日志查看（权限 380） |
+| 秒杀下单闭环 | store() 传 promotion_id（flash_sale）以秒杀价 round(total×(100−discount_percent)/100,2) 下单；售罄（participants_count≥max_people）422「已抢光」；pay() 懒判定 isFlashSaleClosed 过期自动取消+释放技师锁 |
+| 服务开始前提醒 | ServiceReminderTimer 60s 扫描 1h 内开始的 confirmed/serving 订单 → SCENE_REMINDER 订阅消息+站内通知（order_id+type 防重，三层幂等）；模板未配置自动降级站内通知 |
+| 到期提醒 | ExpiryReminderTimer 6h 扫描 3 天内到期的会员卡/优惠券 → type=card_expiry/coupon_expiry + SCENE_EXPIRY 订阅消息（order_id 记来源防重） |
+| 技师回复评价 | POST /api/technician/review/reply/{order_id}：非本人 404、重复回复 422、回复成功站内通知用户；erik_order_review 补 replied_at；admin 回复详情（权限 381） |
+| 充值到账通知 | 微信充值回调事务内写站内通知 type='wallet_recharge'（复用回调幂等，同事务原子提交，失败不阻塞主流程） |
 
 > 第 8 轮运维性修复：移除 12 处 Poster::verify 潜伏 fatal；DashboardController 统计改用 Capsule Manager 查询。
 >
@@ -137,6 +142,8 @@ cd ../service/ && cp .env.docker .env && docker-compose up -d
 > Round-17 补充：预约改期（erik_order_reschedule + reschedule 接口）；优惠券转赠（erik_user_coupon_transfer + transfer/claim/transfers）；积分过期（expires_at + PointsExpiryTimer 进程）；技师等级自动评定（TierRatingService + erik_technician_tier_log，权限 380）。
 >
 > Round-17 修复：AutoCancelTimer 通知插入改用 \support\Model::generateId()（原调用不存在的 Snowflake::generate()，自动取消通知静默失败）。
+>
+> Round-18 补充：秒杀下单（store() 支持 flash_sale 秒杀价）；服务开始前提醒（ServiceReminderTimer + SCENE_REMINDER）；会员卡/优惠券到期提醒（ExpiryReminderTimer + SCENE_EXPIRY）；技师回复评价（review reply 接口 + replied_at 列 + 权限 381）；充值到账通知（回调事务内 type='wallet_recharge'）。
 
 ## 文档导航
 

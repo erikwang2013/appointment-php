@@ -2,7 +2,7 @@
 
 A three-platform appointment service management platform: WeChat Mini Program + Flutter App (same-account role switching) + PC Admin Dashboard.
 
-> **Status**: All complete | 113 Controllers | 110 Models | 415 tests (service 309 / admin 106) | 77 Tables | 291 Routes
+> **Status**: All complete | 113 Controllers | 110 Models | 444 tests (service 335 / admin 109) | 77 Tables | 293 Routes
 
 ## Project Structure
 
@@ -127,6 +127,11 @@ cd ../service/ && cp .env.docker .env && docker-compose up -d
 | Coupon Transfer | 8-char unique transfer code (uk_code fallback, 7-day validity); claim anti-abuse: Redis NX lock + row-lock recheck anti-double-spend, uk_user_coupon one-transfer-per-coupon, transferred coupons non-re-transferable, no self-claim; lazy expiry restores original coupon |
 | Points Expiry | expires_at (default 365d, config points.expiry_days); PointsExpiryTimer 60s cursor sweep writes type=expire negative rows (triple idempotency) + aggregated in-app notification; expired points cannot offset/exchange |
 | Technician Auto Tier | TierRatingService real-time stats (order count + review avg) backfill profile, match tier_config high-to-low; upgrade-only by default (allowDowngrade for manual re-eval); erik_technician_tier_log + in-app notification; admin logs view (permission 380) |
+| Flash-sale Ordering | store() with promotion_id (flash_sale) orders at flash price round(total×(100−discount_percent)/100,2); sold-out (participants_count≥max_people) 422; pay() lazy check isFlashSaleClosed auto-cancel + technician lock release |
+| Service Start Reminder | ServiceReminderTimer 60s sweep of confirmed/serving orders starting within 1h → SCENE_REMINDER subscribe message + in-app notification (order_id+type dedup, triple idempotency); falls back to in-app when template unconfigured |
+| Expiry Reminder | ExpiryReminderTimer 6h sweep of member cards/coupons expiring within 3 days → type=card_expiry/coupon_expiry + SCENE_EXPIRY subscribe message (order_id tracks source dedup) |
+| Review Reply | POST /api/technician/review/reply/{order_id}: non-owner 404, duplicate 422, in-app notification on success; erik_order_review replied_at column; admin reply detail (permission 381) |
+| Recharge Arrival Notify | in-app notification type='wallet_recharge' inside WeChat recharge callback transaction (reuses callback idempotency, atomic with status change, non-blocking on failure) |
 
 > Round-8 maintenance fixes: removed 12 latent Poster::verify fatals; DashboardController stats switched to Capsule Manager queries.
 >
@@ -139,6 +144,8 @@ cd ../service/ && cp .env.docker .env && docker-compose up -d
 > Round-17 additions: reschedule (erik_order_reschedule + reschedule endpoint); coupon transfer (erik_user_coupon_transfer + transfer/claim/transfers); points expiry (expires_at + PointsExpiryTimer process); technician auto tier (TierRatingService + erik_technician_tier_log, permission 380).
 >
 > Round-17 fix: AutoCancelTimer notification insert now uses \support\Model::generateId() (previously called non-existent Snowflake::generate(), silently failing auto-cancel notifications).
+>
+> Round-18 additions: flash-sale ordering (store() flash_sale price path); service start reminder (ServiceReminderTimer + SCENE_REMINDER); member-card/coupon expiry reminder (ExpiryReminderTimer + SCENE_EXPIRY); technician review reply (reply endpoint + replied_at column + permission 381); recharge arrival notification (type='wallet_recharge' inside callback transaction).
 
 ## Documentation
 

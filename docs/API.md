@@ -340,6 +340,10 @@
 `POST /api/technician/withdraw` — 申请提现 (amount)
 规则: 每月20号可提，T+1到账，最低金额/整百限制由后台配置。
 
+#### 3.6 评价回复（第18轮）
+
+`POST /api/technician/review/reply/{order_id}` — 技师回复评价 (reply)。评价不存在/非本人统一 404（不泄露存在性）；已有回复 422（幂等拒绝不覆盖）；空回复 422。回复成功站内通知用户（type='review_reply'）。
+
 #### 3.6 工作台
 
 | 方法 | 路径 | 说明 |
@@ -385,6 +389,8 @@
 **积分回补**: 取消/退款时归还 points_offset 消耗的积分（type=earn/source=points_refund）：取消全额、退款按比例，5 挂接点幂等（refundOffsetPoints）。
 
 **拼团下单（第16轮）**: 创建订单可选传 `promotion_id`（hashid）。校验：仅 group_buy 类型、活动有效期内、调用者是参与者、未满员（已成团锁定 422）、订单服务与活动匹配；拼团价 = 原价 × discount_percent/100，禁用优惠券/次卡/积分叠加（传任一即 422）。订单落库 promotion_id/participant_id；支付完全复用 `POST /api/order/pay/{id}`，pay 时懒判定活动已关闭（到期未成团）→ 订单自动取消并释放技师锁。
+
+**秒杀下单（第18轮）**: 创建订单传 `promotion_id`（flash_sale 类型）：秒杀价 = round(total × (100 − discount_percent)/100, 2)，与 PromotionController 秒杀价口径一致；校验：类型白名单 [group_buy, flash_sale]、活动进行中、调用者是参与者、服务匹配、售罄（participants_count ≥ max_people）422「已抢光」；禁用优惠券/次卡/积分叠加 422。pay() 懒判定 isFlashSaleClosed：秒杀过期 → 活动置 0 + 批量取消该活动 pending 订单 + 本单自动取消 + 释放技师锁。
 
 **预约改期（第17轮）**: `POST /api/order/reschedule/{id}` 传 new_service_time（必填）+ reason（可选），同技师换时间。规则：仅本人订单（非本人 404）、仅 appointment 类型且状态 pending/paid/confirmed 可改（其余 422）、距原服务开始 ≥ 6 小时（与全额退款窗口一致）方可改期。并发防护：B1 order_lock（与 pay/cancel/refund 同一互斥族）→ 新时段技师锁 Redis SETNX EX 180（并发改期防超卖）→ 事务内行锁重读 + B2 排班冲突 DB 校验（排除本单）→ 更新 service_time + 落 erik_order_reschedule 记录 → 释放原时段锁、新时段锁由本单持有 → SCENE_RESCHEDULE 订阅消息（未配置降级站内通知）。失败路径事务回滚同时释放新时段锁。
 
@@ -558,6 +564,14 @@
 
 **自动评定**: TierRatingService::evaluate 实时统计（erik_order completed 订单数 + 评价均分，四舍五入 1 位小数）回写 profile.order_count/rating，按 erik_technician_tier_config（min_orders/min_rating）从高到低匹配，无匹配归最低等级。仅升级不降级（降级影响佣金率与价格系数，由后台人工兜底；allowDowngrade=true 供人工重评）；幂等（等级一致只同步统计）；变更落 erik_technician_tier_log + 站内通知。触发点：WorkController::complete / ReviewController 评价写入 / ProfileController 查看资料懒判定。
 
+### 评价回复查看（第18轮）
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/admin/reviews/{id}/reply` | 评价回复详情（decodeId → find → 404 → decorate 输出；未回复 reply=''，reply/replied_at 经 toArray 透出；静态路由先于 resource） |
+
+权限ID: 381（slug 'get.admin/reviews/{id}/reply'）。
+
 ### 角色权限
 
 | 方法 | 路径 | 说明 |
@@ -652,5 +666,11 @@
 | WECHAT_SUBSCRIBE_TEMPLATE_PAID | 支付成功订阅消息模板ID |
 | WECHAT_SUBSCRIBE_TEMPLATE_REFUND | 退款订阅消息模板ID |
 | WECHAT_SUBSCRIBE_TEMPLATE_VERIFIED | 核销订阅消息模板ID |
+| WECHAT_SUBSCRIBE_TEMPLATE_REMINDER | 服务开始前提醒订阅消息模板ID（第18轮） |
+| WECHAT_SUBSCRIBE_TEMPLATE_EXPIRY | 会员卡/优惠券到期提醒订阅消息模板ID（第18轮） |
 
 未配置订阅消息模板时自动降级为站内通知。
+
+**订阅消息场景**: SCENE_PAY(支付成功) / SCENE_REFUND(退款到账) / SCENE_VERIFIED(核销成功) / SCENE_RESCHEDULE(改期成功) / SCENE_REMINDER(服务开始前提醒，第18轮) / SCENE_EXPIRY(到期提醒，第18轮)。推送成功才写 push_sent_at，失败下轮重试。
+
+**充值到账通知（第18轮）**: 微信充值回调（R 前缀单号）事务内写站内通知 type='wallet_recharge'「您已成功充值 ¥X.XX」；复用回调幂等（仅首次 pending→paid 触发），与状态变更同事务原子提交，写入失败不阻塞主流程。

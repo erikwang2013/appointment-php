@@ -269,6 +269,39 @@
 | 幂等 | ① expire 行 order_id 指向原 earn 流水，事务内对原行 lockForUpdate + exists 复验（并发进程在行锁上串行）② id 游标分页 ③ 通知仅在实际扣减轮次产生 |
 | 口径 | 可用余额 SUM 聚合含 expire 负值行；过期积分不可再抵现/兑换 |
 
+### 27. 秒杀下单（第18轮）
+
+| 功能 | 说明 |
+|------|------|
+| 接口 | POST /api/order 传 promotion_id（flash_sale 类型）：秒杀价 = round(total × (100 − discount_percent)/100, 2)，与 PromotionController 秒杀价口径一致 |
+| 校验 | 类型白名单 [group_buy, flash_sale]（其余 422）；活动进行中；调用者是参与者；订单服务与活动匹配；售罄 participants_count ≥ max_people 422「已抢光」；禁用优惠券/次卡/积分叠加 422 |
+| 过期 | pay() 懒判定 isFlashSaleClosed（同 isGroupBuyClosed 模式）：秒杀过期 → 活动置 0 + 批量取消该活动 pending 订单 + 本单自动取消 + 释放技师锁 422 |
+
+### 28. 服务提醒 + 到期提醒（第18轮）
+
+| 功能 | 说明 |
+|------|------|
+| 服务开始前提醒 | ServiceReminderTimer 60s 扫描 service_time ∈ [now+1h, now+1h+60s)、status confirmed/serving、appointment 类型订单 → 站内通知（type='service_reminder'，含服务/技师/门店/时间）+ SCENE_REMINDER 订阅消息 |
+| 到期提醒 | ExpiryReminderTimer 6h 扫描 end_at ∈ (now, now+3d+6h]：active 会员卡（type='card_expiry'）+ available 优惠券（type='coupon_expiry'，whereHas 关联券定义 end_at）+ SCENE_EXPIRY 订阅消息 |
+| 幂等 | 均 id 游标 100/批 + 事务内行锁复验 + 通知查重（order_id 列记来源 id/订单 id 作防重键）；订阅消息推送成功才写 push_sent_at，失败下轮重试 |
+| 降级 | 模板未配置（WECHAT_SUBSCRIBE_TEMPLATE_REMINDER / _EXPIRY）自动降级仅站内通知 |
+
+### 29. 技师回复评价（第18轮）
+
+| 功能 | 说明 |
+|------|------|
+| 接口 | POST /api/technician/review/reply/{order_id}（技师身份中间件）：评价不存在/非本人统一 404；已有回复 422（幂等拒绝不覆盖）；空回复 422 |
+| 回复后 | 站内通知用户（type='review_reply'，非阻塞 try/catch + Log） |
+| 数据 | erik_order_review 幂等补 replied_at 列（reply 列建表已有）；管理端评价 list/show 经 decorate()->toArray() 透出 reply/replied_at |
+
+### 30. 充值到账通知（第18轮）
+
+| 功能 | 说明 |
+|------|------|
+| 接口 | 微信充值回调（R 前缀单号）handleRechargeNotify 事务内：WalletTxn 之后写站内通知 type='wallet_recharge'，「您已成功充值 ¥X.XX」（金额元，number_format 2 位） |
+| 幂等 | 复用现有回调幂等（充值单行 lockForUpdate + status 复验，仅首次 pending→paid 走到通知）；通知与状态变更同事务原子提交，无 crash 间隙；验签失败/单不存在/金额不符不写通知 |
+| 容错 | 通知写入 try/catch，失败仅记 warning 日志不阻塞主流程 |
+
 ---
 
 ## 二、管理后台（PC Web）
@@ -409,3 +442,9 @@ Flutter Web 单页应用，共 21 个页面：dashboard/用户/角色/配置/日
 - 日志：变更写 erik_technician_tier_log（id/technician_id/old_tier_id/new_tier_id/reason/created_at）+ 站内通知（type='tier'）
 - 触发点：WorkController::complete / ReviewController 评价写入 / ProfileController 查看资料懒判定
 - 管理端：TechnicianTierController 保持手动配置能力；GET /admin/technician-tiers/logs 分页查看变更日志（join 技师姓名与新旧等级名，ID hashid 编码，权限 380）
+
+### 20. 评价回复查看（第18轮）
+
+- ReviewController 新增 reply()：GET /admin/reviews/{id}/reply 回复详情（decodeId → find → 404 → decorate 输出，未回复时 reply=''，reply/replied_at 经 toArray 透出）
+- 路由为静态路由（位于 audit 前，先于 resource 定义）；权限种子 id 381（slug 'get.admin/reviews/{id}/reply'，type 3，超管角色幂等关联）
+- 权限点：381
