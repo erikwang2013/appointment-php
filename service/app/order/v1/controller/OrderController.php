@@ -448,7 +448,7 @@ class OrderController extends BaseController
             if ($orderPayment && $orderPayment->pay_type === 'balance') {
                 // 余额支付订单取消：回充余额（幂等：已补偿单直接跳过，通知走尾部去重）
                 try {
-                    $this->creditRefundToWallet($order, $refundRecord, $refundAmount);
+                    $this->creditRefundToWallet($order, $refundRecord, $refundAmount, true);
                 } catch (\Throwable $e) {
                     Log::error('[OrderController] balance refund failed on cancel, order_no: ' . $order->order_no . ': ' . $e->getMessage());
                     return $this->error('退款处理失败请重试');
@@ -493,6 +493,8 @@ class OrderController extends BaseController
                     if ($this->shouldRestoreBenefits($ratio)) {
                         $this->restoreCouponAndCard($order);
                     }
+                    // 积分抵扣回补（同事务，失败随退款回滚）：取消全额退还抵现积分，幂等
+                    $this->refundOffsetPoints($order, $refundRecord, true);
                     Db::commit();
                 } catch (\Throwable $e2) {
                     Db::rollBack();
@@ -515,6 +517,8 @@ class OrderController extends BaseController
             Db::beginTransaction();
             try {
                 $this->restoreCouponAndCard($order);
+                // 积分抵扣回补（同事务）：无退款单的取消（比例=0）同样全额退还抵现积分，幂等
+                $this->refundOffsetPoints($order, null, true);
                 Db::commit();
             } catch (\Throwable $e2) {
                 Db::rollBack();
@@ -816,6 +820,7 @@ class OrderController extends BaseController
             // balance = 上一条余额 - 本次扣减（快照累加，锁最后一条流水防同用户并发串行）
             $lastBalance = (int) (UserPoints::where('user_id', $order->user_id)
                 ->orderBy('created_at', 'desc')
+                ->orderBy('id', 'desc')
                 ->lockForUpdate()
                 ->value('balance') ?? 0);
 
@@ -983,6 +988,8 @@ class OrderController extends BaseController
             }
             // 积分回扣（同事务，失败随退款回滚）：按退款比例回扣已返积分，幂等
             $this->clawbackOrderPoints($order, $refundRecord);
+            // 积分抵扣回补（同事务，失败随退款回滚）：按退款比例退还抵现积分，幂等
+            $this->refundOffsetPoints($order, $refundRecord);
             Db::commit();
         } catch (\Throwable $e2) {
             Db::rollBack();
@@ -1080,11 +1087,13 @@ class OrderController extends BaseController
      *
      * 退款单行锁 + status 复验（幂等：防与补偿 completeOneRefundCompensation 并发双处理）
      * → 钱包行 lockForUpdate → balance 回充 + 写流水(refund, balance_after)
-     * → 退款单置 success/refunded_at → 订单置 refunded → 全额退款归还券/次卡。
+     * → 退款单置 success/refunded_at → 订单置 refunded → 全额退款归还券/次卡
+     * → 积分回扣 + 积分抵扣回补（幂等）。
      *
+     * @param bool $fullOffsetRefund 积分抵现回补是否全额（true=取消，false=退款按比例）
      * @return bool true=本次完成入账；false=退款单已被补偿处理（幂等跳过）
      */
-    private function creditRefundToWallet(Order $order, OrderRefund $refundRecord, float $refundAmount): bool
+    private function creditRefundToWallet(Order $order, OrderRefund $refundRecord, float $refundAmount, bool $fullOffsetRefund = false): bool
     {
         Db::beginTransaction();
         try {
@@ -1125,6 +1134,8 @@ class OrderController extends BaseController
 
             // 积分回扣（同事务，失败随退款回滚）：按退款比例回扣已返积分，幂等
             $this->clawbackOrderPoints($order, $locked);
+            // 积分抵扣回补（同事务，失败随退款回滚）：取消全额/退款按比例退还抵现积分，幂等
+            $this->refundOffsetPoints($order, $locked, $fullOffsetRefund);
 
             Db::commit();
             return true;
@@ -1407,6 +1418,7 @@ class OrderController extends BaseController
         // balance = 上一条余额 + 本次积分（快照累加，锁最后一条流水防同用户并发串行）
         $lastBalance = (int) (UserPoints::where('user_id', $order->user_id)
             ->orderBy('created_at', 'desc')
+            ->orderBy('id', 'desc')
             ->lockForUpdate()
             ->value('balance') ?? 0);
 
@@ -1467,6 +1479,7 @@ class OrderController extends BaseController
         // balance = 上一条余额 - 本次回扣（快照累加，锁最后一条流水防同用户并发串行）
         $lastBalance = (int) (UserPoints::where('user_id', $order->user_id)
             ->orderBy('created_at', 'desc')
+            ->orderBy('id', 'desc')
             ->lockForUpdate()
             ->value('balance') ?? 0);
 
@@ -1479,6 +1492,71 @@ class OrderController extends BaseController
             'source'      => 'order',
             'order_id'    => $order->id,
             'description' => '订单退款回扣积分（退款单 ' . $refundRecord->refund_no . '）',
+        ]);
+    }
+
+    /**
+     * 订单取消/退款退还积分抵扣（points_offset 消费流水的对称回补，与 clawbackOrderPoints 并列）
+     *
+     * 规则：取消全额退还；退款按比例退还（floor(原扣点 × 退款金额/实付)，
+     * 与 clawbackOrderPoints 取整口径一致）；原扣点取该订单 source=points_offset + type=consume
+     * 流水合计（未用积分抵现则为 0，直接跳过）。
+     * 幂等：同 order_id + source=points_refund 的回补流水已存在则不重复回补
+     * （订单终态后不可重复取消/退款；补偿扫描与主路径行锁互斥）。
+     * balance 为逐条快照：上一条余额 + 本次回补（同 rewardOrderPoints 锁定最后一条流水防并发串行）。
+     */
+    private function refundOffsetPoints(Order $order, ?OrderRefund $refundRecord, bool $fullRefund = false): void
+    {
+        // 原抵扣积分合计（points_offset 消费流水存负值；未抵现则无需回补）
+        $consumed = (int) UserPoints::where('order_id', $order->id)
+            ->where('source', 'points_offset')
+            ->where('type', 'consume')
+            ->sum('points');
+        if ($consumed >= 0) {
+            return;
+        }
+
+        // 幂等：同订单的回补流水已存在则不重复回补
+        $exists = UserPoints::where('order_id', $order->id)
+            ->where('source', 'points_refund')
+            ->exists();
+        if ($exists) {
+            return;
+        }
+
+        if ($fullRefund) {
+            $points = -$consumed;
+        } else {
+            $paid = (float) $order->paid_amount;
+            $refundAmount = (float) ($refundRecord->amount ?? 0);
+            if ($paid <= 0 || $refundAmount <= 0) {
+                return;
+            }
+            // 按退款金额比例回补（向下取整，至多回补原抵扣积分，与 clawbackOrderPoints 同口径）
+            $points = (int) floor(-$consumed * $refundAmount / $paid);
+            if ($points <= 0) {
+                return;
+            }
+        }
+
+        // balance = 上一条余额 + 本次回补（快照累加，锁最后一条流水防同用户并发串行）
+        $lastBalance = (int) (UserPoints::where('user_id', $order->user_id)
+            ->orderBy('created_at', 'desc')
+            ->orderBy('id', 'desc')
+            ->lockForUpdate()
+            ->value('balance') ?? 0);
+
+        UserPoints::create([
+            'id'          => UserPoints::generateId(),
+            'user_id'     => $order->user_id,
+            'type'        => 'earn',
+            'points'      => $points,
+            'balance'     => $lastBalance + $points,
+            'source'      => 'points_refund',
+            'order_id'    => $order->id,
+            'description' => $fullRefund
+                ? '订单取消退还积分（订单 ' . $order->order_no . '）'
+                : '订单退款退还积分（退款单 ' . $refundRecord->refund_no . '）',
         ]);
     }
 
@@ -1646,6 +1724,8 @@ class OrderController extends BaseController
 
             // 积分回扣（幂等）：主路径落库失败由补偿补写时，回扣在此一并补写
             $this->clawbackOrderPoints($order, $locked);
+            // 积分抵扣回补（幂等）：取消单全额、退款单按比例，与主路径口径一致
+            $this->refundOffsetPoints($order, $locked, $order->status === Order::STATUS_CANCELLED);
 
             // refunding → refunded；cancelled 保持终态
             if ($order->status === Order::STATUS_REFUNDING) {
