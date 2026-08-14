@@ -141,11 +141,18 @@ Route::group('/api/user', function () {
     Route::get('/referral/referred-users', v('user', 'ReferralController', 'referredUsers'));
     Route::get('/referral/earnings', v('user', 'ReferralController', 'earnings'));
 
+    Route::post('/points/transfer', v('user', 'PointsTransferController', 'transfer'));
+    Route::get('/points/transfers', v('user', 'PointsTransferController', 'records'));
+
     Route::post('/check-in', v('user', 'CheckInController', 'store'));
     Route::get('/check-in/status', v('user', 'CheckInController', 'status'));
 
     Route::post('/service-packages/buy', v('api', 'ServicePackageController', 'buy'));
     Route::post('/promotions/join/{id}', v('api', 'PromotionController', 'join'));
+
+    // ── 消息偏好设置 ──
+    Route::get('/notify-settings', v('user', 'NotifySettingController', 'index'));
+    Route::put('/notify-settings', v('user', 'NotifySettingController', 'update'));
 
     // ── 设备推送 ──
     Route::post('/device/register', v('user', 'DeviceController', 'register'));
@@ -196,6 +203,7 @@ Route::group('/api/order', function () {
     Route::post('/', v('order', 'OrderController', 'store'));
     Route::get('/list', v('order', 'OrderController', 'index'));
     Route::get('/detail/{id}', v('order', 'OrderController', 'show'));
+    Route::get('/logistics/{id}', v('order', 'OrderController', 'logistics'));
     Route::post('/cancel/{id}', v('order', 'OrderController', 'cancel'));
     Route::post('/pay/{id}', v('order', 'OrderController', 'pay'));
     Route::post('/refund/{id}', v('order', 'OrderController', 'refund'));
@@ -204,6 +212,10 @@ Route::group('/api/order', function () {
     Route::post('/verify/{id}', v('order', 'OrderController', 'verify'));
     // 扫码核销（技师端，推荐唯一入口）：核销码放请求体，POST body {code}
     Route::post('/verify-by-code', v('order', 'OrderController', 'verifyByCode'));
+
+    // ── 订单评价（用户提交）＋追评（第 19 轮：已完成评价追加内容/图片，只可追评一次）──
+    Route::post('/review/{order_id}', v('order', 'ReviewController', 'store'));
+    Route::post('/review/{order_id}/append', v('order', 'ReviewController', 'append'));
 
     Route::post('/waitlist', v('order', 'WaitlistController', 'store'));
     Route::get('/waitlist', v('order', 'WaitlistController', 'index'));
@@ -241,6 +253,9 @@ Route::group('/api/wallet', function () {
     Route::post('/recharge', v('wallet', 'WalletController', 'recharge'));
     Route::post('/recharge/{id}/pay', v('wallet', 'WalletController', 'pay'));
     Route::get('/txns', v('wallet', 'WalletController', 'txns'));
+    Route::post('/transfer', v('wallet', 'WalletTransferController', 'transfer'));
+    Route::get('/transfers', v('wallet', 'WalletTransferController', 'transfers'));
+    Route::get('/transfers/{id}', v('wallet', 'WalletTransferController', 'show'));
 })->middleware([
     app\middleware\ApiVersion::class,
     app\middleware\Auth::class,
