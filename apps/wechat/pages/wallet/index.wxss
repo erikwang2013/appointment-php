@@ -1,0 +1,22 @@
+.container { padding: 24rpx; }
+.card { background: #fff; border-radius: 16rpx; padding: 24rpx; margin-bottom: 24rpx; }
+.wallet-card { text-align: center; }
+.wallet-label { color: #999; font-size: 28rpx; display: block; }
+.wallet-balance { font-size: 72rpx; font-weight: bold; display: block; margin: 16rpx 0; }
+.wallet-summary { display: flex; justify-content: space-around; color: #999; font-size: 26rpx; margin-bottom: 20rpx; }
+.recharge-btn { background: #e74c3c; color: #fff; border-radius: 40rpx; font-size: 30rpx; }
+.txn-title { font-size: 30rpx; font-weight: bold; margin-bottom: 12rpx; }
+.txn-empty { color: #999; text-align: center; padding: 30rpx 0; font-size: 26rpx; }
+.txn-item { display: flex; justify-content: space-between; padding: 18rpx 0; border-bottom: 1rpx solid #f0f0f0; }
+.txn-main { flex: 1; }
+.txn-type { font-size: 30rpx; display: block; }
+.txn-remark { color: #999; font-size: 24rpx; }
+.txn-side { text-align: right; }
+.txn-amount { font-size: 30rpx; display: block; }
+.txn-time { color: #999; font-size: 22rpx; }
+.recharge-mask { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 100; }
+.recharge-modal { background: #fff; border-radius: 16rpx; padding: 40rpx; width: 560rpx; }
+.modal-title { font-size: 32rpx; font-weight: bold; display: block; text-align: center; margin-bottom: 24rpx; }
+.modal-input { border: 1rpx solid #ddd; border-radius: 8rpx; padding: 16rpx; margin-bottom: 24rpx; }
+.modal-btn { background: #e74c3c; color: #fff; margin-bottom: 16rpx; }
+.modal-cancel { background: #f5f5f5; color: #666; }

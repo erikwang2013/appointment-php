@@ -6,6 +6,7 @@
     "pages/order/list",
     "pages/order/detail",
     "pages/user/index",
+    "pages/wallet/index",
     "pages/auth/login",
     "pages/auth/register",
     "pages/auth/forget-password",

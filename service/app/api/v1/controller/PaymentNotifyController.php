@@ -9,6 +9,10 @@ use app\common\BaseController;
 use app\common\WechatPayService;
 use app\model\Order;
 use app\model\OrderPayment;
+use app\model\UserWallet;
+use app\model\WalletRecharge;
+use app\model\WalletTxn;
+use support\Db;
 use support\Log;
 use support\Redis;
 use Webman\Http\Request;
@@ -47,8 +51,16 @@ class PaymentNotifyController extends BaseController
             return $this->xmlResponse(false, 'body is empty');
         }
 
+        $outTradeNo = $this->extractOutTradeNo($xml);
+
+        // 余额充值回调分支：充值单号以 'R' 开头（与订单号体系区分），
+        // 无订单参与，走充值单行锁 + 钱包行锁的幂等入账，不进 order_lock。
+        if (str_starts_with($outTradeNo, 'R')) {
+            return $this->handleRechargeNotify($xml, $outTradeNo);
+        }
+
         // B2: 解析商户订单号定位订单，锁内处理回调（与取消/退款/支付互斥）
-        $orderId = $this->findOrderIdByTradeNo($this->extractOutTradeNo($xml));
+        $orderId = $this->findOrderIdByTradeNo($outTradeNo);
         $lockKey = $orderId !== null ? 'order_lock:' . $orderId : '';
         $lockToken = $lockKey !== '' ? $this->acquireLock($lockKey) : null;
         if ($lockKey !== '' && $lockToken === null) {
@@ -119,6 +131,101 @@ class PaymentNotifyController extends BaseController
             return response('fail');
         } finally {
             $this->releaseLock($lockKey, $lockToken);
+        }
+    }
+
+    /**
+     * 余额充值回调（微信异步通知，out_trade_no 为 'R' 前缀充值单号）
+     *
+     * 幂等方案：充值单行 lockForUpdate + status 复验，已 paid 直接返回成功；
+     * 入账事务：钱包行 lockForUpdate（不存在则创建）→ balance/total_recharge 累加
+     * → 充值单置 paid/paid_at → 写流水(recharge, balance_after)。全部单事务原子提交。
+     * 金额强比对：回调 total_fee 必须与充值单金额一致（转分比对）。
+     *
+     * @param string $xml        原始回调 XML
+     * @param string $outTradeNo 商户充值单号
+     * @return Response
+     */
+    private function handleRechargeNotify(string $xml, string $outTradeNo): Response
+    {
+        $service = new WechatPayService();
+        $verified = $service->verifyNotify($xml);
+        if (!$verified['verified']) {
+            Log::warning('[PaymentNotify] recharge notify verify failed, order_no: ' . $outTradeNo . ', error: ' . $verified['error']);
+            return $this->xmlResponse(false, $verified['error'] ?: 'verify failed');
+        }
+
+        $data = $verified['data'];
+        if (($data['result_code'] ?? '') !== 'SUCCESS') {
+            Log::info('[PaymentNotify] recharge notify not success, order_no: ' . $outTradeNo);
+            return $this->xmlResponse(false, 'payment not success');
+        }
+
+        $totalFee = (int) ($data['total_fee'] ?? 0);
+
+        Db::beginTransaction();
+        try {
+            // 充值单行锁 + 状态复验（幂等：已 paid 直接返回成功，防重复入账）
+            $recharge = WalletRecharge::where('order_no', $outTradeNo)->lockForUpdate()->first();
+            if (!$recharge) {
+                Db::rollBack();
+                Log::error('[PaymentNotify] recharge not found, order_no: ' . $outTradeNo);
+                return $this->xmlResponse(false, 'recharge not found');
+            }
+            if ($recharge->status === WalletRecharge::STATUS_PAID) {
+                Db::rollBack();
+                Log::info('[PaymentNotify] recharge already paid, order_no: ' . $outTradeNo);
+                return $this->xmlResponse(true, 'OK');
+            }
+            if ($recharge->status !== WalletRecharge::STATUS_PENDING) {
+                Db::rollBack();
+                Log::warning('[PaymentNotify] recharge status not pending, order_no: ' . $outTradeNo . ', status: ' . $recharge->status);
+                return $this->xmlResponse(false, 'recharge status invalid');
+            }
+            // 金额强比对（转分，防浮点误差与跨单错配）
+            if (UserWallet::toCents((float) $recharge->amount) !== $totalFee) {
+                Db::rollBack();
+                Log::error('[PaymentNotify] recharge amount mismatch, order_no: ' . $outTradeNo
+                    . ', callback total_fee: ' . $totalFee . ', recharge amount: ' . $recharge->amount);
+                return $this->xmlResponse(false, 'amount mismatch');
+            }
+
+            // 钱包行锁（不存在则创建；并发首充由 uk_user_id 唯一约束兜底，冲突整体回滚由微信重试）
+            $wallet = UserWallet::where('user_id', $recharge->user_id)->lockForUpdate()->first();
+            if (!$wallet) {
+                $wallet = UserWallet::create([
+                    'user_id'         => $recharge->user_id,
+                    'balance'         => 0.00,
+                    'total_recharge'  => 0.00,
+                    'total_consume'   => 0.00,
+                ]);
+            }
+
+            $wallet->balance = round((float) $wallet->balance + (float) $recharge->amount, 2);
+            $wallet->total_recharge = round((float) $wallet->total_recharge + (float) $recharge->amount, 2);
+            $wallet->save();
+
+            $recharge->status = WalletRecharge::STATUS_PAID;
+            $recharge->paid_at = date('Y-m-d H:i:s');
+            $recharge->save();
+
+            WalletTxn::create([
+                'user_id'      => $recharge->user_id,
+                'type'         => WalletTxn::TYPE_RECHARGE,
+                'amount'       => (float) $recharge->amount,
+                'balance_after' => (float) $wallet->balance,
+                'recharge_id'  => $recharge->id,
+                'remark'       => '余额充值',
+            ]);
+
+            Db::commit();
+
+            Log::info('[PaymentNotify] recharge paid, order_no: ' . $outTradeNo . ', amount: ' . $recharge->amount);
+            return $this->xmlResponse(true, 'OK');
+        } catch (\Throwable $e) {
+            Db::rollBack();
+            Log::error('[PaymentNotify] recharge notify exception, order_no: ' . $outTradeNo . ': ' . $e->getMessage());
+            return $this->xmlResponse(false, 'process error');
         }
     }
 

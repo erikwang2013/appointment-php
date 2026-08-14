@@ -22,6 +22,8 @@ use app\model\TechnicianProfile;
 use app\model\User;
 use app\model\UserCoupon;
 use app\model\UserMemberCard;
+use app\model\UserWallet;
+use app\model\WalletTxn;
 use support\Db;
 use support\Log;
 use support\Redis;
@@ -429,61 +431,73 @@ class OrderController extends BaseController
             return $this->error('取消订单失败，请稍后重试');
         }
 
-        // 阶段二：事务外调微信退款
+        // 阶段二：按支付渠道退款 —— balance 渠道无微信 IO，事务内原子回充余额；
+        // wechat 渠道保持现有两段式（事务外调微信退款 + 落库/补偿）
         if ($refundRecord) {
-            $payService = new WechatPayService();
-            $result = $payService->refund(
-                $order->order_no,
-                $refundRecord->refund_no,
-                (float)$order->paid_amount,
-                (float)$refundAmount
-            );
+            $orderPayment = OrderPayment::where('order_id', $order->id)->first();
+            if ($orderPayment && $orderPayment->pay_type === 'balance') {
+                // 余额支付订单取消：回充余额（幂等：已补偿单直接跳过，通知走尾部去重）
+                try {
+                    $this->creditRefundToWallet($order, $refundRecord, $refundAmount);
+                } catch (\Throwable $e) {
+                    Log::error('[OrderController] balance refund failed on cancel, order_no: ' . $order->order_no . ': ' . $e->getMessage());
+                    return $this->error('退款处理失败请重试');
+                }
+            } else {
+                $payService = new WechatPayService();
+                $result = $payService->refund(
+                    $order->order_no,
+                    $refundRecord->refund_no,
+                    (float)$order->paid_amount,
+                    (float)$refundAmount
+                );
 
-            if (!empty($result['error'])) {
-                Log::error('[OrderController] refund failed on cancel, order_no: ' . $order->order_no . ', error: ' . $result['error']);
-                // 小事务：退款单置 failed，订单回滚 paid（可重试），清空取消标记
+                if (!empty($result['error'])) {
+                    Log::error('[OrderController] refund failed on cancel, order_no: ' . $order->order_no . ', error: ' . $result['error']);
+                    // 小事务：退款单置 failed，订单回滚 paid（可重试），清空取消标记
+                    Db::beginTransaction();
+                    try {
+                        $refundRecord->status = OrderRefund::STATUS_FAILED;
+                        $refundRecord->save();
+                        $order->status = Order::STATUS_PAID;
+                        $order->cancel_reason = ''; // erik_order.cancel_reason 为 NOT NULL，置空串而非 null
+                        $order->cancel_at = null;
+                        $order->save();
+                        Db::commit();
+                    } catch (\Throwable $e2) {
+                        Db::rollBack();
+                        Log::error('[OrderController] refund rollback persist failed: ' . $e2->getMessage());
+                    }
+                    return $this->error('退款处理失败请重试');
+                }
+
+                // 小事务：退款单置 success + refunded_at，订单 refunded
+                // B3: 仅全额退款（ratio>=1.0）归还券/次卡，部分退款不归还（与 doRefund 对齐）
                 Db::beginTransaction();
                 try {
-                    $refundRecord->status = OrderRefund::STATUS_FAILED;
+                    $refundRecord->status = OrderRefund::STATUS_SUCCESS;
+                    $refundRecord->refunded_at = now();
                     $refundRecord->save();
-                    $order->status = Order::STATUS_PAID;
-                    $order->cancel_reason = ''; // erik_order.cancel_reason 为 NOT NULL，置空串而非 null
-                    $order->cancel_at = null;
+                    $order->status = Order::STATUS_REFUNDED;
                     $order->save();
+                    if ($this->shouldRestoreBenefits($ratio)) {
+                        $this->restoreCouponAndCard($order);
+                    }
                     Db::commit();
                 } catch (\Throwable $e2) {
                     Db::rollBack();
-                    Log::error('[OrderController] refund rollback persist failed: ' . $e2->getMessage());
-                }
-                return $this->error('退款处理失败请重试');
-            }
-
-            // 小事务：退款单置 success + refunded_at，订单 refunded
-            // B3: 仅全额退款（ratio>=1.0）归还券/次卡，部分退款不归还（与 doRefund 对齐）
-            Db::beginTransaction();
-            try {
-                $refundRecord->status = OrderRefund::STATUS_SUCCESS;
-                $refundRecord->refunded_at = now();
-                $refundRecord->save();
-                $order->status = Order::STATUS_REFUNDED;
-                $order->save();
-                if ($this->shouldRestoreBenefits($ratio)) {
-                    $this->restoreCouponAndCard($order);
-                }
-                Db::commit();
-            } catch (\Throwable $e2) {
-                Db::rollBack();
-                Log::error('[OrderController] refund success persist failed: ' . $e2->getMessage());
-                // B4: 微信侧已退款但落库失败 → 立即幂等补偿（补写退款单+归还券/次卡）；
-                // 仍失败则保持可被 AutoCancelTimer 周期扫描兜底，绝不静默卡死
-                $compensated = false;
-                try {
-                    $compensated = $this->completeOneRefundCompensation($refundRecord);
-                } catch (\Throwable $e3) {
-                    Log::error('[OrderController] refund compensation retry failed: ' . $e3->getMessage());
-                }
-                if (!$compensated) {
-                    return $this->error('退款处理失败请重试');
+                    Log::error('[OrderController] refund success persist failed: ' . $e2->getMessage());
+                    // B4: 微信侧已退款但落库失败 → 立即幂等补偿（补写退款单+归还券/次卡）；
+                    // 仍失败则保持可被 AutoCancelTimer 周期扫描兜底，绝不静默卡死
+                    $compensated = false;
+                    try {
+                        $compensated = $this->completeOneRefundCompensation($refundRecord);
+                    } catch (\Throwable $e3) {
+                        Log::error('[OrderController] refund compensation retry failed: ' . $e3->getMessage());
+                    }
+                    if (!$compensated) {
+                        return $this->error('退款处理失败请重试');
+                    }
                 }
             }
         } else {
@@ -551,6 +565,9 @@ class OrderController extends BaseController
                 return $this->error('当前订单状态不可支付');
             }
 
+            // 支付渠道：wechat=微信支付（默认）/ balance=余额支付
+            $payChannel = (string) $request->input('pay_channel', 'wechat');
+
             // 查找或创建支付记录
             $payment = OrderPayment::where('order_id', $order->id)->first();
 
@@ -584,6 +601,11 @@ class OrderController extends BaseController
                     'amount'     => 0,
                     'status'     => Order::STATUS_PAID,
                 ], '订单支付成功');
+            }
+
+            // 余额支付：无微信预下单，事务内钱包扣款 + 标记支付成功（order_lock 内串行，幂等）
+            if ($payChannel === 'balance') {
+                return $this->doBalancePay($order, $payment);
             }
 
             // 用户 openid（hidden 字段在服务层可读）
@@ -626,6 +648,84 @@ class OrderController extends BaseController
             // 释放支付锁（token 校验，仅释放自己持有的锁）
             $this->releaseLock($lockKey, $lockToken);
         }
+    }
+
+    /**
+     * 余额支付（在 order_lock 内执行，调用方已校验订单 pending）
+     *
+     * 单事务原子完成：钱包行 lockForUpdate → 余额充足校验（不足 422 余额不足）
+     * → balance 扣减 + total_consume 累加 → 写流水(consume, balance_after)
+     * → 调 markOrderPaid('balance')（嵌套事务=savepoint，单一消费点：
+     * 支付记录 success/pay_type=balance + 原子消费券/次卡 + 订单置 PAID）。
+     * 任一步失败整体回滚，绝无「扣款成功但订单未支付」。
+     * 幂等：order_lock 串行 + markOrderPaid 状态复验（已支付直接成功）。
+     */
+    private function doBalancePay(Order $order, OrderPayment $payment)
+    {
+        $amount = (float) $payment->amount;
+        $payService = new WechatPayService();
+
+        Db::beginTransaction();
+        try {
+            // 钱包行锁（不存在则创建；余额扣减与订单支付同事务）
+            $wallet = UserWallet::where('user_id', $order->user_id)->lockForUpdate()->first();
+            if (!$wallet) {
+                $wallet = UserWallet::create([
+                    'user_id'        => $order->user_id,
+                    'balance'        => 0.00,
+                    'total_recharge' => 0.00,
+                    'total_consume'  => 0.00,
+                ]);
+            }
+
+            // 余额充足校验（转分比对，防浮点误差）
+            if (UserWallet::toCents((float) $wallet->balance) < UserWallet::toCents($amount)) {
+                throw new \InvalidArgumentException('余额不足');
+            }
+
+            $wallet->balance = round((float) $wallet->balance - $amount, 2);
+            $wallet->total_consume = round((float) $wallet->total_consume + $amount, 2);
+            $wallet->save();
+
+            WalletTxn::create([
+                'user_id'       => $order->user_id,
+                'type'          => WalletTxn::TYPE_CONSUME,
+                'amount'        => $amount,
+                'balance_after' => (float) $wallet->balance,
+                'order_id'      => $order->id,
+                'remark'        => '余额支付订单 ' . $order->order_no,
+            ]);
+
+            // 单一消费点（嵌套事务）：支付记录置 success(pay_type=balance) + 消费券/次卡 + 订单置 PAID
+            $result = $payService->markOrderPaid(
+                $payment->payment_no,
+                'BALANCE' . $payment->payment_no,
+                $amount,
+                'balance'
+            );
+            if (empty($result['success'])) {
+                throw new \RuntimeException($result['message'] ?? '订单状态更新失败');
+            }
+
+            Db::commit();
+        } catch (\InvalidArgumentException $e) {
+            Db::rollBack();
+            // 余额不足等业务校验文案直接透出（422）
+            return $this->error($e->getMessage(), 422);
+        } catch (\Throwable $e) {
+            Db::rollBack();
+            // M3: 内部异常详情仅记日志，对外返回通用文案
+            Log::error('[OrderController] balance pay failed, order_no: ' . $order->order_no . ': ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            return $this->error('余额支付失败，请稍后重试');
+        }
+
+        // WebSocket 实时推送已由 markOrderPaid 内部完成（订单上下文一致），此处不重复推送
+        return $this->success([
+            'order_no'   => $order->order_no,
+            'payment_no' => $payment->payment_no,
+            'amount'     => $amount,
+            'status'     => Order::STATUS_PAID,
+        ], '余额支付成功');
     }
 
     /**
@@ -728,7 +828,14 @@ class OrderController extends BaseController
             return $this->error('申请退款失败，请稍后重试');
         }
 
-        // 阶段二：事务外调微信退款
+        // 阶段二：按支付渠道退款 —— balance 渠道无微信 IO，单事务原子回充；
+        // wechat 渠道保持现有两段式（事务外调微信退款 + 落库/补偿）
+        $orderPayment = OrderPayment::where('order_id', $order->id)->first();
+        if ($orderPayment && $orderPayment->pay_type === 'balance') {
+            return $this->refundToBalance($order, $refundRecord, $refundAmount, $ratio);
+        }
+
+        // 阶段二（微信渠道）：事务外调微信退款
         $payService = new WechatPayService();
         $result = $payService->refund(
             $order->order_no,
@@ -804,13 +911,113 @@ class OrderController extends BaseController
     }
 
     /**
+     * 余额支付订单退款（无微信 IO，单事务原子完成）
+     *
+     * 内部复用 creditRefundToWallet（退款单行锁幂等 + 钱包回充 + 落库）。
+     * 失败仅可能为 DB 异常，退款单保持 pending 由补偿扫描幂等兜底
+     * （补偿侧对 balance 渠道同样回充余额，见 completeOneRefundCompensation）。
+     */
+    private function refundToBalance(Order $order, OrderRefund $refundRecord, float $refundAmount, float $ratio)
+    {
+        try {
+            $credited = $this->creditRefundToWallet($order, $refundRecord, $refundAmount);
+        } catch (\Throwable $e) {
+            Log::error('[OrderController] balance refund failed, order_no: ' . $order->order_no . ': ' . $e->getMessage());
+            return $this->error('退款处理失败请重试');
+        }
+
+        // 已被补偿处理完成（幂等），直接返回成功
+        if (!$credited) {
+            return $this->success([
+                'refund_amount' => $refundAmount,
+                'ratio'         => $ratio,
+            ], '退款成功');
+        }
+
+        // 站内通知：退款已到账（幂等：同订单同标题去重）
+        $this->writeRefundNotification($order, $refundRecord->fresh() ?: $refundRecord);
+
+        // 释放技师锁
+        $this->releaseTechnicianLock($order);
+
+        // 发送退款通知模板消息（非阻塞，失败不影响主流程）
+        $this->sendRefundNotifyTemplate((string) $order->user_id, $order, $refundAmount, $refundRecord->reason);
+
+        // WebSocket 实时推送
+        $this->pushOrderUpdate($order);
+
+        return $this->success([
+            'refund_amount' => $refundAmount,
+            'ratio'         => $ratio,
+        ], '退款成功');
+    }
+
+    /**
+     * 余额退款核心（doRefund/doCancel 共用，单事务原子完成）
+     *
+     * 退款单行锁 + status 复验（幂等：防与补偿 completeOneRefundCompensation 并发双处理）
+     * → 钱包行 lockForUpdate → balance 回充 + 写流水(refund, balance_after)
+     * → 退款单置 success/refunded_at → 订单置 refunded → 全额退款归还券/次卡。
+     *
+     * @return bool true=本次完成入账；false=退款单已被补偿处理（幂等跳过）
+     */
+    private function creditRefundToWallet(Order $order, OrderRefund $refundRecord, float $refundAmount): bool
+    {
+        Db::beginTransaction();
+        try {
+            $locked = OrderRefund::where('id', $refundRecord->id)
+                ->where('status', OrderRefund::STATUS_PENDING)
+                ->lockForUpdate()
+                ->first();
+            if (!$locked) {
+                Db::rollBack();
+                return false;
+            }
+
+            $wallet = UserWallet::where('user_id', $order->user_id)->lockForUpdate()->first();
+            if (!$wallet) {
+                throw new \RuntimeException('用户钱包不存在');
+            }
+            $wallet->balance = round((float) $wallet->balance + $refundAmount, 2);
+            $wallet->save();
+
+            WalletTxn::create([
+                'user_id'       => $order->user_id,
+                'type'          => WalletTxn::TYPE_REFUND,
+                'amount'        => $refundAmount,
+                'balance_after' => (float) $wallet->balance,
+                'order_id'      => $order->id,
+                'remark'        => '订单退款 ' . $order->order_no,
+            ]);
+
+            $locked->status = OrderRefund::STATUS_SUCCESS;
+            $locked->refunded_at = now();
+            $locked->save();
+
+            $order->status = Order::STATUS_REFUNDED;
+            $order->save();
+            if ($this->shouldRestoreBenefits((float) $locked->ratio)) {
+                $this->restoreCouponAndCard($order);
+            }
+
+            Db::commit();
+            return true;
+        } catch (\Throwable $e) {
+            Db::rollBack();
+            throw $e;
+        }
+    }
+
+    /**
      * 核销订单（核销码走 URL 路径）
      * POST /api/order/verify/{id}
      *
+     * @deprecated 遗留入口，仅保留兼容；技师端小程序已统一走 POST /api/order/verify-by-code（核销码在请求体）
      * @param string $code 核销码（从路由参数 {id} 获取）
      */
     public function verify(Request $request, string $code)
     {
+        // 已弃用：新入口为 POST /api/order/verify-by-code（核销码放请求体），此处仅保留兼容
         $code = trim((string) $code);
         if ($code === '') {
             return $this->error('核销码不能为空');
@@ -1174,6 +1381,27 @@ class OrderController extends BaseController
             if (!in_array($order->status, [Order::STATUS_REFUNDING, Order::STATUS_CANCELLED], true)) {
                 Db::rollBack();
                 return false;
+            }
+
+            // 余额渠道退款补偿：同步回充余额 + 写流水（幂等——仅 pending 退款单可被补写，
+            // 与 refundToBalance/doCancel 行锁互斥，重复扫描不重复入账）
+            $payment = $locked->payment_id ? OrderPayment::find($locked->payment_id) : null;
+            if ($payment && $payment->pay_type === 'balance') {
+                $wallet = UserWallet::where('user_id', $order->user_id)->lockForUpdate()->first();
+                if (!$wallet) {
+                    Db::rollBack();
+                    return false;
+                }
+                $wallet->balance = round((float) $wallet->balance + (float) $locked->amount, 2);
+                $wallet->save();
+                WalletTxn::create([
+                    'user_id'       => $order->user_id,
+                    'type'          => WalletTxn::TYPE_REFUND,
+                    'amount'        => (float) $locked->amount,
+                    'balance_after' => (float) $wallet->balance,
+                    'order_id'      => $order->id,
+                    'remark'        => '订单退款补偿 ' . $order->order_no,
+                ]);
             }
 
             $locked->status = OrderRefund::STATUS_SUCCESS;

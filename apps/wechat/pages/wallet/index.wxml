@@ -1,0 +1,35 @@
+<view class="container">
+  <view class="wallet-card card">
+    <text class="wallet-label">可用余额（元）</text>
+    <text class="wallet-balance">{{wallet.balance}}</text>
+    <view class="wallet-summary">
+      <text>累计充值 ¥{{wallet.total_recharge}}</text>
+      <text>累计消费 ¥{{wallet.total_consume}}</text>
+    </view>
+    <button class="recharge-btn" bindtap="toggleRecharge">充值</button>
+  </view>
+
+  <view class="card">
+    <view class="txn-title">余额明细</view>
+    <view wx:if="{{txns.length === 0}}" class="txn-empty">暂无明细</view>
+    <view class="txn-item" wx:for="{{txns}}" wx:key="id">
+      <view class="txn-main">
+        <text class="txn-type">{{item.type_text}}</text>
+        <text class="txn-remark">{{item.remark}}</text>
+      </view>
+      <view class="txn-side">
+        <text class="txn-amount">{{item.type==='consume' ? '-' : '+'}}¥{{item.amount}}</text>
+        <text class="txn-time">{{item.created_at}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="recharge-mask" wx:if="{{showRecharge}}" bindtap="toggleRecharge">
+    <view class="recharge-modal" catchtap="">
+      <text class="modal-title">余额充值</text>
+      <input class="modal-input" type="digit" placeholder="请输入充值金额（元）" value="{{amount}}" bindinput="onAmountInput"/>
+      <button class="modal-btn" disabled="{{paying}}" bindtap="onRecharge">{{paying ? '支付中...' : '确认充值'}}</button>
+      <button class="modal-cancel" bindtap="toggleRecharge">取消</button>
+    </view>
+  </view>
+</view>

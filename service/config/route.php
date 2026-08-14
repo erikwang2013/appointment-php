@@ -210,6 +210,19 @@ Route::group('/api/order', function () {
 ]);
 
 // ============================================================
+// 钱包接口（JWT + ApiVersion）——储值支付余额体系
+// ============================================================
+Route::group('/api/wallet', function () {
+    Route::get('/', v('wallet', 'WalletController', 'index'));
+    Route::post('/recharge', v('wallet', 'WalletController', 'recharge'));
+    Route::post('/recharge/{id}/pay', v('wallet', 'WalletController', 'pay'));
+    Route::get('/txns', v('wallet', 'WalletController', 'txns'));
+})->middleware([
+    app\middleware\ApiVersion::class,
+    app\middleware\Auth::class,
+]);
+
+// ============================================================
 // 营销接口（JWT + ApiVersion）
 // ============================================================
 Route::group('/api/marketing', function () {
