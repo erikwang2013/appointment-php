@@ -160,6 +160,15 @@ Route::group('/admin', function () {
     Route::get('/aftersales', [app\admin\controller\AftersaleController::class, 'index']);
     Route::post('/aftersales/{id}/review', [app\admin\controller\AftersaleController::class, 'review']);
 
+    // 电子发票管理
+    Route::get('/invoices', [app\admin\controller\InvoiceController::class, 'index']);
+    Route::post('/invoices/{id}/issue', [app\admin\controller\InvoiceController::class, 'issue']);
+    Route::post('/invoices/{id}/reject', [app\admin\controller\InvoiceController::class, 'reject']);
+
+    // 客服工单（静态路由必须先于 resource 定义，避免被 {id} 变量路由 shadow）
+    Route::get('/tickets', [app\admin\controller\TicketController::class, 'index']);
+    Route::post('/tickets/{id}/reply', [app\admin\controller\TicketController::class, 'reply']);
+
     // 提现管理
     Route::resource('/withdrawals', app\admin\controller\WithdrawalController::class);
     Route::post('/withdrawals/{id}/approve', [app\admin\controller\WithdrawalController::class, 'approve']);
@@ -254,6 +263,9 @@ Route::group('/admin', function () {
 
     // 分销返佣记录（只读）
     Route::get('/referral-rewards', [app\admin\controller\ReferralRewardController::class, 'index']);
+
+    // 二级返佣记录（只读）
+    Route::get('/referral-level2', [app\admin\controller\ReferralLevel2Controller::class, 'index']);
 
     // 技师等级
     Route::get('/technician-tiers', [app\admin\controller\TechnicianTierController::class, 'index']);

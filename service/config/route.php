@@ -82,6 +82,10 @@ Route::group('/api', function () {
     Route::get('/technician/detail/{id}', v('api', 'TechnicianController', 'detail'));
     Route::get('/technician/schedule/{id}', v('api', 'TechnicianController', 'schedule'));
 
+    // ── 预约月历 ──
+    Route::get('/calendar/technician/{id}', v('api', 'CalendarController', 'month'));
+    Route::get('/calendar/technician/{id}/day', v('api', 'CalendarController', 'day'));
+
     // ── 内容 ──
     Route::get('/content/articles', v('api', 'ContentController', 'articles'));
     Route::get('/content/article/{id}', v('api', 'ContentController', 'articleDetail'));
@@ -108,6 +112,9 @@ Route::group('/api', function () {
     Route::get('/community', v('api', 'CommunityController', 'index'));
     Route::get('/community/detail/{id}', v('api', 'CommunityController', 'show'));
     Route::get('/community/comment/list/{post_id}', v('api', 'CommunityCommentController', 'index'));
+
+    // ── 成长等级（公开浏览）──
+    Route::get('/growth/levels', v('user', 'GrowthController', 'levels'));
 })->middleware([
     app\middleware\ApiVersion::class,
 ]);
@@ -157,6 +164,17 @@ Route::group('/api/user', function () {
     // ── 设备推送 ──
     Route::post('/device/register', v('user', 'DeviceController', 'register'));
     Route::post('/device/unregister', v('user', 'DeviceController', 'unregister'));
+})->middleware([
+    app\middleware\ApiVersion::class,
+    app\middleware\Auth::class,
+]);
+
+// ============================================================
+// 成长体系接口（JWT认证 + ApiVersion）
+// ============================================================
+Route::group('/api/growth', function () {
+    Route::get('/', v('user', 'GrowthController', 'index'));
+    Route::get('/records', v('user', 'GrowthController', 'records'));
 })->middleware([
     app\middleware\ApiVersion::class,
     app\middleware\Auth::class,
@@ -246,6 +264,19 @@ Route::group('/api/aftersales', function () {
 ]);
 
 // ============================================================
+// 客服工单接口（JWT + ApiVersion）
+// ============================================================
+Route::group('/api/tickets', function () {
+    Route::post('/', v('user', 'TicketController', 'store'));
+    Route::get('/', v('user', 'TicketController', 'index'));
+    Route::get('/{id}', v('user', 'TicketController', 'show'));
+    Route::post('/{id}/close', v('user', 'TicketController', 'close'));
+})->middleware([
+    app\middleware\ApiVersion::class,
+    app\middleware\Auth::class,
+]);
+
+// ============================================================
 // 钱包接口（JWT + ApiVersion）——储值支付余额体系
 // ============================================================
 Route::group('/api/wallet', function () {
@@ -301,6 +332,18 @@ Route::group('/api/notification', function () {
     Route::get('/', v('notification', 'NotificationController', 'index'));
     Route::put('/read/{id}', v('notification', 'NotificationController', 'read'));
     Route::put('/read-all', v('notification', 'NotificationController', 'readAll'));
+})->middleware([
+    app\middleware\ApiVersion::class,
+    app\middleware\Auth::class,
+]);
+
+// ============================================================
+// 电子发票接口（JWT + ApiVersion）
+// ============================================================
+Route::group('/api/invoices', function () {
+    Route::post('/', v('user', 'InvoiceController', 'store'));
+    Route::get('/', v('user', 'InvoiceController', 'index'));
+    Route::get('/{id}', v('user', 'InvoiceController', 'show'));
 })->middleware([
     app\middleware\ApiVersion::class,
     app\middleware\Auth::class,
