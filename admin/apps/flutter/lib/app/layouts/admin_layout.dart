@@ -19,6 +19,7 @@ import '../pages/service_card/service_card_list_page.dart';
 import '../pages/announcement/announcement_list_page.dart';
 import '../pages/faq/faq_list_page.dart';
 import '../pages/withdrawal/withdrawal_list_page.dart';
+import '../pages/aftersale/aftersale_list_page.dart';
 import '../pages/review/review_list_page.dart';
 import '../pages/report/report_page.dart';
 
@@ -57,6 +58,7 @@ class _AdminLayoutState extends State<AdminLayout> {
     AnnouncementListPage(),
     FaqListPage(),
     WithdrawalListPage(),
+    AftersaleListPage(),
     ReviewListPage(),
     ReportPage(),
   ];
@@ -279,6 +281,11 @@ class _AdminLayoutState extends State<AdminLayout> {
         icon: Icon(Icons.account_balance_wallet, size: 20),
         label: Text('提现管理'),
         selectedIcon: Icon(Icons.account_balance_wallet, size: 20),
+      ),
+      NavigationDrawerDestination(
+        icon: Icon(Icons.assignment_return, size: 20),
+        label: Text('售后管理'),
+        selectedIcon: Icon(Icons.assignment_return, size: 20),
       ),
       NavigationDrawerDestination(
         icon: Icon(Icons.rate_review, size: 20),

@@ -217,6 +217,18 @@ Route::group('/api/order', function () {
 ]);
 
 // ============================================================
+// 售后（退换货）接口（JWT + ApiVersion）
+// ============================================================
+Route::group('/api/aftersales', function () {
+    Route::post('/', v('order', 'AftersaleController', 'store'));
+    Route::get('/', v('order', 'AftersaleController', 'index'));
+    Route::get('/{id}', v('order', 'AftersaleController', 'show'));
+})->middleware([
+    app\middleware\ApiVersion::class,
+    app\middleware\Auth::class,
+]);
+
+// ============================================================
 // 钱包接口（JWT + ApiVersion）——储值支付余额体系
 // ============================================================
 Route::group('/api/wallet', function () {
