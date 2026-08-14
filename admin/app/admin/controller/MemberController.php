@@ -71,7 +71,7 @@ class MemberController extends BaseController
                                ->sum('paid_amount');
                            $data['order_count'] = Order::where('user_id', $user->id)->count();
                            $data['member_cards_count'] = UserMemberCard::where('user_id', $user->id)
-                               ->where('status', 1)->count();
+                               ->where('status', 'active')->count();
 
                            return $this->encodeIds($data);
                        });
@@ -116,7 +116,7 @@ class MemberController extends BaseController
 
         // 有效会员卡
         $cards = UserMemberCard::where('user_id', $id)
-            ->where('status', 1)
+            ->where('status', 'active')
             ->with('memberCard')
             ->get()
             ->map(fn($c) => $this->encodeIds($c->toArray()));
