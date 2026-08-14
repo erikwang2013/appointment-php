@@ -337,17 +337,32 @@
 `POST /api/technician/withdraw` — 申请提现 (amount)
 规则: 每月20号可提，T+1到账，最低金额/整百限制由后台配置。
 
+#### 3.6 工作台
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/api/technician/work/today` | 今日任务列表 |
+| GET | `/api/technician/work/records` | 完成记录分页 |
+| POST | `/api/technician/work/{id}/start` | 开始服务 |
+| POST | `/api/technician/work/{id}/complete` | 完成服务 |
+
+**今日任务**: status ∈ [confirmed, serving]，service_time 为今日或空，返回 service_name/price/nickname/avatar。
+
+**完成记录**: status ∈ [serving, completed]，按 service_end_at 倒序，分页响应含 meta。
+
+**开始/完成服务**: 行锁+状态机校验，幂等操作。开始服务写入 service_start_at；完成服务写入 service_end_at 并发送站内通知。错误码: 非本人 403、状态错误 422、无效 hashid 422。
+
 ---
 
 ### 4. 订单接口（需JWT认证）
 
 | 方法 | 路径 | 说明 |
 |------|------|------|
-| POST | `/api/order` | 创建订单 (order_type/items/store_id/technician_id/service_time/coupon_id/remark) |
+| POST | `/api/order` | 创建订单 (order_type/items/store_id/technician_id/service_time/coupon_id/user_coupon_id/remark) |
 | GET | `/api/order/list` | 订单列表 (?status=&page=1) |
 | GET | `/api/order/detail/{id}` | 订单详情 |
 | POST | `/api/order/cancel/{id}` | 取消订单 (reason) |
-| POST | `/api/order/pay/{id}` | 发起支付 |
+| POST | `/api/order/pay/{id}` | 发起支付 (pay_channel: wechat/balance) |
 | POST | `/api/order/refund/{id}` | 申请退款 |
 | POST | `/api/order/verify/{id}` | 核销 (code: 二维码值) |
 
@@ -356,6 +371,10 @@
 **创建订单时**: Redis SETNX 锁定技师3分钟，退出页面或超时释放。
 
 **退款规则**: 下单15min内或距开始>6h退100% / ≤6h退90% / 已开始退80% / 确认开始后不退。
+
+**优惠券抵扣**: 创建订单可选传 user_coupon_id（hashid）。错误码: 他人券 404、门槛不足/已过期/已下架/已使用 422、非法 hashid 422。抵扣两段式：下单时 PriceCalculator.applyCoupon 只读校验并计算抵扣金额写入 discount_amount；支付成功后 consume 将优惠券置为 used；退款时 restoreCouponAndCard 幂等归还。
+
+**余额支付与退款**: 支付请求体传 `pay_channel: "balance"` 使用钱包余额；微信退款与余额退款均将金额回充至钱包余额。
 
 ---
 
@@ -367,8 +386,18 @@
 | POST | `/api/marketing/coupons/receive` | 领取优惠券 (coupon_id) |
 | GET | `/api/marketing/cards` | 会员卡列表 |
 | POST | `/api/marketing/cards/buy` | 购买会员卡 (card_id) |
-| GET | `/api/marketing/points` | 积分流水 |
+| GET | `/api/marketing/cards/my` | 我的次卡列表 |
+| POST | `/api/marketing/cards/use` | 核销次卡 (user_card_id/service_id/remark?) |
 | GET | `/api/marketing/gift-cards` | 礼品卡列表 |
+| GET | `/api/marketing/gift-cards/my` | 我的礼品卡 (redeem记录) |
+| POST | `/api/marketing/gift-cards/redeem` | 兑换礼品卡 (cash类型兑换后充值钱包余额) |
+| GET | `/api/marketing/points` | 积分流水 (?type=earn/use/expire&source=order/referral/gift_card/check_in/admin) |
+
+**次卡**: cards/my 返回 card_id/name/type/services/total_times/used_times/remaining_times/start_at/end_at/status（实时计算）。核销成功返回 {order_id, usage_id, remaining_times}；错误码: 无效 hashid 422、次数不足 422、已过期 400、非本人 404、Redis 防重 400。
+
+**礼品卡**: gift-cards/my 返回 redeem 记录 (type/amount/gift_name/status/used_at)。
+
+**积分规则**: 明细分页，type 过滤 (earn/use/expire)，source 过滤 (order/referral/gift_card/check_in/admin)。签到返积分 (CheckIn, type=earn)；消费返积分 floor(paid_amount×1)，核销时发放且幂等；退款按比例回扣积分。
 
 ---
 
@@ -379,6 +408,22 @@
 | GET | `/api/notification` | 通知列表 (?type=order/system&page=1) |
 | PUT | `/api/notification/read/{id}` | 标记已读 |
 | PUT | `/api/notification/read-all` | 全部已读 |
+
+---
+
+### 7. 钱包接口（需JWT认证）
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/api/wallet` | 钱包余额 + 流水分页 |
+| POST | `/api/wallet/recharge` | 创建充值单 (amount: 元) |
+| POST | `/api/wallet/recharge/{id}/pay` | 充值单发起支付 (微信) |
+
+**流水**: wallet_txn 类型: recharge / consume / refund / gift_card，分页返回。
+
+**充值**: `POST /api/wallet/recharge` 传 amount（元）创建充值单，返回充值单 hashid。`POST /api/wallet/recharge/{id}/pay` 发起微信支付，响应含 sign_params（同订单支付模式）；支付回调以 R 前缀的 out_trade_no 区分充值单与订单。
+
+**余额支付**: 订单支付请求体传 `pay_channel: "balance"` 使用钱包余额；微信退款与余额退款均将金额回充至钱包余额。
 
 ---
 
@@ -403,6 +448,18 @@
 | DELETE | `/admin/user/{id}` | 删除用户 |
 | POST | `/admin/user/batch/destroy` | 批量删除 |
 | POST | `/admin/user/batch/status` | 批量启禁用 |
+
+### 会员卡管理
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/admin/member-cards` | 卡列表 (?keyword/status/page/per_page) |
+| GET | `/admin/member-cards/{id}` | 卡详情 |
+| POST | `/admin/member-cards` | 新增卡 (services JSON校验) |
+| PUT | `/admin/member-cards/{id}` | 更新卡/上下架 |
+| DELETE | `/admin/member-cards/{id}` | 删除卡 (有用户持卡时拒绝) |
+
+权限ID: 365-369。
 
 ### 角色权限
 
@@ -489,3 +546,14 @@
 
 - API层: 响应中的敏感字段通过 `erikwang2013/encryption` 加密
 - DB层: 手机号/身份证/微信ID等通过 `erikwang2013/encryptable` 自动加解密
+
+### 环境变量配置
+
+| 变量 | 说明 |
+|------|------|
+| WECHAT_SUBSCRIBE_TEMPLATE_ID | 预约提醒订阅消息模板ID |
+| WECHAT_SUBSCRIBE_TEMPLATE_PAID | 支付成功订阅消息模板ID |
+| WECHAT_SUBSCRIBE_TEMPLATE_REFUND | 退款订阅消息模板ID |
+| WECHAT_SUBSCRIBE_TEMPLATE_VERIFIED | 核销订阅消息模板ID |
+
+未配置订阅消息模板时自动降级为站内通知。
