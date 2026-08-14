@@ -246,6 +246,14 @@ Route::group('/admin', function () {
     // M6: 退款审批工作流已下线——该控制器操作的是技师提现（与用户退款无关），
     // 用户退款由 service 端同步自动退款闭环完成，路由与控制器均已废弃
 
+    // 积分兑换商城（静态路由必须先于 resource 定义，避免被 {id} 变量路由 shadow）
+    Route::get('/points-exchange-goods/{id}/exchanges', [app\admin\controller\PointsExchangeGoodsController::class, 'exchanges']);
+    Route::post('/points-exchange-goods/{id}/toggle-status', [app\admin\controller\PointsExchangeGoodsController::class, 'toggleStatus']);
+    Route::resource('/points-exchange-goods', app\admin\controller\PointsExchangeGoodsController::class);
+
+    // 分销返佣记录（只读）
+    Route::get('/referral-rewards', [app\admin\controller\ReferralRewardController::class, 'index']);
+
     // 技师等级
     Route::get('/technician-tiers', [app\admin\controller\TechnicianTierController::class, 'index']);
     Route::put('/technician-tiers/{id}', [app\admin\controller\TechnicianTierController::class, 'update']);

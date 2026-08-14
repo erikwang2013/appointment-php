@@ -139,6 +139,7 @@ Route::group('/api/user', function () {
     Route::get('/referral', v('user', 'ReferralController', 'index'));
     Route::get('/referral/qrcode', v('user', 'ReferralController', 'qrcode'));
     Route::get('/referral/referred-users', v('user', 'ReferralController', 'referredUsers'));
+    Route::get('/referral/earnings', v('user', 'ReferralController', 'earnings'));
 
     Route::post('/check-in', v('user', 'CheckInController', 'store'));
     Route::get('/check-in/status', v('user', 'CheckInController', 'status'));
@@ -256,6 +257,10 @@ Route::group('/api/marketing', function () {
     Route::get('/gift-cards/my', v('marketing', 'GiftCardController', 'my'));
     Route::post('/gift-cards/redeem', v('marketing', 'GiftCardController', 'redeem'));
     Route::post('/gift-cards/store', v('marketing', 'GiftCardController', 'store'));
+
+    // ── 积分兑换商城 ──
+    Route::get('/points-exchange', v('marketing', 'PointsExchangeController', 'index'));
+    Route::post('/points-exchange/{id}', v('marketing', 'PointsExchangeController', 'exchange'));
 
     Route::get('/benefits', v('marketing', 'MemberBenefitController', 'index'));
     Route::get('/benefits/birthday', v('marketing', 'MemberBenefitController', 'birthday'));
