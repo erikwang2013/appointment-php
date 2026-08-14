@@ -1146,6 +1146,7 @@ class OrderController extends BaseController
                     $order->save();
                 }
                 $this->createCommissionEarning($order);
+                $this->rewardOrderPoints($order);
                 Db::commit();
             } catch (\Throwable $e) {
                 Db::rollBack();
@@ -1277,6 +1278,48 @@ class OrderController extends BaseController
             'amount'        => $amount,
             'description'   => '服务佣金（订单 ' . $order->order_no . '）',
             'status'        => 'pending',
+        ]);
+    }
+
+    /**
+     * M4: 消费返积分（核销时发放，与佣金同事务，失败随核销整体回滚）
+     *
+     * 规则：按订单实付金额返积分，1 元 = 1 积分，向下取整（POINTS_PER_YUAN 可配置）。
+     * 幂等：同 order_id + source=order 的返积分记录已存在则不重复发放（覆盖重试/并发场景）。
+     * balance 为逐条快照：上一条余额 + 本次积分（同事务内锁定最后一条流水，防并发串行）。
+     */
+    private const POINTS_PER_YUAN = 1; // 返积分比例：1 元 = 1 积分（可按运营策略调整）
+
+    private function rewardOrderPoints(Order $order): void
+    {
+        $points = (int) floor((float) $order->paid_amount * self::POINTS_PER_YUAN);
+        if ($points <= 0) {
+            return;
+        }
+
+        // 幂等：同订单的返积分已发放则不重复发放
+        $exists = UserPoints::where('order_id', $order->id)
+            ->where('source', 'order')
+            ->exists();
+        if ($exists) {
+            return;
+        }
+
+        // balance = 上一条余额 + 本次积分（快照累加，锁最后一条流水防同用户并发串行）
+        $lastBalance = (int) (UserPoints::where('user_id', $order->user_id)
+            ->orderBy('created_at', 'desc')
+            ->lockForUpdate()
+            ->value('balance') ?? 0);
+
+        UserPoints::create([
+            'id'          => UserPoints::generateId(),
+            'user_id'     => $order->user_id,
+            'type'        => 'earn',
+            'points'      => $points,
+            'balance'     => $lastBalance + $points,
+            'source'      => 'order',
+            'order_id'    => $order->id,
+            'description' => '订单消费返积分（订单 ' . $order->order_no . '）',
         ]);
     }
 

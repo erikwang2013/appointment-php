@@ -1,0 +1,17 @@
+<view class="container">
+  <view class="balance-card card">
+    <text class="balance-label">当前积分</text>
+    <text class="balance-num">{{balance}}</text>
+  </view>
+  <view class="section-title">积分明细</view>
+  <block wx:for="{{records}}" wx:key="id">
+    <view class="card point-item">
+      <view class="point-left">
+        <text class="point-desc">{{item.description || item.source_label}}</text>
+        <text class="point-time">{{item.created_at}}</text>
+      </view>
+      <text class="point-num {{item.points > 0 ? 'plus' : 'minus'}}">{{item.points_text}}</text>
+    </view>
+  </block>
+  <view wx:if="{{records.length===0}}" class="empty">暂无积分记录</view>
+</view>

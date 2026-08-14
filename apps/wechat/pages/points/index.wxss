@@ -1,0 +1,13 @@
+.container { padding: 20rpx 30rpx; }
+.balance-card { display: flex; flex-direction: column; align-items: center; padding: 60rpx 0; }
+.balance-label { font-size: 26rpx; color: #999; }
+.balance-num { font-size: 72rpx; font-weight: bold; color: #e74c3c; margin-top: 12rpx; }
+.section-title { font-size: 28rpx; color: #666; margin: 30rpx 0 16rpx; }
+.point-item { display: flex; justify-content: space-between; align-items: center; padding: 24rpx 30rpx; margin-bottom: 16rpx; }
+.point-left { display: flex; flex-direction: column; }
+.point-desc { font-size: 28rpx; color: #333; }
+.point-time { font-size: 24rpx; color: #999; margin-top: 8rpx; }
+.point-num { font-size: 32rpx; font-weight: bold; }
+.point-num.plus { color: #e74c3c; }
+.point-num.minus { color: #999; }
+.empty { text-align: center; color: #999; padding: 80rpx 0; }

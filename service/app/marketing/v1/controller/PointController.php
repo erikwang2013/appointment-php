@@ -27,11 +27,16 @@ class PointController extends BaseController
             ->orderBy('created_at', 'desc')
             ->value('balance') ?? 0;
 
-        // 积分流水记录（分页）
+        // 积分流水记录（分页，支持 type/source 过滤）
         $perPage = (int) $request->input('per_page', 20);
-        $paginator = UserPoints::where('user_id', $userId)
-            ->orderBy('created_at', 'desc')
-            ->paginate($perPage);
+        $query = UserPoints::where('user_id', $userId);
+        if ($type = (string) $request->input('type', '')) {
+            $query->where('type', $type);
+        }
+        if ($source = (string) $request->input('source', '')) {
+            $query->where('source', $source);
+        }
+        $paginator = $query->orderBy('created_at', 'desc')->paginate($perPage);
 
         return json([
             'code' => 0,
