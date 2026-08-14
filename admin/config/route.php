@@ -173,6 +173,11 @@ Route::group('/admin', function () {
     // 销售统计
     Route::get('/sales-stats', [app\admin\controller\SalesStatsController::class, 'index']);
 
+    // 数据报表（S7 订单/营收/技师绩效统计报表）
+    Route::get('/reports/orders', [app\admin\controller\ReportController::class, 'orders']);
+    Route::get('/reports/technicians', [app\admin\controller\ReportController::class, 'technicians']);
+    Route::get('/reports/distribution', [app\admin\controller\ReportController::class, 'distribution']);
+
     // 轮播图
     Route::resource('/banners', app\admin\controller\BannerController::class);
 
