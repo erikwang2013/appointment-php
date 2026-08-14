@@ -1,3 +1,38 @@
-.stats { display: flex; justify-content: space-around; }
-.stat-item { text-align: center; }
-.stat-val { font-size: 40rpx; font-weight: bold; color: #e74c3c; display: block; }
+.container { padding: 20rpx; background: #f5f6f8; min-height: 100vh; }
+.card { background: #fff; border-radius: 16rpx; margin-bottom: 20rpx; box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.04); }
+
+/* 汇总 */
+.stats { display: flex; justify-content: space-around; padding: 24rpx 0; }
+.stat-item { text-align: center; display: flex; flex-direction: column; }
+.stat-val { font-size: 40rpx; font-weight: bold; color: #e74c3c; display: block; margin-bottom: 8rpx; }
+.stat-item text:last-child { font-size: 24rpx; color: #999; }
+
+/* Tab */
+.tabs { display: flex; padding: 12rpx; }
+.tab-item { flex: 1; text-align: center; font-size: 28rpx; color: #666; padding: 16rpx 0; border-radius: 12rpx; }
+.tab-item.active { background: #e74c3c; color: #fff; font-weight: bold; }
+
+/* 扫码核销 */
+.scan-entry { padding: 48rpx 24rpx; display: flex; flex-direction: column; align-items: center; }
+.scan-btn { background: #e74c3c; color: #fff; font-size: 32rpx; border-radius: 44rpx; padding: 20rpx 80rpx; }
+.scan-tip { margin-top: 24rpx; font-size: 24rpx; color: #999; text-align: center; }
+
+/* 任务/记录列表 */
+.task-list, .record-list { }
+.task-item { padding: 24rpx; }
+.task-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12rpx; }
+.task-title { font-size: 30rpx; font-weight: bold; color: #333; }
+.task-meta { font-size: 26rpx; color: #888; line-height: 1.8; }
+.status-chip { font-size: 22rpx; padding: 4rpx 16rpx; border-radius: 8rpx; }
+.status-confirmed { background: #fff3e0; color: #f57c00; }
+.status-serving { background: #e3f2fd; color: #1976d2; }
+.status-completed { background: #e8f5e9; color: #2e7d32; }
+
+/* 操作按钮 */
+.task-actions { margin-top: 16rpx; display: flex; justify-content: flex-end; }
+.btn { font-size: 28rpx; border-radius: 36rpx; padding: 0 48rpx; line-height: 2.4; }
+.btn-primary { background: #e74c3c; color: #fff; }
+
+/* 空态/加载更多 */
+.empty { padding: 60rpx 0; text-align: center; font-size: 26rpx; color: #bbb; }
+.load-more { text-align: center; font-size: 26rpx; color: #999; padding: 20rpx 0 40rpx; }

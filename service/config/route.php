@@ -166,6 +166,12 @@ Route::group('/api/technician', function () {
     Route::get('/earnings', v('technician', 'EarningController', 'index'));
     Route::post('/withdraw', v('technician', 'WithdrawController', 'store'));
 
+    // ── 技师工作台（第 8 轮：今日任务 / 核销记录 / 开始服务 / 完成服务）──
+    Route::get('/work/today', v('technician', 'WorkController', 'today'));
+    Route::get('/work/records', v('technician', 'WorkController', 'records'));
+    Route::post('/work/{id}/start', v('technician', 'WorkController', 'start'));
+    Route::post('/work/{id}/complete', v('technician', 'WorkController', 'complete'));
+
     Route::post('/service-records', v('technician', 'ServiceRecordController', 'store'));
     Route::get('/service-records/{id}', v('technician', 'ServiceRecordController', 'show'));
 

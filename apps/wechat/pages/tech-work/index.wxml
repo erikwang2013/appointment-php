@@ -1,10 +1,60 @@
 <view class="container">
+  <!-- 汇总 -->
   <view class="stats card">
     <view class="stat-item"><text class="stat-val">¥{{earnings.today_income}}</text><text>今日收入</text></view>
     <view class="stat-item"><text class="stat-val">¥{{earnings.balance}}</text><text>可提现</text></view>
     <view class="stat-item"><text class="stat-val">{{todayOrders}}</text><text>今日订单</text></view>
   </view>
-  <view class="menu-grid card">
-    <view class="menu-item" wx:for="{{[{name:'订单管理'},{name:'排班设置'},{name:'扫码核销',action:'scanVerify'},{name:'我的会员'},{name:'收益明细'},{name:'提现'},{name:'考勤签到'},{name:'专业培训'}]}}" wx:key="name" data-action="{{item.action}}" bindtap="onMenuTap"><text>{{item.name}}</text></view>
+
+  <!-- Tab：扫码核销 / 今日任务 / 完成记录 -->
+  <view class="tabs card">
+    <view class="tab-item {{activeTab === 'scan' ? 'active' : ''}}" data-tab="scan" bindtap="onTabTap">扫码核销</view>
+    <view class="tab-item {{activeTab === 'tasks' ? 'active' : ''}}" data-tab="tasks" bindtap="onTabTap">今日任务</view>
+    <view class="tab-item {{activeTab === 'records' ? 'active' : ''}}" data-tab="records" bindtap="onTabTap">完成记录</view>
+  </view>
+
+  <!-- 扫码核销 -->
+  <view wx:if="{{activeTab === 'scan'}}" class="scan-entry card">
+    <button class="scan-btn" bindtap="scanToVerify">扫一扫核销</button>
+    <text class="scan-tip">扫描用户出示的订单核销码，核销后订单自动进入服务中</text>
+  </view>
+
+  <!-- 今日任务 -->
+  <view wx:if="{{activeTab === 'tasks'}}" class="task-list">
+    <view wx:if="{{tasks.length === 0}}" class="empty card">今日暂无待服务任务</view>
+    <view class="task-item card" wx:for="{{tasks}}" wx:key="id">
+      <view class="task-head">
+        <text class="task-title">{{item.service_name || '服务订单'}}</text>
+        <text class="status-chip status-{{item.status}}">{{item.status_text}}</text>
+      </view>
+      <view class="task-meta">单号：{{item.order_no}}</view>
+      <view class="task-meta">用户：{{item.nickname || '—'}}</view>
+      <view class="task-meta">预约：{{item.service_time_text || '—'}}</view>
+      <view class="task-meta" wx:if="{{item.start_time_text}}">开始：{{item.start_time_text}}</view>
+      <view class="task-actions" wx:if="{{item.status === 'confirmed'}}">
+        <button class="btn btn-primary" data-id="{{item.id}}" bindtap="onStartTap">开始服务</button>
+      </view>
+      <view class="task-actions" wx:if="{{item.status === 'serving'}}">
+        <button class="btn btn-primary" data-id="{{item.id}}" bindtap="onCompleteTap">完成服务</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 完成记录 -->
+  <view wx:if="{{activeTab === 'records'}}" class="record-list">
+    <view wx:if="{{records.length === 0}}" class="empty card">暂无核销/完成记录</view>
+    <view class="task-item card" wx:for="{{records}}" wx:key="id">
+      <view class="task-head">
+        <text class="task-title">{{item.service_name || '服务订单'}}</text>
+        <text class="status-chip status-{{item.status}}">{{item.status_text}}</text>
+      </view>
+      <view class="task-meta">单号：{{item.order_no}}</view>
+      <view class="task-meta">用户：{{item.nickname || '—'}}</view>
+      <view class="task-meta">预约：{{item.service_time_text || '—'}}</view>
+      <view class="task-meta" wx:if="{{item.start_time_text}}">开始：{{item.start_time_text}}</view>
+      <view class="task-meta" wx:if="{{item.end_time_text}}">完成：{{item.end_time_text}}</view>
+    </view>
+    <view class="load-more" wx:if="{{recordHasMore}}" bindtap="onLoadMore">加载更多</view>
+    <view wx:if="{{records.length > 0 && !recordHasMore}}" class="load-more">没有更多了</view>
   </view>
 </view>
