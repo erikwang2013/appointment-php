@@ -230,7 +230,7 @@ class AutoCancelTimer
             // 写入通知
             try {
                 Db::table('erik_notification')->insert([
-                    'id'         => \Erikwang2013\Snowflake\Snowflake::generate(),
+                    'id'         => \support\Model::generateId(),
                     'user_id'    => $order->user_id,
                     'type'       => 'order_auto_cancel',
                     'title'      => '订单已自动取消',
