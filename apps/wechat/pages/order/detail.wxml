@@ -1,6 +1,11 @@
 <view class="container" wx:if="{{order}}">
   <view class="card"><text class="status-text">订单状态: {{order.status}}</text></view>
   <view class="card"><text>订单编号: {{order.order_no}}</text><text>下单时间: {{order.created_at}}</text><text>实付金额: ¥{{order.paid_amount}}</text></view>
+  <view class="card" wx:if="{{order.refund_status}}">
+    <text>退款状态: {{order.refund_status_text}}</text>
+    <text wx:if="{{order.refund_amount}}">退款金额: ¥{{order.refund_amount}}</text>
+    <text wx:if="{{order.refunded_at}}">退款时间: {{order.refunded_at}}</text>
+  </view>
   <view class="card" wx:if="{{order.store}}"><text>门店: {{order.store.name}}</text><text>地址: {{order.store.address}}</text></view>
   <view class="card" wx:if="{{order.technician}}"><text>技师: {{order.technician.name}}</text></view>
   <view class="card" wx:if="{{order.remark}}"><text>备注: {{order.remark}}</text></view>

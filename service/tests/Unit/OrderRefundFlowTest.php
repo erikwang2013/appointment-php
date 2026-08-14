@@ -9,6 +9,7 @@ use app\order\v1\controller\OrderController;
 use app\model\Order;
 use app\model\OrderPayment;
 use app\model\OrderRefund;
+use support\Container;
 use support\Db;
 use Webman\Http\Request;
 use Webman\Http\Response;
@@ -36,6 +37,7 @@ class OrderRefundFlowTest extends TestCase
     protected function tearDown(): void
     {
         foreach ($this->orderIds as $id) {
+            Db::table('erik_notification')->where('order_id', $id)->delete();
             OrderRefund::where('order_id', $id)->delete();
             OrderPayment::where('order_id', $id)->delete();
             Order::where('id', $id)->delete();
@@ -289,5 +291,171 @@ class OrderRefundFlowTest extends TestCase
         $this->assertSame(OrderRefund::STATUS_SUCCESS, $refund->status);
         $this->assertSame(Order::STATUS_CANCELLED, Order::find($order->id)->status);
         $this->assertSame('available', Db::table('erik_user_coupon')->where('id', $order->user_coupon_id)->value('status'));
+    }
+
+    // ── 退款信息入契约：show()/index() 返回 refund_status/refund_amount/refunded_at ──
+
+    /** 造退款记录（订单已有支付记录） */
+    private function makeRefund(Order $order, string $status, ?string $refundedAt = null): OrderRefund
+    {
+        $payment = OrderPayment::where('order_id', $order->id)->first();
+        return OrderRefund::create([
+            'id'          => OrderRefund::generateId(),
+            'order_id'    => $order->id,
+            'payment_id'  => $payment->id,
+            'refund_no'   => OrderRefund::generateRefundNo(),
+            'amount'      => 100.0,
+            'ratio'       => 1.0,
+            'reason'      => '测试退款',
+            'status'      => $status,
+            'refunded_at' => $refundedAt,
+        ]);
+    }
+
+    #[Test] public function show_returns_refund_fields_from_latest_refund(): void
+    {
+        $order = $this->makePaidOrder();
+        $this->makeRefund($order, OrderRefund::STATUS_SUCCESS, date('Y-m-d H:i:s', time() - 60));
+
+        $request = $this->makeRequest();
+        $request->user_id = $order->user_id;
+        $id = Container::get('hashids')->encode((int) $order->id);
+        $data = $this->body((new OrderController())->show($request, (string) $id))['data'];
+
+        $this->assertSame(OrderRefund::STATUS_SUCCESS, $data['refund_status']);
+        $this->assertSame(100.0, (float) $data['refund_amount']);
+        $this->assertNotEmpty($data['refunded_at']);
+    }
+
+    #[Test] public function show_returns_null_refund_fields_when_no_refund(): void
+    {
+        $order = $this->makePaidOrder();
+
+        $request = $this->makeRequest();
+        $request->user_id = $order->user_id;
+        $id = Container::get('hashids')->encode((int) $order->id);
+        $data = $this->body((new OrderController())->show($request, (string) $id))['data'];
+
+        $this->assertNull($data['refund_status']);
+        $this->assertNull($data['refund_amount']);
+        $this->assertNull($data['refunded_at']);
+    }
+
+    #[Test] public function index_prefetches_refund_fields_per_order(): void
+    {
+        // 同用户两单：一单 pending 退款、一单无退款（验证批量预取 + 空值形状）
+        $userId = (string) (9900000000000000 + random_int(1, 999999));
+        $orderA = $this->makePaidOrder();
+        $orderA->user_id = $userId;
+        $orderA->save();
+        $orderB = $this->makePaidOrder();
+        $orderB->user_id = $userId;
+        $orderB->save();
+        $this->makeRefund($orderA, OrderRefund::STATUS_PENDING);
+
+        $request = $this->makeRequest(['per_page' => 15]);
+        $request->user_id = $userId;
+        $items = $this->body((new OrderController())->index($request))['data'];
+
+        $this->assertCount(2, $items);
+        $byNo = [];
+        foreach ($items as $item) {
+            $byNo[$item['order_no']] = $item;
+        }
+        $this->assertSame(OrderRefund::STATUS_PENDING, $byNo[$orderA->order_no]['refund_status']);
+        $this->assertSame(100.0, (float) $byNo[$orderA->order_no]['refund_amount']);
+        $this->assertNull($byNo[$orderA->order_no]['refunded_at']);
+        $this->assertNull($byNo[$orderB->order_no]['refund_status']);
+        $this->assertNull($byNo[$orderB->order_no]['refund_amount']);
+        $this->assertNull($byNo[$orderB->order_no]['refunded_at']);
+    }
+
+    // ── 退款站内通知（受理/到账）与幂等 ──
+
+    #[Test] public function doRefund_writes_accepted_notification_on_apply(): void
+    {
+        // 测试环境微信退款必失败：阶段一受理通知已写，阶段二失败不写「到账」
+        $order = $this->makePaidOrder();
+
+        self::invokePrivate(new OrderController(), 'doRefund', [
+            $this->makeRequest(['reason' => '测试退款']),
+            $order,
+            1.0,
+        ]);
+
+        $notifications = Db::table('erik_notification')->where('order_id', $order->id)->get();
+        $this->assertCount(1, $notifications);
+        $this->assertSame('order', $notifications->first()->type);
+        $this->assertSame('退款申请已受理', $notifications->first()->title);
+        $this->assertStringContainsString('100.00', (string) $notifications->first()->content);
+    }
+
+    #[Test] public function doCancel_writes_accepted_notification_on_refund_path(): void
+    {
+        $order = $this->makePaidOrder();
+
+        self::invokePrivate(new OrderController(), 'doCancel', [
+            $this->makeRequest(['cancel_reason' => '测试取消']),
+            $order,
+        ]);
+
+        $count = Db::table('erik_notification')
+            ->where('order_id', $order->id)
+            ->where('title', '退款申请已受理')
+            ->count();
+        $this->assertSame(1, $count);
+    }
+
+    #[Test] public function write_refund_notification_derives_title_by_status(): void
+    {
+        $order = $this->makePaidOrder();
+        $ctl = new OrderController();
+
+        // pending → 受理
+        $pending = $this->makeRefund($order, OrderRefund::STATUS_PENDING);
+        self::invokePrivate($ctl, 'writeRefundNotification', [$order, $pending]);
+
+        // success → 到账
+        $success = $this->makeRefund($order, OrderRefund::STATUS_SUCCESS, date('Y-m-d H:i:s'));
+        self::invokePrivate($ctl, 'writeRefundNotification', [$order, $success]);
+
+        // failed → 不写通知
+        $failed = $this->makeRefund($order, OrderRefund::STATUS_FAILED);
+        self::invokePrivate($ctl, 'writeRefundNotification', [$order, $failed]);
+
+        $this->assertSame(1, Db::table('erik_notification')->where('order_id', $order->id)->where('title', '退款申请已受理')->count());
+        $this->assertSame(1, Db::table('erik_notification')->where('order_id', $order->id)->where('title', '退款已到账')->count());
+        $this->assertSame(2, Db::table('erik_notification')->where('order_id', $order->id)->count());
+    }
+
+    #[Test] public function refund_notification_is_idempotent_by_order_and_title(): void
+    {
+        $order = $this->makePaidOrder();
+        $refund = $this->makeRefund($order, OrderRefund::STATUS_SUCCESS, date('Y-m-d H:i:s'));
+        $ctl = new OrderController();
+
+        // 模拟主路径与补偿并发双写：同订单同标题只落一条
+        self::invokePrivate($ctl, 'writeRefundNotification', [$order, $refund]);
+        self::invokePrivate($ctl, 'writeRefundNotification', [$order, $refund]);
+
+        $count = Db::table('erik_notification')
+            ->where('order_id', $order->id)
+            ->where('title', '退款已到账')
+            ->count();
+        $this->assertSame(1, $count);
+    }
+
+    #[Test] public function compensation_writes_arrival_notification_idempotently(): void
+    {
+        $order = $this->makeStuckRefundOrder(Order::STATUS_REFUNDING, 1.0);
+        $ctl = new OrderController();
+
+        $ctl->completeRefundCompensation();
+        $ctl->completeRefundCompensation(); // 幂等：重复扫描不得重复通知
+
+        $rows = Db::table('erik_notification')->where('order_id', $order->id)->get();
+        $this->assertCount(1, $rows);
+        $this->assertSame('退款已到账', $rows->first()->title);
+        $this->assertStringContainsString('100.00', (string) $rows->first()->content);
     }
 }

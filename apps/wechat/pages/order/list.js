@@ -1,4 +1,5 @@
 const api = require('../../utils/api');
+const REFUND_STATUS_TEXT = { pending: '退款处理中', success: '已退款', failed: '退款失败' };
 Page({
   data: { orders: [], tabs: ['全部','待支付','已支付','已完成','已取消'], activeTab: 0, statusMap: ['','pending','paid','completed','cancelled'], page: 1, perPage: 10, hasMore: true },
   onShow() { this.loadOrders(true); },
@@ -13,7 +14,7 @@ Page({
     this._loading = true;
     try {
       const res = await api.authGet('/order/list', data);
-      const list = res.data || [];
+      const list = (res.data || []).map(o => ({ ...o, refund_status_text: REFUND_STATUS_TEXT[o.refund_status] || '' }));
       const hasMore = res.meta ? !!res.meta.has_more : list.length >= perPage;
       this.setData({ orders: page === 1 ? list : [...this.data.orders, ...list], hasMore, page: hasMore ? page + 1 : page });
     } catch(e) { wx.showToast({title: '加载失败', icon: 'none'}); }

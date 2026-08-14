@@ -11,6 +11,7 @@ use app\common\PushService;
 use app\common\WechatPayService;
 use app\common\WechatTemplateMessageService;
 use app\model\MemberCardUsage;
+use app\model\Notification;
 use app\model\Order;
 use app\model\OrderItem;
 use app\model\OrderPayment;
@@ -21,9 +22,9 @@ use app\model\TechnicianProfile;
 use app\model\User;
 use app\model\UserCoupon;
 use app\model\UserMemberCard;
-use Illuminate\Support\Facades\Redis;
 use support\Db;
 use support\Log;
+use support\Redis;
 use Webman\Http\Request;
 
 /**
@@ -250,6 +251,19 @@ class OrderController extends BaseController
         $perPage = (int)$request->input('per_page', 15);
         $paginator = $query->paginate($perPage);
 
+        // 退款信息预取（N+1 防护）：按订单批量取最近一条退款记录
+        $orders = $paginator->getCollection();
+        if ($orders->isNotEmpty()) {
+            $refunds = OrderRefund::whereIn('order_id', $orders->pluck('id'))
+                ->orderBy('created_at', 'desc')
+                ->get()
+                ->groupBy('order_id')
+                ->map->first();
+            foreach ($orders as $order) {
+                $this->appendRefundInfo($order, $refunds->get($order->id));
+            }
+        }
+
         return $this->paginate($paginator);
     }
 
@@ -277,6 +291,12 @@ class OrderController extends BaseController
         // 追加退款比例信息
         $order->refund_ratio = $order->calcRefundRatio();
         $order->is_refundable = $order->isRefundable();
+
+        // 追加退款信息（单订单退款取最近一条）
+        $refund = OrderRefund::where('order_id', $order->id)
+            ->orderBy('created_at', 'desc')
+            ->first();
+        $this->appendRefundInfo($order, $refund);
 
         return $this->success($order);
     }
@@ -397,6 +417,11 @@ class OrderController extends BaseController
             $order->save();
 
             Db::commit();
+
+            // 站内通知：退款申请已受理（幂等：同订单同标题去重）
+            if ($refundRecord) {
+                $this->writeRefundNotification($order, $refundRecord);
+            }
         } catch (\Throwable $e) {
             Db::rollBack();
             // M3: 内部异常详情仅记日志，对外返回通用文案
@@ -471,6 +496,11 @@ class OrderController extends BaseController
                 Db::rollBack();
                 Log::error('[OrderController] restore benefits on cancel failed: ' . $e2->getMessage());
             }
+        }
+
+        // 站内通知：退款已到账（直接成功或补偿成功均落此；补偿路径由 completeOneRefundCompensation 幂等补写）
+        if ($refundRecord) {
+            $this->writeRefundNotification($order, $refundRecord->fresh() ?: $refundRecord);
         }
 
         // 释放技师锁
@@ -688,6 +718,9 @@ class OrderController extends BaseController
             $order->save();
 
             Db::commit();
+
+            // 站内通知：退款申请已受理（幂等：同订单同标题去重）
+            $this->writeRefundNotification($order, $refundRecord);
         } catch (\Throwable $e) {
             Db::rollBack();
             // M3: 内部异常详情仅记日志，对外返回通用文案
@@ -751,6 +784,9 @@ class OrderController extends BaseController
             }
             return $this->error('退款处理失败请重试');
         }
+
+        // 站内通知：退款已到账（补偿成功路径已由 completeOneRefundCompensation 幂等补写，此处去重）
+        $this->writeRefundNotification($order, $refundRecord);
 
         // 释放技师锁
         $this->releaseTechnicianLock($order);
@@ -1102,6 +1138,9 @@ class OrderController extends BaseController
 
             Db::commit();
 
+            // 站内通知：退款已到账（幂等：同订单同标题去重，主路径并发时不会双写）
+            $this->writeRefundNotification($order, $locked);
+
             Log::info('[OrderController] refund compensation done, order_no: ' . $order->order_no
                 . ', refund_id: ' . $locked->id);
             return true;
@@ -1109,6 +1148,62 @@ class OrderController extends BaseController
             Db::rollBack();
             throw $e;
         }
+    }
+
+    /**
+     * 站内退款通知（幂等，写失败不影响主流程）
+     *
+     * 标题按退款单状态推导：pending → 「退款申请已受理」；success → 「退款已到账」。
+     * 幂等：同订单同标题已存在则跳过——补偿（completeOneRefundCompensation）与主路径
+     * （doRefund/doCancel 成功分支）并发时不会重复写。
+     */
+    private function writeRefundNotification(Order $order, OrderRefund $refund): void
+    {
+        try {
+            $title = match ($refund->status) {
+                OrderRefund::STATUS_PENDING => '退款申请已受理',
+                OrderRefund::STATUS_SUCCESS => '退款已到账',
+                default => null,
+            };
+            if ($title === null) {
+                return;
+            }
+
+            $exists = Notification::where('order_id', $order->id)
+                ->where('title', $title)
+                ->exists();
+            if ($exists) {
+                return;
+            }
+
+            $amount = number_format((float) $refund->amount, 2);
+            $content = $refund->status === OrderRefund::STATUS_SUCCESS
+                ? "您的订单 {$order->order_no} 已退款 ¥{$amount}，款项将原路退回至支付账户。"
+                : "您的订单 {$order->order_no} 退款申请已受理，退款金额 ¥{$amount}，处理完成后将原路退回。";
+
+            Notification::create([
+                'id'       => Notification::generateId(),
+                'user_id'  => (string) $order->user_id,
+                'type'     => 'order',
+                'title'    => $title,
+                'content'  => $content,
+                'order_id' => $order->id,
+            ]);
+        } catch (\Throwable $e) {
+            Log::warning('[OrderController] writeRefundNotification failed: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * 追加退款信息到订单响应（show/index 共用，契约字段：refund_status/refund_amount/refunded_at）
+     *
+     * 无退款记录时三个字段均为 null，保证响应形状一致。
+     */
+    private function appendRefundInfo(Order $order, ?OrderRefund $refund): void
+    {
+        $order->refund_status = $refund ? $refund->status : null;
+        $order->refund_amount = $refund ? (float) $refund->amount : null;
+        $order->refunded_at   = $refund && $refund->refunded_at ? $refund->refunded_at->format('Y-m-d H:i:s') : null;
     }
 
     /**
