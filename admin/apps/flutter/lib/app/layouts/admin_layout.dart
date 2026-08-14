@@ -19,6 +19,9 @@ import '../pages/member/member_list_page.dart';
 import '../pages/service_card/service_card_list_page.dart';
 import '../pages/announcement/announcement_list_page.dart';
 import '../pages/faq/faq_list_page.dart';
+import '../pages/withdrawal/withdrawal_list_page.dart';
+import '../pages/review/review_list_page.dart';
+import '../pages/report/report_page.dart';
 
 class AdminLayout extends StatefulWidget {
   final Widget child;
@@ -54,6 +57,9 @@ class _AdminLayoutState extends State<AdminLayout> {
     ServiceCardListPage(),
     AnnouncementListPage(),
     FaqListPage(),
+    WithdrawalListPage(),
+    ReviewListPage(),
+    ReportPage(),
   ];
 
   ResponsiveBreakpointsData get _bp => ResponsiveBreakpoints.of(context);
@@ -269,6 +275,21 @@ class _AdminLayoutState extends State<AdminLayout> {
         icon: Icon(Icons.help_outline, size: 20),
         label: Text('常见问题'),
         selectedIcon: Icon(Icons.help_outline, size: 20),
+      ),
+      NavigationDrawerDestination(
+        icon: Icon(Icons.account_balance_wallet, size: 20),
+        label: Text('提现管理'),
+        selectedIcon: Icon(Icons.account_balance_wallet, size: 20),
+      ),
+      NavigationDrawerDestination(
+        icon: Icon(Icons.rate_review, size: 20),
+        label: Text('评价管理'),
+        selectedIcon: Icon(Icons.rate_review, size: 20),
+      ),
+      NavigationDrawerDestination(
+        icon: Icon(Icons.bar_chart, size: 20),
+        label: Text('数据报表'),
+        selectedIcon: Icon(Icons.bar_chart, size: 20),
       ),
     ];
   }

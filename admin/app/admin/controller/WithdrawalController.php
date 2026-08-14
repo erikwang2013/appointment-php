@@ -9,9 +9,9 @@ namespace app\admin\controller;
 
 use app\common\TechnicianWithdrawalService;
 use app\model\TechnicianWithdrawal;
+use InvalidArgumentException;
 use support\Request;
 use support\Response;
-use Erikwang2013\PosterPhp\Poster;
 
 class WithdrawalController extends BaseController
 {
@@ -79,7 +79,11 @@ class WithdrawalController extends BaseController
      */
     public function show(Request $request, string $hashid): Response
     {
-        $id         = $this->decodeId($hashid);
+        try {
+            $id = $this->decodeId($hashid);
+        } catch (InvalidArgumentException) {
+            return $this->fail('无效的提现ID', 422);
+        }
         $withdrawal = TechnicianWithdrawal::with(['technician', 'technician.user'])->find($id);
         if (!$withdrawal) {
             return $this->fail('提现记录不存在', 404);
@@ -105,9 +109,11 @@ class WithdrawalController extends BaseController
      */
     public function approve(Request $request, string $hashid): Response
     {
-        Poster::verify($request);
-
-        $id         = $this->decodeId($hashid);
+        try {
+            $id = $this->decodeId($hashid);
+        } catch (InvalidArgumentException) {
+            return $this->fail('无效的提现ID', 422);
+        }
         $withdrawal = TechnicianWithdrawal::find($id);
         if (!$withdrawal) {
             return $this->fail('提现记录不存在', 404);
@@ -193,9 +199,11 @@ class WithdrawalController extends BaseController
      */
     public function reject(Request $request, string $hashid): Response
     {
-        Poster::verify($request);
-
-        $id         = $this->decodeId($hashid);
+        try {
+            $id = $this->decodeId($hashid);
+        } catch (InvalidArgumentException) {
+            return $this->fail('无效的提现ID', 422);
+        }
         $withdrawal = TechnicianWithdrawal::find($id);
         if (!$withdrawal) {
             return $this->fail('提现记录不存在', 404);
@@ -223,9 +231,11 @@ class WithdrawalController extends BaseController
      */
     public function complete(Request $request, string $hashid): Response
     {
-        Poster::verify($request);
-
-        $id         = $this->decodeId($hashid);
+        try {
+            $id = $this->decodeId($hashid);
+        } catch (InvalidArgumentException) {
+            return $this->fail('无效的提现ID', 422);
+        }
         $withdrawal = TechnicianWithdrawal::find($id);
         if (!$withdrawal) {
             return $this->fail('提现记录不存在', 404);
