@@ -6,10 +6,12 @@ declare(strict_types=1);
 namespace app\api\v1\controller;
 
 use app\common\BaseController;
+use app\model\BrowseHistory;
 use app\model\Product;
 use app\model\Service;
 use app\model\ServiceCategory;
 use app\model\Store;
+use support\Log;
 use support\Redis;
 use Webman\Http\Request;
 
@@ -213,6 +215,19 @@ class ServiceController extends BaseController
         $data = $service->toArray();
         $data['reviews'] = $reviews->toArray();
         $data['related_services'] = $relatedServices->toArray();
+
+        // 浏览足迹：仅登录用户记录，失败不影响详情主流程
+        $userId = $request->user_id ?? null;
+        if ($userId) {
+            try {
+                BrowseHistory::updateOrCreate(
+                    ['user_id' => $userId, 'item_id' => $decodedId],
+                    ['viewed_at' => date('Y-m-d H:i:s')]
+                );
+            } catch (\Throwable $e) {
+                Log::warning('[BrowseHistory] 记录浏览足迹失败: ' . $e->getMessage());
+            }
+        }
 
         return $this->success($data);
     }
