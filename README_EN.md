@@ -2,7 +2,7 @@
 
 A three-platform appointment service management platform: WeChat Mini Program + Flutter App (same-account role switching) + PC Admin Dashboard.
 
-> **Status**: All complete | 104 Controllers | 58 Models | 80 Tests | 55+ Tables | 242 Routes
+> **Status**: All complete | 104 Controllers | 58 Models | 323 tests (service 219 / admin 104) | 55+ Tables | 242 Routes
 
 ## Project Structure
 
@@ -103,6 +103,24 @@ cd ../service/ && cp .env.docker .env && docker-compose up -d
 <img src="docs/diagrams/en-security-defense.svg" alt="en-security-defense.svg" width="100%">
 
 > More diagrams: [Flowcharts](docs/diagrams/FLOWCHART.md) (withdrawal/role switch) | [Function Map](docs/diagrams/FUNCTION-DIAGRAM.md) | [All Lifecycles](docs/diagrams/LIFECYCLE-DIAGRAM.md) | [Full Security Architecture](docs/diagrams/SECURITY-ARCHITECTURE.md)
+
+## Key Features (Rounds 6-10)
+
+| Feature | Description |
+|---------|-------------|
+| Wallet & Prepaid | user_wallet / wallet_recharge / wallet_txn tables; balance + transactions, WeChat recharge (callback with R-prefixed order no.), balance order payment (pay_channel=balance), auto top-up on WeChat/balance refunds |
+| Admin UI Complete | Flutter Web, 20 pages: dashboard/users/roles/config/logs/verify/schedule/services/technicians/orders/coupons/members/visit-cards/announcements/FAQ/withdrawals/reviews/reports/profile |
+| Mini Program Subscribe Messages | 3 order scenarios (payment success / refund arrival / verified); push_sent_at idempotency; automatic fallback to in-app notification when template unconfigured |
+| Technician Withdrawal | Admin review; two-level approval (store → finance) for amounts ≥500; state machine pending→approved→completed (rejected/failed) |
+| Visit Card Redemption | My cards with real-time used_up/expired; Redis NX idempotency + row lock, directly creates completed order + OrderItem + OrderPayment(pay_type='card') |
+| Technician Workbench | Today tasks / records / start·complete (row lock + state-machine guard + idempotent, writes in-app notification); mini program tech-work 3 tabs |
+| Coupon Deduction | PriceCalculator: applyCoupon readonly calc / consume on payment / restoreCouponAndCard idempotent restore on refund; fixed/percent + min_amount threshold |
+| Gift Cards | redeem: cash type tops up wallet (row-lock anti-double-credit, WalletTxn type='gift_card'), gift type mark-only |
+| Points System | Check-in points; consumption points floor(paid×1) on verification (order_id idempotent, balance snapshot); pro-rata clawback on refund; paged details with type/source filters |
+| Membership Management | erik_user.member_level column (migration 000008); admin member-card full CRUD (permissions 365-369) |
+| Mini Program Ordering Flow | Service detail → confirm order (coupon pick / threshold grey-out / client-side estimate) → POST /order → WeChat/balance payment; 20 mini program pages |
+
+> Round-8 maintenance fixes: removed 12 latent Poster::verify fatals; DashboardController stats switched to Capsule Manager queries.
 
 ## Documentation
 

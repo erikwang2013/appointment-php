@@ -1,6 +1,6 @@
 # 功能说明
 
-> **项目状态**: 全部完成 ✅ | 101 控制器 | 58 模型 | 81 测试 | WebSocket | 支付回调 | 叫号 | 考核 | 社区
+> **项目状态**: 全部完成 ✅ | 101 控制器 | 58 模型 | 323 测试（service 219 / admin 104） | WebSocket | 支付回调 | 叫号 | 考核 | 社区
 
 ## 一、用户端（微信小程序 + Flutter APP）
 
@@ -84,10 +84,14 @@
 | 会员管理 | 服务过的会员列表/耗课数据/次卡/档案编辑 |
 | 收益管理 | 今日收入/结算中/钱包余额 |
 | 在途资金 | 已核销未结算，3天自动确认 |
-| 提现 | 每月20号，T+1到账微信零钱 |
+| 提现 | 每月20号，T+1到账微信零钱；管理端审核，金额≥500 两级审批（店长→财务） |
 | 考勤 | 签到/签退/卫生照片上传 |
 | 回头客奖励 | 30天内二次消费记录奖金 |
 | 专业培训 | 视频课程/图文课程 |
+| 今日任务 | WorkController today：实时获取今日待办 |
+| 完成记录 | WorkController records：历史完成记录 |
+| 开始/完成服务 | WorkController start/complete：行锁+状态机守卫+幂等，完成后自动写站内通知 |
+| 小程序技师工作台 | tech-work 三 Tab：扫码核销/今日任务/完成记录 |
 
 ### 8. 个人中心
 
@@ -95,10 +99,10 @@
 |------|------|
 | 个人信息 | 头像/昵称/手机号 |
 | 身份切换 | 客户 ↔ 技师 |
-| 消息通知 | 订单通知/系统通知列表 |
+| 消息通知 | 站内通知（erik_notification）；消息中心页：分页/下拉刷新/已读高亮/标记已读/全部已读 |
 | 我的会员卡 | 月卡/VIP年卡/次卡（到期/次数/已用/剩余） |
-| 我的积分 | 获取记录/可用积分/使用记录（1:100兑换礼品卡） |
-| 我的礼品卡 | 现金卡/实物礼品 |
+| 我的积分 | 获取记录/可用积分/使用记录（1:100兑换礼品卡）；签到/消费返积分，退款按比例回扣，明细分页+type/source过滤 |
+| 我的礼品卡 | 现金卡/实物礼品；cash 类型兑换直接充值到钱包 |
 | 优惠券 | 已领取可用/已使用/已过期 |
 | 我的收藏 | 收藏的服务项目 |
 | 关注公众号 | 二维码弹窗，长按保存 |
@@ -118,9 +122,75 @@
 | 账号注销 | 注销说明+确认操作 |
 | 退出登录 | 清除登录状态 |
 
+### 10. 储值钱包（第6轮）
+
+| 功能 | 说明 |
+|------|------|
+| 钱包余额 | GET /api/wallet 余额+流水（user_wallet/wallet_recharge/wallet_txn 表） |
+| 充值 | POST /api/wallet/recharge 创建充值单；POST /api/wallet/recharge/{id}/pay 微信支付充值，回调使用 R 前缀单号 |
+| 余额支付 | 订单支付渠道 pay_channel=balance |
+| 退款回充 | 微信/余额退款自动回充余额（refundToBalance / creditRefundToWallet） |
+
+### 11. 订阅消息（第6+8轮）
+
+| 功能 | 说明 |
+|------|------|
+| 订阅场景 | 订单事件 3 场景：支付成功 / 退款到账 / 核销成功 |
+| 幂等 | push_sent_at 标记防重复推送 |
+| 降级 | 未配置订阅模板自动降级为站内通知 |
+
+### 12. 次卡核销闭环（第8轮）
+
+| 功能 | 说明 |
+|------|------|
+| 我的次卡 | GET /api/marketing/cards/my 实时计算 used_up/expired |
+| 核销扣次 | POST /api/marketing/cards/use：Redis NX 幂等 + lockForUpdate 行锁，直建 completed 订单 + OrderItem + OrderPayment(pay_type='card') |
+
+### 13. 优惠券抵扣（第9轮）
+
+| 功能 | 说明 |
+|------|------|
+| 下单选券 | 下单可选传 user_coupon_id，PriceCalculator.applyCoupon 只读校验+算额 |
+| 优惠类型 | fixed 固定金额 / percent 百分比，min_amount 满减门槛 |
+| 消费与归还 | 支付成功 consume 置 used；退款 restoreCouponAndCard 幂等归还 |
+
+### 14. 礼品卡（第9轮）
+
+| 功能 | 说明 |
+|------|------|
+| 兑换 | redeem：cash 类型充值到钱包（行锁防双入账，WalletTxn type='gift_card'），gift 类型仅标记 |
+| 我的礼品卡 | GET /api/marketing/gift-cards/my |
+
+### 15. 积分体系（第9+10轮）
+
+| 功能 | 说明 |
+|------|------|
+| 签到返积分 | CheckIn 每日签到 |
+| 消费返积分 | 核销时 floor(paid×1)，order_id 幂等，balance 快照 |
+| 退款回扣 | clawbackOrderPoints 按比例回扣（3 处接入） |
+| 积分明细 | GET /api/marketing/points 分页 + type/source 过滤，type 统一为 earn |
+
+### 16. 小程序下单链路（第10轮）
+
+| 功能 | 说明 |
+|------|------|
+| 服务详情页 | service/detail |
+| 确认订单页 | order/confirm：选券/门槛置灰/客户端预估金额 → POST /order → 微信/余额支付 |
+| 页面规模 | 小程序现共 20 个页面 |
+
+### 17. 用户侧三入口（第10轮）
+
+| 功能 | 说明 |
+|------|------|
+| 收藏 | favorite 收藏页（user 页入口） |
+| 推广 | referral：邀请码/链接复制/被推荐用户列表 |
+| 反馈 | feedback 反馈表单 |
+
 ---
 
 ## 二、管理后台（PC Web）
+
+Flutter Web 单页应用，共 20 个页面：dashboard/用户/角色/配置/日志/核销/排班/服务/技师/订单/优惠券/会员/次卡/公告/FAQ/提现/评价/报表/个人中心。
 
 ### 1. 首页仪表盘
 
@@ -158,7 +228,7 @@
 
 - 商城订单：明细/发货/物流/打印
 - 售后订单：查看/审核/打印
-- 评价管理：查看/删除
+- 评价管理：查看/审核（show/hide）/删除（ReviewController index/show/audit/destroy）
 - 支付流水
 - 销售统计
 
@@ -175,7 +245,7 @@
 ### 9. 财务管理
 
 - 订单分账：搜索/详情
-- 技师提现：审核通过/不通过/完成提现
+- 技师提现：WithdrawalController 审核；金额≥500 两级审批（店长 store_approved_at → 财务 finance_approved_at）；状态机 pending→approved→completed（rejected/failed）
 - 佣金设置：修改佣金率/结算周期/奖罚/余额
 - 收支流水
 - 提现账号管理
@@ -194,7 +264,7 @@
 
 - 平台协议编辑（用户协议/隐私协议/服务协议）
 - 技师统一佣金设置
-- 系统消息模板
+- 系统消息模板（含小程序订阅消息模板配置，未配置自动降级站内通知）
 - 子账号权限管理（店长可发优惠券+排班）
 
 ### 12. 扩展功能
@@ -215,3 +285,14 @@
 - 技师性别限制：特定项目性别控制
 - 技师培训：课程管理/学习进度追踪
 - 店长账号：store_id数据隔离+专属权限
+
+### 13. 数据报表（第7轮）
+
+- ReportController 3 端点：订单统计 / 技师业绩 / 门店分布
+- Redis 缓存 svc:admin_report:{type}:{start}:{end}，TTL 300
+
+### 14. 会员卡管理（第10轮）
+
+- erik_user.member_level 会员等级列（迁移 000008）
+- MemberCardController 完整 CRUD（权限 365-369）：GET/POST/PUT/DELETE /admin/member-cards
+- Flutter 会员卡定义管理页
