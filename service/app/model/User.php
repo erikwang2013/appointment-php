@@ -65,7 +65,7 @@ class User extends Model
      */
     public function generateToken(): string
     {
-        $jwt = JWTFactory::createFromConfig(config('plugin.erikwang2013.jwt.jwt'));
+        $jwt = JWTFactory::createFromConfig(config('plugin.erikwang2013.jwt.jwt'), null, ['redis' => fn() => \support\Redis::connection()]);
 
         return $jwt->encode([
             'user_id' => $this->id,

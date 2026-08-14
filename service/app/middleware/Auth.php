@@ -27,7 +27,7 @@ class Auth implements MiddlewareInterface
         }
 
         try {
-            $jwt = JWTFactory::createFromConfig(config('plugin.erikwang2013.jwt.jwt'));
+            $jwt = JWTFactory::createFromConfig(config('plugin.erikwang2013.jwt.jwt'), null, ['redis' => fn() => \support\Redis::connection()]);
             $payload = $jwt->decode($token);
         } catch (\Exception $e) {
             return $this->unauthorized('认证令牌无效或已过期');

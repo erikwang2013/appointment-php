@@ -379,8 +379,6 @@ class AuthController extends BaseController
      */
     public function refresh(Request $request)
     {
-        $userId = $request->user_id;
-
         // 从 Authorization 头提取 token
         $header = $request->header('Authorization', '');
         $token = '';
@@ -394,10 +392,17 @@ class AuthController extends BaseController
 
         try {
             $jwtConfig = config('plugin.erikwang2013.jwt.jwt');
-            $jwt = JWTFactory::createFromConfig($jwtConfig);
+            $jwt = JWTFactory::createFromConfig($jwtConfig, null, ['redis' => fn() => \support\Redis::connection()]);
 
             // 验证当前 token 是否有效
             $payload = $jwt->decode($token);
+
+            // refresh 处于公开路由组，无 Auth 中间件注入 user_id，
+            // 必须从 token 载荷中解析用户标识，否则 User::find(null) 恒为 401
+            $userId = $payload['user_id'] ?? null;
+            if (empty($userId)) {
+                return $this->error('令牌无效或已过期', 401);
+            }
 
             // 将当前 token 加入黑名单
             $jwt->blacklist($token);
@@ -430,7 +435,7 @@ class AuthController extends BaseController
             $token = $matches[1];
             try {
                 $jwtConfig = config('plugin.erikwang2013.jwt.jwt');
-                $jwt = JWTFactory::createFromConfig($jwtConfig);
+                $jwt = JWTFactory::createFromConfig($jwtConfig, null, ['redis' => fn() => \support\Redis::connection()]);
                 $jwt->blacklist($token);
             } catch (\Exception $e) {
                 // 静默处理，不影响登出体验

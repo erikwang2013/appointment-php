@@ -221,7 +221,7 @@ class ProfileController extends BaseController
             $token = $matches[1];
             try {
                 $jwtConfig = config('plugin.erikwang2013.jwt.jwt');
-                $jwt = JWTFactory::createFromConfig($jwtConfig);
+                $jwt = JWTFactory::createFromConfig($jwtConfig, null, ['redis' => fn() => \support\Redis::connection()]);
                 $jwt->blacklist($token);
             } catch (\Exception $e) {
                 // 静默处理
@@ -243,7 +243,7 @@ class ProfileController extends BaseController
             $token = $matches[1];
             try {
                 $jwtConfig = config('plugin.erikwang2013.jwt.jwt');
-                $jwt = JWTFactory::createFromConfig($jwtConfig);
+                $jwt = JWTFactory::createFromConfig($jwtConfig, null, ['redis' => fn() => \support\Redis::connection()]);
                 $jwt->blacklist($token);
             } catch (\Exception $e) {
                 // 静默处理

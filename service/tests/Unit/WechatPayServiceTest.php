@@ -48,12 +48,15 @@ class WechatPayServiceTest extends TestCase
     {
         $svc = (new \ReflectionClass(WechatPayService::class))->newInstanceWithoutConstructor();
         $props = [
-            'appId'     => self::APP_ID,
-            'mchId'     => self::MCH_ID,
-            'apiKey'    => self::API_KEY,
-            'notifyUrl' => self::NOTIFY_URL,
-            'certPath'  => '',
-            'keyPath'   => '',
+            'appId'           => self::APP_ID,
+            'mchId'           => self::MCH_ID,
+            'apiKey'          => self::API_KEY,
+            'notifyUrl'       => self::NOTIFY_URL,
+            'certPath'        => '',
+            'keyPath'         => '',
+            'alipayAppId'     => '',
+            'alipayPublicKey' => '',
+            'alipayMd5Key'    => '',
         ];
         foreach ($props as $name => $value) {
             $p = new \ReflectionProperty(WechatPayService::class, $name);
@@ -384,20 +387,215 @@ class WechatPayServiceTest extends TestCase
     #[Test] public function handle_alipay_notify_payment_not_found_with_valid_sign(): void
     {
         $svc = $this->makeService();
+        // B1: MD5 分支必须配置支付宝 MD5 密钥（不再复用微信 apiKey）
+        $p = new \ReflectionProperty(WechatPayService::class, 'alipayMd5Key');
+        $p->setAccessible(true);
+        $p->setValue($svc, 'alipay-md5-secret-123');
+
         $params = [
             'out_trade_no' => 'ALIPAYNOTFOUND_' . uniqid(),
             'trade_no' => 'TXN_' . uniqid(),
             'total_amount' => '10.00',
             'trade_status' => 'TRADE_SUCCESS',
         ];
-        // 支付宝 MD5：去 sign/sign_type → ksort → k=v 拼接 → 尾部拼 apiKey → MD5 大写
+        // 支付宝 MD5：去 sign/sign_type → ksort → k=v 拼接 → 尾部拼支付宝 MD5 密钥 → MD5 大写。
+        // sign_type 不参与签名串（与生产 verifyAlipaySign 行为一致）
         ksort($params);
         $string = implode('&', array_map(fn ($k, $v) => $k . '=' . $v, array_keys($params), $params));
-        $params['sign'] = strtoupper(md5($string . self::API_KEY));
+        $params['sign_type'] = 'MD5';
+        $params['sign'] = strtoupper(md5($string . 'alipay-md5-secret-123'));
 
         $result = $svc->handleAlipayNotify($params);
         $this->assertFalse($result['success']);
         $this->assertSame('支付记录未找到', $result['message']);
+    }
+
+    // ── B1: 支付宝验签加固（RSA2 真实验签 + MD5 密钥隔离） ──
+
+    /**
+     * 生成测试 RSA 密钥对（私钥签名 / 公钥验签），返回 [privatePem, publicPem]
+     */
+    private function makeRsaKeyPair(): array
+    {
+        $res = openssl_pkey_new([
+            'private_key_bits' => 2048,
+            'private_key_type' => OPENSSL_KEYTYPE_RSA,
+        ]);
+        $this->assertNotFalse($res);
+        openssl_pkey_export($res, $privatePem);
+        $details = openssl_pkey_get_details($res);
+        return [$privatePem, $details['key']];
+    }
+
+    /**
+     * 按支付宝签名串规则构造 RSA2 签名：去 sign/sign_type → ksort → k=v 拼接 → openssl_sign(SHA256)
+     */
+    private function alipayRsa2Sign(array $params, string $privatePem): string
+    {
+        unset($params['sign'], $params['sign_type']);
+        ksort($params);
+        $pairs = [];
+        foreach ($params as $k => $v) {
+            if ($v === '' || $v === null) {
+                continue;
+            }
+            $pairs[] = $k . '=' . $v;
+        }
+        $string = implode('&', $pairs);
+        openssl_sign($string, $signature, $privatePem, OPENSSL_ALGO_SHA256);
+        return base64_encode($signature);
+    }
+
+    #[Test] public function alipay_rsa2_verify_rejects_forged_sign(): void
+    {
+        // B1 修复点：RSA/RSA2 分支不再无条件 return true —— 伪造 sign 必须验签失败
+        [$privatePem, $publicPem] = $this->makeRsaKeyPair();
+        $svc = $this->makeService();
+        $p = new \ReflectionProperty(WechatPayService::class, 'alipayPublicKey');
+        $p->setAccessible(true);
+        $p->setValue($svc, $publicPem);
+
+        $params = [
+            'out_trade_no' => 'A_FORGED',
+            'trade_no' => 'TXN_FORGED',
+            'total_amount' => '10.00',
+            'trade_status' => 'TRADE_SUCCESS',
+            'sign_type' => 'RSA2',
+            'sign' => 'FORGED_SIGNATURE_NOT_BASE64',
+        ];
+        $this->assertFalse($this->invoke($svc, 'verifyAlipaySign', [$params]));
+
+        // 用真实私钥签名后篡改金额 → 验签必须失败
+        $params['sign'] = $this->alipayRsa2Sign($params, $privatePem);
+        $params['total_amount'] = '999.00'; // 篡改金额
+        $this->assertFalse($this->invoke($svc, 'verifyAlipaySign', [$params]));
+
+        // 篡改订单号同样失败
+        $params['total_amount'] = '10.00';
+        $params['out_trade_no'] = 'A_FORGED_2';
+        $this->assertFalse($this->invoke($svc, 'verifyAlipaySign', [$params]));
+    }
+
+    #[Test] public function alipay_rsa2_verify_accepts_valid_sign(): void
+    {
+        [$privatePem, $publicPem] = $this->makeRsaKeyPair();
+        $svc = $this->makeService();
+        $p = new \ReflectionProperty(WechatPayService::class, 'alipayPublicKey');
+        $p->setAccessible(true);
+        $p->setValue($svc, $publicPem);
+
+        $params = [
+            'out_trade_no' => 'A_VALID',
+            'trade_no' => 'TXN_VALID',
+            'total_amount' => '10.00',
+            'trade_status' => 'TRADE_SUCCESS',
+            'sign_type' => 'RSA2',
+        ];
+        $params['sign'] = $this->alipayRsa2Sign($params, $privatePem);
+        $this->assertTrue($this->invoke($svc, 'verifyAlipaySign', [$params]));
+    }
+
+    #[Test] public function alipay_rsa2_rejected_when_public_key_missing(): void
+    {
+        // 公钥未配置时 RSA2 必须拒绝（防静默放行）
+        $svc = $this->makeService();
+        $params = [
+            'out_trade_no' => 'A_NOKEY',
+            'total_amount' => '10.00',
+            'trade_status' => 'TRADE_SUCCESS',
+            'sign_type' => 'RSA2',
+            'sign' => 'c2lnbmF0dXJl', // base64("signature")
+        ];
+        $this->assertFalse($this->invoke($svc, 'verifyAlipaySign', [$params]));
+    }
+
+    #[Test] public function alipay_md5_rejected_when_md5_key_missing(): void
+    {
+        // MD5 分支未配置支付宝 MD5 密钥时必须拒绝（不再误用微信 apiKey）
+        $svc = $this->makeService();
+        $params = [
+            'out_trade_no' => 'A_MD5NOKEY',
+            'total_amount' => '10.00',
+            'trade_status' => 'TRADE_SUCCESS',
+            'sign_type' => 'MD5',
+        ];
+        ksort($params);
+        $string = implode('&', array_map(fn ($k, $v) => $k . '=' . $v, array_keys($params), $params));
+        // 用微信 apiKey 签的「伪合法」MD5 签名，必须被拒绝（密钥隔离）
+        $params['sign'] = strtoupper(md5($string . self::API_KEY));
+        $this->assertFalse($this->invoke($svc, 'verifyAlipaySign', [$params]));
+    }
+
+    #[Test] public function alipay_md5_accepts_valid_sign_with_md5_key(): void
+    {
+        $svc = $this->makeService();
+        $p = new \ReflectionProperty(WechatPayService::class, 'alipayMd5Key');
+        $p->setAccessible(true);
+        $p->setValue($svc, 'alipay-md5-secret-123');
+
+        $params = [
+            'out_trade_no' => 'A_MD5OK',
+            'total_amount' => '10.00',
+            'trade_status' => 'TRADE_SUCCESS',
+        ];
+        ksort($params);
+        $string = implode('&', array_map(fn ($k, $v) => $k . '=' . $v, array_keys($params), $params));
+        // sign_type 不参与签名串（与生产 verifyAlipaySign 行为一致）
+        $params['sign_type'] = 'MD5';
+        $params['sign'] = strtoupper(md5($string . 'alipay-md5-secret-123'));
+        $this->assertTrue($this->invoke($svc, 'verifyAlipaySign', [$params]));
+    }
+
+    #[Test] public function handle_alipay_notify_rejects_amount_mismatch(): void
+    {
+        // B1: 验签通过后回调金额必须与订单实付一致（转分比对）
+        [$privatePem, $publicPem] = $this->makeRsaKeyPair();
+        $svc = $this->makeService();
+        $p = new \ReflectionProperty(WechatPayService::class, 'alipayPublicKey');
+        $p->setAccessible(true);
+        $p->setValue($svc, $publicPem);
+
+        $orderId = 9900000000000000 + random_int(1, 999999);
+        $paymentNo = 'PAYAMTMIS_' . uniqid();
+        $this->insertedPaymentNos[] = $paymentNo;
+        $this->insertedOrderIds[] = (string) $orderId;
+
+        Db::table('erik_order')->insert([
+            'id' => $orderId,
+            'order_no' => 'ORDAMTMIS_' . uniqid(),
+            'user_id' => (string) $orderId,
+            'order_type' => 'appointment',
+            'total_amount' => 100.00,
+            'discount_amount' => 0.00,
+            'paid_amount' => 100.00,
+            'status' => 'pending',
+            'created_at' => date('Y-m-d H:i:s'),
+            'updated_at' => date('Y-m-d H:i:s'),
+        ]);
+        Db::table('erik_order_payment')->insert([
+            'id' => $orderId,
+            'order_id' => $orderId,
+            'payment_no' => $paymentNo,
+            'pay_type' => 'alipay',
+            'amount' => 100.00,
+            'status' => 'pending',
+            'created_at' => date('Y-m-d H:i:s'),
+            'updated_at' => date('Y-m-d H:i:s'),
+        ]);
+
+        // 合法 RSA2 签名但金额不符（订单 100.00，回调 99.99）
+        $params = [
+            'out_trade_no' => $paymentNo,
+            'trade_no' => 'TXN_AMTMIS',
+            'total_amount' => '99.99',
+            'trade_status' => 'TRADE_SUCCESS',
+            'sign_type' => 'RSA2',
+        ];
+        $params['sign'] = $this->alipayRsa2Sign($params, $privatePem);
+
+        $result = $svc->handleAlipayNotify($params);
+        $this->assertFalse($result['success']);
+        $this->assertSame('回调金额与订单不符', $result['message']);
     }
 
     // ── XML 工具：arrayToXml / xmlToArray ──

@@ -38,7 +38,13 @@ class CaptchaController
                     'key' => $result['key'],
                     'image' => base64_encode($result['image']), // base64 PNG
                     'extra' => [
-                        'targets' => $result['extra']['targets'],
+                        // 仅下发目标字及顺序（用于前端提示“按顺序点击哪些字”），
+                        // 不返回目标坐标——正确答案由服务端存储，客户端无法直接读取，
+                        // 防止脚本通过接口返回值自动作答。x/y 置 0 仅为兼容客户端字段。
+                        'targets' => array_map(
+                            fn(array $t) => ['order' => $t['order'], 'text' => $t['text'], 'x' => 0, 'y' => 0],
+                            $result['extra']['texts'] ?? []
+                        ),
                     ],
                 ],
             ]);

@@ -24,7 +24,10 @@ return [
     'default_expire' => getenv('JWT_DEFAULT_EXPIRE'), //默认令牌过期时间（秒）
     'refresh_expire' => getenv('JWT_REFRESH_EXPIRE'),  //刷新令牌过期时间（秒）
     'storage' => [
-        'type' => getenv('JWT_STORAGE_TYPE'),  //存储类型：redis, database, memcached, file
+        //存储类型：redis, database, memcached, file
+        //默认 redis：token 黑名单必须跨重启/多副本共享，file（/tmp）存储会导致
+        //进程重启后已登出/已刷新 token 复活。生产环境请保持 redis。
+        'type' => getenv('JWT_STORAGE_TYPE') ?: 'redis',
         'database' => getenv('JWT_STORAGE_DATABASE'),
         'prefix' => getenv('JWT_STORAGE_PREFIX')
     ],

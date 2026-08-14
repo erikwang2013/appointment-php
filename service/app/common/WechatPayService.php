@@ -21,6 +21,9 @@ class WechatPayService
     private string $notifyUrl;
     private string $certPath;
     private string $keyPath;
+    private string $alipayAppId;
+    private string $alipayPublicKey;
+    private string $alipayMd5Key;
 
     private const UNIFIED_ORDER_URL = 'https://api.mch.weixin.qq.com/pay/unifiedorder';
     private const ORDER_QUERY_URL   = 'https://api.mch.weixin.qq.com/pay/orderquery';
@@ -40,6 +43,16 @@ class WechatPayService
         $this->notifyUrl = $configs['notify_url'] ?? '';
         $this->certPath  = $configs['cert_path'] ?? '';
         $this->keyPath   = $configs['key_path'] ?? '';
+
+        // B1: 支付宝验签配置 —— erik_system_config group=alipay_pay 优先，缺省回落 config/alipay.php（.env ALIPAY_* 键）
+        $alipayConfigs = Db::table('erik_system_config')
+            ->where('group', 'alipay_pay')
+            ->pluck('value', 'key')
+            ->toArray();
+        $alipayEnv = (array) config('alipay', []);
+        $this->alipayAppId     = $alipayConfigs['app_id'] ?? ($alipayEnv['app_id'] ?? '');
+        $this->alipayPublicKey = $alipayConfigs['alipay_public_key'] ?? ($alipayEnv['alipay_public_key'] ?? '');
+        $this->alipayMd5Key    = $alipayConfigs['md5_key'] ?? ($alipayEnv['md5_key'] ?? '');
     }
 
     /**
@@ -758,10 +771,28 @@ class WechatPayService
             return ['success' => false, 'message' => '交易未成功: ' . $tradeStatus];
         }
 
-        // 支付宝签名验证（简化版，生产环境应使用支付宝 SDK）
+        // 支付宝签名验证（RSA/RSA2 用支付宝公钥 openssl_verify，MD5 用支付宝 MD5 密钥）
         if (!$this->verifyAlipaySign($params)) {
             Log::error('[Alipay notify] sign verification failed, out_trade_no: ' . $outTradeNo);
             return ['success' => false, 'message' => '签名验证失败'];
+        }
+
+        // B1: 金额强比对 —— 回调 total_amount 必须与订单实付金额一致（转分比对，防浮点误差）。
+        // 验签已保证回调数据未被篡改，此处兜底防「伪造订单号 + 真实签名」类跨单错配。
+        $payment = \app\model\OrderPayment::where('payment_no', $outTradeNo)
+            ->orWhere(function ($query) use ($outTradeNo) {
+                $query->whereHas('order', function ($q) use ($outTradeNo) {
+                    $q->where('order_no', $outTradeNo);
+                });
+            })
+            ->first();
+        if ($payment) {
+            $order = \app\model\Order::find($payment->order_id);
+            if ($order && (int) round($totalAmount * 100) !== (int) round((float) $order->paid_amount * 100)) {
+                Log::error('[Alipay notify] amount mismatch, out_trade_no: ' . $outTradeNo
+                    . ', callback total_amount: ' . $totalAmount . ', order paid_amount: ' . $order->paid_amount);
+                return ['success' => false, 'message' => '回调金额与订单不符'];
+            }
         }
 
         // 统一走 markOrderPaid（单一消费点：订单置 PAID + 原子消费券/次卡）
@@ -795,9 +826,11 @@ class WechatPayService
     /**
      * 验证支付宝签名
      *
-     * 去除 sign 和 sign_type 后按 key 字典排序，
-     * 拼接后用 MD5/RSA 验证。此处实现 MD5 签名验证，
-     * 生产环境推荐使用 RSA2。
+     * 去除 sign 和 sign_type 后按 key 字典排序，拼接 k=v&k=v 字符串：
+     * - RSA2/RSA：用支付宝公钥 openssl_verify 验签（sign 为 base64 的 RSA-SHA256/SHA1 摘要），
+     *   公钥缺失时拒绝（绝不静默放行）。
+     * - MD5：用支付宝 MD5 密钥（非微信 apiKey）拼接验证；MD5 密钥未配置时拒绝，
+     *   强制走 RSA2（B1 安全加固：原实现非 MD5 分支无条件 return true 可被任意伪造）。
      *
      * @param array $params 支付宝 POST 参数
      * @return bool
@@ -805,7 +838,7 @@ class WechatPayService
     private function verifyAlipaySign(array $params): bool
     {
         $sign = $params['sign'] ?? '';
-        $signType = $params['sign_type'] ?? 'MD5';
+        $signType = strtoupper((string)($params['sign_type'] ?? 'RSA2'));
 
         if (empty($sign)) {
             return false;
@@ -819,7 +852,8 @@ class WechatPayService
 
         $pairs = [];
         foreach ($params as $k => $v) {
-            if ($v === '' || $v === null) {
+            // 数组参数（如嵌套结构）不参与签名
+            if ($v === '' || $v === null || is_array($v)) {
                 continue;
             }
             $pairs[] = $k . '=' . $v;
@@ -827,13 +861,42 @@ class WechatPayService
 
         $string = implode('&', $pairs);
 
-        if (strtoupper($signType) === 'MD5') {
-            $string .= $this->apiKey;
-            $expected = strtoupper(md5($string));
-            return $expected === strtoupper($sign);
+        if ($signType === 'MD5') {
+            // MD5 分支：必须配置支付宝 MD5 密钥，否则拒绝（防误用微信 apiKey）
+            if (empty($this->alipayMd5Key)) {
+                Log::error('[Alipay verify] MD5 sign rejected: alipay md5 key not configured, force RSA2');
+                return false;
+            }
+            $expected = strtoupper(md5($string . $this->alipayMd5Key));
+            return hash_equals($expected, strtoupper($sign));
         }
 
-        // RSA/RSA2 验证（证书公钥验证，此处留空，生产环境集成支付宝 SDK）
+        // RSA / RSA2 分支：必须配置支付宝公钥，缺失即拒绝
+        if (!in_array($signType, ['RSA', 'RSA2'], true)) {
+            return false;
+        }
+        if (empty($this->alipayPublicKey)) {
+            Log::error('[Alipay verify] ' . $signType . ' sign rejected: alipay public key not configured');
+            return false;
+        }
+
+        // 兼容缺失 PEM 头/换行的公钥串
+        $publicKey = $this->alipayPublicKey;
+        if (!str_contains($publicKey, 'BEGIN PUBLIC KEY')) {
+            $publicKey = "-----BEGIN PUBLIC KEY-----\n" . chunk_split($publicKey, 64, "\n") . "-----END PUBLIC KEY-----";
+        }
+
+        $decoded = base64_decode($sign, true);
+        if ($decoded === false) {
+            return false;
+        }
+
+        $algorithm = $signType === 'RSA2' ? OPENSSL_ALGO_SHA256 : OPENSSL_ALGO_SHA1;
+        $result = openssl_verify($string, $decoded, $publicKey, $algorithm);
+        if ($result !== 1) {
+            Log::error('[Alipay verify] ' . $signType . ' sign verification failed, openssl code: ' . $result);
+            return false;
+        }
         return true;
     }
 

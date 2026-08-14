@@ -53,6 +53,25 @@ class AutoCancelTimer
         Timer::add(self::SCAN_INTERVAL, function (): void {
             $this->scanAndComplete();
         });
+        // B4: 退款补偿周期扫描（与自动取消/自动完成共存，同频 30s）
+        Timer::add(self::SCAN_INTERVAL, function (): void {
+            $this->scanRefundCompensation();
+        });
+    }
+
+    /**
+     * B4: 退款补偿周期扫描
+     *
+     * 委托 OrderController::completeRefundCompensation()（幂等）：补写「微信已退款但落库失败」
+     * 的滞留单——退款单置 success、全额归还券/次卡、refunding 置 refunded（cancelled 保持终态）。
+     */
+    public function scanRefundCompensation(): void
+    {
+        try {
+            (new \app\order\v1\controller\OrderController())->completeRefundCompensation();
+        } catch (\Throwable $e) {
+            Log::error('[AutoCancelTimer] refund compensation scan failed: ' . $e->getMessage());
+        }
     }
 
     /**
@@ -257,8 +276,10 @@ class AutoCancelTimer
             $schedule->time_slots = $slots;
             $schedule->save();
 
-            // 清除 Redis 技师锁
-            $lockKey = "tech_lock:{$technicianId}:{$date}:{$timeSlot}";
+            // 清除 Redis 技师锁（B6: 键名与 OrderController 下单锁定统一为 technician_lock:{id}:{YmdHi}，
+            // 此前 tech_lock:{id}:{date}:{H:i:00} 与下单锁键名不一致导致释放失效）
+            $timeSlotKey = date('YmdHi', strtotime($date . ' ' . $timeSlot));
+            $lockKey = "technician_lock:{$technicianId}:{$timeSlotKey}";
             if (Redis::exists($lockKey)) {
                 Redis::del($lockKey);
             }

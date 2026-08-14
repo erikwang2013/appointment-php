@@ -21,6 +21,7 @@ return [
     // Auth
     'login_success' => '登录成功',
     'register_success' => '注册成功',
+    'system_initialized' => '系统已初始化，注册接口已关闭',
     'logout_success' => '已登出',
     'invalid_credentials' => '用户名或密码错误',
     'account_disabled' => '账号已被禁用',

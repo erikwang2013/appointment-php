@@ -352,6 +352,39 @@ class AuthControllerTest extends TestCase
         $this->assertSame('已退出登录', $this->body($resp)['message']);
     }
 
+    #[Test] public function refresh_with_valid_token_rotates_token(): void
+    {
+        if (!$this->redisAvailable()) {
+            $this->markTestSkipped('Redis 不可用');
+        }
+        // 第 4 轮审计修复：refresh 之前取 $request->user_id（公开路由组恒为 null），
+        // 导致 User::find(null) 恒 401、token 轮换不可用；修复后从 token 载荷解析 user_id。
+        $phone = '1990' . str_pad((string) random_int(0, 9999999), 7, '0', STR_PAD_LEFT);
+        $userId = User::generateId();
+        \support\Db::beginTransaction();
+        try {
+            $user = User::create([
+                'id' => $userId,
+                'phone' => $phone,
+                'password' => '',
+                'user_type' => 'customer',
+                'active_role' => 'customer',
+                'referral_code' => User::generateReferralCode(),
+                'status' => 1,
+            ]);
+
+            $token = $user->generateToken();
+            $resp = $this->controller()->refresh($this->makeRequest([], ['Authorization' => 'Bearer ' . $token]));
+            $body = $this->body($resp);
+
+            $this->assertSame(200, $resp->getStatusCode());
+            $this->assertNotEmpty($body['data']['token'] ?? '');
+            $this->assertNotSame($token, $body['data']['token'] ?? '');
+        } finally {
+            \support\Db::rollBack();
+        }
+    }
+
     // ── maskPhone：手机号脱敏纯逻辑 ──
 
     #[Test] public function mask_phone_masks_middle_digits(): void

@@ -9,6 +9,7 @@ namespace app\admin\controller;
 
 use app\model\Order;
 use app\model\OrderPayment;
+use support\Redis;
 use support\Request;
 use support\Response;
 use Erikwang2013\PosterPhp\Poster;
@@ -95,6 +96,9 @@ class AppointmentOrderController extends BaseController
 
     /**
      * 平台取消订单
+     *
+     * B5: 与用户侧 doCancel 同款互斥——先拿 order_lock:{id}（NX EX 35s + token 校验释放），
+     * 锁内重查订单状态再取消，防与支付回调/用户取消/自动取消并发竞态。
      */
     public function cancel(Request $request, string $hashid): Response
     {
@@ -106,22 +110,67 @@ class AppointmentOrderController extends BaseController
             return $this->fail('订单不存在', 404);
         }
 
-        if ($order->status === 'cancelled' || $order->status === 'refunded') {
-            return $this->fail('订单已取消或已退款', 422);
+        $lockKey    = 'order_lock:' . $order->id;
+        $lockToken  = $this->acquireLock($lockKey);
+        if ($lockToken === null) {
+            return $this->fail('操作处理中，请稍后再试', 422);
         }
 
-        // M5: 已支付及以上状态拒绝直接取消（资金安全：直接置 cancelled 会导致已扣款无退款路径）
-        if (in_array($order->status, ['paid', 'confirmed', 'serving', 'completed', 'refunding'], true)) {
-            return $this->fail('已支付订单请走退款流程', 422);
+        try {
+            // 锁内重查订单并校验状态（防并发：支付回调/自动取消可能刚改变状态）
+            $order = Order::find($id);
+            if (!$order) {
+                return $this->fail('订单不存在', 404);
+            }
+
+            if ($order->status === 'cancelled' || $order->status === 'refunded') {
+                return $this->fail('订单已取消或已退款', 422);
+            }
+
+            // M5/B5: 已支付及以上状态拒绝直接取消（资金安全：直接置 cancelled 会导致已扣款无退款路径）。
+            // FREE 单（全额优惠零元）已 paid 同样拒绝，须走用户侧退款流程。
+            if (in_array($order->status, ['paid', 'confirmed', 'serving', 'completed', 'refunding'], true)) {
+                return $this->fail('已支付订单请走退款流程', 422);
+            }
+
+            $reason = $request->input('cancel_reason', '平台取消');
+            $order->status        = 'cancelled';
+            $order->cancel_reason = $reason;
+            $order->cancel_at     = date('Y-m-d H:i:s');
+            $order->save();
+
+            return $this->success($this->encodeIds($order->toArray()), '订单已取消');
+        } finally {
+            $this->releaseLock($lockKey, $lockToken);
         }
+    }
 
-        $reason = $request->input('cancel_reason', '平台取消');
-        $order->status        = 'cancelled';
-        $order->cancel_reason = $reason;
-        $order->cancel_at     = date('Y-m-d H:i:s');
-        $order->save();
+    /**
+     * 获取 Redis 分布式锁（NX + 随机 token，与 service 端 OrderController 同款封装）
+     *
+     * @param string $key           锁 key
+     * @param int    $expireSeconds 过期秒数（默认 35s，覆盖微信 HTTP 30s 超时）
+     * @return string|null 持有 token，拿不到锁返回 null
+     */
+    private function acquireLock(string $key, int $expireSeconds = 35): ?string
+    {
+        $token = bin2hex(random_bytes(16));
+        $ok = Redis::connection()->set($key, $token, 'EX', $expireSeconds, 'NX');
+        return $ok ? $token : null;
+    }
 
-        return $this->success($this->encodeIds($order->toArray()), '订单已取消');
+    /**
+     * 释放 Redis 分布式锁（仅当持有者 token 匹配时删除）
+     */
+    private function releaseLock(string $key, ?string $token): void
+    {
+        if ($token === null) {
+            return;
+        }
+        $redis = Redis::connection();
+        if ((string) ($redis->get($key) ?? '') === $token) {
+            $redis->del($key);
+        }
     }
 
     /**

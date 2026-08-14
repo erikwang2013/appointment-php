@@ -22,7 +22,7 @@ class ProfileController extends BaseController
     {
         if (self::$jwt === null) {
             $config = config('plugin.erikwang2013.jwt.jwt', []);
-            self::$jwt = JWTFactory::createFromConfig($config);
+            self::$jwt = JWTFactory::createFromConfig($config, null, ['redis' => fn() => \support\Redis::connection()]);
         }
         return self::$jwt;
     }

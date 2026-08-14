@@ -34,6 +34,12 @@ use Webman\Http\Request;
 class OrderController extends BaseController
 {
     /**
+     * B4: 退款补偿扫描阈值（秒）——退款单 pending 超过该时长仍未被推进，视为「微信已退款但落库失败」，
+     * 由 completeRefundCompensation() 幂等补写（微信退款接口为同步返回，正常场景 10 分钟内必然落库）。
+     */
+    private const REFUND_COMPENSATE_AFTER = 600;
+
+    /**
      * 创建订单
      * POST /api/order
      */
@@ -75,28 +81,13 @@ class OrderController extends BaseController
             $memberCardUsageId = $this->decodeId($memberCardUsageId);
         }
 
-        // 预约订单需要技师和服务时间
-        if ($orderType === Order::ORDER_TYPE_APPOINTMENT) {
-            if (!$technicianId || !$serviceTime) {
-                return $this->error('预约订单需要选择技师和服务时间');
-            }
-
-            // 技师时间槽锁定
-            $timeSlot = date('YmdHi', strtotime($serviceTime));
-            $lockKey = "technician_lock:{$technicianId}:{$timeSlot}";
-            $acquired = Redis::connection()->set($lockKey, $userId, 'EX', 180, 'NX');
-
-            if (!$acquired) {
-                return $this->error('该时段技师已被他人锁定，请选择其他时间段');
-            }
+        // 预约订单需要技师和服务时间（必填校验，不依赖锁）
+        if ($orderType === Order::ORDER_TYPE_APPOINTMENT && (!$technicianId || !$serviceTime)) {
+            return $this->error('预约订单需要选择技师和服务时间');
         }
 
-        $lockKey = null;
-        if ($orderType === Order::ORDER_TYPE_APPOINTMENT) {
-            $timeSlot = date('YmdHi', strtotime($serviceTime));
-            $lockKey = "technician_lock:{$technicianId}:{$timeSlot}";
-        }
-
+        // B7: 订单项组装与校验提前到取锁之前——此前 items 校验 return 在 try 外，
+        // 已获取的技师锁会残留 180s。现所有「取锁后的早退 return」均已消除。
         // 计算金额（由 PriceCalculator 统一计算，此处仅组装订单项数据）
         $orderItemsData = [];
 
@@ -123,6 +114,18 @@ class OrderController extends BaseController
                 'quantity'    => $quantity,
                 'spec_info'   => $specInfo ? json_encode($specInfo, JSON_UNESCAPED_UNICODE) : null,
             ];
+        }
+
+        // 预约订单：技师时间槽锁定（成功路径由取消/退款/自动取消释放，EX 180s 兜底）
+        $lockKey = null;
+        if ($orderType === Order::ORDER_TYPE_APPOINTMENT) {
+            $timeSlot = date('YmdHi', strtotime($serviceTime));
+            $lockKey = "technician_lock:{$technicianId}:{$timeSlot}";
+            $acquired = Redis::connection()->set($lockKey, $userId, 'EX', 180, 'NX');
+
+            if (!$acquired) {
+                return $this->error('该时段技师已被他人锁定，请选择其他时间段');
+            }
         }
 
         $orderNo = generate_order_no();
@@ -368,10 +371,10 @@ class OrderController extends BaseController
 
         Db::beginTransaction();
         try {
-            // 已支付的订单需计算退款
+            // 已支付的订单需计算退款（B3: 与 doRefund 共用 calcRefundAmount，保证比例口径一致）
             if ($order->status === Order::STATUS_PAID) {
                 $ratio = $order->calcRefundRatio();
-                $refundAmount = round($order->paid_amount * $ratio, 2);
+                $refundAmount = $this->calcRefundAmount($order, $ratio);
 
                 if ($refundAmount > 0) {
                     $payment = $order->payment()->first();
@@ -430,7 +433,8 @@ class OrderController extends BaseController
                 return $this->error('退款处理失败请重试');
             }
 
-            // 小事务：退款单置 success + refunded_at，订单 refunded，归还券/次卡
+            // 小事务：退款单置 success + refunded_at，订单 refunded
+            // B3: 仅全额退款（ratio>=1.0）归还券/次卡，部分退款不归还（与 doRefund 对齐）
             Db::beginTransaction();
             try {
                 $refundRecord->status = OrderRefund::STATUS_SUCCESS;
@@ -438,13 +442,24 @@ class OrderController extends BaseController
                 $refundRecord->save();
                 $order->status = Order::STATUS_REFUNDED;
                 $order->save();
-                // M3: 全额取消归还优惠券与次卡次数（与退款单同事务）
-                $this->restoreCouponAndCard($order);
+                if ($this->shouldRestoreBenefits($ratio)) {
+                    $this->restoreCouponAndCard($order);
+                }
                 Db::commit();
             } catch (\Throwable $e2) {
                 Db::rollBack();
                 Log::error('[OrderController] refund success persist failed: ' . $e2->getMessage());
-                return $this->error('退款处理失败请重试');
+                // B4: 微信侧已退款但落库失败 → 立即幂等补偿（补写退款单+归还券/次卡）；
+                // 仍失败则保持可被 AutoCancelTimer 周期扫描兜底，绝不静默卡死
+                $compensated = false;
+                try {
+                    $compensated = $this->completeOneRefundCompensation($refundRecord);
+                } catch (\Throwable $e3) {
+                    Log::error('[OrderController] refund compensation retry failed: ' . $e3->getMessage());
+                }
+                if (!$compensated) {
+                    return $this->error('退款处理失败请重试');
+                }
             }
         } else {
             // 无退款路径的取消（未支付/全额优惠零元/比例=0）为终态 cancelled：归还券/次卡
@@ -649,7 +664,7 @@ class OrderController extends BaseController
     {
         $reason = $request->input('reason', '');
 
-        $refundAmount = round($order->paid_amount * $ratio, 2);
+        $refundAmount = $this->calcRefundAmount($order, $ratio);
 
         // 阶段一：事务内建退款单(pending) + 订单置 refunding 并提交；微信 IO 一律事务外
         $refundRecord = null;
@@ -706,7 +721,7 @@ class OrderController extends BaseController
             return $this->error('退款处理失败请重试');
         }
 
-        // 小事务：退款单置 success + refunded_at，订单 refunded；全额退款时归还券/次卡（M3）
+        // 小事务：退款单置 success + refunded_at，订单 refunded；全额退款时归还券/次卡（M3/B3）
         Db::beginTransaction();
         try {
             $refundRecord->status = OrderRefund::STATUS_SUCCESS;
@@ -714,13 +729,26 @@ class OrderController extends BaseController
             $refundRecord->save();
             $order->status = Order::STATUS_REFUNDED;
             $order->save();
-            if ($ratio >= 1.0) {
+            if ($this->shouldRestoreBenefits($ratio)) {
                 $this->restoreCouponAndCard($order);
             }
             Db::commit();
         } catch (\Throwable $e2) {
             Db::rollBack();
             Log::error('[OrderController] refund success persist failed: ' . $e2->getMessage());
+            // B4: 微信侧已退款但落库失败 → 立即幂等补偿；仍失败由定时器兜底，避免永久卡 REFUNDING
+            $compensated = false;
+            try {
+                $compensated = $this->completeOneRefundCompensation($refundRecord);
+            } catch (\Throwable $e3) {
+                Log::error('[OrderController] refund compensation retry failed: ' . $e3->getMessage());
+            }
+            if ($compensated) {
+                return $this->success([
+                    'refund_amount' => $refundAmount,
+                    'ratio'         => $ratio,
+                ], '退款成功');
+            }
             return $this->error('退款处理失败请重试');
         }
 
@@ -980,6 +1008,107 @@ class OrderController extends BaseController
         // 使用记录软置 cancelled（保留审计轨迹）
         MemberCardUsage::whereIn('id', $usages->pluck('id'))
             ->update(['status' => 'cancelled']);
+    }
+
+    /**
+     * B3: 计算退款金额（元）——doCancel/doRefund 共用，保证比例口径一致
+     */
+    private function calcRefundAmount(Order $order, float $ratio): float
+    {
+        return round((float) $order->paid_amount * $ratio, 2);
+    }
+
+    /**
+     * B3: 是否归还优惠（券/次卡）——仅全额退款（比例 >= 1.0）归还，部分退款不归还（与 doRefund 对齐）。
+     * 全额优惠零元单（无退款单路径）走 doCancel 的 else 分支直接归还。
+     */
+    private function shouldRestoreBenefits(float $ratio): bool
+    {
+        return (float) $ratio >= 1.0;
+    }
+
+    /**
+     * B4: 退款补偿（幂等，周期扫描入口）——处理「微信已退款但落库失败」的滞留单
+     *
+     * 扫描：退款单 status=pending 且创建超过 REFUND_COMPENSATE_AFTER 秒，关联订单处于
+     * refunding（doRefund 落库失败）或 cancelled（doCancel 落库失败）状态。
+     * 处理：补写退款单 success + refunded_at；全额退款归还券/次卡；refunding 单置 refunded，
+     * cancelled 单保持终态 cancelled（不覆盖状态）。
+     * 幂等：仅 status=pending 的退款单可被补写，重复扫描不产生副作用。
+     */
+    public function completeRefundCompensation(): void
+    {
+        $threshold = date('Y-m-d H:i:s', time() - self::REFUND_COMPENSATE_AFTER);
+
+        try {
+            $records = OrderRefund::where('status', OrderRefund::STATUS_PENDING)
+                ->where('created_at', '<', $threshold)
+                ->limit(50)
+                ->get();
+
+            foreach ($records as $record) {
+                try {
+                    $this->completeOneRefundCompensation($record);
+                } catch (\Throwable $e) {
+                    Log::error('[OrderController] completeRefundCompensation item failed, refund: '
+                        . $record->id . ': ' . $e->getMessage());
+                }
+            }
+        } catch (\Throwable $e) {
+            Log::error('[OrderController] completeRefundCompensation scan error: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * B4: 单条退款补偿（幂等）
+     *
+     * @param OrderRefund $refundRecord 待补偿退款单
+     * @return bool 是否完成补偿
+     */
+    private function completeOneRefundCompensation(OrderRefund $refundRecord): bool
+    {
+        try {
+            Db::beginTransaction();
+
+            // 行锁 + 状态复验：仅 pending 退款单可被补写（防并发重复补偿）
+            $locked = OrderRefund::where('id', $refundRecord->id)
+                ->where('status', OrderRefund::STATUS_PENDING)
+                ->lockForUpdate()
+                ->first();
+            $order = $locked ? Order::where('id', $locked->order_id)->lockForUpdate()->first() : null;
+
+            if (!$locked || !$order) {
+                Db::rollBack();
+                return false;
+            }
+            if (!in_array($order->status, [Order::STATUS_REFUNDING, Order::STATUS_CANCELLED], true)) {
+                Db::rollBack();
+                return false;
+            }
+
+            $locked->status = OrderRefund::STATUS_SUCCESS;
+            $locked->refunded_at = now();
+            $locked->save();
+
+            if ($this->shouldRestoreBenefits((float) $locked->ratio)) {
+                $this->restoreCouponAndCard($order);
+            }
+
+            // refunding → refunded；cancelled 保持终态
+            if ($order->status === Order::STATUS_REFUNDING) {
+                $order->status = Order::STATUS_REFUNDED;
+                $order->save();
+            }
+
+            Db::commit();
+
+            Log::info('[OrderController] refund compensation done, order_no: ' . $order->order_no
+                . ', refund_id: ' . $locked->id);
+            return true;
+        } catch (\Throwable $e) {
+            Db::rollBack();
+            throw $e;
+        }
     }
 
     /**

@@ -42,6 +42,20 @@ class OrderRefundRatioTest extends TestCase
         $this->assertEquals(0.0, $o->calcRefundRatio());
     }
 
+    #[Test] public function refund_zero_service_time_passed(): void
+    {
+        // B8：服务时间已过的 paid 订单（未开始但已过时）不可退，不再落入 ≤6h 的 90% 分支
+        $o = $this->make(['status' => 'paid', 'created_at' => Carbon::now()->subHours(2), 'service_time' => Carbon::now()->subHour()]);
+        $this->assertEquals(0.0, $o->calcRefundRatio());
+    }
+
+    #[Test] public function refund_90_still_applies_before_service_time(): void
+    {
+        // 服务时间未到但 ≤6h：维持 0.90（B8 只影响已过时的单）
+        $o = $this->make(['status' => 'paid', 'created_at' => Carbon::now()->subHours(2), 'service_time' => Carbon::now()->addHour()]);
+        $this->assertEquals(0.90, $o->calcRefundRatio());
+    }
+
     #[Test] public function refund_zero_completed(): void
     {
         $o = $this->make(['status' => 'completed', 'created_at' => Carbon::now()->subHours(4), 'service_start_at' => Carbon::now()->subHours(1)]);

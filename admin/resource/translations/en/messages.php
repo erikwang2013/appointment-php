@@ -21,6 +21,7 @@ return [
     // Auth
     'login_success' => 'Login successful',
     'register_success' => 'Registration successful',
+    'system_initialized' => 'System already initialized, registration is disabled',
     'logout_success' => 'Logged out',
     'invalid_credentials' => 'Invalid username or password',
     'account_disabled' => 'Account has been disabled',

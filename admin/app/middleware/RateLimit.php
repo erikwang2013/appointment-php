@@ -25,7 +25,7 @@ class RateLimit implements MiddlewareInterface
     public function process(Request $request, callable $handler): Response
     {
         $path = $request->path();
-        $ip   = $request->getRealIp();
+        $ip   = $this->clientIp($request);
 
         $limit  = $this->defaultLimit;
         $window = $this->defaultWindow;
@@ -82,5 +82,60 @@ LUA;
             'X-RateLimit-Remaining' => (string) $remaining,
             'X-RateLimit-Reset'     => (string) $reset,
         ]);
+    }
+
+    /**
+     * 客户端真实 IP：仅当直接来源（REMOTE_ADDR）命中可信代理时才信任 X-Forwarded-For，
+     * 否则忽略 XFF 使用真实来源 IP，防止伪造 X-Forwarded-For 头绕过限流。
+     */
+    private function clientIp(Request $request): string
+    {
+        $remote = (string) $request->getRemoteIp();
+        foreach ($this->trustedProxies() as $proxy) {
+            if ($this->ipInCidr($remote, $proxy)) {
+                $xff = (string) $request->header('x-forwarded-for', '');
+                $first = trim((string) explode(',', $xff)[0]);
+                if ($first !== '' && filter_var($first, FILTER_VALIDATE_IP) !== false) {
+                    return $first;
+                }
+                return $remote;
+            }
+        }
+        return $remote;
+    }
+
+    /**
+     * 可信代理列表：TRUSTED_PROXIES 环境变量（逗号分隔 IP/CIDR）；
+     * 未配置时默认仅信任内网地址（nginx/docker 反向代理场景），公网直连者无法伪造。
+     */
+    private function trustedProxies(): array
+    {
+        $raw = trim((string) getenv('TRUSTED_PROXIES'));
+        if ($raw !== '') {
+            return array_values(array_filter(array_map('trim', explode(',', $raw))));
+        }
+        return ['10.0.0.0/8', '172.16.0.0/12', '192.168.0.0/16', '127.0.0.1/32', '::1/128'];
+    }
+
+    /**
+     * IP 是否命中 CIDR（IPv4 支持 CIDR，IPv6 仅精确匹配）
+     */
+    private function ipInCidr(string $ip, string $cidr): bool
+    {
+        if (strpos($cidr, '/') === false) {
+            return $ip === $cidr;
+        }
+        [$net, $bits] = explode('/', $cidr, 2);
+        $bits = (int) $bits;
+        if (strpos($ip, ':') !== false || strpos($net, ':') !== false) {
+            return $ip === $net;
+        }
+        $ipLong = ip2long($ip);
+        $netLong = ip2long($net);
+        if ($ipLong === false || $netLong === false) {
+            return false;
+        }
+        $mask = $bits === 0 ? 0 : (0xFFFFFFFF << (32 - $bits)) & 0xFFFFFFFF;
+        return ($ipLong & $mask) === ($netLong & $mask);
     }
 }

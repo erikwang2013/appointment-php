@@ -145,6 +145,13 @@ class Order extends Model
             return 0.00;
         }
 
+        // B8: 服务时间已过（未开始但已过时）的 paid 订单 → 不可退。
+        // 与服务状态机一致（M8：serving/confirmed/completed 为 0），
+        // 避免「已过预约时段仍可 90% 退款」占用技师档期却零损失。
+        if ($serviceTime > 0 && $serviceTime <= $now) {
+            return 0.00;
+        }
+
         // 距服务开始时间 > 6小时 → 全额
         if ($serviceTime > 0 && ($serviceTime - $now) > 21600) {
             return 1.00;
