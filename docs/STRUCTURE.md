@@ -73,6 +73,9 @@ admin/
 │   │   ├── MallOrderController     #   商城订单/发货/售后
 │   │   ├── SalesStatsController    #   销售统计(Redis缓存)
 │   │   ├── AppointmentOrderController  # 预约订单(取消/完成)
+│   │   ├── MemberCardController    #   会员卡定义CRUD
+│   │   ├── ReviewController        #   服务评价管理
+│   │   ├── ReportController        #   数据报表统计
 │   │   ├── CouponController        #   优惠券CRUD
 │   │   ├── FinanceController       #   财务流水/统计
 │   │   ├── WithdrawalController    #   提现审核(通过/驳回/完成)
@@ -121,24 +124,27 @@ admin/
 ├── apps/
 │   └── flutter/                # Flutter Web 管理后台前端
 │       └── lib/app/
-│           ├── pages/           #   页面
+│           ├── pages/           #   页面（20个）
 │           │   ├── dashboard/   #   仪表盘
 │           │   ├── login/       #   登录
 │           │   ├── user/        #   用户管理
+│           │   ├── member/      #   会员管理
 │           │   ├── role/        #   角色权限
 │           │   ├── config/      #   系统配置
 │           │   ├── log/         #   操作日志
-│           │   └── profile/     #   个人中心
-│           │                    #   ↓ 待新增
+│           │   ├── profile/     #   个人中心
 │           │   ├── technician/  #   技师管理
-│           │   ├── member/      #   会员管理
-│           │   ├── store/       #   门店管理
+│           │   ├── schedule/    #   排班
 │           │   ├── service/     #   服务/产品管理
+│           │   ├── service_card/#   卡项设计
 │           │   ├── order/       #   订单管理
+│           │   ├── verification/#   核销记录
 │           │   ├── coupon/      #   优惠券
-│           │   ├── finance/     #   财务管理
-│           │   ├── content/     #   内容管理
-│           │   └── settings/    #   系统设置
+│           │   ├── withdrawal/  #   提现审核
+│           │   ├── report/      #   报表统计
+│           │   ├── review/      #   评价管理
+│           │   ├── announcement/#   公告
+│           │   └── faq/         #   常见问题
 │           ├── services/        #   API服务层
 │           ├── layouts/         #   布局
 │           └── theme/           #   主题
@@ -193,16 +199,21 @@ service/
 │   │   ├── ProfileController       # 技师档案/入驻申请
 │   │   ├── ScheduleController      # 排班查询/设置
 │   │   ├── OrderController         # 技师订单列表
+│   │   ├── WorkController          # 工作台(today/records/start/complete)
 │   │   ├── EarningController       # 收益概况+流水
 │   │   ├── WithdrawController      # 提现申请(每月20号)
-│   │   └── AttendanceController    # 签到/签退/卫生照片
+│   │   ├── ServiceRecordController # 服务记录
+│   │   └── ExamController          # 在线考核
 │   ├── order/v1/controller/     # 订单模块 v1
 │   │   └── OrderController         # 下单(锁技师)/列表/详情/取消/支付/退款/核销
+│   ├── wallet/v1/controller/    # 钱包模块 v1
+│   │   └── WalletController        # 余额/充值/交易流水/余额支付
 │   ├── marketing/v1/controller/ # 营销模块 v1
-│   │   ├── CouponController        # 优惠券列表/领取
-│   │   ├── CardController          # 会员卡列表/购买
-│   │   ├── PointController         # 积分流水
-│   │   └── GiftCardController      # 礼品卡/兑换
+│   │   ├── CouponController        # 优惠券列表/领取/下单抵扣
+│   │   ├── CardController          # 会员卡列表/购买/次卡 my/use
+│   │   ├── PointController         # 积分流水/消费回扣
+│   │   ├── GiftCardController      # 礼品卡/兑换 redeem
+│   │   └── MemberBenefitController # 会员权益
 │   ├── notification/v1/controller/ # 通知模块 v1
 │   │   └── NotificationController  # 通知列表/标记已读
 │   ├── common/                  # 公共能力
@@ -247,29 +258,27 @@ apps/wechat/
 │   │   ├── register            #   注册
 │   │   ├── forget-password     #   忘记密码
 │   │   └── agreement           #   协议查看
-│   ├── home/                   # 首页
-│   │   ├── index               #   首页（轮播图/公告/分类）
-│   │   └── search              #   搜索
+│   ├── home/                   # 首页（轮播图/公告/分类/搜索）
 │   ├── service/                # 服务
 │   │   ├── list                #   服务列表
-│   │   ├── detail              #   服务详情
-│   │   └── product-list        #   产品列表
+│   │   └── detail              #   服务详情
 │   ├── order/                  # 订单
-│   │   ├── confirm             #   确认订单
-│   │   ├── payment             #   支付
-│   │   ├── payment-success     #   支付成功
-│   │   ├── list                #   全部订单
+│   │   ├── list                #   订单列表
 │   │   ├── detail              #   订单详情
-│   │   ├── review              #   评价
-│   │   └── verification        #   核销
+│   │   └── confirm             #   确认订单
 │   ├── cart/                   # 购物车
-│   │   └── index
-│   ├── technician/             # 技师（客户视角）
-│   │   ├── list                #   技师列表
-│   │   ├── detail              #   技师详情
-│   │   └── apply               #   入驻申请
+│   ├── cards/                  # 会员卡（购买/我的/次卡使用 my/use）
+│   ├── gift-cards/             # 礼品卡（兑换 redeem/入账）
+│   ├── points/                 # 积分（流水/兑换）
+│   ├── marketing/              # 营销（优惠券等）
+│   ├── favorite/               # 收藏
+│   ├── feedback/               # 意见反馈
+│   ├── referral/               # 推广
+│   ├── message/                # 消息
+│   │   ├── list                #   消息列表
+│   │   └── detail              #   消息详情
 │   ├── tech-work/              # 技师工作台
-│   │   ├── index               #   工作台首页
+│   │   ├── index               #   工作台首页(today/records/start/complete)
 │   │   ├── schedule            #   排班
 │   │   ├── order-list          #   订单
 │   │   ├── scan-verify         #   扫码核销
@@ -278,28 +287,12 @@ apps/wechat/
 │   │   ├── earnings            #   收益
 │   │   ├── withdrawal          #   提现
 │   │   ├── transaction-list    #   交易明细
-│   │   ├── attendance          #   考勤
 │   │   └── training            #   培训
 │   ├── user/                   # 个人中心
 │   │   ├── index               #   个人信息
 │   │   ├── settings            #   设置
 │   │   └── switch-role         #   身份切换
-│   ├── marketing/              # 营销
-│   │   ├── coupon-list         #   优惠券
-│   │   ├── member-card         #   会员卡
-│   │   ├── points              #   积分
-│   │   ├── gift-card           #   礼品卡
-│   │   └── referral            #   推广
-│   ├── message/                # 消息
-│   │   ├── list                #   消息列表
-│   │   └── detail              #   消息详情
-│   ├── store/                  # 门店
-│   │   ├── list                #   门店列表
-│   │   └── detail              #   门店详情
-│   └── other/                  # 其他
-│       ├── about               #   关于我们
-│       ├── feedback            #   意见反馈
-│       └── official-account    #   关注公众号
+│   └── wallet/                 # 钱包（余额/充值/交易流水）
 ├── components/                 # 公共组件
 │   ├── navbar
 │   ├── tabbar
@@ -403,6 +396,9 @@ apps/flutter/
 | 营销 | erik_gift_card | 礼品卡 |
 | 营销 | erik_user_referral | 用户推广 |
 | 营销 | erik_user_favorite | 用户收藏 |
+| 钱包 | erik_user_wallet | 用户钱包余额 |
+| 钱包 | erik_wallet_recharge | 钱包充值记录 |
+| 钱包 | erik_wallet_txn | 钱包交易流水 |
 | 内容 | erik_banner | 轮播图 |
 | 内容 | erik_announcement | 公告 |
 | 内容 | erik_platform_agreement | 平台协议 |

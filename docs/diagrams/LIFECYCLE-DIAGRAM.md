@@ -6,21 +6,23 @@
 stateDiagram-v2
     [*] --> pending: 用户提交订单
 
-    pending --> paid: 支付成功
+    pending --> paid: 支付成功<br/>(微信/余额/免费 三通道)
+
     pending --> cancelled: 超时取消(15min)<br/>用户主动取消
 
-    paid --> confirmed: 技师确认接单
+    paid --> confirmed: 技师确认接单<br/>回调原子消费<br/>优惠券扣减/次卡扣次
     paid --> cancelled: 用户取消<br/>(按退款规则)
     paid --> refunding: 用户申请退款
 
     confirmed --> serving: 服务开始
 
-    serving --> completed: 服务完成 + 核销
+    serving --> completed: 服务完成 + 核销<br/>次卡核销扣次
+
     serving --> refunding: 异常退款<br/>(退80%)
 
     completed --> reviewed: 用户评价
 
-    refunding --> refunded: 审核通过<br/>微信退款到账
+    refunding --> refunded: 审核通过<br/>原路退回/余额回充<br/>优惠券归还 + 积分回扣
     refunding --> paid: 审核驳回
 
     reviewed --> [*]

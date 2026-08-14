@@ -13,10 +13,11 @@ graph TB
         subgraph API模块["API 路由模块"]
             PUB["公开API<br/>api/<br/>登录/注册/验证码"]
             USER["用户模块<br/>user/<br/>资料/地址/收藏"]
-            TECH["技师模块<br/>technician/<br/>排班/核销/收益"]
+            TECH["技师模块<br/>technician/<br/>排班/工作台/核销/收益/提现"]
             SVC["服务模块<br/>service/<br/>分类/项目/搜索"]
-            ORD["订单模块<br/>order/<br/>购物车/下单/退款"]
-            MKT["营销模块<br/>marketing/<br/>优惠券/会员卡/积分"]
+            ORD["订单模块<br/>order/<br/>购物车/下单/支付/退款/核销"]
+            MKT["营销模块<br/>marketing/<br/>优惠券/会员卡(次卡)/积分<br/>礼品卡/会员权益"]
+            WALLET["钱包模块<br/>wallet/<br/>余额/充值/交易流水<br/>余额支付"]
             CTN["内容模块<br/>content/<br/>轮播图/公告/通知"]
             LBS["LBS模块<br/>lbs/<br/>城市/附近门店"]
             CACHE["Redis 列表缓存<br/>svc:* 前缀 setex 300s<br/>分类/项目/产品/技师/内容<br/>卡项/营销列表接口<br/>admin 写路径 clearSvcCache() 失效"]
@@ -26,7 +27,7 @@ graph TB
 
     subgraph 管理后台层["管理后台层 :8787"]
         MW2["中间件链<br/>Cors → Security → RateLimit → AdminAuth → RBAC → OperationLog"]
-        ADMIN_API["管理API<br/>admin/controller/<br/>仪表盘/用户/技师/门店/服务<br/>订单/优惠券/财务/内容/设置"]
+        ADMIN_API["管理API<br/>admin/controller/<br/>仪表盘/用户/技师/门店/服务<br/>订单/优惠券/会员卡/提现/评价<br/>报表/财务/内容/设置"]
         FLUTTER_WEB["Flutter Web 前端<br/>admin/apps/flutter/<br/>PC管理后台界面"]
         MODEL["模型共享<br/>admin/app/model<br/>39 个 symlink<br/>→ service/app/model 同一实现"]
     end
@@ -42,6 +43,7 @@ graph TB
         SMS["短信服务<br/>阿里云/腾讯云"]
         MAP["地图服务<br/>高德/腾讯<br/>逆地理/导航"]
         OSS["对象存储<br/>本地/OSS/COS/CDN"]
+        SUBMSG["微信订阅消息<br/>WechatTemplateMessageService<br/>sendSubscribeMessage<br/>订单事件3场景"]
     end
 
     subgraph 安全组件["安全组件层"]
@@ -79,9 +81,9 @@ graph TB
     classDef security fill:#fff8e1,stroke:#f9a825,stroke-width:2px,color:#f57f17
 
     class WX,APP terminal
-    class MW1,API模块,PUB,USER,TECH,SVC,ORD,MKT,CTN,LBS,CACHE,RES service
+    class MW1,API模块,PUB,USER,TECH,SVC,ORD,MKT,WALLET,CTN,LBS,CACHE,RES service
     class MW2,ADMIN_API,FLUTTER_WEB,MODEL admin
     class MySQL,Redis,ES data
-    class WXPAY,SMS,MAP,OSS external
+    class WXPAY,SMS,MAP,OSS,SUBMSG external
     class SEC,JWT,ENC,POSTER security
 ```

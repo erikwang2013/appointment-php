@@ -18,8 +18,12 @@ flowchart TD
     J -->|"已被锁定"| L["提示技师繁忙"]
     K --> M{"应付金额?"}
     M -->|"零元"| N["FREE 直通<br/>transaction_id = 'FREE'+支付单号<br/>订单 → paid"]
-    M -->|"金额 > 0"| O["调用微信支付<br/>pay_lock 防并发重复支付"]
-    O --> P{"支付结果"}
+    M -->|"余额支付"| B1["钱包余额扣减<br/>wallet_txn 入账<br/>订单 → paid"]
+    M -->|"金额 > 0"| O{"支付方式"}
+    O -->|"微信"| OW["调用微信支付<br/>pay_lock 防并发重复支付"]
+    O -->|"余额"| B1
+    OW --> P{"支付结果"}
+    B1 --> S
     P -->|"成功"| Q["支付成功回调消费<br/>markOrderPaid 单一消费点<br/>原子扣减券/次卡<br/>订单 → paid"]
     P -->|"失败/取消"| R["订单保持 pending<br/>15分钟后自动取消"]
     N --> S["技师确认服务开始"]
@@ -44,10 +48,12 @@ flowchart TD
 flowchart TD
     subgraph 支付流程["正向支付流程"]
         P1["创建支付记录"] --> P2["微信统一下单<br/>pay_lock 防并发<br/>out_trade_no = order_no 幂等"]
-        P2 --> P3["前端调起支付"]
-        P3 --> P4["微信回调 notify"]
+        P2 --> P3["前端调起支付<br/>选择支付方式"]
+        P3 -->|"余额"| PB["钱包余额扣减<br/>wallet_txn 入账<br/>幂等 仅扣一次"]
+        P3 -->|"微信"| P4["微信回调 notify"]
         P4 --> P5["验签通过"]
-        P5 --> P6["markOrderPaid 幂等<br/>券/次卡仅此一次消费"]
+        PB --> P6["markOrderPaid 幂等<br/>券/次卡仅此一次消费"]
+        P5 --> P6
         P6 --> P7["订单 → paid<br/>通知用户+技师"]
     end
 
@@ -63,7 +69,7 @@ flowchart TD
         R7 --> R8["两级审批<br/>店长→财务"]
         R8 --> R9["两段式退款<br/>事务内建退款记录<br/>事务外微信退款 IO"]
         R9 -->|"微信失败"| R10["回滚订单 PAID<br/>可重试退款"]
-        R9 -->|"退款成功"| R11["订单 → refunded<br/>微信退款到账"]
+        R9 -->|"退款成功"| R11["订单 → refunded<br/>微信原路退回 / 余额回充<br/>优惠券归还 + 积分回扣"]
     end
 
     style P6 fill:#c8e6c9,stroke:#2e7d32,color:#333
@@ -114,4 +120,19 @@ flowchart TD
 
     style D fill:#c8e6c9,stroke:#2e7d32,color:#333
     style L fill:#c8e6c9,stroke:#2e7d32,color:#333
+```
+
+## 5. 钱包充值/礼品卡入账流程
+
+```mermaid
+flowchart TD
+    A["用户充值 / 兑换礼品卡"] --> B{"入账方式"}
+    B -->|"微信充值"| C["微信支付回调<br/>wallet_recharge 记录<br/>幂等入账"]
+    B -->|"礼品卡兑换"| D["GiftCard redeem 核销卡密<br/>金额入账钱包余额"]
+    C --> E["钱包余额增加<br/>wallet_txn 入账"]
+    D --> E
+    E --> F["余额支付订单<br/>或 退款回充余额"]
+    F --> G["入账/回充完成 ✅"]
+
+    style G fill:#c8e6c9,stroke:#2e7d32,color:#333
 ```
