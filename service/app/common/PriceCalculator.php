@@ -281,39 +281,40 @@ class PriceCalculator
                 ->where('user_id', $userId)
                 ->first();
             if (!$userCoupon || !$userCoupon->coupon) {
-                throw new \InvalidArgumentException('优惠券不存在');
+                // 他人券/不存在统一 404（OrderController::store 按异常 code 映射 HTTP 状态）
+                throw new \InvalidArgumentException('优惠券不存在', 404);
             }
             if ($userCoupon->status !== 'available') {
-                throw new \InvalidArgumentException('券已被使用');
+                throw new \InvalidArgumentException('券已被使用', 422);
             }
             $coupon = $userCoupon->coupon;
         } elseif ($couponId !== null) {
             // M4: 禁用 coupon_id 直通路径——券必须先领取（erik_user_coupon 领券记录），
             // 直通路径不校验有效期/状态且 consume() 不消费，可被无限复用
-            throw new \InvalidArgumentException('请先领取优惠券');
+            throw new \InvalidArgumentException('请先领取优惠券', 422);
         }
 
         // M4: 券有效期与状态校验（start_at/end_at 窗口 + 上架状态）
         $nowTs = time();
         if ((int)($coupon->status ?? 1) !== 1) {
-            throw new \InvalidArgumentException('优惠券不可用');
+            throw new \InvalidArgumentException('优惠券不可用', 422);
         }
         if (!empty($coupon->start_at) && strtotime((string)$coupon->start_at) > $nowTs) {
-            throw new \InvalidArgumentException('优惠券尚未生效');
+            throw new \InvalidArgumentException('优惠券尚未生效', 422);
         }
         if (!empty($coupon->end_at) && strtotime((string)$coupon->end_at) < $nowTs) {
-            throw new \InvalidArgumentException('优惠券已过期');
+            throw new \InvalidArgumentException('优惠券已过期', 422);
         }
 
         // 使用门槛按原价 total_amount 判断
         $minAmountFen = (int) round(((float)($coupon->min_amount ?? 0)) * 100);
         if ($totalFen < $minAmountFen) {
-            throw new \InvalidArgumentException('未满足优惠券使用门槛');
+            throw new \InvalidArgumentException('未满足优惠券使用门槛', 422);
         }
 
         $type = (string)($coupon->type ?? '');
         if (!in_array($type, ['fixed', 'percent'], true)) {
-            throw new \InvalidArgumentException('优惠券类型不支持');
+            throw new \InvalidArgumentException('优惠券类型不支持', 422);
         }
 
         if ($type === 'fixed') {

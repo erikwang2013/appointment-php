@@ -24,7 +24,7 @@ function now(?string $modifier = null): Carbon\Carbon
  */
 function generate_order_no(): string
 {
-    return date('YmdHis') . str_pad(random_int(0, 9999), 4, '0', STR_PAD_LEFT);
+    return date('YmdHis') . str_pad((string) random_int(0, 9999), 4, '0', STR_PAD_LEFT);
 }
 
 /**

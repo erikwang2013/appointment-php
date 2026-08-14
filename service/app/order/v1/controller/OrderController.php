@@ -23,6 +23,7 @@ use app\model\TechnicianProfile;
 use app\model\User;
 use app\model\UserCoupon;
 use app\model\UserMemberCard;
+use app\model\UserPoints;
 use app\model\UserWallet;
 use app\model\WalletTxn;
 use support\Db;
@@ -67,7 +68,6 @@ class OrderController extends BaseController
         $memberCardUsageId = $request->input('member_card_usage_id');
         $usePoints      = (int)$request->input('use_points', 0);
         $remark         = $request->input('remark', '');
-        $voiceRemarkUrl = $request->input('voice_remark_url', '');
 
         if ($technicianId) {
             $technicianId = $this->decodeId($technicianId);
@@ -83,6 +83,14 @@ class OrderController extends BaseController
         }
         if ($memberCardUsageId) {
             $memberCardUsageId = $this->decodeId($memberCardUsageId);
+        }
+
+        // 券 ID hashid 解码失败（非法字符串）直接 422，避免静默跳过优惠导致实付与预期不符
+        if ($request->input('coupon_id') !== null && $couponId === null) {
+            return $this->error('优惠券ID无效', 422);
+        }
+        if ($request->input('user_coupon_id') !== null && $userCouponId === null) {
+            return $this->error('优惠券ID无效', 422);
         }
 
         // 预约订单需要技师和服务时间（必填校验，不依赖锁）
@@ -175,7 +183,6 @@ class OrderController extends BaseController
                 'service_time'         => $serviceTime ?: null,
                 'status'               => Order::STATUS_PENDING,
                 'remark'               => $remark,
-                'voice_remark_url'     => $voiceRemarkUrl ?: null,
             ]);
 
             // 创建订单明细
@@ -215,9 +222,11 @@ class OrderController extends BaseController
             if ($lockKey) {
                 Redis::connection()->del($lockKey);
             }
-            // 计价引擎的业务校验错误（券已被使用/次数不足等）为业务文案，直接透出
+            // 计价引擎的业务校验错误（券已被使用/次数不足等）为业务文案，直接透出；
+            // 异常 code 携带 HTTP 状态（如他人券 404、门槛/有效期 422），映射为响应状态码
             if ($e instanceof \InvalidArgumentException) {
-                return $this->error($e->getMessage());
+                $status = ($e->getCode() >= 400 && $e->getCode() < 600) ? $e->getCode() : 400;
+                return $this->error($e->getMessage(), $status);
             }
             // M3: 内部异常详情仅记日志，对外返回通用文案
             Log::error('[OrderController] order create failed: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
