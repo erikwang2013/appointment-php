@@ -6,6 +6,7 @@ declare(strict_types=1);
 namespace app\order\v1\controller;
 
 use app\common\BaseController;
+use app\common\NotificationReminderService;
 use app\common\PriceCalculator;
 use app\common\PushService;
 use app\common\WechatPayService;
@@ -595,6 +596,8 @@ class OrderController extends BaseController
                     Log::error('[OrderController] markOrderPaid failed (free order), order_no: ' . $order->order_no . ', error: ' . $freeResult['message']);
                     return $this->error('订单状态更新失败: ' . $freeResult['message']);
                 }
+                // 订阅消息：支付成功（非阻塞，失败不影响主流程）
+                $this->notifySubscribeEvent($order, NotificationReminderService::SCENE_PAY);
                 return $this->success([
                     'order_no'   => $order->order_no,
                     'payment_no' => $payment->payment_no,
@@ -718,6 +721,9 @@ class OrderController extends BaseController
             Log::error('[OrderController] balance pay failed, order_no: ' . $order->order_no . ': ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
             return $this->error('余额支付失败，请稍后重试');
         }
+
+        // 订阅消息：支付成功（非阻塞，失败不影响主流程）
+        $this->notifySubscribeEvent($order, NotificationReminderService::SCENE_PAY);
 
         // WebSocket 实时推送已由 markOrderPaid 内部完成（订单上下文一致），此处不重复推送
         return $this->success([
@@ -901,6 +907,12 @@ class OrderController extends BaseController
         // 发送退款通知模板消息（非阻塞，失败不影响主流程）
         $this->sendRefundNotifyTemplate((string) $order->user_id, $order, $refundAmount, $reason);
 
+        // 订阅消息：退款到账（非阻塞，失败不影响主流程）
+        $this->notifySubscribeEvent($order, NotificationReminderService::SCENE_REFUND, [
+            'refund_amount' => $refundAmount,
+            'refund_reason' => $reason,
+        ]);
+
         // WebSocket 实时推送
         $this->pushOrderUpdate($order);
 
@@ -942,6 +954,12 @@ class OrderController extends BaseController
 
         // 发送退款通知模板消息（非阻塞，失败不影响主流程）
         $this->sendRefundNotifyTemplate((string) $order->user_id, $order, $refundAmount, $refundRecord->reason);
+
+        // 订阅消息：退款到账（非阻塞，失败不影响主流程）
+        $this->notifySubscribeEvent($order, NotificationReminderService::SCENE_REFUND, [
+            'refund_amount' => $refundAmount,
+            'refund_reason' => $refundRecord->reason,
+        ]);
 
         // WebSocket 实时推送
         $this->pushOrderUpdate($order);
@@ -1128,6 +1146,9 @@ class OrderController extends BaseController
 
             // 站内消息通知用户（非阻塞，失败不影响主流程）
             $this->notifyVerified($order);
+
+            // 订阅消息：核销成功（非阻塞，失败不影响主流程）
+            $this->notifySubscribeEvent($order, NotificationReminderService::SCENE_VERIFIED);
 
             // WebSocket 实时推送
             $this->pushOrderUpdate($order);
@@ -1517,6 +1538,27 @@ class OrderController extends BaseController
             ]);
         } catch (\Throwable $e) {
             Log::warning('[OrderController] sendOrderConfirmTemplate failed: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * 订单事件订阅消息通知（非阻塞，失败不影响主流程）
+     *
+     * 委托 NotificationReminderService::sendSubscribeForOrderEvent：与预约提醒同一
+     * 发送链路（WechatTemplateMessageService::sendSubscribeMessage，独立小程序
+     * access_token），幂等基于 erik_notification.push_sent_at（同订单同场景只推
+     * 一次；微信失败不写标记，不影响主流程）。
+     *
+     * @param Order  $order 订单
+     * @param string $scene 场景（NotificationReminderService::SCENE_PAY/REFUND/VERIFIED）
+     * @param array  $extra 场景补充数据（refund → refund_amount/refund_reason）
+     */
+    protected function notifySubscribeEvent(Order $order, string $scene, array $extra = []): void
+    {
+        try {
+            (new NotificationReminderService())->sendSubscribeForOrderEvent($order, $scene, $extra);
+        } catch (\Throwable $e) {
+            Log::warning('[OrderController] notifySubscribeEvent failed: ' . $e->getMessage());
         }
     }
 

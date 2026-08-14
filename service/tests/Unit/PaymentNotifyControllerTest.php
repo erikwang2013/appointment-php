@@ -32,6 +32,7 @@ class PaymentNotifyControllerTest extends TestCase
     protected function tearDown(): void
     {
         foreach ($this->orderIds as $id) {
+            Db::table('erik_notification')->where('order_id', $id)->delete();
             OrderRefund::where('order_id', $id)->delete();
             OrderPayment::where('order_id', $id)->delete();
             Order::where('id', $id)->delete();

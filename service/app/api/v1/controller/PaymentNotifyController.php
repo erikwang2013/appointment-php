@@ -6,6 +6,7 @@ declare(strict_types=1);
 namespace app\api\v1\controller;
 
 use app\common\BaseController;
+use app\common\NotificationReminderService;
 use app\common\WechatPayService;
 use app\model\Order;
 use app\model\OrderPayment;
@@ -71,6 +72,11 @@ class PaymentNotifyController extends BaseController
         try {
             $service = new WechatPayService();
             $result = $service->handleNotify($xml);
+
+            // 订阅消息：支付成功（非阻塞，失败不影响回调主流程与响应）
+            if (!empty($result['success']) && $orderId !== null) {
+                $this->notifyPaySubscribe((string) $orderId);
+            }
 
             return $this->xmlResponse($result['success'], $result['message'] ?? '');
         } finally {
@@ -226,6 +232,29 @@ class PaymentNotifyController extends BaseController
             Db::rollBack();
             Log::error('[PaymentNotify] recharge notify exception, order_no: ' . $outTradeNo . ': ' . $e->getMessage());
             return $this->xmlResponse(false, 'process error');
+        }
+    }
+
+    /**
+     * 支付成功订阅消息通知（非阻塞，失败不影响主流程）
+     *
+     * 微信回调可能重复投递：幂等由 NotificationReminderService 承担——站内通知行
+     * （订单号 + 「订单支付成功」标题）find-or-create + push_sent_at 去重，
+     * 同订单只推一次；此处仅需订单已置 PAID 才触发。
+     */
+    private function notifyPaySubscribe(string $orderId): void
+    {
+        try {
+            $order = Order::find($orderId);
+            if (!$order || $order->status !== Order::STATUS_PAID) {
+                return;
+            }
+            (new NotificationReminderService())->sendSubscribeForOrderEvent(
+                $order,
+                NotificationReminderService::SCENE_PAY
+            );
+        } catch (\Throwable $e) {
+            Log::warning('[PaymentNotify] notifyPaySubscribe failed: ' . $e->getMessage());
         }
     }
 
