@@ -24,6 +24,7 @@ class WalletTxn extends Model
     public const TYPE_GIFT_CARD      = 'gift_card';
     public const TYPE_POINTS_EXCHANGE = 'points_exchange';
     public const TYPE_REFERRAL_REWARD = 'referral_reward';
+    public const TYPE_REFERRAL_LEVEL2 = 'referral_level2';
     public const TYPE_TRANSFER_OUT    = 'transfer_out';
     public const TYPE_TRANSFER_IN     = 'transfer_in';
 
@@ -34,6 +35,7 @@ class WalletTxn extends Model
         self::TYPE_GIFT_CARD      => '礼品卡',
         self::TYPE_POINTS_EXCHANGE => '积分兑换',
         self::TYPE_REFERRAL_REWARD => '推荐返佣',
+        self::TYPE_REFERRAL_LEVEL2 => '二级返佣',
         self::TYPE_TRANSFER_OUT   => '余额转出',
         self::TYPE_TRANSFER_IN    => '余额转入',
     ];
