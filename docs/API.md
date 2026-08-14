@@ -368,6 +368,7 @@
 | POST | `/api/order/pay/{id}` | 发起支付 (pay_channel: wechat/balance, use_points: 可选积分抵现) |
 | POST | `/api/order/refund/{id}` | 申请退款 |
 | POST | `/api/order/verify/{id}` | 核销 (code: 二维码值) |
+| POST | `/api/order/reschedule/{id}` | 预约改期 (new_service_time 必填/reason 可选) |
 
 **订单状态**: pending(待支付) → paid(已支付) → confirmed(已确认) → serving(服务中) → completed(已完成)
 
@@ -384,6 +385,8 @@
 **积分回补**: 取消/退款时归还 points_offset 消耗的积分（type=earn/source=points_refund）：取消全额、退款按比例，5 挂接点幂等（refundOffsetPoints）。
 
 **拼团下单（第16轮）**: 创建订单可选传 `promotion_id`（hashid）。校验：仅 group_buy 类型、活动有效期内、调用者是参与者、未满员（已成团锁定 422）、订单服务与活动匹配；拼团价 = 原价 × discount_percent/100，禁用优惠券/次卡/积分叠加（传任一即 422）。订单落库 promotion_id/participant_id；支付完全复用 `POST /api/order/pay/{id}`，pay 时懒判定活动已关闭（到期未成团）→ 订单自动取消并释放技师锁。
+
+**预约改期（第17轮）**: `POST /api/order/reschedule/{id}` 传 new_service_time（必填）+ reason（可选），同技师换时间。规则：仅本人订单（非本人 404）、仅 appointment 类型且状态 pending/paid/confirmed 可改（其余 422）、距原服务开始 ≥ 6 小时（与全额退款窗口一致）方可改期。并发防护：B1 order_lock（与 pay/cancel/refund 同一互斥族）→ 新时段技师锁 Redis SETNX EX 180（并发改期防超卖）→ 事务内行锁重读 + B2 排班冲突 DB 校验（排除本单）→ 更新 service_time + 落 erik_order_reschedule 记录 → 释放原时段锁、新时段锁由本单持有 → SCENE_RESCHEDULE 订阅消息（未配置降级站内通知）。失败路径事务回滚同时释放新时段锁。
 
 ### 4.1 售后接口（需JWT认证）
 
@@ -426,12 +429,19 @@
 | GET | `/api/marketing/points` | 积分流水 (?type=earn/use/expire&source=order/referral/gift_card/check_in/admin) |
 | GET | `/api/marketing/points-exchange` | 积分兑换商品列表（上架 + 实时剩余库存 + 已兑数） |
 | POST | `/api/marketing/points-exchange/{id}` | 兑换 (type=coupon 发券 / wallet 入账 / gift_card 卡密返回) |
+| POST | `/api/marketing/coupons/transfer` | 生成转赠码 (user_coupon_id: 8位唯一码/7天有效) |
+| POST | `/api/marketing/coupons/claim` | 领取转赠券 (code) |
+| GET | `/api/marketing/coupons/transfers` | 转赠记录 (发出 pending/claimed/expired + 收到 claimed) |
 
 **次卡**: cards/my 返回 card_id/name/type/services/total_times/used_times/remaining_times/start_at/end_at/status（实时计算）。核销成功返回 {order_id, usage_id, remaining_times}；错误码: 无效 hashid 422、次数不足 422、已过期 400、非本人 404、Redis 防重 400。
 
 **礼品卡**: gift-cards/my 返回 redeem 记录 (type/amount/gift_name/status/used_at)。
 
 **积分规则**: 明细分页，type 过滤 (earn/use/expire)，source 过滤 (order/referral/gift_card/check_in/admin)。签到返积分 (CheckIn, type=earn)；消费返积分 floor(paid_amount×1)，核销时发放且幂等；退款按比例回扣积分。
+
+**积分过期（第17轮）**: erik_user_points.expires_at 列（配置 points.expiry_days，默认 365 天，≤0 永不过期），所有 earn 落库填有效期；PointsExpiryTimer 定时进程每 60s 游标扫描过期 earn 行，写 type=expire 负值扣减行（source=expiry + order_id 溯源原流水，三层幂等）+ 聚合站内通知「您有 X 积分已过期」；可用余额 SUM 口径含 expire 负值行，过期积分不可再抵现/兑换。
+
+**优惠券转赠（第17轮）**: transfer 校验券属于本人/available/券定义未过期/未被转赠过，生成 8 位去混淆字符唯一转赠码（uk_code 唯一索引兜底），7 天有效。claim 防滥用：Redis NX 锁（coupon_transfer_claim:{code} 30s）+ 行锁复验防双花、uk_user_coupon 唯一索引限同一券仅可转赠一次、被转赠券不可再转（新券无转赠记录自然拦截）、不可领取自己转赠的券 422、接收人非原持有人；懒判定过期置 expired 并恢复原券 available。claim 事务内原券置 used + 生成新 UserCoupon 绑定接收人（coupon_id 不变即有效期不变）+ 记录置 claimed。
 
 ---
 
@@ -537,6 +547,16 @@
 | GET | `/admin/referral-rewards` | 返佣记录 (?keyword=&page=&limit=，仅已发放记录，推荐人/被推荐人昵称或手机号筛选，hashid 编码) |
 
 权限ID: 379。
+
+### 技师等级（第17轮）
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/admin/technician-tiers/logs` | 等级变更日志（join 技师姓名与新旧等级名，hashid 编码，分页） |
+
+权限ID: 380。
+
+**自动评定**: TierRatingService::evaluate 实时统计（erik_order completed 订单数 + 评价均分，四舍五入 1 位小数）回写 profile.order_count/rating，按 erik_technician_tier_config（min_orders/min_rating）从高到低匹配，无匹配归最低等级。仅升级不降级（降级影响佣金率与价格系数，由后台人工兜底；allowDowngrade=true 供人工重评）；幂等（等级一致只同步统计）；变更落 erik_technician_tier_log + 站内通知。触发点：WorkController::complete / ReviewController 评价写入 / ProfileController 查看资料懒判定。
 
 ### 角色权限
 

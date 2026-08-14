@@ -2,7 +2,7 @@
 
 A three-platform appointment service management platform: WeChat Mini Program + Flutter App (same-account role switching) + PC Admin Dashboard.
 
-> **Status**: All complete | 113 Controllers | 107 Models | 388 tests (service 282 / admin 106) | 74 Tables | 286 Routes
+> **Status**: All complete | 113 Controllers | 110 Models | 415 tests (service 309 / admin 106) | 77 Tables | 291 Routes
 
 ## Project Structure
 
@@ -123,6 +123,10 @@ cd ../service/ && cp .env.docker .env && docker-compose up -d
 | Store Manager Workbench | service /api/store-manager 4 endpoints (overview/orders/technicians/revenue) with mandatory store_id isolation (403 without store); admin workbench overview + order store_id filter + Flutter page + permission 372 |
 | Referral Reward | first completed order of referred user pays referrer paid_amount × reward_rate (system config, default 0.05) into wallet (WalletTxn referral_reward); row-lock + null-check + first-order recheck triple idempotency; earnings list + admin records view (permission 379) |
 | Points Exchange Mall | goods/exchange-record tables; exchange with Redis NX + row-lock anti-oversell + uk_user_goods once-per-user; coupon grant / wallet credit / gift-card code results; admin CRUD + on-off + records (permissions 373-378) |
+| Appointment Reschedule | POST /api/order/reschedule/{id} same-technician time change; only pending/paid/confirmed and ≥6h before original start; order_lock + new-slot technician lock SETNX(180s) anti-oversell + schedule-conflict DB check; erik_order_reschedule record + SCENE_RESCHEDULE subscribe message |
+| Coupon Transfer | 8-char unique transfer code (uk_code fallback, 7-day validity); claim anti-abuse: Redis NX lock + row-lock recheck anti-double-spend, uk_user_coupon one-transfer-per-coupon, transferred coupons non-re-transferable, no self-claim; lazy expiry restores original coupon |
+| Points Expiry | expires_at (default 365d, config points.expiry_days); PointsExpiryTimer 60s cursor sweep writes type=expire negative rows (triple idempotency) + aggregated in-app notification; expired points cannot offset/exchange |
+| Technician Auto Tier | TierRatingService real-time stats (order count + review avg) backfill profile, match tier_config high-to-low; upgrade-only by default (allowDowngrade for manual re-eval); erik_technician_tier_log + in-app notification; admin logs view (permission 380) |
 
 > Round-8 maintenance fixes: removed 12 latent Poster::verify fatals; DashboardController stats switched to Capsule Manager queries.
 >
@@ -131,6 +135,10 @@ cd ../service/ && cp .env.docker .env && docker-compose up -d
 > Round-15 additions: points refund/compensation on cancel/refund (refundOffsetPoints, 5 idempotent hooks); PromotionParticipant status switched to integer constants (fixes join 1366 breakage under strict mode).
 >
 > Round-16 additions: points exchange (PointsExchangeController, type=consume/source=exchange); group-buy ordering (erik_order promotion_id/participant_id columns); referral rewards (ReferralRewardService hooked into WorkController::complete).
+>
+> Round-17 additions: reschedule (erik_order_reschedule + reschedule endpoint); coupon transfer (erik_user_coupon_transfer + transfer/claim/transfers); points expiry (expires_at + PointsExpiryTimer process); technician auto tier (TierRatingService + erik_technician_tier_log, permission 380).
+>
+> Round-17 fix: AutoCancelTimer notification insert now uses \support\Model::generateId() (previously called non-existent Snowflake::generate(), silently failing auto-cancel notifications).
 
 ## Documentation
 

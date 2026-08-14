@@ -162,3 +162,42 @@ stateDiagram-v2
     note right of joined: 拼团订单禁用优惠券/次卡/积分叠加
     note right of closed: 已参与用户提示"未成团"
 ```
+
+## 8. 优惠券转赠生命周期
+
+```mermaid
+stateDiagram-v2
+    [*] --> available: 用户领取/系统发放
+
+    available --> transferred: 生成转赠码<br/>(8位唯一码, 7天有效)
+
+    transferred --> claimed: 接收人领取<br/>(Redis NX锁+行锁防双花<br/>原券置used, 新券绑定接收人)
+
+    transferred --> expired: 7天未领取<br/>(懒判定, 恢复原券available)
+
+    claimed --> used: 接收人下单使用
+    claimed --> expired2: 接收人逾期未用
+
+    used --> [*]
+    expired --> [*]
+    expired2 --> [*]
+
+    note right of transferred: 同一券仅可转赠一次<br/>(uk_user_coupon 唯一索引)
+    note right of claimed: 被转赠券不可再转
+```
+
+## 9. 积分过期生命周期
+
+```mermaid
+stateDiagram-v2
+    [*] --> earned: 签到/消费返/回补<br/>(expires_at = now + 365天)
+
+    earned --> used: 抵现/兑换消费
+
+    earned --> expired: 到期未被使用<br/>(PointsExpiryTimer 60s扫描<br/>写 type=expire 负值扣减行)
+
+    expired --> [*]: 站内通知"积分已过期"
+    used --> [*]
+
+    note right of expired: 三层幂等：原行行锁复验<br/>+ id游标分页 + 通知仅扣减轮次产生
+```

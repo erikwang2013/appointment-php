@@ -241,6 +241,34 @@
 | 兑换 | POST /api/marketing/points-exchange/{id}：Redis NX 锁 + 商品行锁防超兑；积分 SUM 校验（不足 422）+ UserPoints type='consume' source='exchange' 扣减；coupon 发券 / wallet 余额入账（WalletTxn points_exchange）/ gift_card 卡密返回 |
 | 幂等 | uk_user_goods 唯一索引同用户同商品限一次 + 锁内复验 + 1062 兜底；兑换记录快照 erik_user_points_exchange |
 
+### 24. 预约改期（第17轮）
+
+| 功能 | 说明 |
+|------|------|
+| 接口 | POST /api/order/reschedule/{id}：new_service_time（必填）+ reason（可选），同技师换时间 |
+| 规则 | 仅本人订单（非本人 404）；仅 appointment 类型且状态 pending/paid/confirmed（其余 422）；距原服务开始 ≥ 6 小时（与全额退款窗口一致） |
+| 并发防护 | B1 order_lock（与 pay/cancel/refund 同互斥族）→ 新时段技师锁 Redis SETNX EX 180（并发改期防超卖）→ 事务内行锁重读 + B2 排班冲突 DB 校验（排除本单） |
+| 收尾 | 更新 service_time + 落 erik_order_reschedule（含 reason）+ 释放原时段锁/新时段锁本单持有；失败事务回滚同时释放新时段锁 |
+| 通知 | SCENE_RESCHEDULE 订阅消息（未配置模板降级站内通知「预约改期成功」）+ pushOrderUpdate |
+
+### 25. 优惠券转赠（第17轮）
+
+| 功能 | 说明 |
+|------|------|
+| 接口 | POST /api/marketing/coupons/transfer（user_coupon_id）生成 8 位去混淆字符唯一转赠码（uk_code 兜底，7 天有效）；POST /api/marketing/coupons/claim（code）领取；GET /api/marketing/coupons/transfers 发出(pending/claimed/expired)+收到(claimed) 分页 |
+| 校验 | 券属于本人/available/券定义未过期/未被转赠过（422）；不可领取自己转赠的券、接收人非原持有人 |
+| 防滥用 | Redis NX 锁 coupon_transfer_claim:{code}（30s）+ 事务内行锁复验防双花；uk_user_coupon 唯一索引限同一券转赠一次；被转赠券不可再转（新券无转赠记录自然拦截）；懒判定过期置 expired + 恢复原券 available |
+| 领取 | 事务内原券置 used + 生成新 UserCoupon 绑定接收人（coupon_id 不变即有效期不变）+ 转赠记录置 claimed |
+
+### 26. 积分过期（第17轮）
+
+| 功能 | 说明 |
+|------|------|
+| 有效期 | erik_user_points.expires_at 列；所有 earn（签到/消费返/回补）落库填 expires_at = now + points.expiry_days（默认 365，≤0 永不过期）；consume/use 行为空 |
+| 过期执行 | PointsExpiryTimer 定时进程每 60s 游标扫描（100/批）expires_at < now 的 earn 行 → 写 type=expire 负值扣减行（source=expiry + order_id 溯源原流水）→ 按用户聚合站内通知「您有 X 积分已过期」 |
+| 幂等 | ① expire 行 order_id 指向原 earn 流水，事务内对原行 lockForUpdate + exists 复验（并发进程在行锁上串行）② id 游标分页 ③ 通知仅在实际扣减轮次产生 |
+| 口径 | 可用余额 SUM 聚合含 expire 负值行；过期积分不可再抵现/兑换 |
+
 ---
 
 ## 二、管理后台（PC Web）
@@ -372,3 +400,12 @@ Flutter Web 单页应用，共 21 个页面：dashboard/用户/角色/配置/日
 ### 18. 返佣记录（第16轮）
 
 - ReferralRewardController：GET /admin/referral-rewards（仅 rewarded_at 非空记录，分页 + keyword 筛选推荐人/被推荐人昵称或手机号，hashid 编码，权限 379）
+
+### 19. 技师等级自动评定（第17轮）
+
+- TierRatingService::evaluate(technicianId, allowDowngrade=false)：实时统计 erik_order completed 订单数 + erik_order_review 均分（四舍五入 1 位小数）回写 profile.order_count/rating，按 erik_technician_tier_config（min_orders/min_rating）从高到低匹配，无匹配归最低等级
+- 升降级规则：仅升级不降级（等级绑定佣金率与价格系数，自动降级影响技师收入易引发纠纷，下滑由 admin 手动兜底）；allowDowngrade=true（后台人工重评场景）才执行降级，降级同样落日志 + 通知
+- 幂等：应得等级与 profile.tier_id 一致时只同步统计、不写日志不发通知
+- 日志：变更写 erik_technician_tier_log（id/technician_id/old_tier_id/new_tier_id/reason/created_at）+ 站内通知（type='tier'）
+- 触发点：WorkController::complete / ReviewController 评价写入 / ProfileController 查看资料懒判定
+- 管理端：TechnicianTierController 保持手动配置能力；GET /admin/technician-tiers/logs 分页查看变更日志（join 技师姓名与新旧等级名，ID hashid 编码，权限 380）
