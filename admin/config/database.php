@@ -23,7 +23,9 @@ return [
             // 数据库端口
             'port' => (int)(getenv('DB_PORT') ?: 3306),
             // 数据库名
-            'database' => getenv('DB_DATABASE') ?: 'open_admin',
+            // 与 service 端同库（appointment）：admin 的模型 symlink 到 service 共享实现，
+            // 必须指向同一数据库才能读到真实订单/用户/券/技师数据；open_admin 仅为历史平行库
+            'database' => getenv('DB_DATABASE') ?: 'appointment',
             // 用户名
             'username' => getenv('DB_USERNAME') ?: 'root',
             // 密码
