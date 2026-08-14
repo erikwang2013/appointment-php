@@ -11,6 +11,14 @@ import '../pages/dashboard/dashboard_page.dart';
 import '../pages/profile/profile_page.dart';
 import '../pages/verification/verification_list_page.dart';
 import '../pages/schedule/schedule_list_page.dart';
+import '../pages/service/service_list_page.dart';
+import '../pages/technician/technician_list_page.dart';
+import '../pages/order/order_list_page.dart';
+import '../pages/coupon/coupon_list_page.dart';
+import '../pages/member/member_list_page.dart';
+import '../pages/service_card/service_card_list_page.dart';
+import '../pages/announcement/announcement_list_page.dart';
+import '../pages/faq/faq_list_page.dart';
 
 class AdminLayout extends StatefulWidget {
   final Widget child;
@@ -38,6 +46,14 @@ class _AdminLayoutState extends State<AdminLayout> {
     LogPage(),
     VerificationListPage(),
     ScheduleListPage(),
+    ServiceListPage(),
+    TechnicianListPage(),
+    OrderListPage(),
+    CouponListPage(),
+    MemberListPage(),
+    ServiceCardListPage(),
+    AnnouncementListPage(),
+    FaqListPage(),
   ];
 
   ResponsiveBreakpointsData get _bp => ResponsiveBreakpoints.of(context);
@@ -213,6 +229,46 @@ class _AdminLayoutState extends State<AdminLayout> {
         icon: Icon(Icons.calendar_month, size: 20),
         label: Text('排班管理'),
         selectedIcon: Icon(Icons.calendar_month, size: 20),
+      ),
+      NavigationDrawerDestination(
+        icon: Icon(Icons.spa, size: 20),
+        label: Text('服务项目'),
+        selectedIcon: Icon(Icons.spa, size: 20),
+      ),
+      NavigationDrawerDestination(
+        icon: Icon(Icons.handyman, size: 20),
+        label: Text('技师管理'),
+        selectedIcon: Icon(Icons.handyman, size: 20),
+      ),
+      NavigationDrawerDestination(
+        icon: Icon(Icons.receipt_long, size: 20),
+        label: Text('订单管理'),
+        selectedIcon: Icon(Icons.receipt_long, size: 20),
+      ),
+      NavigationDrawerDestination(
+        icon: Icon(Icons.confirmation_number, size: 20),
+        label: Text('优惠券'),
+        selectedIcon: Icon(Icons.confirmation_number, size: 20),
+      ),
+      NavigationDrawerDestination(
+        icon: Icon(Icons.group, size: 20),
+        label: Text('会员管理'),
+        selectedIcon: Icon(Icons.group, size: 20),
+      ),
+      NavigationDrawerDestination(
+        icon: Icon(Icons.credit_card, size: 20),
+        label: Text('次卡管理'),
+        selectedIcon: Icon(Icons.credit_card, size: 20),
+      ),
+      NavigationDrawerDestination(
+        icon: Icon(Icons.campaign, size: 20),
+        label: Text('公告管理'),
+        selectedIcon: Icon(Icons.campaign, size: 20),
+      ),
+      NavigationDrawerDestination(
+        icon: Icon(Icons.help_outline, size: 20),
+        label: Text('常见问题'),
+        selectedIcon: Icon(Icons.help_outline, size: 20),
       ),
     ];
   }

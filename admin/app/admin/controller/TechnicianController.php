@@ -18,7 +18,6 @@ use app\model\Service;
 use app\model\ServiceCategory;
 use support\Request;
 use support\Response;
-use Erikwang2013\PosterPhp\Poster;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
@@ -52,7 +51,7 @@ class TechnicianController extends BaseController
             $query->where('real_name', 'like', "%{$name}%");
         }
         if ($status !== null && $status !== '') {
-            $query->where('status', (int) $status);
+            $query->where('status', $status);
         }
         if ($phone || $region || $regDateStart || $regDateEnd) {
             $query->whereHas('user', function ($q) use ($phone, $region, $regDateStart, $regDateEnd) {
@@ -158,9 +157,6 @@ class TechnicianController extends BaseController
      */
     public function audit(Request $request, string $hashid): Response
     {
-        // poster-php 验证
-        Poster::verify($request);
-
         $id = $this->decodeId($hashid);
         $profile = TechnicianProfile::find($id);
         if (!$profile) {
@@ -174,7 +170,7 @@ class TechnicianController extends BaseController
             return $this->fail('操作类型无效，支持 approve / reject', 422);
         }
 
-        $profile->status = $action === 'approve' ? 1 : 2;
+        $profile->status = $action === 'approve' ? 'approved' : 'rejected';
         $profile->audit_remark = $remark;
         $profile->audited_at = date('Y-m-d H:i:s');
         $profile->save();
@@ -191,8 +187,6 @@ class TechnicianController extends BaseController
      */
     public function destroy(Request $request, string $hashid): Response
     {
-        Poster::verify($request);
-
         $id = $this->decodeId($hashid);
         $profile = TechnicianProfile::find($id);
         if (!$profile) {

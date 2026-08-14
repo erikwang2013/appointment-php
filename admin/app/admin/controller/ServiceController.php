@@ -29,7 +29,11 @@ class ServiceController extends BaseController
             $query->where('name', 'like', "%{$keyword}%");
         }
         if ($categoryId) {
-            $query->where('category_id', $categoryId);
+            try {
+                $query->where('category_id', $this->decodeId($categoryId));
+            } catch (\InvalidArgumentException) {
+                return $this->fail('无效的分类ID', 422);
+            }
         }
         if ($status !== null && $status !== '') {
             $query->where('status', (int) $status);
@@ -67,9 +71,15 @@ class ServiceController extends BaseController
             return $this->fail($validator->errors()->first(), 422);
         }
 
+        try {
+            $categoryId = $this->decodeId($request->input('category_id'));
+        } catch (\InvalidArgumentException) {
+            return $this->fail('无效的分类ID', 422);
+        }
+
         $service = new Service();
         $service->id             = (string) $this->generateId();
-        $service->category_id    = $request->input('category_id');
+        $service->category_id    = $categoryId;
         $service->name           = $request->input('name');
         $service->description    = $request->input('description', '');
         $service->cover_image    = $request->input('cover_image', '');
@@ -116,7 +126,13 @@ class ServiceController extends BaseController
         foreach ($fillable as $field) {
             if ($request->has($field)) {
                 $value = $request->input($field);
-                if (in_array($field, ['price', 'original_price'])) {
+                if ($field === 'category_id') {
+                    try {
+                        $value = $this->decodeId($value);
+                    } catch (\InvalidArgumentException) {
+                        return $this->fail('无效的分类ID', 422);
+                    }
+                } elseif (in_array($field, ['price', 'original_price'])) {
                     $value = (float) $value;
                 } elseif (in_array($field, ['duration', 'sort', 'status'])) {
                     $value = (int) $value;
