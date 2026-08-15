@@ -676,11 +676,34 @@ class WechatPayService
 
             \support\Db::commit();
 
+            // 微信官方分账：支付成功后按配置比例向技师分账（未启用/未配置自动降级 disabled，失败仅记日志）
+            try {
+                if ($order) {
+                    (new \app\common\WechatProfitSharingService())->requestSharing((string) $order->id);
+                }
+            } catch (\Throwable $e) {
+                Log::warning('[WechatPay markOrderPaid] profit sharing failed: ' . $e->getMessage() . ', out_trade_no: ' . $outTradeNo);
+            }
+
             Log::info('[WechatPay markOrderPaid] payment success, out_trade_no: ' . $outTradeNo);
 
             // WebSocket 实时推送
             if ($order) {
                 $this->pushPaymentSuccess($order);
+            }
+
+            // R22 APP 推送：支付成功（未启用时静默降级，失败不影响主流程）
+            if ($order) {
+                try {
+                    \app\common\AppPushService::pushToUser(
+                        (int) $order->user_id,
+                        '支付成功',
+                        '您的订单 ' . $order->order_no . ' 已支付成功，预约已确认',
+                        ['type' => 'order_paid', 'order_id' => (string) $order->id, 'order_no' => $order->order_no]
+                    );
+                } catch (\Throwable $e) {
+                    Log::warning('[AppPush] payment push failed: ' . $e->getMessage());
+                }
             }
 
             return ['success' => true, 'message' => 'OK'];
@@ -761,6 +784,19 @@ class WechatPayService
         }
 
         Log::info('[WechatPay autoRefundCancelledOrder] cancelled order auto-refunded, order_no: ' . $order->order_no);
+
+        // R22 APP 推送：退款已到账（未启用时静默降级，失败不影响主流程）
+        try {
+            \app\common\AppPushService::pushToUser(
+                (int) $order->user_id,
+                '退款已到账',
+                '您的订单 ' . $order->order_no . ' 已退款 ¥' . number_format((float) $refundRecord->amount, 2) . '，款项将原路退回。',
+                ['type' => 'order_refund', 'order_id' => (string) $order->id, 'order_no' => $order->order_no, 'refund_amount' => (float) $refundRecord->amount]
+            );
+        } catch (\Throwable $e) {
+            Log::warning('[AppPush] auto refund push failed: ' . $e->getMessage());
+        }
+
         return ['success' => true, 'message' => 'OK'];
     }
 

@@ -166,6 +166,18 @@ class ServiceReminderTimer
             $this->buildSubscribeData($order)
         );
 
+        // R22 APP 推送：服务即将开始（未启用时静默降级，失败不影响主流程）
+        try {
+            \app\common\AppPushService::pushToUser(
+                (int) $order->user_id,
+                self::NOTIFY_TITLE,
+                $this->buildContent($order, $technicians),
+                ['type' => 'service_reminder', 'order_id' => (string) $order->id, 'order_no' => $order->order_no]
+            );
+        } catch (\Throwable $e) {
+            Log::warning('[AppPush] service reminder push failed: ' . $e->getMessage());
+        }
+
         return true;
     }
 
