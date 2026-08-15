@@ -7,6 +7,7 @@ namespace app\technician\v1\controller;
 
 use app\common\BaseController;
 use app\common\ReferralRewardService;
+use app\common\ReturnCustomerRewardService;
 use app\common\TierRatingService;
 use app\model\Notification;
 use app\model\Order;
@@ -231,6 +232,8 @@ class WorkController extends BaseController
             $locked->save();
             // 分销返佣：首单完成发放（同事务、幂等，失败整体回滚可重试）
             ReferralRewardService::handleOrderCompleted($locked);
+            // 回头客奖励：30 天内二次消费给技师发放奖金（同事务、幂等，失败整体回滚可重试）
+            ReturnCustomerRewardService::handleOrderCompleted($locked);
             Db::commit();
 
             // 状态时间线：serving → completed（技师完成服务）
