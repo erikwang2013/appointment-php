@@ -315,3 +315,46 @@ stateDiagram-v2
     note right of closing: close_status=2 登录拦截403
 ```
 
+## 16. 秒杀活动生命周期（第24轮）
+
+```mermaid
+stateDiagram-v2
+    [*] --> published: 后台创建+上架(status=1)
+
+    published --> ongoing: 进入时间窗<br/>(start_at ≤ now ≤ end_at)
+
+    ongoing --> sold_out: 行锁 stock-1 至 0<br/>(下单失败回补库存)
+
+    ongoing --> ended: 到期(end_at)
+
+    sold_out --> ended: 到期 / 手动下架
+
+    ended --> published: 重新上架(未到期)
+
+    ongoing --> seckill_order: 用户秒杀下单<br/>(Redis NX 30s 防并发<br/>client_token 幂等<br/>注入 seckill_id)
+
+    seckill_order --> [*]: 复用订单创建/支付流程<br/>(秒杀价不叠加券/积分/卡)
+
+    note right of ongoing: 取消订单不回补库存
+```
+
+## 17. 回头客奖励生命周期（第24轮）
+
+```mermaid
+stateDiagram-v2
+    [*] --> completed: 订单完成<br/>(WorkController::complete 行锁事务)
+
+    completed --> checked: 30天内同技师二次消费判定
+
+    checked --> none: 首次消费 / 开关关闭<br/>(enabled=0)
+
+    checked --> pending: 二次消费<br/>(奖金=实付×ratio<br/>同 order_id+type 幂等)
+
+    pending --> settled: 佣金结算链统一结算<br/>(erik_technician_earnings<br/>type=return_customer)
+
+    settled --> [*]
+    none --> [*]
+
+    note right of pending: status=pending<br/>技师端收益汇总自动包含
+```
+

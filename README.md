@@ -2,18 +2,31 @@
 
 三端预约服务管理平台：用户端微信小程序 + Flutter APP（同账号身份切换）、PC管理后台。
 
-> **项目状态**: 全部完成 ✅ | 126 控制器 | 123 模型 | 571 测试（service 435 / admin 136） | 86 数据表 | 338 路由
+> **项目状态**: 全部完成 ✅ | 143 控制器 | 140 模型 | 664 测试（service 528 / admin 136） | 95 数据表 | 361 路由
 
 ## 项目结构
 
 ```
 appointment-php/
-├── admin/              # 管理后台 (webman v2 + Flutter Web)
-├── service/            # 业务API服务 (webman v2)
-├── apps/               # 用户端前端应用
-│   ├── wechat/         #   微信小程序（原生）
-│   └── flutter/        #   Flutter APP（iOS + Android）
-└── docs/               # 项目文档
+├── admin/                     # 管理后台 (webman v2 + Flutter Web，独立部署 :8787)
+│   ├── app/                   #   admin(后台控制器)/api/model/middleware/process/view
+│   ├── config/                #   路由/数据库/进程/插件配置
+│   ├── database/              #   迁移 SQL（migrations/*.sql）
+│   ├── tests/                 #   PHPUnit（#[\Test] 属性风格）
+│   └── start.php
+├── service/                   # 业务API服务 (webman v2，独立部署 :8787)
+│   ├── app/                   #   api/user/technician/order/wallet/marketing/notification 等模块
+│   ├── config/                #   路由/数据库/进程/支付等配置
+│   ├── database/migrations/   #   迁移 SQL（seed.php 按序扫描应用）
+│   ├── support/               #   Model 基类（generateId）/Request/Response
+│   ├── tests/                 #   PHPUnit
+│   └── start.php
+├── apps/                      # 用户端前端应用
+│   ├── wechat/                #   微信小程序（原生）
+│   └── flutter/               #   Flutter APP（iOS + Android）
+└── docs/                      # 项目文档
+    ├── API.md / FEATURES.md / STRUCTURE.md / install.sql / README.md ...
+    └── diagrams/              #   架构/流程图（SVG + mermaid）
 ```
 
 ## 快速开始
@@ -43,7 +56,7 @@ php start.php start -d
 cd service/ && cp .env.example .env && composer install
 cd ../admin/ && cp .env.example .env && composer install
 
-# 2. 一键导入数据库（含全部 55 张表 + 演示数据）
+# 2. 一键导入数据库（含全部 95 张表 + 权限/配置种子）
 mysql -u root -p < docs/install.sql
 
 # 3. 启动服务
@@ -104,7 +117,7 @@ cd ../service/ && cp .env.docker .env && docker-compose up -d
 
 > 更多详细图示：[流程图](docs/diagrams/FLOWCHART.md)（含技师提现/身份切换）| [功能脑图](docs/diagrams/FUNCTION-DIAGRAM.md) | [全部生命周期](docs/diagrams/LIFECYCLE-DIAGRAM.md) | [完整安全架构](docs/diagrams/SECURITY-ARCHITECTURE.md)
 
-## 核心功能亮点（第 6-10 轮）
+## 核心功能亮点（第 6-24 轮）
 
 | 功能 | 说明 |
 |------|------|
@@ -165,6 +178,12 @@ cd ../service/ && cp .env.docker .env && docker-compose up -d
 > Round-20 补充：预约月历（CalendarController 月/日视图 + 已约排除）；用户成长等级（erik_user_growth + erik_growth_level 5 档 + 签到/评价/消费挂接）；电子发票（erik_invoice + uk_order_type 防重复 + 后台开票/驳回，权限 382-384）；客服工单（erik_ticket 提交/列表/详情/关闭 + 后台回复，权限 385/387）；多级分销-二级返佣（payLevel2Reward 事务行锁 + uk_order_referred 幂等，权限 386）。
 >
 > Round-21 补充：成长等级权益落地（下单 discount_rate 折扣 + 支付 points_multiplier 积分倍率，迁移种子 5 档 benefits）；发票抬头管理（erik_invoice_title 抬头库 + 申请 title_id 联动）；工单满意度（关闭打分 rating/rated_at + admin 汇总统计，权限 388）；评价图片审核（ReviewAuditController 隐藏/恢复，权限 389-391）；用户浏览足迹（erik_browse_history + 详情挂接 + 列表/删除/清空）。
+>
+> Round-22 补充：满减活动（erik_full_reduction 自动减免 + 门槛校验，权限 396-400）；ICS 日历导出（RFC5545 我的预约）；技师打卡考勤（erik_technician_attendance 上下班打卡 + 迟到标记 + admin 统计，权限 392-393）；APP 推送服务（配置驱动抽象 + 5 处事件接入，erik_push_log）；微信官方分账（erik_profit_sharing_log 配置驱动 + 降级，权限 394）；隐私合规（数据导出 + 账号注销 72h 状态机 close_status）。
+>
+> Round-23 补充：用户健康档案（erik_user_health_profile）；钱包支付密码（erik_user_wallet pay_password 设置/校验）；技师批量排班（batch 导入 + 重叠冲突检测）；订单状态时间线（erik_order_status_log 8 状态埋点 + 用户端/后台展示）；积分幸运转盘（erik_lucky_wheel + erik_wheel_record 权重抽奖，权限 401-406）；积分有效期（points.expiry_days 配置 + 新 earn 流水带 expires_at）。
+>
+> Round-24 补充：游客模式（/api/guest/* 未登录只读浏览 + Redis 缓存）；秒杀（erik_seckill_activity + Redis NX 行锁抢购 + erik_order.seckill_id 注入下单，权限 407-411/420）；APP 版本管理与检测更新（erik_app_version + /api/app/version，权限 416-419）；回头客奖励（30 天二次消费奖金 type=return_customer，权限 412-414）；排班 CSV 导出（UTF-8 BOM + 时间槽明细，权限 415）。
 
 ## 文档导航
 

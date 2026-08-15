@@ -381,7 +381,7 @@ apps/flutter/
 | 服务 | erik_service | 服务项目 |
 | 服务 | erik_product | 产品 |
 | 服务 | erik_store | 门店 |
-| 订单 | erik_order | 订单主表 |
+| 订单 | erik_order | 订单主表（秒杀 seckill_id 关联列，第24轮） |
 | 订单 | erik_order_item | 订单明细 |
 | 订单 | erik_order_payment | 支付记录 |
 | 订单 | erik_order_refund | 退款记录 |
@@ -438,6 +438,8 @@ apps/flutter/
 | 用户 | erik_user_health_profile | 用户健康档案（第23轮） |
 | 营销 | erik_lucky_wheel | 转盘奖品定义（第23轮） |
 | 营销 | erik_wheel_record | 转盘抽奖记录（第23轮） |
+| 营销 | erik_seckill_activity | 秒杀活动（第24轮） |
+| 系统 | erik_app_version | APP版本（第24轮） |
 
 ## 外部服务预留
 

@@ -650,6 +650,36 @@
 | POST | `/api/wheel/spin` | 抽奖一次（Redis NX + 行锁防并发；random_int 权重抽取；积分→earn 流水含过期时间、余额→lockForUpdate 入账、优惠券→pending 人工发放、无奖→lose；client_token 幂等） |
 | GET | `/api/wheel/records` | 我的抽奖记录（分页） |
 
+### 23. 游客模式接口（第24轮）
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/api/guest/home` | 首页聚合（轮播图/公告/服务分类/热门服务，Redis 缓存 svc:guest:home 300s） |
+| GET | `/api/guest/services` | 服务列表（?category_id=hashid&sort=newest|sales|price&page/per_page≤50） |
+| GET | `/api/guest/services/{id}` | 服务详情（不存在 404） |
+| GET | `/api/guest/stores` | 门店列表 |
+| GET | `/api/guest/technicians` | 技师列表（仅审核通过；?service_id=hashid 筛选；评分降序） |
+
+无需认证（仅 ApiVersion 中间件）的未登录浏览入口。
+
+### 24. 秒杀接口（需JWT认证，第24轮）
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/api/seckill` | 秒杀活动列表（status=1 且在时间窗内；含已售量 = erik_order.seckill_id 订单数、剩余库存） |
+| GET | `/api/seckill/{id}` | 活动详情（state=not_started/ongoing/ended） |
+| POST | `/api/seckill/{id}/buy` | 秒杀下单（client_token 幂等 + Redis NX 30s 防并发；下单失败回补库存） |
+
+**下单规则**: 行锁扣减 stock 后注入 seckill_id 复用订单创建/支付流程；秒杀价 = seckill_price，不叠加优惠券/积分/会员卡；订单取消不回补库存。
+
+### 25. APP 版本检查接口（第24轮）
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/api/app/version?platform=android|ios` | 最新版本检查（platform 非法 422；无版本返回空对象；公开接口） |
+
+响应: id/platform/version_code/version_name/force_update（1=强制）/changelog/download_url。
+
 ---
 
 ## 二、管理后台API (admin/ :8787)
@@ -813,6 +843,49 @@
 | GET | `/admin/lucky-wheel/records` | 抽奖记录（?status&page=，含用户昵称/奖品名） |
 
 权限ID: 401-406。静态路由 `/lucky-wheel/records` 与 `/lucky-wheel/{id}/toggle-status` 注册在 resource 之前避免 {id} shadow。
+
+### 回头客奖励管理（第24轮）
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/admin/return-customer/config` | 配置查看（enabled 开关 / ratio 比例） |
+| PUT | `/admin/return-customer/config` | 配置更新（enabled in:0,1；ratio between:0.01,1） |
+| GET | `/admin/return-customer/rewards` | 奖励记录列表（?keyword 技师姓名/订单号/用户昵称，type=return_customer 分页） |
+
+权限ID: 412-414。奖励规则：用户对同一技师 30 天内第 2 次消费（订单完成）发放奖金 = 实付 × ratio（默认 0.05），落 erik_technician_earnings（type=return_customer，status=pending）随佣金结算链统一结算；同订单幂等不重复发放。
+
+### 秒杀活动管理（第24轮）
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/admin/seckill` | 活动列表（分页） |
+| POST | `/admin/seckill` | 新增活动（name/service_id/seckill_price/original_price/stock/start_at/end_at） |
+| GET | `/admin/seckill/{id}` | 活动详情 |
+| PUT | `/admin/seckill/{id}` | 编辑 |
+| DELETE | `/admin/seckill/{id}` | 删除 |
+| POST | `/admin/seckill/{id}/toggle-status` | 上下架 |
+| GET | `/admin/seckill/{id}/orders` | 秒杀订单列表 |
+
+权限ID: 407-411、420。已售量 = erik_order.seckill_id 订单数；库存行锁扣减、售罄拦截。
+
+### APP 版本管理（第24轮）
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/admin/versions` | 版本列表 |
+| POST | `/admin/versions` | 新增版本（platform/version_code/version_name/force_update/changelog/download_url/status） |
+| PUT | `/admin/versions/{id}` | 编辑 |
+| DELETE | `/admin/versions/{id}` | 删除 |
+
+权限ID: 416-419。检测更新接口 /api/app/version 取 status=1 中最新（updated_at/id 最大）版本。
+
+### 排班导出（第24轮）
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/admin/technician-schedule/export` | 排班 CSV 导出（UTF-8 BOM，Excel 直接打开；start_date/end_date 必填且跨度≤31天；technician_id 可选 hashid） |
+
+权限ID: 415。列：技师ID/技师姓名/日期/时间段明细（time_slots JSON 解析为 "09:00-12:00, 14:00-18:00"）。
 
 ### 角色权限
 

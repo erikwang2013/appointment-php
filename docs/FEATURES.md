@@ -629,3 +629,35 @@ Flutter Web 单页应用，共 21 个页面：dashboard/用户/角色/配置/日
 - 奖品落账：积分→earn 流水（含过期时间，可被 PointsExpiryTimer 正常过期）、余额→lockForUpdate、优惠券→pending 人工发放、无奖→lose
 - GET /api/wheel/records 我的记录分页；admin /admin/lucky-wheel CRUD + 上下架 + 记录（权限 401-406）
 - 迁移 000503（erik_lucky_wheel + erik_wheel_record + w60/w40 演示种子）+ 000505（权限种子）；LuckyWheelTest admin 3 + service 6 tests
+
+### 42. 游客模式（第24轮）
+
+- GET /api/guest/{home,services,services/{id},stores,technicians}：无需认证（仅 ApiVersion 中间件）的未登录浏览入口
+- home 聚合轮播图/公告/服务分类/热门服务，Redis 缓存 svc:guest:home 300s；services 支持分类筛选 + newest/sales/price 排序（page/per_page≤50）；technicians 仅审核通过、可 service_id 筛选、评分降序
+- GuestControllerTest 覆盖
+
+### 43. 秒杀（第24轮）
+
+- erik_seckill_activity（name/service_id/seckill_price/original_price/stock/start_at/end_at/status）；已售量 = erik_order.seckill_id 订单数
+- GET /api/seckill（status=1 + 时间窗）、/{id}（state=not_started/ongoing/ended）、POST /{id}/buy：client_token（8-64 字符，SETNX 24h）幂等 + Redis NX 30s 防并发 + 行锁 stock-1；下单失败回补库存 + 删除 token
+- 下单注入 seckill_id 复用 OrderController::store，秒杀价 = seckill_price，不叠加优惠券/积分/会员卡；订单取消不回补库存
+- admin /admin/seckill CRUD + 上下架 + 订单列表（权限 407-411、420）；迁移 000606 权限种子；SeckillTest service + admin
+
+### 44. APP 版本管理与检测更新（第24轮）
+
+- erik_app_version（platform/version_code/version_name/force_update/changelog/download_url/status）
+- GET /api/app/version?platform=android|ios 公开检测更新（platform 非法 422；status=1 中取最新；无则空对象）
+- admin /admin/versions CRUD（权限 416-419）；迁移 000609 权限种子；VersionTest service + admin
+
+### 45. 回头客奖励（第24轮）
+
+- ReturnCustomerRewardService：用户对同一技师 30 天内第 2 次消费（订单完成）给技师发放奖金 = 实付 paid_amount × ratio（system_config group=return_customer，ratio 默认 0.05、enabled 开关，非法值回落默认）
+- 落 erik_technician_earnings（type=return_customer，status=pending）复用佣金结算链，技师端 earnings 汇总自动包含；同 order_id+type 幂等；WorkController::complete 行锁事务内调用
+- admin /admin/return-customer/config（GET/PUT）+ /rewards（?keyword 技师名/订单号/用户昵称）（权限 412-414）；迁移 000607 权限种子；ReturnCustomerRewardServiceTest
+
+### 46. 排班导出（第24轮）
+
+- GET /admin/technician-schedule/export：CSV（UTF-8 BOM，Excel 直接打开），文件名 schedules_{YmdHis}.csv
+- start_date/end_date 必填（YYYY-MM-DD，非法 422）且跨度≤31天；technician_id 可选（hashid，非法 422）
+- 列：技师ID/技师姓名/日期/时间段明细（time_slots JSON 解析为 "09:00-12:00, 14:00-18:00"）
+- 权限：415；迁移 000608 权限种子；ScheduleExportTest 覆盖
