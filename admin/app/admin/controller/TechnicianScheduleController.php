@@ -86,6 +86,74 @@ class TechnicianScheduleController extends BaseController
     }
 
     /**
+     * 导出排班为 CSV（UTF-8 BOM，Excel 直接打开）
+     * GET /admin/technician-schedule/export?start_date=&end_date=&technician_id=
+     * 列: 技师ID/技师姓名/日期/时间段明细（time_slots JSON 解析为 "09:00-12:00, 14:00-18:00"）
+     * start_date/end_date 必填且跨度 ≤31 天；technician_id 可选（hashid）
+     *
+     * @param Request $request
+     * @return Response
+     */
+    public function export(Request $request): Response
+    {
+        $startDate   = (string) $request->input('start_date', '');
+        $endDate     = (string) $request->input('end_date', '');
+        $techHashid  = (string) $request->input('technician_id', '');
+
+        if (!$this->isValidDate($startDate) || !$this->isValidDate($endDate)) {
+            return $this->fail('日期格式不正确，需要 YYYY-MM-DD', 422);
+        }
+        if (strtotime($endDate) < strtotime($startDate)) {
+            return $this->fail('结束日期不能早于开始日期', 422);
+        }
+        if ((strtotime($endDate) - strtotime($startDate)) / 86400 > 31) {
+            return $this->fail('日期跨度不能超过31天', 422);
+        }
+
+        $query = TechnicianSchedule::with('technician')
+            ->where('date', '>=', $startDate)
+            ->where('date', '<=', $endDate);
+        if ($techHashid !== '') {
+            try {
+                $query->where('technician_id', $this->decodeId($techHashid));
+            } catch (\InvalidArgumentException) {
+                return $this->fail('无效的技师ID', 422);
+            }
+        }
+        $list = $query->orderBy('date')->orderBy('technician_id')->get();
+
+        $filename = 'schedules_' . date('YmdHis') . '.csv';
+        $tmpDir   = runtime_path() . '/tmp/';
+        if (!is_dir($tmpDir)) {
+            mkdir($tmpDir, 0755, true);
+        }
+        $tmpFile = $tmpDir . $filename;
+
+        $fp = fopen($tmpFile, 'w');
+        // BOM for Excel UTF-8 compatibility
+        fwrite($fp, "\xEF\xBB\xBF");
+        fputcsv($fp, ['技师ID', '技师姓名', '日期', '时间段明细']);
+
+        foreach ($list as $schedule) {
+            $slots = [];
+            foreach ((array) $schedule->time_slots as $slot) {
+                if (is_array($slot) && isset($slot['start'], $slot['end'])) {
+                    $slots[] = $slot['start'] . '-' . $slot['end'];
+                }
+            }
+            fputcsv($fp, [
+                $schedule->technician_id,
+                $schedule->technician->real_name ?? ('技师#' . $schedule->technician_id),
+                $schedule->date,
+                implode(', ', $slots),
+            ]);
+        }
+        fclose($fp);
+
+        return response()->download($tmpFile, $filename);
+    }
+
+    /**
      * 创建/更新排班（单日单条 upsert，UNIQUE(technician_id,date) 1062 冲突幂等）
      * POST /admin/schedules
      * body: { technician_id, date, time_slots: [{start,end}], status?: 0|1 }
@@ -219,6 +287,17 @@ class TechnicianScheduleController extends BaseController
     // ────────────────────────────────────────────────
     // 私有辅助
     // ────────────────────────────────────────────────
+
+    /**
+     * 校验 YYYY-MM-DD 格式且为真实存在的日期
+     */
+    private function isValidDate(string $date): bool
+    {
+        if (!preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $date, $m)) {
+            return false;
+        }
+        return checkdate((int) $m[2], (int) $m[3], (int) $m[1]);
+    }
 
     /**
      * 校验 time_slots 格式: [{start, end}, ...]
