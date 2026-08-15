@@ -104,6 +104,9 @@ Route::group('/api', function () {
     Route::get('/promotions/{id}', v('api', 'PromotionController', 'show'));
     Route::get('/promotions/{id}/participants', v('api', 'PromotionController', 'participants'));
 
+    // ── 满减活动（公开浏览）──
+    Route::get('/full-reduction-activities', v('api', 'FullReductionController', 'index'));
+
     // ── 短视频（公开浏览）──
     Route::get('/video/list', v('api', 'VideoController', 'index'));
     Route::get('/video/detail/{id}', v('api', 'VideoController', 'show'));
@@ -170,6 +173,19 @@ Route::group('/api/user', function () {
 ]);
 
 // ============================================================
+// 隐私合规接口（JWT + ApiVersion）——数据导出 / 账号注销闭环
+// ============================================================
+Route::group('/api/privacy', function () {
+    Route::get('/data', v('api', 'PrivacyController', 'data'));
+    Route::post('/close-request', v('api', 'PrivacyController', 'closeRequest'));
+    Route::post('/close-cancel', v('api', 'PrivacyController', 'closeCancel'));
+    Route::post('/close-confirm', v('api', 'PrivacyController', 'closeConfirm'));
+})->middleware([
+    app\middleware\ApiVersion::class,
+    app\middleware\Auth::class,
+]);
+
+// ============================================================
 // 成长体系接口（JWT认证 + ApiVersion）
 // ============================================================
 Route::group('/api/growth', function () {
@@ -208,6 +224,11 @@ Route::group('/api/technician', function () {
 
     // ── 评价回复 ──
     Route::post('/review/reply/{order_id}', v('technician', 'ReviewController', 'reply'));
+
+    // ── 技师考勤打卡 ──
+    Route::get('/attendance', v('technician', 'AttendanceController', 'index'));
+    Route::post('/attendance/check-in', v('technician', 'AttendanceController', 'checkIn'));
+    Route::post('/attendance/check-out', v('technician', 'AttendanceController', 'checkOut'));
 })->middleware([
     app\middleware\ApiVersion::class,
     app\middleware\Auth::class,
@@ -220,6 +241,8 @@ Route::group('/api/technician', function () {
 Route::group('/api/order', function () {
     Route::post('/', v('order', 'OrderController', 'store'));
     Route::get('/list', v('order', 'OrderController', 'index'));
+    // ── ICS 日历导出（我的预约，iCal 下载/导入手机日历）──
+    Route::get('/ics', v('order', 'IcsController', 'export'));
     Route::get('/detail/{id}', v('order', 'OrderController', 'show'));
     Route::get('/logistics/{id}', v('order', 'OrderController', 'logistics'));
     Route::post('/cancel/{id}', v('order', 'OrderController', 'cancel'));

@@ -11,6 +11,7 @@ use app\common\PriceCalculator;
 use app\common\PushService;
 use app\common\WechatPayService;
 use app\common\WechatTemplateMessageService;
+use app\model\FullReductionActivity;
 use app\model\GrowthLevel;
 use app\model\MemberCardUsage;
 use app\model\Notification;
@@ -278,11 +279,10 @@ class OrderController extends BaseController
                 $pricing['paid_amount'] = $promoPrice;
             }
 
-            // 成长等级折扣（仅标准订单；拼团/秒杀已在前置校验禁用其他优惠叠加，此处跳过）：
-            // 在券/次卡优惠后的应付金额上按等级 discount_rate 再折（与优惠券可叠加，
-            // 叠加顺序：券/次卡 → 等级折扣）；折扣额并入 discount_amount、备注追加说明（可追溯）；
-            // 最低价保护：折扣后实付 > 0 且不小于 0.01 元
+            // 满减（仅标准订单；拼团/秒杀跳过）：在券/次卡抵扣后的应付金额上判断门槛，
+            // 叠加顺序：券/次卡 → 满减 → 等级折扣；优惠额并入 discount_amount、备注追加说明（可追溯）
             if ($promotion === null) {
+                $this->applyFullReduction($pricing, $remark);
                 $this->applyGrowthDiscount($userId, $pricing, $remark);
             }
 
@@ -401,6 +401,48 @@ class OrderController extends BaseController
         $pricing['paid_amount'] = round($discountedFen / 100, 2);
         $label = rtrim(rtrim(sprintf('%.1f', $rate * 10), '0'), '.');
         $remark = trim($remark . sprintf('（等级折扣：%s %s折，优惠¥%.2f）', $level->name, $label, $discountFen / 100));
+    }
+
+    /**
+     * 应用满减（仅标准订单调用，在券/次卡优惠后、等级折扣前）
+     *
+     * 取 status=1 且当前时间在 [start_at, end_at] 内的活动中 reduction 最大者；
+     * 以券/次卡抵扣后的应付金额（paid_amount）判断门槛（threshold），
+     * 未达门槛直接返回；优惠额并入 discount_amount，备注追加「满减：满X减Y」以便追溯。
+     * 最低价保护：满减后实付不小于 0.01 元（分制下限 100）。
+     *
+     * @param array  $pricing PriceCalculator::calculate 结果，按引用修改 discount_amount/paid_amount
+     * @param string $remark  订单备注，按引用追加满减说明
+     */
+    private function applyFullReduction(array &$pricing, string &$remark): void
+    {
+        $now = date('Y-m-d H:i:s');
+        $activity = FullReductionActivity::where('status', 1)
+            ->where('start_at', '<=', $now)
+            ->where('end_at', '>=', $now)
+            ->orderByDesc('reduction')
+            ->first();
+        if (!$activity) {
+            return; // 无生效活动
+        }
+
+        $baseFen = (int) round((float) $pricing['paid_amount'] * 100);
+        if ($baseFen < (int) round((float) $activity->threshold * 100)) {
+            return; // 券后金额未达门槛
+        }
+        if ($baseFen < 100) {
+            return; // 应付已低于最低价，不再叠加
+        }
+
+        $reductionFen = (int) round((float) $activity->reduction * 100);
+        if ($reductionFen <= 0) {
+            return;
+        }
+        $finalFen = max(100, $baseFen - $reductionFen);
+
+        $pricing['discount_amount'] = round((float) $pricing['discount_amount'] + ($baseFen - $finalFen) / 100, 2);
+        $pricing['paid_amount'] = round($finalFen / 100, 2);
+        $remark = trim($remark . sprintf('（满减：满%s减%s）', $activity->threshold, $activity->reduction));
     }
 
     /**
@@ -796,6 +838,17 @@ class OrderController extends BaseController
         // 站内通知：退款已到账（直接成功或补偿成功均落此；补偿路径由 completeOneRefundCompensation 幂等补写）
         if ($refundRecord) {
             $this->writeRefundNotification($order, $refundRecord->fresh() ?: $refundRecord);
+        }
+
+        // R22 APP 推送：退款已到账（未启用时静默降级，失败不影响主流程）
+        if ($refundRecord) {
+            try {
+                \app\common\AppPushService::pushToUser((int) $order->user_id, '退款已到账',
+                    '您的订单 ' . $order->order_no . ' 已退款 ¥' . number_format((float) $refundRecord->amount, 2) . '，款项将原路退回。',
+                    ['type' => 'order_refund', 'order_id' => (string) $order->id, 'order_no' => $order->order_no]);
+            } catch (\Throwable $e) {
+                Log::warning('[AppPush] refund push failed: ' . $e->getMessage());
+            }
         }
 
         // 释放技师锁
@@ -1462,6 +1515,15 @@ class OrderController extends BaseController
             'refund_reason' => $reason,
         ]);
 
+        // R22 APP 推送：退款已到账（未启用时静默降级，失败不影响主流程）
+        try {
+            \app\common\AppPushService::pushToUser((int) $order->user_id, '退款已到账',
+                '您的订单 ' . $order->order_no . ' 已退款 ¥' . number_format((float) $refundAmount, 2) . '，款项将原路退回。',
+                ['type' => 'order_refund', 'order_id' => (string) $order->id, 'order_no' => $order->order_no, 'refund_amount' => (float) $refundAmount]);
+        } catch (\Throwable $e) {
+            Log::warning('[AppPush] refund push failed: ' . $e->getMessage());
+        }
+
         // WebSocket 实时推送
         $this->pushOrderUpdate($order);
 
@@ -1509,6 +1571,15 @@ class OrderController extends BaseController
             'refund_amount' => $refundAmount,
             'refund_reason' => $refundRecord->reason,
         ]);
+
+        // R22 APP 推送：退款已到账（未启用时静默降级，失败不影响主流程）
+        try {
+            \app\common\AppPushService::pushToUser((int) $order->user_id, '退款已到账',
+                '您的订单 ' . $order->order_no . ' 已退款 ¥' . number_format((float) $refundAmount, 2) . '，款项将原路退回。',
+                ['type' => 'order_refund', 'order_id' => (string) $order->id, 'order_no' => $order->order_no, 'refund_amount' => (float) $refundAmount]);
+        } catch (\Throwable $e) {
+            Log::warning('[AppPush] refund push failed: ' . $e->getMessage());
+        }
 
         // WebSocket 实时推送
         $this->pushOrderUpdate($order);
@@ -2247,6 +2318,15 @@ class OrderController extends BaseController
 
             // 站内通知：退款已到账（幂等：同订单同标题去重，主路径并发时不会双写）
             $this->writeRefundNotification($order, $locked);
+
+            // R22 APP 推送：退款已到账（未启用时静默降级，失败不影响主流程）
+            try {
+                \app\common\AppPushService::pushToUser((int) $order->user_id, '退款已到账',
+                    '您的订单 ' . $order->order_no . ' 已退款 ¥' . number_format((float) $locked->amount, 2) . '，款项将原路退回。',
+                    ['type' => 'order_refund', 'order_id' => (string) $order->id, 'order_no' => $order->order_no, 'refund_amount' => (float) $locked->amount]);
+            } catch (\Throwable $e) {
+                Log::warning('[AppPush] refund compensation push failed: ' . $e->getMessage());
+            }
 
             Log::info('[OrderController] refund compensation done, order_no: ' . $order->order_no
                 . ', refund_id: ' . $locked->id);

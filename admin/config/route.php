@@ -121,6 +121,10 @@ Route::group('/admin', function () {
     Route::post('/technicians/{id}/services', [app\admin\controller\TechnicianController::class, 'services']);
     Route::get('/technicians/{id}/export', [app\admin\controller\TechnicianController::class, 'export']);
 
+    // 考勤管理（静态路由，无 resource 冲突；按月筛选 + 统计）
+    Route::get('/attendance', [app\admin\controller\AttendanceController::class, 'index']);
+    Route::get('/attendance/stats', [app\admin\controller\AttendanceController::class, 'stats']);
+
     // 服务分类
     Route::resource('/service-categories', app\admin\controller\ServiceCategoryController::class);
 
@@ -151,6 +155,10 @@ Route::group('/admin', function () {
     Route::get('/review-audit', [app\admin\controller\ReviewAuditController::class, 'index']);
     Route::post('/review-audit/{id}/hide', [app\admin\controller\ReviewAuditController::class, 'hide']);
     Route::post('/review-audit/{id}/restore', [app\admin\controller\ReviewAuditController::class, 'restore']);
+
+    // 满减活动（静态路由必须先于 resource 定义，避免被 {id} 变量路由 shadow）
+    Route::post('/full-reduction-activities/{id}/toggle-status', [app\admin\controller\FullReductionController::class, 'toggleStatus']);
+    Route::resource('/full-reduction-activities', app\admin\controller\FullReductionController::class);
 
     // 优惠券
     Route::resource('/coupons', app\admin\controller\CouponController::class);
@@ -187,6 +195,9 @@ Route::group('/admin', function () {
     // 提现配置
     Route::get('/withdrawal-config', [app\admin\controller\WithdrawalConfigController::class, 'show']);
     Route::put('/withdrawal-config/{id}', [app\admin\controller\WithdrawalConfigController::class, 'update']);
+
+    // 微信分账记录（静态路由）
+    Route::get('/profit-sharing', [app\admin\controller\ProfitSharingController::class, 'index']);
 
     // 佣金管理
     Route::resource('/commissions', app\admin\controller\CommissionController::class);
