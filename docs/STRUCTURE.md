@@ -434,6 +434,10 @@ apps/flutter/
 | 技师 | erik_technician_attendance | 技师考勤（第22轮） |
 | 系统 | erik_push_log | APP推送记录（第22轮） |
 | 财务 | erik_profit_sharing | 微信分账记录（第22轮） |
+| 订单 | erik_order_status_log | 订单状态时间线（第23轮） |
+| 用户 | erik_user_health_profile | 用户健康档案（第23轮） |
+| 营销 | erik_lucky_wheel | 转盘奖品定义（第23轮） |
+| 营销 | erik_wheel_record | 转盘抽奖记录（第23轮） |
 
 ## 外部服务预留
 

@@ -273,6 +273,30 @@ stateDiagram-v2
     note right of used: 仅标准订单生效<br/>拼团/秒杀跳过
 ```
 
+## 15. 转盘抽奖生命周期（第23轮）
+
+```mermaid
+stateDiagram-v2
+    [*] --> on: 后台创建奖品并上架
+
+    on --> spun: 用户抽奖 spin<br/>(Redis NX + 行锁防并发<br/>random_int 权重抽取<br/>client_token 幂等)
+
+    spun --> points: 奖品=积分<br/>(earn 流水含 expires_at<br/>可被 PointsExpiryTimer 过期)
+
+    spun --> balance: 奖品=余额<br/>(lockForUpdate 入账)
+
+    spun --> coupon: 奖品=优惠券<br/>(pending 人工发放)
+
+    spun --> lose: 无奖品<br/>(记录 type=none)
+
+    points --> [*]
+    balance --> [*]
+    coupon --> [*]
+    lose --> [*]
+
+    note right of on: 上下架 toggle-status 控制<br/>下架奖品不参与抽取
+```
+
 ## 14. 账号注销生命周期（第22轮）
 
 ```mermaid

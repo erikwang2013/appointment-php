@@ -343,7 +343,8 @@
 | 方法 | 路径 | 说明 |
 |------|------|------|
 | GET | `/api/technician/schedule` | 排班查询 (?start_date=&end_date=) |
-| PUT | `/api/technician/schedule` | 设置排班 (date/time_slots/status) |
+| PUT | `/api/technician/schedule` | 设置排班 (date/time_slots/status)，时间段重叠 422「与已有排班时间冲突」 |
+| POST | `/api/technician/schedule/batch` | 批量排班（第23轮）：日期段 ≤7 天 + weekdays 过滤，已有排班的天跳过，响应 created/skipped |
 
 #### 3.3 技师订单
 
@@ -613,6 +614,42 @@
 
 **登录拦截**: close_status=2 的账号登录返回 403「账号已注销」。
 
+### 19. 用户健康档案接口（需JWT认证，第23轮）
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/api/health-profile` | 查询我的健康档案（无档案返回空对象） |
+| PUT | `/api/health-profile` | 创建/更新（upsert，一人一份；allergies/health_notes 上限 500 字、preferred_technician_id 校验存在性；只更新提供的字段，响应 hashid 编码） |
+| DELETE | `/api/health-profile` | 删除我的档案（仅本人） |
+
+字段: allergies（过敏史）/health_notes（健康备注）/preferred_technician_id（偏好技师，可空）。
+
+### 20. 钱包支付密码接口（需JWT认证，第23轮）
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| POST | `/api/wallet/pay-password/set` | 设置支付密码（6 位数字 `\d{6}`；已设置时需传旧密码 422 拦截） |
+| POST | `/api/wallet/pay-password/verify` | 校验支付密码（正确/错误返回布尔，不落库） |
+| POST | `/api/wallet/pay-password/check` | 查询是否已设置（set: true/false） |
+
+存储: password_hash() 哈希 + pay_password_set_at，绝不存储明文。
+
+### 21. 订单状态时间线接口（需JWT认证，第23轮）
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/api/order/{id}/timeline` | 订单状态变更时间线（倒序；仅本人，他人订单 404 不泄露存在性） |
+
+埋点: 提交/支付（微信回调 markOrderPaid 单一消费点）/取消/技师确认/退款申请/退款通过/服务开始/服务完成/超时自动取消/后台操作（operator=admin）共 8 类变更。
+
+### 22. 积分幸运转盘接口（需JWT认证，第23轮）
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/api/wheel/prizes` | 转盘奖品列表（隐藏 weight/stock 敏感字段） |
+| POST | `/api/wheel/spin` | 抽奖一次（Redis NX + 行锁防并发；random_int 权重抽取；积分→earn 流水含过期时间、余额→lockForUpdate 入账、优惠券→pending 人工发放、无奖→lose；client_token 幂等） |
+| GET | `/api/wheel/records` | 我的抽奖记录（分页） |
+
 ---
 
 ## 二、管理后台API (admin/ :8787)
@@ -763,6 +800,19 @@
 | GET | `/admin/profit-sharing` | 分账记录（leftJoin 订单号/技师昵称，?status&order_no&technician_name&page=，hashid 编码） |
 
 权限ID: 394。服务端逻辑：erik_system_config group=profit_sharing（enabled/receiver_ratio）；未启用 disabled 降级仅日志；启用后支付成功自动请求分账（金额=实付×receiver_ratio 默认 0.7，同单 pending/success 幂等跳过）；无凭据不执行 HTTP，请求结构记日志。
+
+### 积分转盘管理（第23轮）
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/admin/lucky-wheel` | 转盘奖品列表（含 weight/stock，分页） |
+| POST | `/admin/lucky-wheel` | 新增奖品（名称/类型 points/balance/coupon/none/权重/库存/图片） |
+| GET/PUT | `/admin/lucky-wheel/{id}` | 详情 / 编辑 |
+| DELETE | `/admin/lucky-wheel/{id}` | 删除 |
+| POST | `/admin/lucky-wheel/{id}/toggle-status` | 上下架 |
+| GET | `/admin/lucky-wheel/records` | 抽奖记录（?status&page=，含用户昵称/奖品名） |
+
+权限ID: 401-406。静态路由 `/lucky-wheel/records` 与 `/lucky-wheel/{id}/toggle-status` 注册在 resource 之前避免 {id} shadow。
 
 ### 角色权限
 

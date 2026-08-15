@@ -597,3 +597,35 @@ Flutter Web 单页应用，共 21 个页面：dashboard/用户/角色/配置/日
 - GET /api/privacy/data：数据导出（personal/orders/points/wallet_txns/reviews/addresses/invoices 分组；日志只记脱敏手机号+条数）
 - 注销闭环：close-request（余额非 0 / 未完成订单 / 进行中工单 422 → close_status=1）→ close-cancel（1→0）→ close-confirm（满 72h → close_status=2 + close_at + phone/nickname 匿名化 user{id} + status=0）
 - erik_user 加 close_status/close_requested_at/close_at（幂等 ALTER 迁移）；AuthController login/loginByCode 对 close_status=2 返回 403「账号已注销」
+
+### 37. 用户健康档案（第23轮）
+
+- GET/PUT/DELETE /api/health-profile：一人一份（uk_user 唯一索引），upsert 只更新提供的字段
+- allergies/health_notes 上限 500 字，preferred_technician_id 校验存在性，响应 hashid 编码
+- 迁移 000504_user_health_profile；HealthProfileTest 6 tests
+
+### 38. 钱包支付密码（第23轮）
+
+- POST /api/wallet/pay-password/{set,verify,check}：6 位数字校验，password_hash 存储 + pay_password_set_at
+- 已设置时修改需旧密码 422；verify 仅校验不落库；check 返回是否已设置
+- 迁移 000502（INFORMATION_SCHEMA 幂等 ALTER 两列）；WalletPayPasswordTest 7 tests
+
+### 39. 技师批量排班（第23轮）
+
+- POST /api/technician/schedule/batch：日期段 ≤7 天 + weekdays 过滤，已有排班的天跳过
+- 单条设置同样启用时间段重叠检测（422「与已有排班时间冲突：HH:MM-HH:MM」）
+- ScheduleConflictTest 5 tests
+
+### 40. 订单状态时间线（第23轮）
+
+- GET /api/order/{id}/timeline：仅本人可查（他人 404），倒序返回；admin 订单详情并入 timeline 数组
+- OrderStatusLog::record() 静态埋点 8 类变更：提交/支付/取消/确认/退款申请/退款通过/服务开始/服务完成/超时自动取消/后台操作（operator=admin）
+- 支付回调 markOrderPaid 为单一消费点；record() 内部 try/catch + Log::warning 绝不阻塞主流程
+- 迁移 000501_order_status_log；OrderTimelineTest 4 tests
+
+### 41. 积分幸运转盘（第23轮）
+
+- GET /api/wheel/prizes（隐藏 weight/stock）；POST /api/wheel/spin：Redis NX + 行锁防并发，random_int 权重抽取，client_token 幂等
+- 奖品落账：积分→earn 流水（含过期时间，可被 PointsExpiryTimer 正常过期）、余额→lockForUpdate、优惠券→pending 人工发放、无奖→lose
+- GET /api/wheel/records 我的记录分页；admin /admin/lucky-wheel CRUD + 上下架 + 记录（权限 401-406）
+- 迁移 000503（erik_lucky_wheel + erik_wheel_record + w60/w40 演示种子）+ 000505（权限种子）；LuckyWheelTest admin 3 + service 6 tests
