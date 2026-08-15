@@ -160,6 +160,11 @@ Route::group('/admin', function () {
     Route::post('/full-reduction-activities/{id}/toggle-status', [app\admin\controller\FullReductionController::class, 'toggleStatus']);
     Route::resource('/full-reduction-activities', app\admin\controller\FullReductionController::class);
 
+    // 幸运转盘（静态路由必须先于 resource 定义，避免被 {id} 变量路由 shadow）
+    Route::get('/lucky-wheel/records', [app\admin\controller\LuckyWheelController::class, 'records']);
+    Route::post('/lucky-wheel/{id}/toggle-status', [app\admin\controller\LuckyWheelController::class, 'toggleStatus']);
+    Route::resource('/lucky-wheel', app\admin\controller\LuckyWheelController::class);
+
     // 优惠券
     Route::resource('/coupons', app\admin\controller\CouponController::class);
 

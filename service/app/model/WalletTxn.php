@@ -27,6 +27,7 @@ class WalletTxn extends Model
     public const TYPE_REFERRAL_LEVEL2 = 'referral_level2';
     public const TYPE_TRANSFER_OUT    = 'transfer_out';
     public const TYPE_TRANSFER_IN     = 'transfer_in';
+    public const TYPE_LUCKY_WHEEL    = 'lucky_wheel';
 
     public const TYPE_TEXT = [
         self::TYPE_RECHARGE       => '充值',
@@ -38,6 +39,7 @@ class WalletTxn extends Model
         self::TYPE_REFERRAL_LEVEL2 => '二级返佣',
         self::TYPE_TRANSFER_OUT   => '余额转出',
         self::TYPE_TRANSFER_IN    => '余额转入',
+        self::TYPE_LUCKY_WHEEL    => '幸运转盘',
     ];
 
     public $timestamps = false; // 表仅 created_at（DB 默认 CURRENT_TIMESTAMP）
