@@ -18,9 +18,9 @@ ALTER TABLE `erik_technician_earnings`
 INSERT INTO `erik_system_config`
     (`id`, `group`, `key`, `value`, `type`, `description`)
 VALUES
-    (91000000000000025, 'return_customer', 'enabled', '1', 'string',
+    (91000000000000029, 'return_customer', 'enabled', '1', 'string',
      '回头客奖励开关：1=开启 0=关闭（用户对同一技师30天内二次消费时给技师发放奖金）'),
-    (91000000000000026, 'return_customer', 'ratio', '0.05', 'string',
+    (91000000000000030, 'return_customer', 'ratio', '0.05', 'string',
      '回头客奖励比例：奖金=订单实付×比例（0-1，非法值回落 0.05）')
 ON DUPLICATE KEY UPDATE
     `description` = VALUES(`description`);
