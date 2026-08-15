@@ -117,6 +117,10 @@ class TechnicianScheduleController extends BaseController
         if (!is_array($timeSlots) || !$this->validateTimeSlots($timeSlots)) {
             return $this->fail('时间段格式不正确，需要 [{start,end}, ...]', 422);
         }
+        $conflict = $this->findOverlap($timeSlots);
+        if ($conflict !== null) {
+            return $this->fail('与已有排班时间冲突：' . $conflict, 422);
+        }
         if (!in_array($status, [0, 1], true)) {
             return $this->fail('状态无效，支持 0=休息 / 1=可预约', 422);
         }
@@ -235,6 +239,27 @@ class TechnicianScheduleController extends BaseController
             }
         }
         return true;
+    }
+
+    /**
+     * 查找时间段两两重叠：start < 对方 end && 对方 start < end 即冲突（边界相接不算）
+     * 返回冲突时间段 "HH:MM-HH:MM"，无冲突返回 null
+     */
+    private function findOverlap(array $timeSlots): ?string
+    {
+        $count = count($timeSlots);
+        for ($i = 0; $i < $count; $i++) {
+            for ($j = $i + 1; $j < $count; $j++) {
+                $a = $timeSlots[$i];
+                $b = $timeSlots[$j];
+                if (strtotime((string) $a['start']) < strtotime((string) $b['end'])
+                    && strtotime((string) $b['start']) < strtotime((string) $a['end'])
+                ) {
+                    return $a['start'] . '-' . $a['end'];
+                }
+            }
+        }
+        return null;
     }
 
     /**
