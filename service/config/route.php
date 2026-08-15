@@ -173,6 +173,18 @@ Route::group('/api/user', function () {
 ]);
 
 // ============================================================
+// 积分幸运转盘（JWT + ApiVersion）——奖品 / 抽奖 / 记录
+// ============================================================
+Route::group('/api/wheel', function () {
+    Route::get('/prizes', v('api', 'WheelController', 'prizes'));
+    Route::post('/spin', v('api', 'WheelController', 'spin'));
+    Route::get('/records', v('api', 'WheelController', 'records'));
+})->middleware([
+    app\middleware\ApiVersion::class,
+    app\middleware\Auth::class,
+]);
+
+// ============================================================
 // 隐私合规接口（JWT + ApiVersion）——数据导出 / 账号注销闭环
 // ============================================================
 Route::group('/api/privacy', function () {
@@ -197,6 +209,18 @@ Route::group('/api/growth', function () {
 ]);
 
 // ============================================================
+// 用户健康档案接口（JWT认证 + ApiVersion）
+// ============================================================
+Route::group('/api/health-profile', function () {
+    Route::get('/', v('user', 'HealthProfileController', 'show'));
+    Route::put('/', v('user', 'HealthProfileController', 'upsert'));
+    Route::delete('/', v('user', 'HealthProfileController', 'destroy'));
+})->middleware([
+    app\middleware\ApiVersion::class,
+    app\middleware\Auth::class,
+]);
+
+// ============================================================
 // 技师接口（JWT + 技师身份 + ApiVersion）
 // ============================================================
 Route::group('/api/technician', function () {
@@ -204,6 +228,7 @@ Route::group('/api/technician', function () {
     Route::put('/profile', v('technician', 'ProfileController', 'update'));
     Route::get('/schedule', v('technician', 'ScheduleController', 'index'));
     Route::put('/schedule', v('technician', 'ScheduleController', 'update'));
+    Route::post('/schedule/batch', v('technician', 'ScheduleController', 'batch'));
     Route::get('/orders', v('technician', 'OrderController', 'index'));
     Route::get('/earnings', v('technician', 'EarningController', 'index'));
     Route::post('/withdraw', v('technician', 'WithdrawController', 'store'));
@@ -245,6 +270,8 @@ Route::group('/api/order', function () {
     Route::get('/ics', v('order', 'IcsController', 'export'));
     Route::get('/detail/{id}', v('order', 'OrderController', 'show'));
     Route::get('/logistics/{id}', v('order', 'OrderController', 'logistics'));
+    // ── 订单状态时间线（仅本人，倒序：最新在前）──
+    Route::get('/{id}/timeline', v('order', 'TimelineController', 'show'));
     Route::post('/cancel/{id}', v('order', 'OrderController', 'cancel'));
     Route::post('/pay/{id}', v('order', 'OrderController', 'pay'));
     Route::post('/refund/{id}', v('order', 'OrderController', 'refund'));
@@ -307,6 +334,9 @@ Route::group('/api/wallet', function () {
     Route::post('/recharge', v('wallet', 'WalletController', 'recharge'));
     Route::post('/recharge/{id}/pay', v('wallet', 'WalletController', 'pay'));
     Route::get('/txns', v('wallet', 'WalletController', 'txns'));
+    Route::post('/pay-password/set', v('wallet', 'WalletController', 'setPayPassword'));
+    Route::post('/pay-password/verify', v('wallet', 'WalletController', 'verifyPayPassword'));
+    Route::post('/pay-password/check', v('wallet', 'WalletController', 'checkPayPassword'));
     Route::post('/transfer', v('wallet', 'WalletTransferController', 'transfer'));
     Route::get('/transfers', v('wallet', 'WalletTransferController', 'transfers'));
     Route::get('/transfers/{id}', v('wallet', 'WalletTransferController', 'show'));
