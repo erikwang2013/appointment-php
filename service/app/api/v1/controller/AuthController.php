@@ -172,6 +172,10 @@ class AuthController extends BaseController
         // 登录成功：清除失败计数
         try { Redis::del("login_fail:{$phone}"); Redis::del($lockKey); } catch (\Throwable) {}
 
+        if ((int) $user->close_status === 2) {
+            return $this->error('账号已注销', 403);
+        }
+
         if ($user->status == 0) {
             return $this->error('账号已被禁用，请联系客服');
         }
@@ -259,6 +263,10 @@ class AuthController extends BaseController
                 'status' => 1,
                 'last_login_ip' => $request->getRealIp() ?: '',
             ]);
+        }
+
+        if ((int) $user->close_status === 2) {
+            return $this->error('账号已注销', 403);
         }
 
         if ($user->status == 0) {
