@@ -26,3 +26,20 @@ CREATE TABLE IF NOT EXISTS `erik_profit_sharing` (
     UNIQUE KEY `uk_sharing_no` (`sharing_no`),
     KEY `idx_order` (`order_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='微信分账记录';
+
+-- ============================================================
+-- erik_system_config group=profit_sharing 配置种子（幂等）：
+--   enabled=0（默认关闭，关闭时服务层 disabled 降级仅记日志不落库）
+--   receiver_ratio=0.7（技师分账比例：分账金额=订单实付×比例）
+-- 生产启用：将 enabled 改为 1 并配置 wechat_pay 凭据即可
+-- ============================================================
+
+INSERT INTO `erik_system_config`
+    (`id`, `group`, `key`, `value`, `type`, `description`)
+VALUES
+    (91000000000000027, 'profit_sharing', 'enabled', '0', 'string',
+     '微信分账总开关：1=启用（支付成功后按比例向技师分账），0=关闭（disabled 降级仅记日志）'),
+    (91000000000000028, 'profit_sharing', 'receiver_ratio', '0.7', 'string',
+     '技师分账比例（0-1，分账金额=订单实付×比例）')
+ON DUPLICATE KEY UPDATE
+    `description` = VALUES(`description`);
