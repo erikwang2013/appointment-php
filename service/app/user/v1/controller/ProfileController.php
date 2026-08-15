@@ -58,7 +58,7 @@ class ProfileController extends BaseController
 
         $data = [];
 
-        if ($request->has('nickname')) {
+        if ($request->input('nickname') !== null) {
             $nickname = trim($request->input('nickname', ''));
             if (mb_strlen($nickname) > 50) {
                 return $this->error('昵称长度不能超过50个字符');
@@ -66,11 +66,11 @@ class ProfileController extends BaseController
             $data['nickname'] = $nickname;
         }
 
-        if ($request->has('avatar')) {
+        if ($request->input('avatar') !== null) {
             $data['avatar'] = trim($request->input('avatar', ''));
         }
 
-        if ($request->has('gender')) {
+        if ($request->input('gender') !== null) {
             $gender = (int)$request->input('gender', 0);
             if (!in_array($gender, [0, 1, 2])) {
                 return $this->error('无效的性别参数');

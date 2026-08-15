@@ -113,13 +113,13 @@ class ConfigController extends BaseController
             return $this->fail(trans('messages.config_not_found'), 404);
         }
 
-        if ($request->has('value')) {
+        if ($request->input('value') !== null) {
             $config->value = $request->input('value');
         }
-        if ($request->has('type')) {
+        if ($request->input('type') !== null) {
             $config->type = $request->input('type');
         }
-        if ($request->has('description')) {
+        if ($request->input('description') !== null) {
             $config->description = $request->input('description');
         }
 

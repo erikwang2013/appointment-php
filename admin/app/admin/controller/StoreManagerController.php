@@ -137,7 +137,7 @@ class StoreManagerController extends BaseController
             return $this->fail(trans('messages.user_not_found'), 404);
         }
 
-        if ($request->has('username')) {
+        if ($request->input('username') !== null) {
             $exists = AdminUser::where('username', $request->input('username'))
                 ->where('id', '!=', $id)->exists();
             if ($exists) {
@@ -145,28 +145,28 @@ class StoreManagerController extends BaseController
             }
             $user->username = $request->input('username');
         }
-        if ($request->has('real_name')) {
+        if ($request->input('real_name') !== null) {
             $user->real_name = $request->input('real_name');
         }
-        if ($request->has('password') && !empty($request->input('password'))) {
+        if ($request->input('password') !== null && !empty($request->input('password'))) {
             $user->password = password_hash($request->input('password'), PASSWORD_BCRYPT);
         }
-        if ($request->has('phone')) {
+        if ($request->input('phone') !== null) {
             $user->phone = $request->input('phone', '');
         }
-        if ($request->has('email')) {
+        if ($request->input('email') !== null) {
             $user->email = $request->input('email', '');
         }
-        if ($request->has('store_id')) {
+        if ($request->input('store_id') !== null) {
             $user->store_id = (int) $request->input('store_id');
         }
-        if ($request->has('status')) {
+        if ($request->input('status') !== null) {
             $user->status = (int) $request->input('status');
         }
         $user->save();
 
         // 更新角色
-        if ($request->has('role_id')) {
+        if ($request->input('role_id') !== null) {
             $user->roles()->sync([(int) $request->input('role_id')]);
         }
 

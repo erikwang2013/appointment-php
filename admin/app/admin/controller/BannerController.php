@@ -101,7 +101,7 @@ class BannerController extends BaseController
 
         $fillable = ['position', 'image', 'jump_type', 'jump_value', 'sort', 'status'];
         foreach ($fillable as $field) {
-            if ($request->has($field)) {
+            if ($request->input($field) !== null) {
                 $value = $request->input($field);
                 if (in_array($field, ['sort', 'status'])) {
                     $value = (int) $value;

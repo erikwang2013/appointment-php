@@ -124,7 +124,7 @@ class ServiceController extends BaseController
         $fillable = ['category_id', 'name', 'description', 'cover_image', 'images',
                      'price', 'original_price', 'duration', 'specs', 'sort', 'status'];
         foreach ($fillable as $field) {
-            if ($request->has($field)) {
+            if ($request->input($field) !== null) {
                 $value = $request->input($field);
                 if ($field === 'category_id') {
                     try {

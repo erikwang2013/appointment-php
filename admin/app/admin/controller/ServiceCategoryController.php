@@ -106,23 +106,23 @@ class ServiceCategoryController extends BaseController
             return $this->fail('分类不存在', 404);
         }
 
-        if ($request->has('name')) {
+        if ($request->input('name') !== null) {
             $category->name = $request->input('name');
         }
-        if ($request->has('icon')) {
+        if ($request->input('icon') !== null) {
             $category->icon = $request->input('icon');
         }
-        if ($request->has('parent_id')) {
+        if ($request->input('parent_id') !== null) {
             $parentId = (string) $request->input('parent_id');
             if ($parentId === (string) $id) {
                 return $this->fail('不能将自己设为父级', 422);
             }
             $category->parent_id = $parentId;
         }
-        if ($request->has('sort')) {
+        if ($request->input('sort') !== null) {
             $category->sort = (int) $request->input('sort');
         }
-        if ($request->has('status')) {
+        if ($request->input('status') !== null) {
             $category->status = (int) $request->input('status');
         }
         $category->save();

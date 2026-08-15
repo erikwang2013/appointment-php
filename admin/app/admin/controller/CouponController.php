@@ -108,30 +108,30 @@ class CouponController extends BaseController
             return $this->fail('优惠券不存在', 404);
         }
 
-        if ($request->has('name')) {
+        if ($request->input('name') !== null) {
             $coupon->name = $request->input('name');
         }
-        if ($request->has('type')) {
+        if ($request->input('type') !== null) {
             $coupon->type = $request->input('type');
         }
-        if ($request->has('amount')) {
+        if ($request->input('amount') !== null) {
             $coupon->amount = (float) $request->input('amount');
         }
-        if ($request->has('min_amount')) {
+        if ($request->input('min_amount') !== null) {
             $coupon->min_amount = (float) $request->input('min_amount');
         }
-        if ($request->has('total_qty')) {
+        if ($request->input('total_qty') !== null) {
             $diff = (int) $request->input('total_qty') - $coupon->total_qty;
             $coupon->total_qty  = (int) $request->input('total_qty');
             $coupon->remain_qty = max(0, $coupon->remain_qty + $diff);
         }
-        if ($request->has('start_at')) {
+        if ($request->input('start_at') !== null) {
             $coupon->start_at = $request->input('start_at');
         }
-        if ($request->has('end_at')) {
+        if ($request->input('end_at') !== null) {
             $coupon->end_at = $request->input('end_at');
         }
-        if ($request->has('status')) {
+        if ($request->input('status') !== null) {
             $coupon->status = (int) $request->input('status');
         }
         $coupon->save();

@@ -39,22 +39,22 @@ class TechnicianTierController extends BaseController
             return $this->fail('等级配置不存在', 404);
         }
 
-        if ($request->has('name')) {
+        if ($request->input('name') !== null) {
             $tier->name = $request->input('name');
         }
-        if ($request->has('min_orders')) {
+        if ($request->input('min_orders') !== null) {
             $tier->min_orders = (int) $request->input('min_orders');
         }
-        if ($request->has('min_rating')) {
+        if ($request->input('min_rating') !== null) {
             $tier->min_rating = (float) $request->input('min_rating');
         }
-        if ($request->has('commission_rate')) {
+        if ($request->input('commission_rate') !== null) {
             $tier->commission_rate = (float) $request->input('commission_rate');
         }
-        if ($request->has('price_multiplier')) {
+        if ($request->input('price_multiplier') !== null) {
             $tier->price_multiplier = (float) $request->input('price_multiplier');
         }
-        if ($request->has('sort')) {
+        if ($request->input('sort') !== null) {
             $tier->sort = (int) $request->input('sort');
         }
         $tier->save();

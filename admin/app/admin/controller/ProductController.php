@@ -111,7 +111,7 @@ class ProductController extends BaseController
         $fillable = ['category_id', 'name', 'cover_image', 'images',
                      'price', 'original_price', 'stock', 'type', 'sort', 'status'];
         foreach ($fillable as $field) {
-            if ($request->has($field)) {
+            if ($request->input($field) !== null) {
                 $value = $request->input($field);
                 if (in_array($field, ['price', 'original_price'])) {
                     $value = (float) $value;

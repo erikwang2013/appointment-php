@@ -140,10 +140,10 @@ class TechnicianController extends BaseController
             return $this->fail('技师不存在', 404);
         }
 
-        if ($request->has('intro')) {
+        if ($request->input('intro') !== null) {
             $profile->intro = $request->input('intro');
         }
-        if ($request->has('avatar')) {
+        if ($request->input('avatar') !== null) {
             $profile->avatar = $request->input('avatar');
         }
         $profile->save();

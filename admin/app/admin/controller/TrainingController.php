@@ -115,25 +115,25 @@ class TrainingController extends BaseController
             return $this->fail('课程不存在', 404);
         }
 
-        if ($request->has('title')) {
+        if ($request->input('title') !== null) {
             $course->title = $request->input('title');
         }
-        if ($request->has('type')) {
+        if ($request->input('type') !== null) {
             $course->type = $request->input('type');
         }
-        if ($request->has('url')) {
+        if ($request->input('url') !== null) {
             $course->url = $request->input('url');
         }
-        if ($request->has('content')) {
+        if ($request->input('content') !== null) {
             $course->content = $request->input('content');
         }
-        if ($request->has('duration_minutes')) {
+        if ($request->input('duration_minutes') !== null) {
             $course->duration_minutes = (int) $request->input('duration_minutes');
         }
-        if ($request->has('sort')) {
+        if ($request->input('sort') !== null) {
             $course->sort = (int) $request->input('sort');
         }
-        if ($request->has('status')) {
+        if ($request->input('status') !== null) {
             $course->status = (int) $request->input('status');
         }
         $course->save();

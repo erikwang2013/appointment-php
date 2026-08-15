@@ -100,7 +100,7 @@ class AnnouncementController extends BaseController
 
         $fillable = ['title', 'content', 'sort', 'status'];
         foreach ($fillable as $field) {
-            if ($request->has($field)) {
+            if ($request->input($field) !== null) {
                 $value = $request->input($field);
                 if (in_array($field, ['sort', 'status'])) {
                     $value = (int) $value;

@@ -58,13 +58,13 @@ class AgreementController extends BaseController
             return $this->fail('协议不存在', 404);
         }
 
-        if ($request->has('title')) {
+        if ($request->input('title') !== null) {
             $agreement->title = $request->input('title');
         }
-        if ($request->has('content')) {
+        if ($request->input('content') !== null) {
             $agreement->content = $request->input('content');
         }
-        if ($request->has('version')) {
+        if ($request->input('version') !== null) {
             $agreement->version = $request->input('version');
         }
         $agreement->save();

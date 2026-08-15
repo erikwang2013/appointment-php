@@ -116,20 +116,20 @@ class AddressController extends BaseController
         $fields = ['contact_name', 'contact_phone', 'province', 'city', 'district', 'detail'];
 
         foreach ($fields as $field) {
-            if ($request->has($field)) {
+            if ($request->input($field) !== null) {
                 $data[$field] = trim($request->input($field, ''));
             }
         }
 
-        if ($request->has('lat')) {
+        if ($request->input('lat') !== null) {
             $data['lat'] = $request->input('lat') ?: null;
         }
 
-        if ($request->has('lng')) {
+        if ($request->input('lng') !== null) {
             $data['lng'] = $request->input('lng') ?: null;
         }
 
-        if ($request->has('is_default')) {
+        if ($request->input('is_default') !== null) {
             $isDefault = (int)$request->input('is_default', 0);
             $data['is_default'] = $isDefault;
 

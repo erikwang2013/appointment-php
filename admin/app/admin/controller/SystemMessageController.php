@@ -39,10 +39,10 @@ class SystemMessageController extends BaseController
             return $this->fail('模板不存在', 404);
         }
 
-        if ($request->has('value')) {
+        if ($request->input('value') !== null) {
             $config->value = $request->input('value');
         }
-        if ($request->has('description')) {
+        if ($request->input('description') !== null) {
             $config->description = $request->input('description');
         }
         $config->save();

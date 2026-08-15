@@ -183,7 +183,7 @@ class ServiceCardController extends BaseController
         ];
 
         foreach ($fillable as $field) {
-            if ($request->has($field)) {
+            if ($request->input($field) !== null) {
                 $value = $request->input($field);
                 if (in_array($field, ['total_price', 'handwork_total', 'commission_amount', 'sales_commission'])) {
                     $value = (float) $value;

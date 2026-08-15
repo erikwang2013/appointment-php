@@ -81,10 +81,10 @@ class CommissionController extends BaseController
             return $this->fail('技师不存在', 404);
         }
 
-        if ($request->has('commission_rate')) {
+        if ($request->input('commission_rate') !== null) {
             $profile->commission_rate = (float) $request->input('commission_rate');
         }
-        if ($request->has('settlement_cycle')) {
+        if ($request->input('settlement_cycle') !== null) {
             $profile->settlement_cycle = $request->input('settlement_cycle');
         }
         $profile->save();

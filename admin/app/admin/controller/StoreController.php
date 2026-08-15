@@ -168,28 +168,28 @@ class StoreController extends BaseController
             return $this->fail('门店不存在', 404);
         }
 
-        if ($request->has('name')) {
+        if ($request->input('name') !== null) {
             $store->name = $request->input('name');
         }
-        if ($request->has('address')) {
+        if ($request->input('address') !== null) {
             $store->address = $request->input('address');
         }
-        if ($request->has('lat')) {
+        if ($request->input('lat') !== null) {
             $store->lat = (float) $request->input('lat');
         }
-        if ($request->has('lng')) {
+        if ($request->input('lng') !== null) {
             $store->lng = (float) $request->input('lng');
         }
-        if ($request->has('phone')) {
+        if ($request->input('phone') !== null) {
             $store->phone = $request->input('phone');
         }
-        if ($request->has('business_hours')) {
+        if ($request->input('business_hours') !== null) {
             $store->business_hours = $request->input('business_hours', []);
         }
-        if ($request->has('images')) {
+        if ($request->input('images') !== null) {
             $store->images = $request->input('images', []);
         }
-        if ($request->has('status')) {
+        if ($request->input('status') !== null) {
             $store->status = (int) $request->input('status');
         }
         $store->save();

@@ -45,13 +45,13 @@ class ProfileController extends BaseController
             return $this->fail(trans('messages.user_not_found'), 404);
         }
 
-        if ($request->has('real_name')) {
+        if ($request->input('real_name') !== null) {
             $user->real_name = $request->input('real_name');
         }
-        if ($request->has('phone')) {
+        if ($request->input('phone') !== null) {
             $user->phone = $request->input('phone', '');
         }
-        if ($request->has('email')) {
+        if ($request->input('email') !== null) {
             $user->email = $request->input('email', '');
         }
 

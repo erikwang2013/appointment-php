@@ -127,13 +127,13 @@ class MemberCardController extends BaseController
         if (!in_array($type, self::TYPES, true)) {
             return $this->fail('type 非法，仅支持 month/vip/times', 422);
         }
-        if ($request->has('price') && (float) $request->input('price') < 0) {
+        if ($request->input('price') !== null && (float) $request->input('price') < 0) {
             return $this->fail('price 不能为负数', 422);
         }
 
         $fillable = ['name', 'type', 'price', 'duration_days', 'total_times', 'status'];
         foreach ($fillable as $field) {
-            if ($request->has($field)) {
+            if ($request->input($field) !== null) {
                 $value = $request->input($field);
                 if (in_array($field, ['price'], true)) {
                     $value = (float) $value;
@@ -143,7 +143,7 @@ class MemberCardController extends BaseController
                 $card->$field = $value;
             }
         }
-        if ($request->has('services')) {
+        if ($request->input('services') !== null) {
             $services = $this->parseServices($request->input('services'));
             if ($services === null) {
                 return $this->fail('services 必须是合法 JSON 数组', 422);

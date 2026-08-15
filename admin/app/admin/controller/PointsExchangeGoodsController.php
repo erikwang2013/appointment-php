@@ -114,32 +114,32 @@ class PointsExchangeGoodsController extends BaseController
             return $this->fail('商品不存在', 404);
         }
 
-        if ($request->has('name')) {
+        if ($request->input('name') !== null) {
             $goods->name = (string) $request->input('name');
         }
-        if ($request->has('type')) {
+        if ($request->input('type') !== null) {
             if (!in_array($request->input('type'), ['coupon', 'gift_card', 'wallet'], true)) {
                 return $this->fail('商品类型无效', 422);
             }
             $goods->type = (string) $request->input('type');
         }
-        if ($request->has('points_cost')) {
+        if ($request->input('points_cost') !== null) {
             $goods->points_cost = max(0, (int) $request->input('points_cost'));
         }
-        if ($request->has('value')) {
+        if ($request->input('value') !== null) {
             $value = $this->parseValue($goods->type, (string) $request->input('value'), $error);
             if ($error !== null) {
                 return $this->fail($error, 422);
             }
             $goods->value = $value;
         }
-        if ($request->has('stock')) {
+        if ($request->input('stock') !== null) {
             $goods->stock = max(0, (int) $request->input('stock'));
         }
-        if ($request->has('status')) {
+        if ($request->input('status') !== null) {
             $goods->status = (int) $request->input('status') ? 1 : 0;
         }
-        if ($request->has('sort')) {
+        if ($request->input('sort') !== null) {
             $goods->sort = (int) $request->input('sort');
         }
         $goods->save();

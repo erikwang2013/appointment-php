@@ -70,7 +70,7 @@ class ProfileController extends BaseController
         $fields = ['real_name', 'gender', 'id_card', 'id_card_front', 'id_card_back', 'avatar', 'intro'];
 
         foreach ($fields as $field) {
-            if ($request->has($field)) {
+            if ($request->input($field) !== null) {
                 $data[$field] = trim($request->input($field, ''));
             }
         }
@@ -115,7 +115,7 @@ class ProfileController extends BaseController
         $fields = ['cover_image', 'video_url', 'intro', 'certificates'];
 
         foreach ($fields as $field) {
-            if ($request->has($field)) {
+            if ($request->input($field) !== null) {
                 $value = $request->input($field);
                 if ($field === 'certificates' && is_array($value)) {
                     $data[$field] = $value;
