@@ -547,7 +547,7 @@
 | POST | `/api/tickets` | 提交工单 (title/content 必填) |
 | GET | `/api/tickets` | 工单列表 (?status=open/closed&page=) |
 | GET | `/api/tickets/{id}` | 工单详情（仅本人，他人 404） |
-| POST | `/api/tickets/{id}/close` | 关闭工单（仅本人/仅 open） |
+| POST | `/api/tickets/{id}/close` | 关闭工单（仅本人/仅 open；可选 rating 1-5 满意度打分，越界/非整数 422，未提供兼容 NULL） |
 
 ### 12. 预约月历接口（需JWT认证，第20轮）
 
@@ -555,6 +555,28 @@
 |------|------|------|
 | GET | `/api/calendar/technician/{id}` | 月视图 (?month=YYYY-MM)：排班 time_slots 展开小时槽 + 已约排除 |
 | GET | `/api/calendar/technician/{id}/day` | 日视图 (?date=YYYY-MM-DD)：当天可约/已约/不可约槽位明细 |
+
+### 13. 发票抬头接口（需JWT认证，第21轮）
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| POST | `/api/invoice-titles` | 保存抬头 (title_type: personal/company；company 必须 tax_no；同用户同抬头重复 422；首条自动为默认) |
+| GET | `/api/invoice-titles` | 抬头列表（默认置顶） |
+| PUT | `/api/invoice-titles/{id}` | 编辑抬头（仅本人） |
+| DELETE | `/api/invoice-titles/{id}` | 删除抬头（仅本人；删默认后自动指定最早一条） |
+| POST | `/api/invoice-titles/{id}/default` | 设为默认（事务清零同用户其他行） |
+
+**申请联动**: POST /api/invoices 支持可选 title_id —— 解析抬头自动带入 invoice_title/tax_no/title_type，无 title_id 时保留原手填路径。
+
+### 14. 浏览足迹接口（需JWT认证，第21轮）
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/api/browse-history` | 最近浏览服务（join 服务名称/封面/价格/原价，viewed_at 倒序，per_page 默认 15 上限 50） |
+| DELETE | `/api/browse-history/{item_id}` | 删除单条（仅本人，非法/他人 404） |
+| DELETE | `/api/browse-history` | 清空足迹（仅本人） |
+
+**记录时机**: 服务详情接口访问成功后自动记录（未登录跳过；重复浏览只刷新 viewed_at 不重复插入）。
 
 ---
 
@@ -656,8 +678,19 @@
 |------|------|------|
 | GET | `/admin/tickets` | 工单列表（?status=&page=，静态路由先于 resource 避免 shadow） |
 | POST | `/admin/tickets/{id}/reply` | 回复工单 (content 必填，写 reply_content/replied_at，工单回到 open) |
+| GET | `/admin/tickets/satisfaction` | 满意度汇总（第21轮）：total/rated_count/unrated_count/average 1位小数/1-5星 distribution 缺星补 0；静态路由先于 resource |
 
-权限ID: 385 工单回复 / 387 工单列表查看。
+权限ID: 385 工单回复 / 387 工单列表查看 / 388 工单满意度统计。
+
+### 评价图片审核（第21轮）
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/admin/review-audit` | 带图评价列表（JSON_LENGTH(images)>0，?status=visible/hidden&page=，join 用户昵称与技师名，ID hashid 编码） |
+| POST | `/admin/review-audit/{id}/hide` | 隐藏评价（仅 visible 可隐藏，否则 422；隐藏后用户端技师评价列表自动不可见） |
+| POST | `/admin/review-audit/{id}/restore` | 恢复评价（仅 hidden 可恢复，否则 422） |
+
+权限ID: 389 列表 / 390 隐藏 / 391 恢复。
 
 ### 二级返佣记录（第20轮）
 

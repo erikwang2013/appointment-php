@@ -524,3 +524,36 @@ Flutter Web 单页应用，共 21 个页面：dashboard/用户/角色/配置/日
 - 幂等：事务内行锁 + uk_order_referred(order_id, level2_user_id) 唯一键，重复支付回调/并发不重复发放；try/catch 失败仅记日志不影响支付主流程
 - 入账：WalletTxn type='referral_level2'（TYPE_REFERRAL_LEVEL2 常量）+ 钱包余额累加
 - 管理端：ReferralLevel2Controller index 分页记录（权限 386），join 两级用户昵称
+
+### 26. 成长等级权益落地（第21轮）
+
+- GrowthLevel.benefits JSON 空壳落地：迁移种子 5 档（青铜 {"discount_rate":1.0,"points_multiplier":1.0}、白银 0.98/1.1、黄金 0.95/1.2、铂金 0.92/1.3、钻石 0.9/1.5）
+- 等级折扣：OrderController::store applyGrowthDiscount() —— 仅标准订单（promotion_id 为空，拼团/秒杀禁用叠加）；顺序：券/次卡优惠后应付金额 × discount_rate；折扣额并入 discount_amount，订单备注追加「等级折扣：白银9.8折，优惠¥2.00」可追溯；最低价保护：折后实付 ≥0.01 元（分制 ≥100），不足则折扣截断为 0
+- 积分倍率：WechatPayService::markOrderPaid 成长值由 floor(paid) 改 floor(paid × points_multiplier)，倍率按支付时点等级取档（入账前累计，本单不抬级）；R20 的 try/catch 挂接点完整保留
+- 查询复用：GrowthLevel::levelForGrowth() 按累计成长值取档，供下单/支付复用；GET /api/growth 已返回 benefits 与 next_gap（R20 实现，无需改）
+
+### 27. 发票抬头管理（第21轮）
+
+- erik_invoice_title（uk_user_title(user_id, title_type, invoice_title) 防重复 + idx_user_default）
+- 接口：POST /api/invoice-titles（保存，company 必须 tax_no，重复 422）；GET（列表，默认置顶）；PUT /{id}（编辑，仅本人）；DELETE /{id}（删除，仅本人）；POST /{id}/default（设默认，事务清零同用户其他行）
+- 默认规则：首条保存自动为默认；删除默认后自动指定最早一条
+- 申请联动：InvoiceController::store 可选 title_id 解析抬头带入 invoice_title/tax_no/title_type，无 title_id 时保留原手填路径；uk_order_type 防重逻辑未动
+
+### 28. 工单满意度（第21轮）
+
+- erik_ticket 加 rating TINYINT NULL + rated_at DATETIME NULL（迁移 000303）
+- 关闭打分：TicketController::close() 支持可选 rating 1-5（filter_var 整数校验，越界/非整数 422；提供则写 rating+rated_at，未提供保持 NULL 兼容旧客户端；只关 open 工单规则保留）
+- 后台统计：GET /admin/tickets/satisfaction（静态路由先于 resource 避免 {id} shadow）返回 total/rated_count/unrated_count/average（1 位小数）/distribution（1-5 星各数量，缺星补 0）；权限 388
+
+### 29. 评价图片审核（第21轮）
+
+- admin ReviewAuditController（新建，不动现有 ReviewController）：GET /admin/review-audit 带图评价列表（JSON_LENGTH(images)>0 过滤 + leftJoin 用户昵称与技师名 + status 筛选 + hashid 编码）；POST /{id}/hide 隐藏；POST /{id}/restore 恢复
+- 状态机：hide 仅 visible 可隐藏、restore 仅 hidden 可恢复（双向 422）；OrderReview 状态为整数体系（STATUS_HIDDEN=0/STATUS_VISIBLE=1）
+- 生效链路：用户端技师评价列表已按 status 过滤 → 隐藏后自动不可见
+- 权限：389 列表 / 390 隐藏 / 391 恢复
+
+### 30. 用户浏览足迹（第21轮）
+
+- erik_browse_history（uk_user_item(user_id, item_id) 唯一，重复浏览只刷 viewed_at 不重复插入；idx_user_viewed 排序）
+- 记录挂接：ServiceController::detail() 成功后记录（try/catch + Log::warning 不影响主流程；公开路由无 JWT，user_id 判空跳过匿名）
+- 接口：GET /api/browse-history（join erik_service 名称/封面/价格/原价，viewed_at 倒序，per_page 默认 15 上限 50，item_id hashid）；DELETE /{item_id}（仅本人，非法/他人 404）；DELETE /（清空仅本人）

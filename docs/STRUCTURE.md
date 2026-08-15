@@ -428,6 +428,8 @@ apps/flutter/
 | 订单 | erik_invoice | 电子发票（第20轮） |
 | 用户 | erik_ticket | 客服工单（第20轮） |
 | 营销 | erik_referral_level2_reward | 二级返佣记录（第20轮） |
+| 用户 | erik_invoice_title | 发票抬头库（第21轮） |
+| 用户 | erik_browse_history | 浏览足迹（第21轮） |
 
 ## 外部服务预留
 

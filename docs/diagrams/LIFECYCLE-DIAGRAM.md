@@ -232,9 +232,11 @@ stateDiagram-v2
 
     open --> open: 后台回复<br/>(reply_content/replied_at 追加)
 
-    open --> closed: 用户主动关闭<br/>(仅本人/仅 open)
+    open --> closed: 用户主动关闭<br/>(仅本人/仅 open，可选 rating 1-5)
 
     closed --> [*]
+
+    note right of closed: 满意度打分落 rating/rated_at<br/>admin 汇总平均分与分布
 ```
 
 ## 12. 电子发票生命周期（第20轮）

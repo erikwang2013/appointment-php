@@ -2,7 +2,7 @@
 
 三端预约服务管理平台：用户端微信小程序 + Flutter APP（同账号身份切换）、PC管理后台。
 
-> **项目状态**: 全部完成 ✅ | 123 控制器 | 121 模型 | 535 测试（service 408 / admin 127） | 84 数据表 | 324 路由
+> **项目状态**: 全部完成 ✅ | 126 控制器 | 123 模型 | 571 测试（service 435 / admin 136） | 86 数据表 | 338 路由
 
 ## 项目结构
 
@@ -142,6 +142,11 @@ cd ../service/ && cp .env.docker .env && docker-compose up -d
 | 电子发票 | POST/GET /api/invoices（申请/列表/详情）：uk_order_type(order_id,order_type) 防重复申请、金额服务端带出；admin 开票/驳回（权限 382-384） |
 | 客服工单 | POST/GET /api/tickets + /{id}/close：用户提交/列表/详情/关闭；admin 回复（权限 385/387） |
 | 多级分销-二级返佣 | 订单支付后给一级推荐人的推荐人发 paid×level2_rate（配置 0.02）：事务行锁 + uk_order_referred 幂等防重复发放；WalletTxn TYPE_REFERRAL_LEVEL2；admin 记录查看（权限 386） |
+| 成长等级权益 | GrowthLevel.benefits 空壳落地：下单按等级 discount_rate 折扣（仅标准订单，券/次卡→等级折扣叠加，折扣额入 discount_amount + 备注可追溯，下限保护截断为 0）；支付回调成长值 floor(paid×points_multiplier) 倍率入账（支付时点取档，不抬级） |
+| 发票抬头管理 | erik_invoice_title 常用抬头库：保存/编辑/删除/默认（首条自动默认、删默认自动转移、设默认事务清零）；申请发票可选 title_id 带入，手填兼容保留 |
+| 工单满意度 | 关闭工单可打分 1-5（越界 422，未提供兼容 NULL）；admin 满意度汇总：平均分/1-5 星分布/已评未评计数（权限 388） |
+| 评价图片审核 | admin ReviewAuditController：带图评价列表（JSON_LENGTH 过滤 + join 用户/技师名）、隐藏/恢复（hide 仅 visible、restore 仅 hidden，422 双向校验）；隐藏后技师评价列表自动不可见（权限 389-391） |
+| 浏览足迹 | erik_browse_history（uk_user_item 重复浏览只刷 viewed_at）：服务详情挂接记录（try/catch 不阻塞主流程、未登录跳过）；列表 join 服务信息 + hashid；删单条/清空仅本人 |
 
 > 第 8 轮运维性修复：移除 12 处 Poster::verify 潜伏 fatal；DashboardController 统计改用 Capsule Manager 查询。
 >
@@ -158,6 +163,8 @@ cd ../service/ && cp .env.docker .env && docker-compose up -d
 > Round-19 补充：余额转账（erik_wallet_transfer + WalletTransferController，权限内双行锁 + client_token 幂等）；积分转赠（erik_user_points_transfer + PointsTransferController，单日限额 + 双向流水）；评价追评（erik_order_review append 三列 + append 接口 + 补注册 store 路由）；用户端物流跟踪（logistics 接口 + remark JSON 解析 + 手机号脱敏）；消息偏好设置（erik_user_notify_setting + NotifySettingController + 3 定时器门控）。
 >
 > Round-20 补充：预约月历（CalendarController 月/日视图 + 已约排除）；用户成长等级（erik_user_growth + erik_growth_level 5 档 + 签到/评价/消费挂接）；电子发票（erik_invoice + uk_order_type 防重复 + 后台开票/驳回，权限 382-384）；客服工单（erik_ticket 提交/列表/详情/关闭 + 后台回复，权限 385/387）；多级分销-二级返佣（payLevel2Reward 事务行锁 + uk_order_referred 幂等，权限 386）。
+>
+> Round-21 补充：成长等级权益落地（下单 discount_rate 折扣 + 支付 points_multiplier 积分倍率，迁移种子 5 档 benefits）；发票抬头管理（erik_invoice_title 抬头库 + 申请 title_id 联动）；工单满意度（关闭打分 rating/rated_at + admin 汇总统计，权限 388）；评价图片审核（ReviewAuditController 隐藏/恢复，权限 389-391）；用户浏览足迹（erik_browse_history + 详情挂接 + 列表/删除/清空）。
 
 ## 文档导航
 

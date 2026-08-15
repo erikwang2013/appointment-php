@@ -2,7 +2,7 @@
 
 A three-platform appointment service management platform: WeChat Mini Program + Flutter App (same-account role switching) + PC Admin Dashboard.
 
-> **Status**: All complete | 123 Controllers | 121 Models | 535 tests (service 408 / admin 127) | 84 Tables | 324 Routes
+> **Status**: All complete | 126 Controllers | 123 Models | 571 tests (service 435 / admin 136) | 86 Tables | 338 Routes
 
 ## Project Structure
 
@@ -142,6 +142,11 @@ cd ../service/ && cp .env.docker .env && docker-compose up -d
 | E-Invoice | POST/GET /api/invoices (apply/list/detail): uk_order_type(order_id,order_type) dedup on duplicate apply, amount served server-side; admin issue/reject (permissions 382-384) |
 | Customer Tickets | POST/GET /api/tickets + /{id}/close: user submit/list/detail/close; admin reply (permissions 385/387) |
 | Multi-level Referral L2 | After order paid, pay first-level referrer's referrer paid×level2_rate (config 0.02): transaction row lock + uk_order_referred idempotency; WalletTxn TYPE_REFERRAL_LEVEL2; admin record view (permission 386) |
+| Growth Level Benefits | GrowthLevel.benefits shell realized: order-time discount_rate discount (standard orders only, coupon/card → level discount order, discount amount into discount_amount + traceable remark, floor protection truncates to 0); payment growth points floor(paid×points_multiplier) (tier taken at payment time, no same-order promotion) |
+| Invoice Titles | erik_invoice_title frequently-used title library: save/edit/delete/default (first auto-default, deleted default auto-reassigns oldest, set-default transactional clear); invoice apply optional title_id, manual-entry compatible |
+| Ticket Satisfaction | Close ticket may rate 1-5 (out-of-range 422, absent keeps NULL for old clients); admin satisfaction summary: average / 1-5 star distribution / rated vs unrated counts (permission 388) |
+| Review Image Audit | admin ReviewAuditController: image reviews list (JSON_LENGTH filter + join user/technician names), hide/restore (hide only visible, restore only hidden, 422 both ways); hidden reviews automatically invisible in public lists (permissions 389-391) |
+| Browse Footprint | erik_browse_history (uk_user_item, re-browse refreshes viewed_at only): service detail hook records (try/catch non-blocking, anonymous skipped); list joins service info + hashid; delete single/clear owner-only |
 
 > Round-8 maintenance fixes: removed 12 latent Poster::verify fatals; DashboardController stats switched to Capsule Manager queries.
 >
@@ -160,6 +165,8 @@ cd ../service/ && cp .env.docker .env && docker-compose up -d
 > Round-19 additions: balance transfer (erik_wallet_transfer + WalletTransferController, dual row locks + client_token idempotency); points transfer (erik_user_points_transfer + PointsTransferController, daily cap + double ledger); review append (erik_order_review 3 append columns + append endpoint + store route registration); logistics tracking (logistics endpoint + remark JSON parsing + phone masking); notification preferences (erik_user_notify_setting + NotifySettingController + 3 timer gates).
 >
 > Round-20 additions: booking calendar (CalendarController month/day views + booked-slot exclusion); user growth levels (erik_user_growth + erik_growth_level 5 tiers + check-in/review/spending hooks); e-invoice (erik_invoice + uk_order_type dedup + admin issue/reject, permissions 382-384); customer tickets (erik_ticket submit/list/detail/close + admin reply, permissions 385/387); multi-level referral L2 (payLevel2Reward transaction row lock + uk_order_referred idempotency, permission 386).
+>
+> Round-21 additions: growth level benefits realized (order discount_rate + payment points_multiplier, migration seeds 5-tier benefits); invoice titles (erik_invoice_title library + apply title_id link); ticket satisfaction (close rating rating/rated_at + admin summary, permission 388); review image audit (ReviewAuditController hide/restore, permissions 389-391); browse footprint (erik_browse_history + detail hook + list/delete/clear).
 
 ## Documentation
 
