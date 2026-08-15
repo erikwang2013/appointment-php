@@ -177,6 +177,14 @@ class AutoCancelTimer
                     });
                     if ($done) {
                         $completedCount++;
+                        // 状态时间线：serving → completed（超时自动完成，失败仅记日志）
+                        \app\model\OrderStatusLog::record(
+                            (string) $order->id,
+                            Order::STATUS_SERVING,
+                            Order::STATUS_COMPLETED,
+                            '服务超时自动完成',
+                            'system'
+                        );
                     }
                 } catch (\Throwable $e) {
                     Log::error('[AutoCancelTimer] Failed to auto-complete order '
@@ -201,7 +209,7 @@ class AutoCancelTimer
      */
     private function cancelOrder(Order $order): bool
     {
-        return Db::transaction(function () use ($order): bool {
+        $done = Db::transaction(function () use ($order): bool {
             // 重新查询并加锁，避免并发问题
             $locked = Order::where('id', $order->id)
                 ->where('status', Order::STATUS_PENDING)
@@ -251,6 +259,18 @@ class AutoCancelTimer
 
             return true;
         });
+
+        if ($done) {
+            // 状态时间线：pending → cancelled（超时自动取消，失败仅记日志）
+            \app\model\OrderStatusLog::record(
+                (string) $order->id,
+                Order::STATUS_PENDING,
+                Order::STATUS_CANCELLED,
+                '超时未支付自动取消',
+                'system'
+            );
+        }
+        return $done;
     }
 
     /**

@@ -676,6 +676,17 @@ class WechatPayService
 
             \support\Db::commit();
 
+            // 状态时间线：pending → paid（所有支付路径的单一消费点，失败仅记日志）
+            if ($order) {
+                \app\model\OrderStatusLog::record(
+                    (string) $order->id,
+                    \app\model\Order::STATUS_PENDING,
+                    \app\model\Order::STATUS_PAID,
+                    $payType === 'balance' ? '余额支付成功' : '支付成功',
+                    'user'
+                );
+            }
+
             // 微信官方分账：支付成功后按配置比例向技师分账（未启用/未配置自动降级 disabled，失败仅记日志）
             try {
                 if ($order) {

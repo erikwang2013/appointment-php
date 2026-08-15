@@ -20,6 +20,7 @@ use app\model\OrderItem;
 use app\model\OrderPayment;
 use app\model\OrderRefund;
 use app\model\OrderReschedule;
+use app\model\OrderStatusLog;
 use app\model\OrderVerification;
 use app\model\Promotion;
 use app\model\PromotionParticipant;
@@ -713,6 +714,7 @@ class OrderController extends BaseController
         Db::beginTransaction();
         try {
             // 已支付的订单需计算退款（B3: 与 doRefund 共用 calcRefundAmount，保证比例口径一致）
+            $fromStatus = $order->status;
             if ($order->status === Order::STATUS_PAID) {
                 $ratio = $order->calcRefundRatio();
                 $refundAmount = $this->calcRefundAmount($order, $ratio);
@@ -738,6 +740,9 @@ class OrderController extends BaseController
             $order->save();
 
             Db::commit();
+
+            // 状态时间线：→ cancelled（from_status 在变更前捕获，失败仅记日志）
+            OrderStatusLog::record($order->id, $fromStatus, Order::STATUS_CANCELLED, $cancelReason ?: '用户取消订单', 'user');
 
             // 站内通知：退款申请已受理（幂等：同订单同标题去重）
             if ($refundRecord) {
@@ -783,6 +788,9 @@ class OrderController extends BaseController
                         $order->cancel_at = null;
                         $order->save();
                         Db::commit();
+
+                        // 状态时间线：cancelled → paid（退款失败回滚）
+                        OrderStatusLog::record($order->id, Order::STATUS_CANCELLED, Order::STATUS_PAID, '退款失败，订单恢复', 'user');
                     } catch (\Throwable $e2) {
                         Db::rollBack();
                         Log::error('[OrderController] refund rollback persist failed: ' . $e2->getMessage());
@@ -805,6 +813,9 @@ class OrderController extends BaseController
                     // 积分抵扣回补（同事务，失败随退款回滚）：取消全额退还抵现积分，幂等
                     $this->refundOffsetPoints($order, $refundRecord, true);
                     Db::commit();
+
+                    // 状态时间线：cancelled → refunded（取消退款成功）
+                    OrderStatusLog::record($order->id, Order::STATUS_CANCELLED, Order::STATUS_REFUNDED, '取消订单退款成功', 'user');
                 } catch (\Throwable $e2) {
                     Db::rollBack();
                     Log::error('[OrderController] refund success persist failed: ' . $e2->getMessage());
@@ -905,6 +916,7 @@ class OrderController extends BaseController
                 $order->cancel_reason = '拼团未成团自动取消';
                 $order->cancel_at = now();
                 $order->save();
+                OrderStatusLog::record($order->id, Order::STATUS_PENDING, Order::STATUS_CANCELLED, '拼团未成团自动取消', 'system');
                 $this->releaseTechnicianLock($order);
                 return $this->error('拼团未成团，订单已自动取消', 422);
             }
@@ -915,6 +927,7 @@ class OrderController extends BaseController
                 $order->cancel_reason = '秒杀活动已结束自动取消';
                 $order->cancel_at = now();
                 $order->save();
+                OrderStatusLog::record($order->id, Order::STATUS_PENDING, Order::STATUS_CANCELLED, '秒杀活动已结束自动取消', 'system');
                 $this->releaseTechnicianLock($order);
                 return $this->error('秒杀活动已结束，订单已自动取消', 422);
             }
@@ -1423,6 +1436,9 @@ class OrderController extends BaseController
 
             Db::commit();
 
+            // 状态时间线：→ refunding
+            OrderStatusLog::record($order->id, Order::STATUS_PAID, Order::STATUS_REFUNDING, $reason ?: '用户申请退款', 'user');
+
             // 站内通知：退款申请已受理（幂等：同订单同标题去重）
             $this->writeRefundNotification($order, $refundRecord);
         } catch (\Throwable $e) {
@@ -1458,6 +1474,9 @@ class OrderController extends BaseController
                 $order->status = Order::STATUS_PAID;
                 $order->save();
                 Db::commit();
+
+                // 状态时间线：refunding → paid（退款失败回滚）
+                OrderStatusLog::record($order->id, Order::STATUS_REFUNDING, Order::STATUS_PAID, '退款失败，订单恢复', 'user');
             } catch (\Throwable $e2) {
                 Db::rollBack();
                 Log::error('[OrderController] refund failed persist error: ' . $e2->getMessage());
@@ -1481,6 +1500,9 @@ class OrderController extends BaseController
             // 积分抵扣回补（同事务，失败随退款回滚）：按退款比例退还抵现积分，幂等
             $this->refundOffsetPoints($order, $refundRecord);
             Db::commit();
+
+            // 状态时间线：refunding → refunded
+            OrderStatusLog::record($order->id, Order::STATUS_REFUNDING, Order::STATUS_REFUNDED, '退款成功', 'user');
         } catch (\Throwable $e2) {
             Db::rollBack();
             Log::error('[OrderController] refund success persist failed: ' . $e2->getMessage());
@@ -1634,6 +1656,7 @@ class OrderController extends BaseController
             $locked->refunded_at = now();
             $locked->save();
 
+            $refundFromStatus = $order->status;
             $order->status = Order::STATUS_REFUNDED;
             $order->save();
             if ($this->shouldRestoreBenefits((float) $locked->ratio)) {
@@ -1646,6 +1669,9 @@ class OrderController extends BaseController
             $this->refundOffsetPoints($order, $locked, $fullOffsetRefund);
 
             Db::commit();
+
+            // 状态时间线：→ refunded（余额退款）
+            OrderStatusLog::record($order->id, $refundFromStatus, Order::STATUS_REFUNDED, '余额退款成功', 'user');
             return true;
         } catch (\Throwable $e) {
             Db::rollBack();
@@ -1759,6 +1785,7 @@ class OrderController extends BaseController
             Db::beginTransaction();
             try {
                 if ($order->status !== Order::STATUS_SERVING) {
+                    $verifyFromStatus = $order->status;
                     $order->status = Order::STATUS_SERVING;
                     $order->service_start_at = now();
                     $order->save();
@@ -1766,6 +1793,11 @@ class OrderController extends BaseController
                 $this->createCommissionEarning($order);
                 $this->rewardOrderPoints($order);
                 Db::commit();
+
+                // 状态时间线：→ serving（技师核销，状态实际推进时记录）
+                if (isset($verifyFromStatus)) {
+                    OrderStatusLog::record($order->id, $verifyFromStatus, Order::STATUS_SERVING, '核销开始服务', 'technician');
+                }
             } catch (\Throwable $e) {
                 Db::rollBack();
                 Log::error('[OrderController] verify persist failed: ' . $e->getMessage());
@@ -2315,6 +2347,11 @@ class OrderController extends BaseController
             }
 
             Db::commit();
+
+            // 状态时间线：refunding → refunded（补偿路径）
+            if ($order->status === Order::STATUS_REFUNDED) {
+                OrderStatusLog::record($order->id, Order::STATUS_REFUNDING, Order::STATUS_REFUNDED, '退款补偿完成', 'system');
+            }
 
             // 站内通知：退款已到账（幂等：同订单同标题去重，主路径并发时不会双写）
             $this->writeRefundNotification($order, $locked);

@@ -9,6 +9,7 @@ namespace app\admin\controller;
 
 use app\model\Order;
 use app\model\OrderPayment;
+use app\model\OrderStatusLog;
 use support\Redis;
 use support\Request;
 use support\Response;
@@ -94,7 +95,13 @@ class AppointmentOrderController extends BaseController
             return $this->fail('订单不存在', 404);
         }
 
-        return $this->success($this->encodeIds($order->toArray()));
+        $data = $this->encodeIds($order->toArray());
+        // 状态时间线（倒序：最新在前）
+        $data['timeline'] = $this->encodeIds(
+            OrderStatusLog::where('order_id', $id)->orderByDesc('id')->get()->toArray()
+        );
+
+        return $this->success($data);
     }
 
     /**
@@ -136,10 +143,14 @@ class AppointmentOrderController extends BaseController
             }
 
             $reason = $request->input('cancel_reason', '平台取消');
+            $fromStatus = $order->status;
             $order->status        = 'cancelled';
             $order->cancel_reason = $reason;
             $order->cancel_at     = date('Y-m-d H:i:s');
             $order->save();
+
+            // 状态时间线：→ cancelled（平台取消）
+            OrderStatusLog::record((string) $order->id, $fromStatus, 'cancelled', $reason, 'admin');
 
             return $this->success($this->encodeIds($order->toArray()), '订单已取消');
         } finally {
@@ -190,9 +201,13 @@ class AppointmentOrderController extends BaseController
             return $this->fail('当前状态不可完成', 422);
         }
 
+        $fromStatus = $order->status;
         $order->status          = 'completed';
         $order->service_end_at   = date('Y-m-d H:i:s');
         $order->save();
+
+        // 状态时间线：→ completed（平台确认完成）
+        OrderStatusLog::record((string) $order->id, $fromStatus, 'completed', '平台确认完成', 'admin');
 
         return $this->success($this->encodeIds($order->toArray()), '订单已完成');
     }

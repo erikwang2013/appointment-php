@@ -10,6 +10,7 @@ use app\common\ReferralRewardService;
 use app\common\TierRatingService;
 use app\model\Notification;
 use app\model\Order;
+use app\model\OrderStatusLog;
 use support\Db;
 use support\Log;
 use Webman\Http\Request;
@@ -173,6 +174,9 @@ class WorkController extends BaseController
             $locked->service_start_at = now();
             $locked->save();
             Db::commit();
+
+            // 状态时间线：confirmed → serving（技师开始服务）
+            OrderStatusLog::record((string) $orderId, Order::STATUS_CONFIRMED, Order::STATUS_SERVING, '技师开始服务', 'technician');
         } catch (\Throwable $e) {
             Db::rollBack();
             Log::error('[WorkController] start failed: ' . $e->getMessage());
@@ -228,6 +232,9 @@ class WorkController extends BaseController
             // 分销返佣：首单完成发放（同事务、幂等，失败整体回滚可重试）
             ReferralRewardService::handleOrderCompleted($locked);
             Db::commit();
+
+            // 状态时间线：serving → completed（技师完成服务）
+            OrderStatusLog::record((string) $orderId, Order::STATUS_SERVING, Order::STATUS_COMPLETED, '技师完成服务', 'technician');
         } catch (\Throwable $e) {
             Db::rollBack();
             Log::error('[WorkController] complete failed: ' . $e->getMessage());
