@@ -27,7 +27,7 @@ class Order extends Model
         'order_no', 'user_id', 'technician_id', 'store_id',
         'order_type', 'total_amount', 'discount_amount', 'paid_amount',
         'coupon_id', 'user_coupon_id', 'member_card_usage_id',
-        'promotion_id', 'participant_id',
+        'promotion_id', 'participant_id', 'seckill_id',
         'service_time', 'status', 'cancel_reason', 'cancel_at',
         'remark', 'voice_remark_url', 'service_start_at', 'service_end_at',
     ];

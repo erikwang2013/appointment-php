@@ -24,6 +24,7 @@ use app\model\OrderStatusLog;
 use app\model\OrderVerification;
 use app\model\Promotion;
 use app\model\PromotionParticipant;
+use app\model\SeckillActivity;
 use app\model\TechnicianEarning;
 use app\model\TechnicianProfile;
 use app\model\User;
@@ -195,6 +196,53 @@ class OrderController extends BaseController
             $participantId = $participant->id;
         }
 
+        // ── 秒杀下单（传 seckill_id 时走秒杀价，独立于拼团促销通道）──
+        // 仅秒杀活动进行中、服务匹配、未售罄；订单须仅含秒杀服务一项（qty=1），
+        // 订单项原价以活动 original_price 为准（防客户端篡改），实付以秒杀价计；
+        // 与优惠券/次卡/积分互斥（禁用叠加）。
+        $seckillId = $request->input('seckill_id');
+        $seckill = null;
+        if ($seckillId !== null) {
+            $seckillId = $this->decodeId((string) $seckillId);
+            if ($seckillId === null) {
+                return $this->error('秒杀活动不存在', 422);
+            }
+            if ($promotionId !== null) {
+                return $this->error('秒杀订单不支持叠加拼团/促销活动', 422);
+            }
+
+            $seckill = SeckillActivity::find($seckillId);
+            if (!$seckill) {
+                return $this->error('秒杀活动不存在', 422);
+            }
+
+            $now = date('Y-m-d H:i:s');
+            if ($seckill->status != 1) {
+                return $this->error('秒杀活动不存在或已结束', 422);
+            }
+            if ($now < $seckill->start_at || $now > $seckill->end_at) {
+                return $this->error('秒杀不在有效时间内', 422);
+            }
+            if ((int) $seckill->stock <= 0) {
+                return $this->error('已售罄', 422);
+            }
+
+            // 订单须仅含秒杀服务一项且数量为 1
+            if (count($items) !== 1
+                || ($items[0]['target_type'] ?? 'service') !== 'service'
+                || (int) ($items[0]['target_id'] ?? 0) !== (int) $seckill->service_id
+                || (int) ($items[0]['quantity'] ?? 1) !== 1) {
+                return $this->error('订单服务与秒杀活动不匹配', 422);
+            }
+            // 原价以活动记录为准，防止客户端篡改订单项价格
+            $items[0]['price'] = (float) $seckill->original_price;
+
+            // 秒杀订单禁用优惠券/次卡/积分叠加（秒杀价已含折扣）
+            if ($couponId !== null || $userCouponId !== null || $memberCardUsageId !== null || $usePoints > 0) {
+                return $this->error('秒杀订单不支持叠加其他优惠', 422);
+            }
+        }
+
         // 预约订单需要技师和服务时间（必填校验，不依赖锁）
         if ($orderType === Order::ORDER_TYPE_APPOINTMENT && (!$technicianId || !$serviceTime)) {
             return $this->error('预约订单需要选择技师和服务时间');
@@ -280,9 +328,16 @@ class OrderController extends BaseController
                 $pricing['paid_amount'] = $promoPrice;
             }
 
+            // 秒杀价：实付固定为活动秒杀价，优惠额 = 原价 - 秒杀价
+            if ($seckill !== null) {
+                $total = (float) $pricing['total_amount'];
+                $pricing['discount_amount'] = round($total - (float) $seckill->seckill_price, 2);
+                $pricing['paid_amount'] = (float) $seckill->seckill_price;
+            }
+
             // 满减（仅标准订单；拼团/秒杀跳过）：在券/次卡抵扣后的应付金额上判断门槛，
             // 叠加顺序：券/次卡 → 满减 → 等级折扣；优惠额并入 discount_amount、备注追加说明（可追溯）
-            if ($promotion === null) {
+            if ($promotion === null && $seckill === null) {
                 $this->applyFullReduction($pricing, $remark);
                 $this->applyGrowthDiscount($userId, $pricing, $remark);
             }
@@ -302,6 +357,7 @@ class OrderController extends BaseController
                 'member_card_usage_id' => (int)($pricing['member_card_usage_id'] ?? 0),
                 'promotion_id'         => $promotionId,
                 'participant_id'       => $participantId,
+                'seckill_id'           => $seckillId,
                 'service_time'         => $serviceTime ?: null,
                 'status'               => Order::STATUS_PENDING,
                 'remark'               => $remark,

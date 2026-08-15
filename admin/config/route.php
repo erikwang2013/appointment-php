@@ -121,6 +121,9 @@ Route::group('/admin', function () {
     Route::post('/technicians/{id}/services', [app\admin\controller\TechnicianController::class, 'services']);
     Route::get('/technicians/{id}/export', [app\admin\controller\TechnicianController::class, 'export']);
 
+    // 排班导出（独立静态路由；TechnicianScheduleController 仅此一处入口）
+    Route::get('/technician-schedule/export', [app\admin\controller\TechnicianScheduleController::class, 'export']);
+
     // 考勤管理（静态路由，无 resource 冲突；按月筛选 + 统计）
     Route::get('/attendance', [app\admin\controller\AttendanceController::class, 'index']);
     Route::get('/attendance/stats', [app\admin\controller\AttendanceController::class, 'stats']);
@@ -164,6 +167,14 @@ Route::group('/admin', function () {
     Route::get('/lucky-wheel/records', [app\admin\controller\LuckyWheelController::class, 'records']);
     Route::post('/lucky-wheel/{id}/toggle-status', [app\admin\controller\LuckyWheelController::class, 'toggleStatus']);
     Route::resource('/lucky-wheel', app\admin\controller\LuckyWheelController::class);
+
+    // 秒杀活动（静态路由必须先于 resource 定义，避免被 {id} 变量路由 shadow）
+    Route::get('/seckill/{id}/orders', [app\admin\controller\SeckillController::class, 'orders']);
+    Route::post('/seckill/{id}/toggle-status', [app\admin\controller\SeckillController::class, 'toggleStatus']);
+    Route::resource('/seckill', app\admin\controller\SeckillController::class);
+
+    // APP 版本管理
+    Route::resource('/versions', app\admin\controller\VersionController::class);
 
     // 优惠券
     Route::resource('/coupons', app\admin\controller\CouponController::class);
@@ -288,6 +299,11 @@ Route::group('/admin', function () {
 
     // 二级返佣记录（只读）
     Route::get('/referral-level2', [app\admin\controller\ReferralLevel2Controller::class, 'index']);
+
+    // 回头客奖励（30 天内二次消费奖金：配置 + 记录）
+    Route::get('/return-customer/config', [app\admin\controller\ReturnCustomerController::class, 'config']);
+    Route::put('/return-customer/config', [app\admin\controller\ReturnCustomerController::class, 'updateConfig']);
+    Route::get('/return-customer/rewards', [app\admin\controller\ReturnCustomerController::class, 'rewards']);
 
     // 技师等级
     Route::get('/technician-tiers', [app\admin\controller\TechnicianTierController::class, 'index']);

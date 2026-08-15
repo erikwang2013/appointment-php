@@ -118,6 +118,9 @@ Route::group('/api', function () {
 
     // ── 成长等级（公开浏览）──
     Route::get('/growth/levels', v('user', 'GrowthController', 'levels'));
+
+    // ── APP 检测更新（公开，登录前即可检查）──
+    Route::get('/app/version', v('api', 'VersionController', 'index'));
 })->middleware([
     app\middleware\ApiVersion::class,
 ]);
@@ -179,6 +182,31 @@ Route::group('/api/wheel', function () {
     Route::get('/prizes', v('api', 'WheelController', 'prizes'));
     Route::post('/spin', v('api', 'WheelController', 'spin'));
     Route::get('/records', v('api', 'WheelController', 'records'));
+})->middleware([
+    app\middleware\ApiVersion::class,
+    app\middleware\Auth::class,
+]);
+
+// ============================================================
+// 游客模式（只读 ApiVersion，无需认证）——未登录浏览
+// ============================================================
+Route::group('/api/guest', function () {
+    Route::get('/home', v('api', 'GuestController', 'home'));
+    Route::get('/services', v('api', 'GuestController', 'services'));
+    Route::get('/services/{id}', v('api', 'GuestController', 'serviceDetail'));
+    Route::get('/stores', v('api', 'GuestController', 'stores'));
+    Route::get('/technicians', v('api', 'GuestController', 'technicians'));
+})->middleware([
+    app\middleware\ApiVersion::class,
+]);
+
+// ============================================================
+// 秒杀接口（JWT + ApiVersion）——活动列表 / 详情 / 抢购下单
+// ============================================================
+Route::group('/api/seckill', function () {
+    Route::get('/', v('api', 'SeckillController', 'index'));
+    Route::get('/{id}', v('api', 'SeckillController', 'show'));
+    Route::post('/{id}/buy', v('api', 'SeckillController', 'buy'));
 })->middleware([
     app\middleware\ApiVersion::class,
     app\middleware\Auth::class,
