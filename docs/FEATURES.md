@@ -557,3 +557,43 @@ Flutter Web 单页应用，共 21 个页面：dashboard/用户/角色/配置/日
 - erik_browse_history（uk_user_item(user_id, item_id) 唯一，重复浏览只刷 viewed_at 不重复插入；idx_user_viewed 排序）
 - 记录挂接：ServiceController::detail() 成功后记录（try/catch + Log::warning 不影响主流程；公开路由无 JWT，user_id 判空跳过匿名）
 - 接口：GET /api/browse-history（join erik_service 名称/封面/价格/原价，viewed_at 倒序，per_page 默认 15 上限 50，item_id hashid）；DELETE /{item_id}（仅本人，非法/他人 404）；DELETE /（清空仅本人）
+
+### 31. 满减营销（第22轮）
+
+- erik_full_reduction_activity（threshold/reduction/title/status/start_at/end_at + idx_status_status_time）
+- 下单叠加：仅标准订单（拼团/秒杀跳过），以券/次卡抵扣后应付金额判门槛，顺序 **券/次卡 → 满减 → 等级折扣**；取减免额最大活动；优惠额并入 discount_amount + 备注「满减：满X减Y」；满减后实付下限 0.01 元（分制）
+- 用户端 GET /api/full-reduction-activities（公开，生效中按减免额降序）
+- admin FullReductionController：CRUD + toggle-status 上下架（destroy 带 confirmPassword）
+- 权限：396 列表 / 397 新增 / 398 编辑 / 399 上下架 / 400 删除（一条权限记录仅对应一个 method.path slug，5 路由拆 5 条）
+
+### 32. 我的预约 ICS 导出（第22轮）
+
+- IcsController GET /api/order/ics：90 天内 pending/paid/confirmed/serving 订单导出 iCal（RFC5545），仅本人
+- VEVENT：UID=订单ID、DTSTAMP(UTC)、TZID=Asia/Shanghai、默认时长 1h、摘要「预约：服务名」（缺失退化「预约」）、描述技师/门店/地址（缺失跳过）、LOCATION；文本转义（\, \; \\ \n）+ 75 字节行折叠
+- 无订单返回合法空日历（`BEGIN:VCALENDAR` 骨架）
+
+### 33. 技师考勤（第22轮）
+
+- erik_technician_attendance（date/check_in_at/check_out_at/status + uk_technician_date 唯一索引防并发重复打卡）
+- 技师端（TechnicianAuth）：check-in 当日重复 422；check-out 未上班/已下班 422 + 行锁；>10:00 标记迟到；GET 当月列表 + 出勤天数/总工时/平均工时（?month=YYYY-MM 非法 422）
+- admin：GET /admin/attendance（date+技师名筛选、join real_name、hashid）+ /stats（按技师分组统计）
+- 权限：392 列表 / 393 统计
+
+### 34. APP 推送服务（第22轮）
+
+- AppPushService（config group=push：enabled 默认 0 / provider jpush/getui/placeholder）：未启用静默降级仅日志；启用构造平台/标题/内容/payload 结构记 Log + 写 erik_push_log（status=sent）；厂商 SDK 对接留 TODO（无凭据不实际发送）
+- 接入 5 处事件：支付成功（WechatPayService::markOrderPaid）、自动退款（autoRefundCancelledOrder）、手动退款（doRefund/refundToBalance）、退款补偿（completeOneRefundCompensation）、服务开始提醒（ServiceReminderTimer）；全部 try/catch 不阻断主流程
+- erik_push_log（user_id/title/content/payload JSON/status/provider + idx_user）
+
+### 35. 微信官方分账（第22轮）
+
+- WechatProfitSharingService（config group=profit_sharing：enabled/receiver_ratio，凭据复用 wechat_pay）：未启用 disabled 降级仅日志不落库；启用→金额校验（>0 且 ≤paid，实付×0.7 默认）+ 幂等（同单 pending/success 跳过）→ 落 pending 记录 → 构造「请求单次分账」结构（无凭据不执行 HTTP，请求内容记日志，记录保持 pending）；HTTP 隔离私有 doRequest 可测试
+- WechatPayService::markOrderPaid 提交后挂接 requestSharing（try/catch 失败仅日志）
+- erik_profit_sharing（uk_sharing_no 唯一 + idx_order）；admin GET /admin/profit-sharing 列表（join 订单号/技师昵称，状态/订单号/技师名筛选）
+- 权限：394
+
+### 36. 隐私合规（第22轮）
+
+- GET /api/privacy/data：数据导出（personal/orders/points/wallet_txns/reviews/addresses/invoices 分组；日志只记脱敏手机号+条数）
+- 注销闭环：close-request（余额非 0 / 未完成订单 / 进行中工单 422 → close_status=1）→ close-cancel（1→0）→ close-confirm（满 72h → close_status=2 + close_at + phone/nickname 匿名化 user{id} + status=0）
+- erik_user 加 close_status/close_requested_at/close_at（幂等 ALTER 迁移）；AuthController login/loginByCode 对 close_status=2 返回 403「账号已注销」

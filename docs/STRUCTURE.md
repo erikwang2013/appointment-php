@@ -430,6 +430,10 @@ apps/flutter/
 | 营销 | erik_referral_level2_reward | 二级返佣记录（第20轮） |
 | 用户 | erik_invoice_title | 发票抬头库（第21轮） |
 | 用户 | erik_browse_history | 浏览足迹（第21轮） |
+| 营销 | erik_full_reduction_activity | 满减活动（第22轮） |
+| 技师 | erik_technician_attendance | 技师考勤（第22轮） |
+| 系统 | erik_push_log | APP推送记录（第22轮） |
+| 财务 | erik_profit_sharing | 微信分账记录（第22轮） |
 
 ## 外部服务预留
 

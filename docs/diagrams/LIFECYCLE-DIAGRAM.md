@@ -253,3 +253,41 @@ stateDiagram-v2
     rejected --> [*]
 ```
 
+## 13. 满减活动生命周期（第22轮）
+
+```mermaid
+stateDiagram-v2
+    [*] --> draft: 后台创建(默认下架)
+
+    draft --> published: 上架发布(status=1)
+
+    published --> ended: 到期(end_at) / 手动下架
+
+    published --> used: 用户下单触发<br/>(券后金额≥threshold 自动减免<br/>取减免额最大活动)
+
+    used --> [*]: 正常订单生命周期<br/>(满减后实付下限0.01元)
+
+    ended --> published: 重新上架<br/>(未到期)
+    ended --> [*]
+
+    note right of used: 仅标准订单生效<br/>拼团/秒杀跳过
+```
+
+## 14. 账号注销生命周期（第22轮）
+
+```mermaid
+stateDiagram-v2
+    [*] --> active: 正常使用
+
+    active --> requested: 申请注销<br/>(余额/未完成订单/在途工单拦截422)
+
+    requested --> active: 取消申请(close-cancel)
+
+    requested --> closing: 确认注销<br/>(满72h close-confirm)
+
+    closing --> [*]: 匿名化 phone/nickname<br/>+ status=0 停用
+
+    note right of requested: 登录不受影响
+    note right of closing: close_status=2 登录拦截403
+```
+

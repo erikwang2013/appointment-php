@@ -578,6 +578,41 @@
 
 **记录时机**: 服务详情接口访问成功后自动记录（未登录跳过；重复浏览只刷新 viewed_at 不重复插入）。
 
+### 15. 满减活动接口（第22轮）
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/api/full-reduction-activities` | 生效中满减活动列表（status=1 且时间在有效期内，按减免额降序；公开接口） |
+
+**下单叠加规则**: 满减仅标准订单生效（拼团/秒杀跳过），以券/次卡抵扣后的应付金额判断门槛（threshold），叠加顺序 **券/次卡 → 满减 → 等级折扣**；取减免额最大活动；优惠额并入 discount_amount、备注追加「满减：满X减Y」；满减后实付下限 0.01 元。
+
+### 16. 我的预约 ICS 导出（需JWT认证，第22轮）
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/api/order/ics` | 导出 90 天内有效订单（pending/paid/confirmed/serving）为 iCal（RFC5545） |
+
+**输出**: `Content-Type: text/calendar; charset=utf-8` + `Content-Disposition: attachment; filename="my-appointments.ics"`。VEVENT：UID=订单ID、TZID=Asia/Shanghai、摘要「预约：服务名」（缺失退化「预约」）、描述（技师/门店/地址，缺失跳过）、LOCATION 门店名；文本按 RFC5545 转义（\, \; \\ \n）+ 75 字节行折叠。无订单返回合法空日历；仅导出本人订单。
+
+### 17. 技师考勤接口（需JWT认证，第22轮）
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| POST | `/api/technician/attendance/check-in` | 上班打卡（当日重复 422，唯一索引兜底并发；>10:00 标记迟到） |
+| POST | `/api/technician/attendance/check-out` | 下班打卡（未上班/已下班 422，行锁并发） |
+| GET | `/api/technician/attendance` | 当月考勤列表 + 出勤天数/总工时/平均工时汇总（?month=YYYY-MM，非法 422） |
+
+### 18. 隐私合规接口（需JWT认证，第22轮）
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/api/privacy/data` | 数据导出（personal/orders/points/wallet_txns/reviews/addresses/invoices 分组 JSON；服务端日志仅记脱敏手机号+条数） |
+| POST | `/api/privacy/close-request` | 申请注销（余额非 0 / 未完成订单 / 进行中工单 422；置 close_status=1 + close_requested_at） |
+| POST | `/api/privacy/close-cancel` | 取消注销申请（close_status 1→0） |
+| POST | `/api/privacy/close-confirm` | 确认注销（满 72h 方可；close_status=2 + close_at + phone/nickname 匿名化为 user{id} + status=0） |
+
+**登录拦截**: close_status=2 的账号登录返回 403「账号已注销」。
+
 ---
 
 ## 二、管理后台API (admin/ :8787)
@@ -699,6 +734,35 @@
 | GET | `/admin/referral-level2` | 二级返佣记录（join 一级推荐人与二级推荐人昵称，分页） |
 
 权限ID: 386。发放规则：订单支付后给一级推荐人的推荐人发 paid×level2_rate（系统配置 referral.level2_rate 默认 0.02），uk_order_referred 幂等防重复。
+
+### 考勤管理（第22轮）
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/admin/attendance` | 考勤记录（?date=YYYY-MM&name=技师名&page=；join real_name，ID hashid 编码） |
+| GET | `/admin/attendance/stats` | 按技师分组统计（打卡天数/总工时/平均工时；?date=YYYY-MM，非法 422） |
+
+权限ID: 392 列表 / 393 统计。
+
+### 满减活动管理（第22轮）
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/admin/full-reduction-activities` | 活动列表（分页） |
+| POST | `/admin/full-reduction-activities` | 新增（threshold/reduction/title/status/start_at/end_at） |
+| PUT | `/admin/full-reduction-activities/{id}` | 编辑 |
+| POST | `/admin/full-reduction-activities/{id}/toggle-status` | 上下架 |
+| DELETE | `/admin/full-reduction-activities/{id}` | 删除（带 confirmPassword） |
+
+权限ID: 396 列表 / 397 新增 / 398 编辑 / 399 上下架 / 400 删除（一条权限记录对应一个 method.path slug，故 5 路由 5 条）。
+
+### 分账记录（第22轮）
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/admin/profit-sharing` | 分账记录（leftJoin 订单号/技师昵称，?status&order_no&technician_name&page=，hashid 编码） |
+
+权限ID: 394。服务端逻辑：erik_system_config group=profit_sharing（enabled/receiver_ratio）；未启用 disabled 降级仅日志；启用后支付成功自动请求分账（金额=实付×receiver_ratio 默认 0.7，同单 pending/success 幂等跳过）；无凭据不执行 HTTP，请求结构记日志。
 
 ### 角色权限
 
