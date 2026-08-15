@@ -19,12 +19,14 @@ class UserWallet extends Model
 
     protected $fillable = [
         'user_id', 'balance', 'total_recharge', 'total_consume',
+        'pay_password', 'pay_password_set_at',
     ];
 
     protected $casts = [
-        'balance'        => 'float',
-        'total_recharge' => 'float',
-        'total_consume'  => 'float',
+        'balance'            => 'float',
+        'total_recharge'     => 'float',
+        'total_consume'      => 'float',
+        'pay_password_set_at' => 'datetime',
     ];
 
     /**

@@ -21,6 +21,9 @@ use Webman\Http\Request;
  * POST /api/wallet/recharge       创建充值单
  * POST /api/wallet/recharge/{id}/pay  充值单发起微信支付
  * GET  /api/wallet/txns           流水明细（分页 + type 筛选）
+ * POST /api/wallet/pay-password/set     设置/修改支付密码
+ * POST /api/wallet/pay-password/verify  验证支付密码（前端支付确认）
+ * POST /api/wallet/pay-password/check   查询是否已设置支付密码
  *
  * 充值回调（微信异步通知）在 PaymentNotifyController::wechatNotify 按
  * out_trade_no 前缀 'R' 分支处理，不走本控制器。
@@ -166,5 +169,103 @@ class WalletController extends BaseController
         }
 
         return $this->paginate($paginator);
+    }
+
+    /**
+     * 设置/修改支付密码
+     *
+     * body: { password: string 新密码 6 位数字, confirm: string 确认密码,
+     *         pay_password?: string 原密码（已设置时必填）}
+     * 首次设置直接存储；已设置需验证原密码。password_hash 存储，绝不明文。
+     */
+    public function setPayPassword(Request $request)
+    {
+        $userId = $request->user_id;
+        $password = (string) $request->input('password', '');
+        $confirm = (string) $request->input('confirm', '');
+
+        if (!preg_match('/^\d{6}$/', $password)) {
+            return $this->error('支付密码须为 6 位数字', 422);
+        }
+        if ($password !== $confirm) {
+            return $this->error('两次输入的支付密码不一致', 422);
+        }
+
+        $wallet = $this->getWallet($userId);
+        if (!empty($wallet->pay_password)) {
+            $old = (string) $request->input('pay_password', '');
+            if (!preg_match('/^\d{6}$/', $old)) {
+                return $this->error('请输入原支付密码', 422);
+            }
+            if (!password_verify($old, (string) $wallet->pay_password)) {
+                return $this->error('原支付密码错误', 422);
+            }
+        }
+
+        $wallet->pay_password = password_hash($password, PASSWORD_DEFAULT);
+        $wallet->pay_password_set_at = date('Y-m-d H:i:s');
+        $wallet->save();
+
+        return $this->success(['set' => true], '支付密码设置成功');
+    }
+
+    /**
+     * 验证支付密码（前端支付确认）
+     *
+     * body: { pay_password: string 6 位数字 }
+     * 未设置返回 422；错误返回 422；正确返回 { valid: true }。
+     */
+    public function verifyPayPassword(Request $request)
+    {
+        $userId = $request->user_id;
+        $wallet = $this->getWallet($userId);
+
+        if (empty($wallet->pay_password)) {
+            return $this->error('请先设置支付密码', 422);
+        }
+
+        $password = (string) $request->input('pay_password', '');
+        if (!preg_match('/^\d{6}$/', $password)) {
+            return $this->error('支付密码须为 6 位数字', 422);
+        }
+
+        if (!password_verify($password, (string) $wallet->pay_password)) {
+            return $this->error('支付密码错误', 422);
+        }
+
+        return $this->success(['valid' => true], '支付密码验证通过');
+    }
+
+    /**
+     * 查询是否已设置支付密码
+     *
+     * 返回 { set: true/false }，供前端决定展示「设置」还是「输入密码」。
+     */
+    public function checkPayPassword(Request $request)
+    {
+        $userId = $request->user_id;
+        $wallet = $this->getWallet($userId);
+
+        return $this->success(['set' => !empty($wallet->pay_password)]);
+    }
+
+    /**
+     * 获取（必要时惰性创建）用户钱包
+     * 与 index() 同策略：uk_user_id 唯一键并发冲突时重取。
+     */
+    private function getWallet(mixed $userId): UserWallet
+    {
+        try {
+            return UserWallet::firstOrCreate(
+                ['user_id' => $userId],
+                ['balance' => 0.00, 'total_recharge' => 0.00, 'total_consume' => 0.00]
+            );
+        } catch (\Throwable) {
+            $wallet = UserWallet::where('user_id', $userId)->first();
+            if ($wallet) {
+                return $wallet;
+            }
+            throw new \RuntimeException('钱包初始化失败');
+        }
     }
 }
