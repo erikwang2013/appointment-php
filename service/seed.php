@@ -6,7 +6,7 @@ declare(strict_types=1);
 /**
  * 演示数据种子运行器
  *
- * 读取迁移目录中的种子 SQL 文件并按顺序执行。
+ * 从 docs/install.sql 中提取演示数据段落并按顺序执行。
  * 使用方法: php seed.php
  *
  * 支持环境变量或 .env 文件配置数据库连接。
@@ -25,17 +25,26 @@ function getConfigPath(string $file): string
 }
 
 /**
- * 解析 SQL 文件中的分号分隔语句并逐条执行
+ * 从 install.sql 中提取指定文件名标记的段落（不含标记行）
  */
-function executeSqlFile(string $filePath): array
+function extractSection(string $sql, string $marker): string
 {
-    if (!file_exists($filePath)) {
-        return ['error' => "文件不存在: {$filePath}"];
+    $start = strpos($sql, "-- [{$marker}]");
+    if ($start === false) {
+        return '';
     }
+    $end = strpos($sql, "\n-- [", $start + strlen("-- [{$marker}]"));
+    $section = $end === false ? substr($sql, $start) : substr($sql, $start, $end - $start);
+    return preg_replace('/^\s*-- \[' . preg_quote($marker, '/') . '\]\s*$/m', '', $section);
+}
 
-    $sql = file_get_contents($filePath);
-    if ($sql === false || empty(trim($sql))) {
-        return ['error' => "文件为空或不可读: {$filePath}"];
+/**
+ * 解析 SQL 文本中的分号分隔语句并逐条执行
+ */
+function executeSqlText(string $sql, string $label): array
+{
+    if (empty(trim($sql))) {
+        return ['error' => "SQL 文本为空: {$label}"];
     }
 
     // 移除注释
@@ -108,7 +117,7 @@ function executeSqlFile(string $filePath): array
     }
 
     return [
-        'file'      => basename($filePath),
+        'file'      => $label,
         'total'     => $succeeded + $failed,
         'succeeded' => $succeeded,
         'failed'    => $failed,
@@ -133,17 +142,23 @@ try {
     exit(1);
 }
 
-// 种子文件列表（按顺序执行）
-$seedFiles = [
-    __DIR__ . '/../admin/database/migrations/2026_05_27_000006_demo_seeds.sql',
+// 从统一安装脚本中提取演示数据段落
+$installSql = file_get_contents(__DIR__ . '/../docs/install.sql');
+if ($installSql === false) {
+    echo "[ERROR] 无法读取 docs/install.sql\n";
+    exit(1);
+}
+
+$seedSections = [
+    'demo_seeds' => extractSection($installSql, '2026_05_27_000006_demo_seeds.sql'),
 ];
 
 $totalSucceeded = 0;
 $totalFailed = 0;
 
-foreach ($seedFiles as $file) {
-    echo "执行: " . basename($file) . "\n";
-    $result = executeSqlFile($file);
+foreach ($seedSections as $label => $section) {
+    echo "执行: {$label}\n";
+    $result = executeSqlText($section, $label);
 
     if (isset($result['error'])) {
         echo "  [SKIP] {$result['error']}\n";

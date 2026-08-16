@@ -159,8 +159,7 @@ admin/
 │   ├── encryptable.php
 │   └── ...
 ├── database/
-│   ├── migrations/             # SQL迁移
-│   └── backup/                 # 备份脚本
+│   └── backup/                 # 备份脚本（表结构与种子数据统一见 docs/install.sql）
 ├── docs/                       # 管理后台文档
 ├── public/                     # 入口文件
 ├── runtime/                    # 运行时

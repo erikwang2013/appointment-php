@@ -11,13 +11,12 @@ appointment-php/
 ├── admin/                     # 管理后台 (webman v2 + Flutter Web，独立部署 :8787)
 │   ├── app/                   #   admin(后台控制器)/api/model/middleware/process/view
 │   ├── config/                #   路由/数据库/进程/插件配置
-│   ├── database/              #   迁移 SQL（migrations/*.sql）
+│   ├── database/              #   备份脚本（表结构与种子数据统一见 docs/install.sql）
 │   ├── tests/                 #   PHPUnit（#[\Test] 属性风格）
 │   └── start.php
 ├── service/                   # 业务API服务 (webman v2，独立部署 :8787)
 │   ├── app/                   #   api/user/technician/order/wallet/marketing/notification 等模块
 │   ├── config/                #   路由/数据库/进程/支付等配置
-│   ├── database/migrations/   #   迁移 SQL（seed.php 按序扫描应用）
 │   ├── support/               #   Model 基类（generateId）/Request/Response
 │   ├── tests/                 #   PHPUnit
 │   └── start.php

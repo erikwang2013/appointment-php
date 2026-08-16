@@ -2176,6 +2176,16 @@ INSERT IGNORE INTO `erik_admin_permission` (`id`, `parent_id`, `name`, `slug`, `
 (21000000000000417, 0, 'APP版本新增', 'post.admin/versions', 3, '', '', 191, NOW(), NOW()),
 (21000000000000418, 0, 'APP版本编辑', 'put.admin/versions/{id}', 3, '', '', 192, NOW(), NOW()),
 (21000000000000419, 0, 'APP版本删除', 'delete.admin/versions/{id}', 3, '', '', 193, NOW(), NOW());
+-- (merge) 2026_08_14_000007_report_permissions.sql → erik_admin_permission
+-- [修复] 原 id 361-363 与评价权限（000307）冲突被覆盖丢失，改用 421-423 追加
+
+-- ============================================================
+-- [2026_08_14_000007_report_permissions.sql]
+-- ============================================================
+INSERT IGNORE INTO `erik_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
+(21000000000000421, 0, '订单统计报表', 'get.admin/reports/orders', 3, '', '', 200, NOW(), NOW()),
+(21000000000000422, 0, '技师绩效报表', 'get.admin/reports/technicians', 3, '', '', 201, NOW(), NOW()),
+(21000000000000423, 0, '分布报表', 'get.admin/reports/distribution', 3, '', '', 202, NOW(), NOW());
 
 -- ============================================================
 -- [20260814_create_order_reschedule.sql]

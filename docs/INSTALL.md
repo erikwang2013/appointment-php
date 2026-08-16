@@ -107,7 +107,7 @@ mysql -u root -p appointment < docs/install.sql
 mysql -u root -p open_admin < docs/install.sql
 ```
 
-> `docs/install.sql` 由 8 个迁移文件合并而成，共 1388 行，包含管理后台和业务服务的全部表结构及种子数据。
+> `docs/install.sql` 由全部迁移文件合并而成，共 2723 行，包含管理后台和业务服务的全部表结构及种子数据。全新安装一次执行；对已有库重复执行会因主键/列冲突中断，升级场景请先备份或手动处理冲突。
 
 ### 1.5 启动服务
 
@@ -266,7 +266,7 @@ appointment-php/
 ├── admin/                    # 管理后台 (webman v2)
 │   ├── app/                  # 控制器 / 模型 / 中间件
 │   ├── config/               # 路由 / 数据库 / 中间件配置
-│   ├── database/migrations/  # 原始迁移文件（8 个 SQL）
+│   ├── database/             # 备份脚本（表结构与种子数据统一见 docs/install.sql）
 │   ├── tests/                # PHPUnit 测试 (59 tests)
 │   ├── .env.example          # 环境变量模板
 │   ├── .env.docker           # Docker 环境变量
@@ -275,7 +275,7 @@ appointment-php/
 ├── service/                  # 业务 API 服务 (webman v2)
 │   ├── app/                  # 控制器 / 模型 / 中间件
 │   ├── config/               # 安全 / 路由 / 数据库配置
-│   ├── database/migrations/  # 迁移目录
+│   ├── seed.php              # 演示数据种子运行器（读取 docs/install.sql 演示数据段）
 │   ├── tests/                # PHPUnit 测试 (21 tests)
 │   ├── .env.example          # 环境变量模板
 │   ├── .env.docker           # Docker 环境变量
@@ -283,7 +283,7 @@ appointment-php/
 │   └── docker-compose.yml    # Docker 编排
 ├── docs/                     # 文档
 │   ├── INSTALL.md            # 本安装指南
-│   ├── install.sql           # 统一数据库安装脚本（1388 行）
+│   ├── install.sql           # 统一数据库安装脚本（2723 行）
 │   ├── ARCHITECTURE.md       # 架构设计文档
 │   ├── API.md                # API 参考文档
 │   └── AUDIT-REPORT.md       # 审查报告

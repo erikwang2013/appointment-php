@@ -11,7 +11,7 @@ use support\Model;
  * 用户健康档案与服务偏好
  *
  * 一人一份：user_id 表级 UNIQUE（uk_user），见
- * database/migrations/2026_08_15_000504_user_health_profile.sql
+ * docs/install.sql（原 2026_08_15_000504_user_health_profile.sql 已合并）
  * id 由 \support\Model::generateId()（snowflake）生成
  */
 class UserHealthProfile extends Model

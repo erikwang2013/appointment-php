@@ -101,10 +101,7 @@ open-admin/
 │   ├── route.php               # 路由 + API 版本策略
 │   └── middleware.php           # 全局中间件注册
 ├── database/
-│   ├── migrations/             # SQL 迁移文件
-│   │   ├── 2026_05_16_000000_init_tables.sql
-│   │   └── 2026_05_20_000001_seed_permissions.sql
-│   └── backup/                 # 数据库备份脚本
+│   └── backup/                 # 数据库备份脚本（表结构与种子数据统一收敛于 docs/install.sql）
 │       ├── backup.sh           # mysqldump+gzip，30天保留
 │       └── restore.sh          # 交互式恢复
 ├── docs/                       # 文档
