@@ -43,7 +43,7 @@ class VersionController extends BaseController
                        ->offset(($page - 1) * $limit)
                        ->limit($limit)
                        ->get()
-                       ->map(fn($v) => $this->encodeIds($v->toArray()));
+                       ->map(fn($v) => $v->toArray());
 
         return $this->success([
             'list'  => $list,
@@ -82,7 +82,7 @@ class VersionController extends BaseController
         $version->status       = (int) $request->input('status', 1);
         $version->save();
 
-        return $this->success($this->encodeIds($version->toArray()), '创建成功');
+        return $this->success($version->toArray(), '创建成功');
     }
 
     /**
@@ -123,7 +123,7 @@ class VersionController extends BaseController
         }
         $version->save();
 
-        return $this->success($this->encodeIds($version->toArray()), '更新成功');
+        return $this->success($version->toArray(), '更新成功');
     }
 
     /**

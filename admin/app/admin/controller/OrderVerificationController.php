@@ -62,14 +62,7 @@ class OrderVerificationController extends BaseController
                        ->limit($limit)
                        ->orderBy('verified_at', 'desc')
                        ->get()
-                       ->map(function ($v) {
-                           $arr = $this->encodeIds($v->toArray());
-                           // 关联订单同样编码 ID 字段，前端无需二次解码
-                           if (isset($arr['order']) && is_array($arr['order'])) {
-                               $arr['order'] = $this->encodeIds($arr['order']);
-                           }
-                           return $arr;
-                       });
+                       ->map(fn($v) => $v->toArray());
 
         return $this->success([
             'list'  => $list,
@@ -94,10 +87,6 @@ class OrderVerificationController extends BaseController
             return $this->fail('核销记录不存在', 404);
         }
 
-        $data = $this->encodeIds($verification->toArray());
-        if (isset($data['order']) && is_array($data['order'])) {
-            $data['order'] = $this->encodeIds($data['order']);
-        }
-        return $this->success($data);
+        return $this->success($verification->toArray());
     }
 }

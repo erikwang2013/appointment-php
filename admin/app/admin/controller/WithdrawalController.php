@@ -63,7 +63,7 @@ class WithdrawalController extends BaseController
                            if (isset($data['technician']['real_name'])) {
                                $data['technician']['real_name'] = mb_substr($data['technician']['real_name'], 0, 1) . '**';
                            }
-                           return $this->encodeIds($data);
+                           return $data;
                        });
 
         return $this->success([
@@ -98,7 +98,7 @@ class WithdrawalController extends BaseController
             $data['account_no'] = '****' . substr($data['account_no'], -4);
         }
 
-        return $this->success($this->encodeIds($data));
+        return $this->success($data);
     }
 
     /**
@@ -157,9 +157,9 @@ class WithdrawalController extends BaseController
                 if (!$transfer['success']) {
                     return $this->fail($transfer['message'], 500);
                 }
-                return $this->success($this->encodeIds($withdrawal->toArray()), '店长审批通过，小额自动完成');
+                return $this->success($withdrawal->toArray(), '店长审批通过，小额自动完成');
             }
-            return $this->success($this->encodeIds($withdrawal->toArray()), '店长审批通过，等待财务审批');
+            return $this->success($withdrawal->toArray(), '店长审批通过，等待财务审批');
         }
 
         if (empty($withdrawal->finance_approved_at) && $amount >= 500) {
@@ -188,7 +188,7 @@ class WithdrawalController extends BaseController
                 return $this->fail($transfer['message'], 500);
             }
 
-            return $this->success($this->encodeIds($withdrawal->toArray()), '财务审批通过');
+            return $this->success($withdrawal->toArray(), '财务审批通过');
         }
 
         return $this->fail('该提现已完成全部审批流程', 422);
@@ -223,7 +223,7 @@ class WithdrawalController extends BaseController
         $withdrawal->audited_at   = date('Y-m-d H:i:s');
         $withdrawal->save();
 
-        return $this->success($this->encodeIds($withdrawal->toArray()), '已驳回');
+        return $this->success($withdrawal->toArray(), '已驳回');
     }
 
     /**
@@ -249,6 +249,6 @@ class WithdrawalController extends BaseController
         $withdrawal->completed_at = date('Y-m-d H:i:s');
         $withdrawal->save();
 
-        return $this->success($this->encodeIds($withdrawal->toArray()), '已标记完成');
+        return $this->success($withdrawal->toArray(), '已标记完成');
     }
 }

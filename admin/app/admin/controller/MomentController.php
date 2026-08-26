@@ -37,7 +37,7 @@ class MomentController extends BaseController
                        ->orderBy('sort', 'asc')
                        ->orderBy('id', 'desc')
                        ->get()
-                       ->map(fn($m) => $this->encodeIds($m->toArray()));
+                       ->map(fn($m) => $m->toArray());
 
         return $this->success([
             'list'  => $list,
@@ -58,7 +58,7 @@ class MomentController extends BaseController
             return $this->fail('动态不存在', 404);
         }
 
-        return $this->success($this->encodeIds($moment->toArray()));
+        return $this->success($moment->toArray());
     }
 
     /**
@@ -85,7 +85,7 @@ class MomentController extends BaseController
         $moment->save();
 
         return $this->success(
-            $this->encodeIds($moment->toArray()),
+            $moment->toArray(),
             $action === 'approve' ? '审核通过' : '已驳回'
         );
     }

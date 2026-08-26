@@ -19,7 +19,7 @@ use support\Db;
  * - 启用后写 status=sent 记录且 payload 结构正确（含 provider）
  * - isEnabled 跟随配置开关变化
  * - 异常场景（超大 payload 触发落库异常）不抛出
- * - 支付成功推送（挂接块等价调用）返回 true 且落库
+ * - 支付成功推送（挂接块等价调用）返回 true 且落库（无凭据 → status=skipped）
  */
 class PushServiceTest extends TestCase
 {
@@ -152,7 +152,8 @@ class PushServiceTest extends TestCase
         $log = PushLog::where('user_id', $userId)->first();
         $this->assertNotNull($log);
         $this->assertSame('支付成功', $log->title);
-        $this->assertSame(AppPushService::STATUS_SENT, $log->status);
+        // 未配置厂商凭据（provider 为空）→ 占位记录，status=skipped 而非 sent
+        $this->assertSame(AppPushService::STATUS_SKIPPED, $log->status);
 
         $payload = is_array($log->payload) ? $log->payload : json_decode((string) $log->payload, true);
         $this->assertSame('order_paid', $payload['type'] ?? null);

@@ -84,7 +84,7 @@
 | 会员管理 | 服务过的会员列表/耗课数据/次卡/档案编辑 |
 | 收益管理 | 今日收入/结算中/钱包余额 |
 | 在途资金 | 已核销未结算，3天自动确认 |
-| 提现 | 每月20号，T+1到账微信零钱；管理端审核，金额≥500 两级审批（店长→财务） |
+| 提现 | 每月20号，T+1到账微信零钱；管理端审核，金额≥500 两级审批（店长→财务）；申请时余额在途预留、审批转账前复核、并发审批防双打款（2026-08-26 加固） |
 | 考勤 | 签到/签退/卫生照片上传 |
 | 回头客奖励 | 30天内二次消费记录奖金 |
 | 专业培训 | 视频课程/图文课程 |
@@ -206,6 +206,8 @@
 
 ### 20. 拼团/秒杀（第15轮）
 
+> 2026-08 起 FLASH_SALE 通道下线：PromotionController::index 过滤 flash_sale、show/join 对其返回 400，秒杀统一走「43. 秒杀（第24轮）」通道；`Promotion::TYPE_FLASH_SALE` 常量保留兼容历史数据。本节及「27. 秒杀下单」为历史记录。
+
 | 功能 | 说明 |
 |------|------|
 | 活动列表/详情 | GET /api/promotions + /api/promotions/{id}，type 过滤 group_buy/flash_sale |
@@ -269,7 +271,9 @@
 | 幂等 | ① expire 行 order_id 指向原 earn 流水，事务内对原行 lockForUpdate + exists 复验（并发进程在行锁上串行）② id 游标分页 ③ 通知仅在实际扣减轮次产生 |
 | 口径 | 可用余额 SUM 聚合含 expire 负值行；过期积分不可再抵现/兑换 |
 
-### 27. 秒杀下单（第18轮）
+### 27. 秒杀下单（第18轮，已下线）
+
+> 已被第24轮 `/api/seckill` 通道取代（store() 促销分支仅剩拼团），见「43. 秒杀」。
 
 | 功能 | 说明 |
 |------|------|
@@ -639,8 +643,8 @@ Flutter Web 单页应用，共 21 个页面：dashboard/用户/角色/配置/日
 ### 43. 秒杀（第24轮）
 
 - erik_seckill_activity（name/service_id/seckill_price/original_price/stock/start_at/end_at/status）；已售量 = erik_order.seckill_id 订单数
-- GET /api/seckill（status=1 + 时间窗）、/{id}（state=not_started/ongoing/ended）、POST /{id}/buy：client_token（8-64 字符，SETNX 24h）幂等 + Redis NX 30s 防并发 + 行锁 stock-1；下单失败回补库存 + 删除 token
-- 下单注入 seckill_id 复用 OrderController::store，秒杀价 = seckill_price，不叠加优惠券/积分/会员卡；订单取消不回补库存
+- GET /api/seckill（status=1 + 时间窗）、/{id}（state=not_started/ongoing/ended）、POST /{id}/buy：client_token（8-64 字符，SETNX 24h）幂等 + Redis NX 30s 防并发 + 活动校验（2026-08-26 起不再预扣库存）
+- 下单注入 seckill_id 复用 OrderController::store；库存统一在 store() 事务内行锁扣减（直接调 /api/order 带 seckill_id 同样扣库存），秒杀价 = seckill_price（以 DB 为准），不叠加优惠券/积分/会员卡；订单取消不回补库存；旧促销 FLASH_SALE 通道已删除（store() 促销分支仅剩拼团，PromotionController index 过滤 flash_sale、show/join 400），秒杀只走本通道
 - admin /admin/seckill CRUD + 上下架 + 订单列表（权限 407-411、420）；迁移 000606 权限种子；SeckillTest service + admin
 
 ### 44. APP 版本管理与检测更新（第24轮）

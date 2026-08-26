@@ -45,7 +45,7 @@ class FeedbackController extends BaseController
                            if (isset($data['user']['phone'])) {
                                $data['user']['phone'] = preg_replace('/^(\d{3})\d+(\d{4})$/', '$1****$2', $data['user']['phone']);
                            }
-                           return $this->encodeIds($data);
+                           return $data;
                        });
 
         return $this->success([
@@ -72,7 +72,7 @@ class FeedbackController extends BaseController
             $data['user']['phone'] = preg_replace('/^(\d{3})\d+(\d{4})$/', '$1****$2', $data['user']['phone']);
         }
 
-        return $this->success($this->encodeIds($data));
+        return $this->success($data);
     }
 
     /**
@@ -97,6 +97,6 @@ class FeedbackController extends BaseController
         $feedback->handled_at    = date('Y-m-d H:i:s');
         $feedback->save();
 
-        return $this->success($this->encodeIds($feedback->toArray()), '回复成功');
+        return $this->success($feedback->toArray(), '回复成功');
     }
 }

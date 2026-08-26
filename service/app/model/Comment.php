@@ -5,7 +5,6 @@ declare(strict_types=1);
 
 namespace app\model;
 
-use Erikwang2013\Snowflake\Snowflake;
 use Illuminate\Database\Eloquent\Builder;
 use support\Model;
 
@@ -50,15 +49,4 @@ class Comment extends Model
         return $this->hasMany(self::class, 'parent_id');
     }
 
-    // ── ID 生成 ──
-
-    public static function generateId(): string
-    {
-        $snowflakeConfig = config('snowflake');
-        $snowflake = new Snowflake(
-            (int)($snowflakeConfig['datacenter_id'] ?? 1),
-            (int)($snowflakeConfig['worker_id'] ?? 1)
-        );
-        return (string)$snowflake->id();
-    }
 }

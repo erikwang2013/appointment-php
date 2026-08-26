@@ -41,7 +41,7 @@ class ConfigController extends BaseController
                        ->orderBy('group')
                        ->orderBy('key')
                        ->get()
-                       ->map(fn($item) => $this->encodeIds($item->toArray()));
+                       ->map(fn($item) => $item->toArray());
 
         return $this->success([
             'list'  => $list,
@@ -91,7 +91,7 @@ class ConfigController extends BaseController
         $config->description = $request->input('description', '');
         $config->save();
 
-        return $this->success($this->encodeIds($config->toArray()), trans('messages.create_success'));
+        return $this->success($config->toArray(), trans('messages.create_success'));
     }
 
     /**
@@ -125,7 +125,7 @@ class ConfigController extends BaseController
 
         $config->save();
 
-        return $this->success($this->encodeIds($config->toArray()), trans('messages.update_success'));
+        return $this->success($config->toArray(), trans('messages.update_success'));
     }
 
     /**

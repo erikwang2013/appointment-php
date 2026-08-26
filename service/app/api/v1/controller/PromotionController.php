@@ -15,7 +15,7 @@ use Webman\Http\Request;
 
 /**
  * 促销活动控制器
- * 处理团购、秒杀活动
+ * 处理拼团活动（旧 flash_sale 秒杀通道已下线，统一走 SeckillActivity）
  */
 class PromotionController extends BaseController
 {
@@ -38,9 +38,11 @@ class PromotionController extends BaseController
             return json(json_decode($cached, true));
         }
 
+        // 旧 flash_sale 秒杀促销不再返回（已下线，前端已切到 /api/seckill）
         $query = Promotion::where('status', 1)
             ->where('start_at', '<=', $now)
             ->where('end_at', '>=', $now)
+            ->where('type', '!=', Promotion::TYPE_FLASH_SALE)
             ->with('service')
             ->withCount('participants');
 
@@ -89,7 +91,7 @@ class PromotionController extends BaseController
             $promotion->save();
         }
 
-        if ($promotion->status != 1) {
+        if ($promotion->status != 1 || $promotion->type === Promotion::TYPE_FLASH_SALE) {
             return $this->error('活动不存在或已结束');
         }
 
@@ -103,7 +105,7 @@ class PromotionController extends BaseController
     }
 
     /**
-     * 参与团购 / 秒杀
+     * 参与拼团
      * POST /api/promotions/join/{id}
      *
      * @param mixed $id
@@ -122,7 +124,8 @@ class PromotionController extends BaseController
         $now = date('Y-m-d H:i:s');
         $promotion = Promotion::withCount('participants')->find($decodedId);
 
-        if (!$promotion || $promotion->status != 1) {
+        // 旧 flash_sale 秒杀通道已下线：不再接受参与（前端已切到 SeckillController）
+        if (!$promotion || $promotion->status != 1 || $promotion->type === Promotion::TYPE_FLASH_SALE) {
             return $this->error('活动不存在或已结束');
         }
 
@@ -145,13 +148,6 @@ class PromotionController extends BaseController
             return $this->error('活动不在有效时间内');
         }
 
-        // 秒杀库存上限（无锁预检，并发下由下方 NX 锁内复验兜底）
-        if ($promotion->type === Promotion::TYPE_FLASH_SALE
-            && $promotion->max_people > 0
-            && $promotion->participants_count >= $promotion->max_people) {
-            return $this->error('已抢光', 422);
-        }
-
         // 幂等：同一用户重复参与
         $existing = PromotionParticipant::where('promotion_id', $decodedId)
             ->where('user_id', $userId)
@@ -161,7 +157,7 @@ class PromotionController extends BaseController
             return $this->error('您已参与该活动', 422);
         }
 
-        // 并发防护：活动级 Redis NX 锁（30s TTL 兜底），锁内复验库存/幂等/成团，防秒杀超卖
+        // 并发防护：活动级 Redis NX 锁（30s TTL 兜底），锁内复验幂等/成团
         $lockKey = "promotion_join:{$decodedId}";
         $token = uniqid((string)$userId, true);
         if (!Redis::connection()->set($lockKey, $token, 'EX', 30, 'NX')) {
@@ -170,12 +166,6 @@ class PromotionController extends BaseController
 
         try {
             $freshCount = PromotionParticipant::where('promotion_id', $decodedId)->count();
-
-            if ($promotion->type === Promotion::TYPE_FLASH_SALE
-                && $promotion->max_people > 0
-                && $freshCount >= $promotion->max_people) {
-                return $this->error('已抢光', 422);
-            }
 
             $existing = PromotionParticipant::where('promotion_id', $decodedId)
                 ->where('user_id', $userId)
@@ -228,9 +218,7 @@ class PromotionController extends BaseController
                 'min_people' => $promotion->min_people,
                 'max_people' => $promotion->max_people,
                 'is_locked' => $isLocked,
-                'is_full' => $promotion->type === Promotion::TYPE_FLASH_SALE
-                    && $promotion->max_people > 0
-                    && $newCount >= $promotion->max_people,
+                'is_full' => false, // 秒杀通道已下线，仅拼团可用（拼团恒 false，保持响应结构）
                 // 拼团折扣信息（下单时传 promotion_id 以拼团价结算）
                 'discount_percent' => $promotion->discount_percent,
                 'original_price' => $originalPrice,

@@ -57,7 +57,7 @@ class AttendanceController extends BaseController
             ->offset(($page - 1) * $limit)
             ->limit($limit)
             ->get()
-            ->map(fn($row) => $this->encodeIds($row->toArray(), ['id', 'technician_id']));
+            ->map(fn($row) => $row->toArray());
 
         return $this->success([
             'list'  => $list,
@@ -92,13 +92,13 @@ class AttendanceController extends BaseController
         $list = $rows->map(function ($row) {
             $minutes = (int)$row->total_minutes;
             $workDays = (int)$row->work_days;
-            return $this->encodeIds([
+            return [
                 'technician_id' => $row->technician_id,
                 'real_name'     => $row->real_name,
                 'work_days'     => $workDays,
                 'total_hours'   => round($minutes / 60, 1),
                 'avg_hours'     => $workDays > 0 ? round($minutes / 60 / $workDays, 1) : 0.0,
-            ], ['technician_id']);
+            ];
         });
 
         return $this->success(['date' => $date, 'list' => $list]);

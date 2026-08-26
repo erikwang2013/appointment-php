@@ -33,7 +33,7 @@ class RoleController extends BaseController
                       ->limit($limit)
                       ->orderBy('id', 'asc')
                       ->get()
-                      ->map(fn($role) => $this->encodeIds($role->toArray()));
+                      ->map(fn($role) => $role->toArray());
 
         return $this->success([
             'list' => $list,
@@ -79,7 +79,7 @@ class RoleController extends BaseController
             $role->permissions()->sync($request->input('permission_ids', []));
         }
 
-        return $this->success($this->encodeIds($role->toArray()), '创建成功');
+        return $this->success($role->toArray(), '创建成功');
     }
 
     /**
@@ -111,7 +111,7 @@ class RoleController extends BaseController
             $role->permissions()->sync($request->input('permission_ids', []));
         }
 
-        return $this->success($this->encodeIds($role->toArray()), '更新成功');
+        return $this->success($role->toArray(), '更新成功');
     }
 
     /**

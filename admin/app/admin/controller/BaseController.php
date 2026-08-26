@@ -21,15 +21,15 @@ use support\Response;
 class BaseController
 {
     /**
-     * 成功响应
+     * 成功响应 — data 自动递归编码 id/*_id 字段（与 service 端 BaseController 行为一致）
      */
     protected function success($data = [], string $message = 'success', int $code = 0): Response
     {
-        return json(['code' => $code, 'message' => $message, 'data' => $data]);
+        return json(['code' => $code, 'message' => $message, 'data' => $this->encodeIds($data)]);
     }
 
     /**
-     * 失败响应
+     * 失败响应 — 与 service 端 error() 对齐，不自动编码
      */
     protected function fail(string $message = 'fail', int $code = 500, $data = []): Response
     {
@@ -53,11 +53,59 @@ class BaseController
     }
 
     /**
-     * 批量编码数组中的 ID 字段
+     * 递归编码数据中的 id/*_id 字段（与 service 端 BaseController::encodeIds 同规则）
+     * 支持数组、Eloquent 模型/集合、普通对象；已编码字符串与 0/负数/非数字不变
+     * @param mixed $data 需要编码的数据
+     * @return mixed 编码后的数据
      */
-    protected function encodeIds(array $data, array $idFields = ['id']): array
+    protected function encodeIds(mixed $data): mixed
     {
-        return HashidsService::encodeIds($data, $idFields);
+        if (is_array($data)) {
+            if (array_keys($data) !== range(0, count($data) - 1)) {
+                // 关联数组
+                $result = [];
+                foreach ($data as $key => $value) {
+                    if ($this->shouldEncode($key) && is_numeric($value) && $value > 0) {
+                        $result[$key] = HashidsService::encode((int) $value);
+                    } elseif (is_array($value) || is_object($value)) {
+                        $result[$key] = $this->encodeIds($value);
+                    } else {
+                        $result[$key] = $value;
+                    }
+                }
+                return $result;
+            }
+            // 索引数组，递归处理每个元素
+            return array_map(fn($item) => $this->encodeIds($item), $data);
+        }
+
+        if (is_object($data)) {
+            // Eloquent 模型/集合: 走 toArray() 保证拿到真实数据
+            if (method_exists($data, 'toArray')) {
+                return $this->encodeIds($data->toArray());
+            }
+            $result = [];
+            foreach (get_object_vars($data) as $key => $value) {
+                if ($this->shouldEncode($key) && is_numeric($value) && $value > 0) {
+                    $result[$key] = HashidsService::encode((int) $value);
+                } elseif (is_array($value) || is_object($value)) {
+                    $result[$key] = $this->encodeIds($value);
+                } else {
+                    $result[$key] = $value;
+                }
+            }
+            return (object) $result;
+        }
+
+        return $data;
+    }
+
+    /**
+     * 判断字段名是否为 ID 字段（id 或以 _id 结尾）
+     */
+    private function shouldEncode(int|string $key): bool
+    {
+        return is_string($key) && ($key === 'id' || str_ends_with($key, '_id'));
     }
 
     /**

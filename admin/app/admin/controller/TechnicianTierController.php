@@ -23,7 +23,7 @@ class TechnicianTierController extends BaseController
         $list = TechnicianTierConfig::orderBy('sort', 'asc')
             ->orderBy('id', 'asc')
             ->get()
-            ->map(fn($t) => $this->encodeIds($t->toArray()));
+            ->map(fn($t) => $t->toArray());
 
         return $this->success(['list' => $list]);
     }
@@ -59,7 +59,7 @@ class TechnicianTierController extends BaseController
         }
         $tier->save();
 
-        return $this->success($this->encodeIds($tier->toArray()), '等级配置已更新');
+        return $this->success($tier->toArray(), '等级配置已更新');
     }
 
     /**
@@ -93,7 +93,7 @@ class TechnicianTierController extends BaseController
             }
 
             $results[] = [
-                'technician_id'   => $this->encodeId((int) $tech->id),
+                'technician_id'   => (int) $tech->id,
                 'technician_name' => mb_substr($tech->real_name, 0, 1) . '**',
                 'current_orders'  => $tech->order_count,
                 'current_rating'  => (float) $tech->rating,
@@ -151,17 +151,7 @@ class TechnicianTierController extends BaseController
             ->offset(($page - 1) * $limit)
             ->limit($limit)
             ->get()
-            ->map(function ($row) {
-                $row->id = $this->encodeId((int) $row->id);
-                $row->technician_id = $this->encodeId((int) $row->technician_id);
-                if ($row->old_tier_id) {
-                    $row->old_tier_id = $this->encodeId((int) $row->old_tier_id);
-                }
-                if ($row->new_tier_id) {
-                    $row->new_tier_id = $this->encodeId((int) $row->new_tier_id);
-                }
-                return $row;
-            });
+            ->map(fn($row) => $row);
 
         return $this->success([
             'list'  => $list,

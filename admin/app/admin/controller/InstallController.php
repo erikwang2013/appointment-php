@@ -19,8 +19,10 @@ class InstallController
 {
     public function index(Request $request): Response
     {
-        // C2: 已安装的系统禁止再次进入安装向导，防止重置超级管理员
-        if ($this->isInstalled()) {
+        // C2: 已安装的系统禁止再次进入安装向导，防止重置超级管理员。
+        // 文件锁（.install.lock）优先——向导可被指向任意数据库，DB 内 installed 标记可被绕过；
+        // 文件锁与 isInstalled() 数据库标记双保险，任一命中即拒绝。
+        if (file_exists(base_path() . '/.install.lock') || $this->isInstalled()) {
             return response('系统已安装，安装向导已禁用', 404);
         }
 
@@ -298,6 +300,11 @@ class InstallController
             $logs[] = ['name' => '写入 .env 配置文件', 'ok' => true];
         } catch (\Throwable $e) {
             $errs[] = '写入 .env 失败: ' . $e->getMessage();
+        }
+
+        // C2: 安装成功落盘文件锁（与数据库 installed 标记双保险），防止向导被再次执行
+        if (empty($errs)) {
+            @file_put_contents(base_path() . '/.install.lock', date('Y-m-d H:i:s'));
         }
 
         session()->destroy();

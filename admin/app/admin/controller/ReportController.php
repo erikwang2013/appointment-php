@@ -171,7 +171,7 @@ class ReportController extends BaseController
                 continue; // 技师档案已删除，跳过
             }
             $list[] = [
-                'technician_id'   => $this->encodeId((int) $techId),
+                'technician_id'   => (int) $techId,
                 'technician_name' => mb_substr($profile->real_name, 0, 1) . '**',
                 'order_count'     => (int) $row->order_count,
                 'revenue'         => round((float) $row->revenue, 2),

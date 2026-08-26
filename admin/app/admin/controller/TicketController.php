@@ -49,7 +49,7 @@ class TicketController extends BaseController
                        ->limit($limit)
                        ->orderBy('created_at', 'desc')
                        ->get()
-                       ->map(fn($t) => $this->encodeIds($t->toArray(), ['id', 'user_id', 'admin_id']));
+                       ->map(fn($t) => $t->toArray());
 
         return $this->success([
             'list'  => $list,
@@ -140,9 +140,6 @@ class TicketController extends BaseController
             Log::warning('[TicketController] notify ticket reply failed: ' . $e->getMessage());
         }
 
-        return $this->success(
-            $this->encodeIds($ticket->toArray(), ['id', 'user_id', 'admin_id']),
-            '回复成功'
-        );
+        return $this->success($ticket->toArray(), '回复成功');
     }
 }

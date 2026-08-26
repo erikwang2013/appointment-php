@@ -37,7 +37,7 @@ class BannerController extends BaseController
                        ->orderBy('sort', 'asc')
                        ->orderBy('id', 'desc')
                        ->get()
-                       ->map(fn($b) => $this->encodeIds($b->toArray()));
+                       ->map(fn($b) => $b->toArray());
 
         return $this->success([
             'list'  => $list,
@@ -71,7 +71,7 @@ class BannerController extends BaseController
         $banner->save();
 
         $this->clearSvcCache();
-        return $this->success($this->encodeIds($banner->toArray()), '创建成功');
+        return $this->success($banner->toArray(), '创建成功');
     }
 
     /**
@@ -85,7 +85,7 @@ class BannerController extends BaseController
             return $this->fail('Banner不存在', 404);
         }
 
-        return $this->success($this->encodeIds($banner->toArray()));
+        return $this->success($banner->toArray());
     }
 
     /**
@@ -112,7 +112,7 @@ class BannerController extends BaseController
         $banner->save();
 
         $this->clearSvcCache();
-        return $this->success($this->encodeIds($banner->toArray()), '更新成功');
+        return $this->success($banner->toArray(), '更新成功');
     }
 
     /**

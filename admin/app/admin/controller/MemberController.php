@@ -73,7 +73,7 @@ class MemberController extends BaseController
                            $data['member_cards_count'] = UserMemberCard::where('user_id', $user->id)
                                ->where('status', 'active')->count();
 
-                           return $this->encodeIds($data);
+                           return $data;
                        });
 
         return $this->success([
@@ -112,20 +112,20 @@ class MemberController extends BaseController
                                    ->limit($orderLimit)
                                    ->orderBy('id', 'desc')
                                    ->get()
-                                   ->map(fn($o) => $this->encodeIds($o->toArray()));
+                                   ->map(fn($o) => $o->toArray());
 
         // 有效会员卡
         $cards = UserMemberCard::where('user_id', $id)
             ->where('status', 'active')
             ->with('card')
             ->get()
-            ->map(fn($c) => $this->encodeIds($c->toArray()));
+            ->map(fn($c) => $c->toArray());
 
         // 消费统计
         $data['total_spent'] = Order::where('user_id', $id)->where('status', 'completed')->sum('paid_amount');
 
         return $this->success([
-            'user'   => $this->encodeIds($data),
+            'user'   => $data,
             'orders' => [
                 'list'  => $orders,
                 'total' => $orderTotal,

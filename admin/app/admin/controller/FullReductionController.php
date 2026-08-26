@@ -35,7 +35,7 @@ class FullReductionController extends BaseController
                        ->offset(($page - 1) * $limit)
                        ->limit($limit)
                        ->get()
-                       ->map(fn($a) => $this->encodeIds($a->toArray()));
+                       ->map(fn($a) => $a->toArray());
 
         return $this->success([
             'list'  => $list,
@@ -71,7 +71,7 @@ class FullReductionController extends BaseController
         $activity->end_at    = $request->input('end_at');
         $activity->save();
 
-        return $this->success($this->encodeIds($activity->toArray()), '创建成功');
+        return $this->success($activity->toArray(), '创建成功');
     }
 
     /**
@@ -105,7 +105,7 @@ class FullReductionController extends BaseController
         }
         $activity->save();
 
-        return $this->success($this->encodeIds($activity->toArray()), '更新成功');
+        return $this->success($activity->toArray(), '更新成功');
     }
 
     /**
@@ -147,6 +147,6 @@ class FullReductionController extends BaseController
         $activity->status = $status;
         $activity->save();
 
-        return $this->success($this->encodeIds($activity->toArray()), $status === 1 ? '已上架' : '已下架');
+        return $this->success($activity->toArray(), $status === 1 ? '已上架' : '已下架');
     }
 }

@@ -49,12 +49,14 @@ class AppPushService
      *
      * 未启用（push.enabled != 1）→ 记降级日志返回 false，不写记录；
      * 启用 → 构造推送请求结构（平台/标题/内容/自定义字段）记日志、写
-     * erik_push_log（status=sent）并返回 true。
+     * erik_push_log 并返回 true。
+     * status 语义：有厂商凭据（provider 非空且非 placeholder）→ sent（已发送）；
+     * 凭据缺失占位 → skipped（仅构造与记录，未实际发送）。
      *
      * TODO: 真实厂商 SDK 对接（本环境无推送凭据，不实际发送）。按 provider 分发：
      *   jpush → 极光 push（JPush::pushToUser）；getui → 个推 push；
-     *   placeholder/空 → 仅构造与记录。SDK 调用失败应抛出或返回 false，
-     *   由调用方 try/catch 兜底，不影响主流程。
+     *   placeholder/空 → 仅构造与记录（status=skipped）。SDK 调用失败应抛出
+     *   或返回 false，由调用方 try/catch 兜底，不影响主流程。
      *
      * @param int    $userId  目标用户 ID
      * @param string $title   推送标题
@@ -88,6 +90,9 @@ class AppPushService
         ];
         Log::info('[AppPush] 推送 user=' . $userId . ' ' . json_encode($structure, JSON_UNESCAPED_UNICODE));
 
+        // 无厂商凭据（placeholder/空）→ 未实际发送，status=skipped；有凭据走真实链路时才是 sent
+        $status = in_array($provider, ['', 'placeholder'], true) ? self::STATUS_SKIPPED : self::STATUS_SENT;
+
         // 记录落库失败不影响推送结果（推送链路已走完，仅排查日志缺失）
         try {
             PushLog::create([
@@ -95,7 +100,7 @@ class AppPushService
                 'title'    => $title,
                 'content'  => $content,
                 'payload'  => $payload,
-                'status'   => self::STATUS_SENT,
+                'status'   => $status,
                 'provider' => $provider,
             ]);
         } catch (\Throwable $e) {

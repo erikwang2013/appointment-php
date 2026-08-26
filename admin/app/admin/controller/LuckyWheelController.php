@@ -41,7 +41,7 @@ class LuckyWheelController extends BaseController
                        ->offset(($page - 1) * $limit)
                        ->limit($limit)
                        ->get()
-                       ->map(fn($a) => $this->encodeIds($a->toArray()));
+                       ->map(fn($a) => $a->toArray());
 
         return $this->success([
             'list'  => $list,
@@ -82,7 +82,7 @@ class LuckyWheelController extends BaseController
         $prize->status      = (int) $request->input('status', 0);
         $prize->save();
 
-        return $this->success($this->encodeIds($prize->toArray()), '创建成功');
+        return $this->success($prize->toArray(), '创建成功');
     }
 
     /**
@@ -126,7 +126,7 @@ class LuckyWheelController extends BaseController
         }
         $prize->save();
 
-        return $this->success($this->encodeIds($prize->toArray()), '更新成功');
+        return $this->success($prize->toArray(), '更新成功');
     }
 
     /**
@@ -162,7 +162,7 @@ class LuckyWheelController extends BaseController
         $prize->status = $status;
         $prize->save();
 
-        return $this->success($this->encodeIds($prize->toArray()), $status === 1 ? '已上架' : '已下架');
+        return $this->success($prize->toArray(), $status === 1 ? '已上架' : '已下架');
     }
 
     /**

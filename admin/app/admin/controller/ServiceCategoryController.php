@@ -32,7 +32,7 @@ class ServiceCategoryController extends BaseController
         $all = $query->orderBy('sort', 'asc')
                      ->orderBy('id', 'asc')
                      ->get()
-                     ->map(fn($c) => $this->encodeIds($c->toArray()));
+                     ->map(fn($c) => $c->toArray());
 
         // 构建树形结构
         $tree = $this->buildTree($all->toArray());
@@ -78,7 +78,7 @@ class ServiceCategoryController extends BaseController
         $category->save();
 
         $this->clearSvcCache();
-        return $this->success($this->encodeIds($category->toArray()), '创建成功');
+        return $this->success($category->toArray(), '创建成功');
     }
 
     /**
@@ -92,7 +92,7 @@ class ServiceCategoryController extends BaseController
             return $this->fail('分类不存在', 404);
         }
 
-        return $this->success($this->encodeIds($category->toArray()));
+        return $this->success($category->toArray());
     }
 
     /**
@@ -128,7 +128,7 @@ class ServiceCategoryController extends BaseController
         $category->save();
 
         $this->clearSvcCache();
-        return $this->success($this->encodeIds($category->toArray()), '更新成功');
+        return $this->success($category->toArray(), '更新成功');
     }
 
     /**

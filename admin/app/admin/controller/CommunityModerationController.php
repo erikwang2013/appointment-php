@@ -50,7 +50,7 @@ class CommunityModerationController extends BaseController
         $list  = $query->offset(($page - 1) * $limit)
                        ->limit($limit)
                        ->get()
-                       ->map(fn($p) => $this->encodeIds($p->toArray()));
+                       ->map(fn($p) => $p->toArray());
 
         return $this->success([
             'list'  => $list,
@@ -76,7 +76,7 @@ class CommunityModerationController extends BaseController
         $post->is_pinned = 1;
         $post->save();
 
-        return $this->success($this->encodeIds($post->toArray()), '已置顶');
+        return $this->success($post->toArray(), '已置顶');
     }
 
     /**
@@ -95,7 +95,7 @@ class CommunityModerationController extends BaseController
         $post->is_pinned = 0;
         $post->save();
 
-        return $this->success($this->encodeIds($post->toArray()), '已取消置顶');
+        return $this->success($post->toArray(), '已取消置顶');
     }
 
     /**
@@ -114,7 +114,7 @@ class CommunityModerationController extends BaseController
         $post->status = Post::STATUS_HIDDEN;
         $post->save();
 
-        return $this->success($this->encodeIds($post->toArray()), '已隐藏');
+        return $this->success($post->toArray(), '已隐藏');
     }
 
     /**

@@ -5,7 +5,6 @@ parameters:
         - app/
         - support/
     excludePaths:
-        - app/model/Test.php
         - app/process/*
         - app/queue/*
         - support/bootstrap.php

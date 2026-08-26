@@ -110,7 +110,9 @@ admin/
 │   ├── common/                 # 公共工具
 │   │   ├── HashidsService
 │   │   ├── SnowflakeService
-│   │   └── EncryptionService
+│   │   ├── EncryptionService
+│   │   ├── TechnicianWithdrawalService
+│   │   └── WechatPayService
 │   ├── middleware/             # 中间件
 │   │   ├── Cors
 │   │   ├── RateLimit
@@ -118,7 +120,7 @@ admin/
 │   │   ├── AdminAuth
 │   │   ├── AdminPermission
 │   │   └── OperationLog
-│   ├── model/                  # 数据模型
+│   ├── model/                  # 数据模型（仅 6 个特有模型：AdminPermission/AdminRole/AdminUser/OperationLog/OperationLogDetail/SystemConfig；其余 psr-4 共享 service 版）
 │   ├── queue/                  # 队列任务
 │   └── process/                # 进程
 ├── apps/
@@ -204,7 +206,17 @@ service/
 │   │   ├── ServiceRecordController # 服务记录
 │   │   └── ExamController          # 在线考核
 │   ├── order/v1/controller/     # 订单模块 v1
-│   │   └── OrderController         # 下单(锁技师)/列表/详情/取消/支付/退款/核销
+│   │   ├── OrderController         # 下单(锁技师)/列表/详情/取消/支付/退款/核销（聚合入口，38行，方法全部来自 trait）
+│   │   ├── OrderCreateTrait        # 订单创建 store/计价辅助 (475行)
+│   │   ├── OrderQueryTrait         # 订单查询 列表/详情/物流 (205行)
+│   │   ├── OrderPayTrait           # 支付 pay/余额支付/积分抵扣 (415行)
+│   │   ├── OrderCancelTrait        # 取消订单 (272行)
+│   │   ├── OrderRefundTrait        # 申请退款 (379行)
+│   │   ├── OrderCompensateTrait    # 退款补偿扫描+优惠/积分归还 (345行)
+│   │   ├── OrderVerifyTrait        # 核销 佣金/返积分 (256行)
+│   │   ├── OrderRescheduleTrait    # 预约改期 (181行)
+│   │   ├── OrderNotifyTrait        # 通知 订阅/模板/站内/WebSocket (195行)
+│   │   └── OrderLockTrait          # 分布式锁工具 (80行)
 │   ├── wallet/v1/controller/    # 钱包模块 v1
 │   │   └── WalletController        # 余额/充值/交易流水/余额支付
 │   ├── marketing/v1/controller/ # 营销模块 v1

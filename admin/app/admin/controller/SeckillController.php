@@ -41,7 +41,7 @@ class SeckillController extends BaseController
         $list  = $query->offset(($page - 1) * $limit)
                        ->limit($limit)
                        ->get()
-                       ->map(fn($a) => $this->encodeIds($a->toArray()));
+                       ->map(fn($a) => $a->toArray());
 
         return $this->success([
             'list'  => $list,
@@ -93,7 +93,7 @@ class SeckillController extends BaseController
         $activity->status         = (int) $request->input('status', 0);
         $activity->save();
 
-        return $this->success($this->encodeIds($activity->toArray()), '创建成功');
+        return $this->success($activity->toArray(), '创建成功');
     }
 
     /**
@@ -106,7 +106,7 @@ class SeckillController extends BaseController
             return $this->fail('秒杀活动不存在', 404);
         }
 
-        return $this->success($this->encodeIds($activity->toArray()));
+        return $this->success($activity->toArray());
     }
 
     /**
@@ -175,7 +175,7 @@ class SeckillController extends BaseController
         }
         $activity->save();
 
-        return $this->success($this->encodeIds($activity->toArray()), '更新成功');
+        return $this->success($activity->toArray(), '更新成功');
     }
 
     /**
@@ -204,7 +204,7 @@ class SeckillController extends BaseController
         $activity->status = $activity->status == 1 ? 0 : 1;
         $activity->save();
 
-        return $this->success($this->encodeIds($activity->toArray()), '状态更新成功');
+        return $this->success($activity->toArray(), '状态更新成功');
     }
 
     /**
@@ -237,17 +237,14 @@ class SeckillController extends BaseController
                        ->offset(($page - 1) * $limit)
                        ->limit($limit)
                        ->get()
-                       ->map(fn($o) => $this->encodeIds(
-                           $o->toArray(),
-                           ['id', 'order_no', 'user_id', 'technician_id', 'store_id', 'seckill_id']
-                       ));
+                       ->map(fn($o) => $o->toArray());
 
         return $this->success([
             'list'     => $list,
             'total'    => $total,
             'page'     => $page,
             'limit'    => $limit,
-            'activity' => $this->encodeIds($activity->toArray()),
+            'activity' => $activity->toArray(),
         ]);
     }
 

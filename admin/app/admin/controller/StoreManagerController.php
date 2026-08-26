@@ -58,7 +58,7 @@ class StoreManagerController extends BaseController
                                $store = Store::find($data['store_id']);
                                $data['store_name'] = $store->name ?? '';
                            }
-                           return $this->encodeIds($data);
+                           return $data;
                        });
 
         return $this->success([
@@ -123,7 +123,7 @@ class StoreManagerController extends BaseController
         $data['role_id'] = $roleId;
         $data['role_name'] = $role->name;
 
-        return $this->success($this->encodeIds($data), trans('messages.create_success'));
+        return $this->success($data, trans('messages.create_success'));
     }
 
     /**
@@ -174,7 +174,7 @@ class StoreManagerController extends BaseController
         unset($data['password'], $data['id_card']);
         $data['roles'] = $user->roles()->get()->toArray();
 
-        return $this->success($this->encodeIds($data), trans('messages.update_success'));
+        return $this->success($data, trans('messages.update_success'));
     }
 
     /**

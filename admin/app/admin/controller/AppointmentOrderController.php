@@ -71,7 +71,7 @@ class AppointmentOrderController extends BaseController
                        ->limit($limit)
                        ->orderBy('id', 'desc')
                        ->get()
-                       ->map(fn($o) => $this->encodeIds($o->toArray()));
+                       ->map(fn($o) => $o->toArray());
 
         return $this->success([
             'list'  => $list,
@@ -95,11 +95,9 @@ class AppointmentOrderController extends BaseController
             return $this->fail('订单不存在', 404);
         }
 
-        $data = $this->encodeIds($order->toArray());
+        $data = $order->toArray();
         // 状态时间线（倒序：最新在前）
-        $data['timeline'] = $this->encodeIds(
-            OrderStatusLog::where('order_id', $id)->orderByDesc('id')->get()->toArray()
-        );
+        $data['timeline'] = OrderStatusLog::where('order_id', $id)->orderByDesc('id')->get()->toArray();
 
         return $this->success($data);
     }
@@ -152,7 +150,7 @@ class AppointmentOrderController extends BaseController
             // 状态时间线：→ cancelled（平台取消）
             OrderStatusLog::record((string) $order->id, $fromStatus, 'cancelled', $reason, 'admin');
 
-            return $this->success($this->encodeIds($order->toArray()), '订单已取消');
+            return $this->success($order->toArray(), '订单已取消');
         } finally {
             $this->releaseLock($lockKey, $lockToken);
         }
@@ -209,6 +207,6 @@ class AppointmentOrderController extends BaseController
         // 状态时间线：→ completed（平台确认完成）
         OrderStatusLog::record((string) $order->id, $fromStatus, 'completed', '平台确认完成', 'admin');
 
-        return $this->success($this->encodeIds($order->toArray()), '订单已完成');
+        return $this->success($order->toArray(), '订单已完成');
     }
 }

@@ -149,3 +149,17 @@
 - 数据层 AES-256-CBC 加密 + Hashids 混淆
 - 已修复 service 端安全响应头缺失、登录锁定缺失、WAF 包缺失三个关键问题
 - 建议项为生产环境配置优化，非安全漏洞
+
+---
+
+## 八、2026-08-26 修复轮（安全加固）
+
+| 项 | 修复内容 |
+|----|---------|
+| 下单防篡改 | OrderController::store() 订单项价格一律以数据库记录为准（service→erik_service、product→erik_product），客户端价格不参与计算；未知 target_type 422；target_id 必须 hashid（raw id 解码为 0 → 422「商品不存在或已下架」）；拼团/秒杀价同以 DB 为准 |
+| 秒杀扣库存统一 | 库存统一由 /api/order store() 事务内行锁扣减；SeckillController::buy 不再预扣库存（保留 Redis 活动锁 + client_token 幂等）；直接调 /api/order 带 seckill_id 同样扣库存 |
+| 技师提现 | 申请时余额扣除在途（pending/approved）预留；审批转账前复核 settled−withdrawn−在途 ≥ 提现额；并发审批不会双打款 |
+| 支付回调 | 微信回调 total_fee 与订单应付金额严格比对，不符拒绝；支付宝回调日志脱敏（不含 buyer_id/seller_id 等） |
+| /install 防护 | 安装成功写 .install.lock，install 接口双重校验（文件锁 + isInstalled）；.gitignore 已忽略 .install.lock |
+| 依赖收敛 | webman-scout 统一 2.0.5（service/admin）；新增 opensearch-project/opensearch-php ^2.6；dompdf/security-php/webman-database 精确版本锁定（去 "*" 通配符） |
+| 工程 | 删除 service/app/common/StorageService.php（死代码）；admin/app/common/ 新增 TechnicianWithdrawalService/WechatPayService（admin 独立部署不依赖 service 代码）；两应用 phpstan.neon 修复可运行（php -d memory_limit=2G） |

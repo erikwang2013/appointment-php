@@ -146,6 +146,8 @@ class TechnicianWithdrawalServiceTest extends TestCase
         $user = $this->makeUser('oX_withdrawal_success');
         $technician = $this->makeTechnician($user);
         $w = $this->makeWithdrawal($technician, 95.0);
+        // 余额复核：补足 settled 收益（100 ≥ 提现额 100），通过可提现余额校验
+        $this->makeSettledEarning($technician, 100.0);
 
         $mock = $this->createMock(WechatPayService::class);
         $mock->expects($this->once())
@@ -172,6 +174,8 @@ class TechnicianWithdrawalServiceTest extends TestCase
         $technician = $this->makeTechnician($user);
         $w = $this->makeWithdrawal($technician);
 
+        // 余额复核：补足 settled 收益（100 ≥ 提现额 100），通过可提现余额校验
+        $this->makeSettledEarning($technician, 100.0);
         $stub = $this->createStub(WechatPayService::class);
         $stub->method('transferToWallet')->willReturn(['error' => '余额不足']);
 
@@ -193,6 +197,9 @@ class TechnicianWithdrawalServiceTest extends TestCase
         $technician = $this->makeTechnician($user);
         $w = $this->makeWithdrawal($technician);
 
+        // 超长 payment_no → audit_remark 超列长
+        // 余额复核：补足 settled 收益（100 ≥ 提现额 100），通过可提现余额校验
+        $this->makeSettledEarning($technician, 100.0);
         // 超长 payment_no → audit_remark 超列长(varchar 255) → 落库抛 DB 异常 → markCompleted 返回 false
         $stub = $this->createStub(WechatPayService::class);
         $stub->method('transferToWallet')->willReturn(['payment_no' => str_repeat('P', 300), 'result' => []]);
@@ -215,6 +222,9 @@ class TechnicianWithdrawalServiceTest extends TestCase
         $technician = $this->makeTechnician($user);
         $w = $this->makeWithdrawal($technician);
 
+        // 超长错误信息 → audit_remark 超列长
+        // 余额复核：补足 settled 收益（100 ≥ 提现额 100），通过可提现余额校验
+        $this->makeSettledEarning($technician, 100.0);
         // 超长错误信息 → audit_remark 超列长 → markFailed 返回 false
         $stub = $this->createStub(WechatPayService::class);
         $stub->method('transferToWallet')->willReturn(['error' => str_repeat('E', 300)]);
@@ -354,6 +364,29 @@ class TechnicianWithdrawalServiceTest extends TestCase
 
         $this->assertFalse($result['success']);
         $this->assertSame('该提现正在处理中，请稍后重试', $result['message']);
+        $this->assertSame('pending', TechnicianWithdrawal::find($w->id)->status);
+    }
+
+    // ── P2: 并发审批防双打款（在途申请占用余额）──
+
+    #[Test] public function approve_and_transfer_blocks_when_inflight_withdrawal_reserved(): void
+    {
+        $user = $this->makeUser('oX_inflight');
+        $technician = $this->makeTechnician($user);
+        // settled 收益 100；同技师另一笔在途申请（pending）已占用 60 → 可提现 = 40
+        $this->makeSettledEarning($technician, 100.0);
+        $this->makeWithdrawal($technician, 60.0);
+
+        // 本笔提现额 100 > 可提现 40：并发审批下必须拒绝，杜绝双打款
+        $w = $this->makeWithdrawal($technician, 50.0);
+
+        $mock = $this->createMock(WechatPayService::class);
+        $mock->expects($this->never())->method('transferToWallet');
+
+        $result = (new TechnicianWithdrawalService($mock))->approveAndTransfer($w);
+
+        $this->assertFalse($result['success']);
+        $this->assertSame('可提现余额不足，无法转账', $result['message']);
         $this->assertSame('pending', TechnicianWithdrawal::find($w->id)->status);
     }
 }

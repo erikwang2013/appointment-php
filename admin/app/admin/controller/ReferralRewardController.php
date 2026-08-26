@@ -62,10 +62,7 @@ class ReferralRewardController extends BaseController
      */
     private function decorate(UserReferral $referral): array
     {
-        $data = $this->encodeIds(
-            $referral->toArray(),
-            ['id', 'referrer_id', 'referred_user_id']
-        );
+        $data = $referral->toArray();
 
         $data['reward_amount']     = (float) ($referral->reward_amount ?? 0);
         $data['referrer_nickname'] = $referral->referrer ? (string) $referral->referrer->nickname : '';

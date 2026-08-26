@@ -359,6 +359,8 @@
 `POST /api/technician/withdraw` — 申请提现 (amount)
 规则: 每月20号可提，T+1到账，最低金额/整百限制由后台配置。
 
+**在途预留（2026-08-26）**: 申请时余额即扣除在途（pending/approved）预留；审批转账前复核 settled − withdrawn − 在途 ≥ 提现额；并发审批不会双打款。
+
 #### 3.6 评价回复（第18轮）
 
 `POST /api/technician/review/reply/{order_id}` — 技师回复评价 (reply)。评价不存在/非本人统一 404（不泄露存在性）；已有回复 422（幂等拒绝不覆盖）；空回复 422。回复成功站内通知用户（type='review_reply'）。
@@ -400,6 +402,8 @@
 
 **创建订单时**: Redis SETNX 锁定技师3分钟，退出页面或超时释放。
 
+**价格防篡改（2026-08-26）**: 订单项金额一律以数据库记录为准（target_type=service 查 erik_service、product 查 erik_product），客户端传价不参与计算；未知 target_type 422；target_id 必须传 hashid 编码值（传 raw id 解码为 0 → 422「商品不存在或已下架」）；拼团/秒杀价同样以 DB 为准。
+
 **退款规则**: 下单15min内或距开始>6h退100% / ≤6h退90% / 已开始退80% / 确认开始后不退。
 
 **优惠券抵扣**: 创建订单可选传 user_coupon_id（hashid）。错误码: 他人券 404、门槛不足/已过期/已下架/已使用 422、非法 hashid 422。抵扣两段式：下单时 PriceCalculator.applyCoupon 只读校验并计算抵扣金额写入 discount_amount；支付成功后 consume 将优惠券置为 used；退款时 restoreCouponAndCard 幂等归还。
@@ -412,7 +416,7 @@
 
 **拼团下单（第16轮）**: 创建订单可选传 `promotion_id`（hashid）。校验：仅 group_buy 类型、活动有效期内、调用者是参与者、未满员（已成团锁定 422）、订单服务与活动匹配；拼团价 = 原价 × discount_percent/100，禁用优惠券/次卡/积分叠加（传任一即 422）。订单落库 promotion_id/participant_id；支付完全复用 `POST /api/order/pay/{id}`，pay 时懒判定活动已关闭（到期未成团）→ 订单自动取消并释放技师锁。
 
-**秒杀下单（第18轮）**: 创建订单传 `promotion_id`（flash_sale 类型）：秒杀价 = round(total × (100 − discount_percent)/100, 2)，与 PromotionController 秒杀价口径一致；校验：类型白名单 [group_buy, flash_sale]、活动进行中、调用者是参与者、服务匹配、售罄（participants_count ≥ max_people）422「已抢光」；禁用优惠券/次卡/积分叠加 422。pay() 懒判定 isFlashSaleClosed：秒杀过期 → 活动置 0 + 批量取消该活动 pending 订单 + 本单自动取消 + 释放技师锁。
+**秒杀下单（第18轮，已下线）**: ~~创建订单传 `promotion_id`（flash_sale 类型）~~ —— 2026-08 起旧促销 FLASH_SALE 通道删除，store() 促销分支仅剩拼团 GROUP_BUY（非拼团 promotion 422）；秒杀统一走第24轮 `/api/seckill` 通道（seckill_id 注入 store 事务内行锁扣库存），PromotionController::index 过滤 flash_sale、show/join 对其返回 400，`Promotion::TYPE_FLASH_SALE` 常量保留兼容历史数据。
 
 **预约改期（第17轮）**: `POST /api/order/reschedule/{id}` 传 new_service_time（必填）+ reason（可选），同技师换时间。规则：仅本人订单（非本人 404）、仅 appointment 类型且状态 pending/paid/confirmed 可改（其余 422）、距原服务开始 ≥ 6 小时（与全额退款窗口一致）方可改期。并发防护：B1 order_lock（与 pay/cancel/refund 同一互斥族）→ 新时段技师锁 Redis SETNX EX 180（并发改期防超卖）→ 事务内行锁重读 + B2 排班冲突 DB 校验（排除本单）→ 更新 service_time + 落 erik_order_reschedule 记录 → 释放原时段锁、新时段锁由本单持有 → SCENE_RESCHEDULE 订阅消息（未配置降级站内通知）。失败路径事务回滚同时释放新时段锁。
 
@@ -432,16 +436,16 @@
 
 ---
 
-### 4.2 拼团/秒杀接口（需JWT认证）
+### 4.2 拼团/促销接口（需JWT认证；FLASH_SALE 已下线）
 
 | 方法 | 路径 | 说明 |
 |------|------|------|
-| GET | `/api/promotions` | 活动列表 (?type=group_buy/flash_sale) |
-| GET | `/api/promotions/{id}` | 活动详情（含参与人数/是否成团） |
+| GET | `/api/promotions` | 活动列表 (?type=group_buy；flash_sale 已过滤不返回) |
+| GET | `/api/promotions/{id}` | 活动详情（含参与人数/是否成团；flash_sale 类型 400） |
 | GET | `/api/promotions/{id}/participants` | 参与列表 |
-| POST | `/api/promotions/join/{id}` | 参与活动（第15轮完善：响应含 discount_percent/original_price/group_price） |
+| POST | `/api/promotions/join/{id}` | 参与活动（第15轮完善：响应含 discount_percent/original_price/group_price；flash_sale 类型 400） |
 
-**参与规则**: flash_sale 以 max_people 为库存上限，Redis NX 锁防超卖；重复参与 422；group_buy 满员（≥min_people）锁定、已成团后新参与 422；到期未满员惰性关闭（show/join 时 status 置 0）。join 后按拼团价下单见「拼团下单（第16轮）」。
+**参与规则**: group_buy 满员（≥min_people）锁定、已成团后新参与 422；到期未满员惰性关闭（show/join 时 status 置 0）。join 后按拼团价下单见「拼团下单（第16轮）」。秒杀不再走本通道，见「24. 秒杀接口」。
 
 ---
 
@@ -668,9 +672,9 @@
 |------|------|------|
 | GET | `/api/seckill` | 秒杀活动列表（status=1 且在时间窗内；含已售量 = erik_order.seckill_id 订单数、剩余库存） |
 | GET | `/api/seckill/{id}` | 活动详情（state=not_started/ongoing/ended） |
-| POST | `/api/seckill/{id}/buy` | 秒杀下单（client_token 幂等 + Redis NX 30s 防并发；下单失败回补库存） |
+| POST | `/api/seckill/{id}/buy` | 秒杀下单（client_token 幂等 + Redis NX 30s 防并发 + 活动校验；不再预扣库存） |
 
-**下单规则**: 行锁扣减 stock 后注入 seckill_id 复用订单创建/支付流程；秒杀价 = seckill_price，不叠加优惠券/积分/会员卡；订单取消不回补库存。
+**下单规则（2026-08-26 起）**: 库存统一在 `/api/order store()` 事务内行锁扣减，buy 仅做入口校验/幂等；秒杀价 = seckill_price（以 DB 为准），不叠加优惠券/积分/会员卡；订单取消不回补库存；直接调 `/api/order` 携带 seckill_id 同样扣库存。
 
 ### 25. APP 版本检查接口（第24轮）
 

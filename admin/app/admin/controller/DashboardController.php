@@ -214,7 +214,6 @@ class DashboardController extends BaseController
             ->get()
             ->map(function ($log) {
                 $data = $log->toArray();
-                $data['id'] = $this->encodeId($data['id']);
                 $data['user_name'] = $log->user->username ?? '系统';
                 unset($data['user'], $data['user_id']);
                 return $data;
@@ -255,7 +254,7 @@ class DashboardController extends BaseController
                 ->count();
 
             $storeData[] = [
-                'store_id'    => $this->encodeId((int) $store->id),
+                'store_id'    => (int) $store->id,
                 'store_name'  => $store->name,
                 'revenue'     => round($revenue, 2),
                 'order_count' => $orderCount,
@@ -283,7 +282,7 @@ class DashboardController extends BaseController
             ->limit(10)
             ->get()
             ->map(fn($r) => [
-                'service_id'    => $this->encodeId((int) $r->target_id),
+                'service_id'    => (int) $r->target_id,
                 'service_name'  => $r->name,
                 'total_qty'     => (int) $r->total_qty,
                 'total_revenue' => round((float) $r->total_revenue, 2),
@@ -305,7 +304,7 @@ class DashboardController extends BaseController
             ->get()
             ->map(function ($t) {
                 return [
-                    'technician_id'   => $this->encodeId((int) $t->id),
+                    'technician_id'   => (int) $t->id,
                     'technician_name' => mb_substr($t->real_name, 0, 1) . '**',
                     'rating'          => (float) $t->rating,
                     'order_count'     => $t->order_count,

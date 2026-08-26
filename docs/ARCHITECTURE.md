@@ -45,7 +45,7 @@
 | 用户模块 | `user/` | JWT | 资料/地址/收藏/反馈/推广 |
 | 技师模块 | `technician/` | JWT+技师 | 档案/排班/工作台/核销/会员/收益/提现 |
 | 服务模块 | `service/` | 混合 | 分类/项目/搜索/门店 |
-| 订单模块 | `order/` | JWT | 购物车/下单/支付/退款/核销/评价 |
+| 订单模块 | `order/` | JWT | 购物车/下单/支付/退款/核销/评价（OrderController 按业务域拆分为 10 个 trait，路由与方法名不变） |
 | 营销模块 | `marketing/` | JWT | 优惠券/会员卡(次卡)/积分/礼品卡/会员权益 |
 | 钱包模块 | `wallet/` | JWT | 余额/充值/交易流水/余额支付 |
 | 内容模块 | `content/` | 混合 | 轮播图/公告/通知 |
@@ -56,6 +56,8 @@
 PC管理后台。webman v2 + Flutter Web，端口8787。
 
 **已有模块：** 认证、仪表盘、用户管理、角色权限、系统配置、操作日志、文件上传、安全防护
+
+**模型分布：** `admin/app/model/` 仅保留 6 个特有模型（AdminPermission/AdminRole/AdminUser/OperationLog/OperationLogDetail/SystemConfig），其余模型通过 composer psr-4（`app\model\` → `../service/app/model/`）共享 service 版，避免双份模型漂移；`support\Model` 基类与 service 对齐，`UserPointsExchange::user()` 关系方法并入 service 版模型。
 
 **扩展模块：** 技师管理、会员管理、门店管理、服务/产品管理、订单管理、优惠券、会员卡、提现审核、评价管理、报表统计、财务管理、内容管理、系统设置
 
@@ -70,7 +72,7 @@ PC管理后台。webman v2 + Flutter Web，端口8787。
 
 ### Snowflake ID
 
-所有主键由 `erikwang2013/snowflake-php` 生成，BIGINT非自增，保证分布式全局唯一。
+所有主键由 `erikwang2013/snowflake-php` 生成，BIGINT非自增，保证分布式全局唯一。`service/support/Model::nextId()` 进程内复用单个 Snowflake 实例，64 个模型的 `generateId()` 副本已删除（统一继承基类实现）。
 
 ### Hashids
 
@@ -165,4 +167,3 @@ API请求/响应中的ID通过 `erikwang2013/hashids` 编码，对外暴露hash�
 | 短信 | SmsService | 阿里云/腾讯云双通道 |
 | 地图 | MapService | 高德/腾讯逆地理/距离/导航 |
 | 模板消息 | WechatTemplateMessageService | 订单/退款/提醒推送 + 订阅消息(sendSubscribeMessage 订单事件3场景) |
-| 对象存储 | StorageService | 本地/OSS/COS/CDN |

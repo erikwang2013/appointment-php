@@ -285,3 +285,9 @@ Admin 仅 7 个模型 vs Service 58 个模型。Admin 的 54 个控制器大量�
 | 运维就绪 | 8/10 |
 | 安装体验 | 9/10 |
 | **综合** | **8.2/10** |
+
+---
+
+## 8. 2026-08-26 安全加固轮
+
+本轮不改变上述历史结论，追加修复摘要：下单接口价格以库价为准防篡改（target_id 强制 hashid、未知 target_type 422）；秒杀库存统一在 /api/order store() 事务内行锁扣减；技师提现在途预留 + 审批前复核防双打款；微信支付回调金额严格比对、支付宝回调日志脱敏；/install 写 .install.lock 双重校验防重装；依赖版本收敛（webman-scout 2.0.5 / opensearch-php ^2.6 / dompdf、security-php、webman-database 精确锁定）；phpstan.neon 修复可运行。详见 [SECURITY-AUDIT-REPORT.md](SECURITY-AUDIT-REPORT.md) 第八节。

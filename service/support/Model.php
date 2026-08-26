@@ -30,11 +30,15 @@ class Model extends EloquentModel
 
     private static function nextId(): string
     {
-        $config = config('snowflake', []);
-        $snowflake = new Snowflake(
-            (int)($config['datacenter_id'] ?? 1),
-            (int)($config['worker_id'] ?? 1)
-        );
+        // 进程内复用同一实例，保证同毫秒内序列延续、不碰撞
+        static $snowflake = null;
+        if ($snowflake === null) {
+            $config = config('snowflake', []);
+            $snowflake = new Snowflake(
+                (int)($config['datacenter_id'] ?? 1),
+                (int)($config['worker_id'] ?? 1)
+            );
+        }
         return (string)$snowflake->id();
     }
 }

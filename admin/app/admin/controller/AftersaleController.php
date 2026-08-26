@@ -52,7 +52,7 @@ class AftersaleController extends BaseController
                        ->limit($limit)
                        ->orderBy('created_at', 'desc')
                        ->get()
-                       ->map(fn($a) => $this->encodeIds($a->toArray(), ['id', 'order_id', 'user_id']));
+                       ->map(fn($a) => $a->toArray());
 
         return $this->success([
             'list'  => $list,
@@ -92,7 +92,7 @@ class AftersaleController extends BaseController
             $aftersale->review_remark = $remark;
             $aftersale->reviewed_at   = date('Y-m-d H:i:s');
             $aftersale->save();
-            return $this->success($this->encodeIds($aftersale->toArray(), ['id', 'order_id', 'user_id']), '审核通过');
+            return $this->success($aftersale->toArray(), '审核通过');
         }
 
         if ($action === 'reject') {
@@ -103,7 +103,7 @@ class AftersaleController extends BaseController
             $aftersale->review_remark = $remark;
             $aftersale->reviewed_at   = date('Y-m-d H:i:s');
             $aftersale->save();
-            return $this->success($this->encodeIds($aftersale->toArray(), ['id', 'order_id', 'user_id']), '已驳回');
+            return $this->success($aftersale->toArray(), '已驳回');
         }
 
         return $this->fail('无效的审核动作', 422);

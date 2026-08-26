@@ -55,7 +55,7 @@ class ProfitSharingController extends BaseController
             ->limit($limit)
             ->orderByDesc('erik_profit_sharing.id')
             ->get()
-            ->map(fn ($row) => $this->encodeIds($row->toArray(), ['id', 'order_id', 'user_id']))
+            ->map(fn ($row) => $row->toArray())
             ->values();
 
         return $this->success([

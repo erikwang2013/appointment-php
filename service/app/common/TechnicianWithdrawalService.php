@@ -84,6 +84,26 @@ class TechnicianWithdrawalService
                 return ['success' => false, 'message' => '提现金额无效'];
             }
 
+            // 余额复核（防超提）：settled 与已核销 withdrawn 的差额 ≥ 本次提现额，不足拒绝。
+            // 口径与申请侧一致（sum(settled) - sum(withdrawn)），转账前复验兜底并发/历史数据
+            $summary = TechnicianEarning::where('technician_id', $w->technician_id)
+                ->whereIn('status', ['settled', 'withdrawn'])
+                ->selectRaw('status, SUM(amount) AS total')
+                ->groupBy('status')
+                ->pluck('total', 'status');
+            $available = (float)($summary['settled'] ?? 0) - (float)($summary['withdrawn'] ?? 0);
+            // 同技师其他在途申请（pending/approved）仍占用余额：并发审批下两笔同时通过只会都拒绝，
+            // 不会双打款；口径与申请侧预留一致（sum(settled) - sum(withdrawn) - 在途）
+            $inFlight = (float) TechnicianWithdrawal::where('technician_id', $w->technician_id)
+                ->where('id', '!=', $w->id)
+                ->whereIn('status', ['pending', 'approved'])
+                ->sum('amount');
+            if ($available - $inFlight < (float) $w->amount) {
+                Log::warning('[Withdrawal] insufficient balance, withdrawal_no: ' . $w->withdrawal_no
+                    . ', available: ' . $available . ', in-flight: ' . $inFlight . ', amount: ' . $w->amount);
+                return ['success' => false, 'message' => '可提现余额不足，无法转账'];
+            }
+
             // 微信 IO 在事务外执行
             $payService = $this->payService ?? new WechatPayService();
             $result = $payService->transferToWallet($user->wx_openid, $w->withdrawal_no, $amount, '技师提现');

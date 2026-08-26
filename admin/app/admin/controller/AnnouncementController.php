@@ -37,7 +37,7 @@ class AnnouncementController extends BaseController
                        ->orderBy('sort', 'asc')
                        ->orderBy('id', 'desc')
                        ->get()
-                       ->map(fn($a) => $this->encodeIds($a->toArray()));
+                       ->map(fn($a) => $a->toArray());
 
         return $this->success([
             'list'  => $list,
@@ -70,7 +70,7 @@ class AnnouncementController extends BaseController
         $announcement->save();
 
         $this->clearSvcCache();
-        return $this->success($this->encodeIds($announcement->toArray()), '创建成功');
+        return $this->success($announcement->toArray(), '创建成功');
     }
 
     /**
@@ -84,7 +84,7 @@ class AnnouncementController extends BaseController
             return $this->fail('公告不存在', 404);
         }
 
-        return $this->success($this->encodeIds($announcement->toArray()));
+        return $this->success($announcement->toArray());
     }
 
     /**
@@ -111,7 +111,7 @@ class AnnouncementController extends BaseController
         $announcement->save();
 
         $this->clearSvcCache();
-        return $this->success($this->encodeIds($announcement->toArray()), '更新成功');
+        return $this->success($announcement->toArray(), '更新成功');
     }
 
     /**
@@ -159,7 +159,7 @@ class AnnouncementController extends BaseController
 
         $this->clearSvcCache();
         return $this->success(
-            $this->encodeIds($announcement->toArray()),
+            $announcement->toArray(),
             $action === 'publish' ? '已发布' : '已取消发布'
         );
     }

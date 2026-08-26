@@ -52,7 +52,7 @@ class MallOrderController extends BaseController
                        ->limit($limit)
                        ->orderBy('id', 'desc')
                        ->get()
-                       ->map(fn($o) => $this->encodeIds($o->toArray()));
+                       ->map(fn($o) => $o->toArray());
 
         return $this->success([
             'list'  => $list,
@@ -73,7 +73,7 @@ class MallOrderController extends BaseController
             return $this->fail('订单不存在', 404);
         }
 
-        return $this->success($this->encodeIds($order->toArray()));
+        return $this->success($order->toArray());
     }
 
     /**
@@ -107,7 +107,7 @@ class MallOrderController extends BaseController
         $order->status = 'serving'; // 配送中
         $order->save();
 
-        return $this->success($this->encodeIds($order->toArray()), '发货成功');
+        return $this->success($order->toArray(), '发货成功');
     }
 
     /**
@@ -129,7 +129,7 @@ class MallOrderController extends BaseController
                        ->limit($limit)
                        ->orderBy('id', 'desc')
                        ->get()
-                       ->map(fn($r) => $this->encodeIds($r->toArray()));
+                       ->map(fn($r) => $r->toArray());
 
         return $this->success([
             'list'  => $list,
@@ -172,7 +172,7 @@ class MallOrderController extends BaseController
         $review->save();
 
         return $this->success(
-            $this->encodeIds($review->toArray()),
+            $review->toArray(),
             $action === 'approve' ? '审核通过' : '已驳回'
         );
     }

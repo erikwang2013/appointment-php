@@ -111,7 +111,12 @@ class PaymentNotifyController extends BaseController
 
         $params = $request->post();
 
-        Log::info('[PaymentNotify] Alipay notify received, params: ' . json_encode($params, JSON_UNESCAPED_UNICODE));
+        // 日志脱敏：剔除买家/卖家标识等敏感字段，仅保留交易号/金额/状态
+        $logParams = $params;
+        foreach (['buyer_id', 'buyer_logon_id', 'buyer_user_id', 'seller_id', 'seller_email', 'fund_channel'] as $sensitive) {
+            unset($logParams[$sensitive]);
+        }
+        Log::info('[PaymentNotify] Alipay notify received, params: ' . json_encode($logParams, JSON_UNESCAPED_UNICODE));
 
         if (empty($params)) {
             Log::warning('[PaymentNotify] Alipay notify params empty');

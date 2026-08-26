@@ -5,7 +5,6 @@ declare(strict_types=1);
 
 namespace app\model;
 
-use Erikwang2013\Snowflake\Snowflake;
 use support\Db;
 use support\Model;
 
@@ -52,16 +51,4 @@ class UserPoints extends Model
         return date('Y-m-d H:i:s', time() + $days * 86400);
     }
 
-    /**
-     * 生成 snowflake ID
-     */
-    public static function generateId(): string
-    {
-        $snowflakeConfig = config('snowflake');
-        $snowflake = new Snowflake(
-            (int)($snowflakeConfig['datacenter_id'] ?? 1),
-            (int)($snowflakeConfig['worker_id'] ?? 1)
-        );
-        return (string)$snowflake->id();
-    }
 }

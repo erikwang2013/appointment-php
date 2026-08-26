@@ -61,7 +61,7 @@ class ProfileController extends BaseController
         unset($data['password'], $data['id_card']);
         // phone/email 由 Encryptable cast 自动加解密，无需额外处理
 
-        return $this->success($this->encodeIds($data), trans('messages.update_success'));
+        return $this->success($data, trans('messages.update_success'));
     }
 
     /**

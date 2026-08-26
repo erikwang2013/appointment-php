@@ -46,7 +46,7 @@ class InvoiceController extends BaseController
                        ->limit($limit)
                        ->orderBy('created_at', 'desc')
                        ->get()
-                       ->map(fn($i) => $this->encodeIds($i->toArray(), ['id', 'order_id', 'user_id']));
+                       ->map(fn($i) => $i->toArray());
 
         return $this->success([
             'list'  => $list,
@@ -80,7 +80,7 @@ class InvoiceController extends BaseController
         $invoice->issued_at = date('Y-m-d H:i:s');
         $invoice->save();
 
-        return $this->success($this->encodeIds($invoice->toArray(), ['id', 'order_id', 'user_id']), '开票成功');
+        return $this->success($invoice->toArray(), '开票成功');
     }
 
     /**
@@ -106,7 +106,7 @@ class InvoiceController extends BaseController
         $invoice->remark = $remark;
         $invoice->save();
 
-        return $this->success($this->encodeIds($invoice->toArray(), ['id', 'order_id', 'user_id']), '已驳回');
+        return $this->success($invoice->toArray(), '已驳回');
     }
 
     /** 解析 hashid 并加载发票，失败返回 422/404 响应 */

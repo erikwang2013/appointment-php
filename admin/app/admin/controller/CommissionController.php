@@ -59,7 +59,7 @@ class CommissionController extends BaseController
                            if (isset($data['real_name'])) {
                                $data['real_name'] = mb_substr($data['real_name'], 0, 1) . '**';
                            }
-                           return $this->encodeIds($data);
+                           return $data;
                        });
 
         return $this->success([
@@ -89,7 +89,7 @@ class CommissionController extends BaseController
         }
         $profile->save();
 
-        return $this->success($this->encodeIds($profile->toArray()), '佣金配置更新成功');
+        return $this->success($profile->toArray(), '佣金配置更新成功');
     }
 
     /**
@@ -119,7 +119,7 @@ class CommissionController extends BaseController
         $earning->status        = 'pending';
         $earning->save();
 
-        return $this->success($this->encodeIds($earning->toArray()), '奖励添加成功');
+        return $this->success($earning->toArray(), '奖励添加成功');
     }
 
     /**
@@ -149,6 +149,6 @@ class CommissionController extends BaseController
         $earning->status        = 'pending';
         $earning->save();
 
-        return $this->success($this->encodeIds($earning->toArray()), '罚金添加成功');
+        return $this->success($earning->toArray(), '罚金添加成功');
     }
 }

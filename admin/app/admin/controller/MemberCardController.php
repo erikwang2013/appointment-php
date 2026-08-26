@@ -50,7 +50,7 @@ class MemberCardController extends BaseController
                        ->offset(($page - 1) * $limit)
                        ->limit($limit)
                        ->get()
-                       ->map(fn($card) => $this->encodeIds($card->toArray()));
+                       ->map(fn($card) => $card->toArray());
 
         return $this->success([
             'list'  => $list,
@@ -69,7 +69,7 @@ class MemberCardController extends BaseController
         if (!$card) {
             return $this->fail('会员卡定义不存在', 404);
         }
-        return $this->success($this->encodeIds($card->toArray()));
+        return $this->success($card->toArray());
     }
 
     /**
@@ -110,7 +110,7 @@ class MemberCardController extends BaseController
         $card->created_by    = (int) ($request->adminId ?? 0);
         $card->save();
 
-        return $this->success($this->encodeIds($card->toArray()), '创建成功');
+        return $this->success($card->toArray(), '创建成功');
     }
 
     /**
@@ -152,7 +152,7 @@ class MemberCardController extends BaseController
         }
         $card->save();
 
-        return $this->success($this->encodeIds($card->toArray()), '更新成功');
+        return $this->success($card->toArray(), '更新成功');
     }
 
     /**

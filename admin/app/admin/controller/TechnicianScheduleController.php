@@ -74,7 +74,7 @@ class TechnicianScheduleController extends BaseController
             $key  = (string) $schedule->technician_id . '|' . $schedule->date;
             $data['technician_name'] = $schedule->technician->real_name ?? ('技师#' . $schedule->technician_id);
             $data['bookings']        = $bookingsByKey[$key] ?? [];
-            return $this->encodeIds($data, ['id', 'technician_id']);
+            return $data;
         });
 
         return $this->success([
@@ -229,7 +229,7 @@ class TechnicianScheduleController extends BaseController
         }
 
         $this->clearSvcCache();
-        return $this->success($this->encodeIds($schedule->toArray(), ['id', 'technician_id']), '排班保存成功');
+        return $this->success($schedule->toArray(), '排班保存成功');
     }
 
     /**
@@ -281,7 +281,7 @@ class TechnicianScheduleController extends BaseController
         $schedule->save();
 
         $this->clearSvcCache();
-        return $this->success($this->encodeIds($schedule->toArray(), ['id', 'technician_id']), '已设为休息');
+        return $this->success($schedule->toArray(), '已设为休息');
     }
 
     // ────────────────────────────────────────────────
@@ -390,7 +390,7 @@ class TechnicianScheduleController extends BaseController
             $key = (string) $order->technician_id . '|' . $order->service_time->format('Y-m-d');
             $user = $order->user;
             $bookings[$key][] = [
-                'order_id'     => $this->encodeId((int) $order->id),
+                'order_id'     => (int) $order->id,
                 'order_no'     => $order->order_no,
                 'user_name'    => $user->real_name ?? $user->nickname ?? ('用户#' . $order->user_id),
                 'service_time' => $order->service_time->format('Y-m-d H:i'),

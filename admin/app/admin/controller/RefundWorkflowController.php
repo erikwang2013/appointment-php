@@ -50,7 +50,7 @@ class RefundWorkflowController extends BaseController
 
                            // 审批层级判断
                            $data['approval_level'] = $this->determineApprovalLevel($w);
-                           return $this->encodeIds($data);
+                           return $data;
                        });
 
         return $this->success([
@@ -101,15 +101,9 @@ class RefundWorkflowController extends BaseController
                 if (!$transfer['success']) {
                     return $this->fail($transfer['message'], 500);
                 }
-                return $this->success(
-                    $this->encodeIds($withdrawal->toArray()),
-                    '店长审批通过，小额自动完成'
-                );
+                return $this->success($withdrawal->toArray(), '店长审批通过，小额自动完成');
             }
-            return $this->success(
-                $this->encodeIds($withdrawal->toArray()),
-                '店长审批通过，等待财务审批'
-            );
+            return $this->success($withdrawal->toArray(), '店长审批通过，等待财务审批');
         }
 
         if (empty($withdrawal->finance_approved_at) && $amount >= 500) {
@@ -126,10 +120,7 @@ class RefundWorkflowController extends BaseController
                 return $this->fail($transfer['message'], 500);
             }
 
-            return $this->success(
-                $this->encodeIds($withdrawal->toArray()),
-                '财务审批通过'
-            );
+            return $this->success($withdrawal->toArray(), '财务审批通过');
         }
 
         return $this->fail('该退款已完成全部审批流程', 422);
@@ -161,10 +152,7 @@ class RefundWorkflowController extends BaseController
         $withdrawal->audited_at    = date('Y-m-d H:i:s');
         $withdrawal->save();
 
-        return $this->success(
-            $this->encodeIds($withdrawal->toArray()),
-            '已驳回退款申请'
-        );
+        return $this->success($withdrawal->toArray(), '已驳回退款申请');
     }
 
     /**

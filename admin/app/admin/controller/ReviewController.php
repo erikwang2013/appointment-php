@@ -130,32 +130,13 @@ class ReviewController extends BaseController
      */
     private function decorate(OrderReview $review): array
     {
-        $data = $this->encodeIds(
-            $review->toArray(),
-            ['id', 'order_id', 'user_id', 'technician_id']
-        );
+        $data = $review->toArray();
 
         // 技师档案（技师侧 user 关联）
         if (!empty($data['technician_id'])) {
-            $techId = $this->decodeId($data['technician_id']);
+            $techId = (int) $data['technician_id'];
             $profile = TechnicianProfile::where('user_id', $techId)->first();
-            $data['technician'] = $profile
-                ? $this->encodeIds($profile->toArray(), ['id', 'user_id'])
-                : null;
-        }
-
-        // 订单与技师用户信息（含 order_no、服务时间）
-        if (!empty($data['order'])) {
-            $data['order'] = $this->encodeIds($data['order'], ['id', 'user_id', 'technician_id', 'store_id']);
-            if (!empty($data['order']['technician'])) {
-                $data['order']['technician'] = $this->encodeIds(
-                    $data['order']['technician'],
-                    ['id']
-                );
-            }
-        }
-        if (!empty($data['user'])) {
-            $data['user'] = $this->encodeIds($data['user'], ['id']);
+            $data['technician'] = $profile ? $profile->toArray() : null;
         }
 
         return $data;

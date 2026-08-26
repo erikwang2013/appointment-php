@@ -600,6 +600,16 @@ class WechatPayService
 
             $order = \app\model\Order::find($payment->order_id);
 
+            // 金额强比对（转分，防浮点误差/跨单错配/篡改回调）：回调实付必须等于订单应付，
+            // 否则拒绝且不改支付状态（充值分支 handleRechargeNotify 已有同等比对）
+            $dueAmount = $order ? (float) $order->paid_amount : (float) $payment->amount;
+            if ($totalFee > 0 && (int) round($totalFee * 100) !== (int) round($dueAmount * 100)) {
+                \support\Db::rollBack();
+                Log::error('[WechatPay markOrderPaid] amount mismatch, out_trade_no: ' . $outTradeNo
+                    . ', callback total_fee: ' . $totalFee . ', order paid_amount: ' . $dueAmount);
+                return ['success' => false, 'message' => '回调金额与订单应付不一致'];
+            }
+
             // 幂等：订单已非 pending（如已取消/已退款），不再消费与改状态
             if ($order && $order->status !== \app\model\Order::STATUS_PENDING) {
                 \support\Db::rollBack();

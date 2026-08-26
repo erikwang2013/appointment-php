@@ -113,10 +113,7 @@ class ReturnCustomerController extends BaseController
      */
     private function decorate(TechnicianEarning $earning): array
     {
-        $data = $this->encodeIds(
-            $earning->toArray(),
-            ['id', 'technician_id', 'order_id']
-        );
+        $data = $earning->toArray();
 
         $data['amount']          = (float) ($earning->amount ?? 0);
         $data['technician_name'] = $earning->technician ? (string) $earning->technician->real_name : '';

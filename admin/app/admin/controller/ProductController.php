@@ -41,7 +41,7 @@ class ProductController extends BaseController
                        ->orderBy('sort', 'asc')
                        ->orderBy('id', 'desc')
                        ->get()
-                       ->map(fn($p) => $this->encodeIds($p->toArray()));
+                       ->map(fn($p) => $p->toArray());
 
         return $this->success([
             'list'  => $list,
@@ -80,7 +80,7 @@ class ProductController extends BaseController
         $product->status         = (int) $request->input('status', 1);
         $product->save();
 
-        return $this->success($this->encodeIds($product->toArray()), '创建成功');
+        return $this->success($product->toArray(), '创建成功');
     }
 
     /**
@@ -94,7 +94,7 @@ class ProductController extends BaseController
             return $this->fail('商品不存在', 404);
         }
 
-        return $this->success($this->encodeIds($product->toArray()));
+        return $this->success($product->toArray());
     }
 
     /**
@@ -123,7 +123,7 @@ class ProductController extends BaseController
         }
         $product->save();
 
-        return $this->success($this->encodeIds($product->toArray()), '更新成功');
+        return $this->success($product->toArray(), '更新成功');
     }
 
     /**
@@ -162,7 +162,7 @@ class ProductController extends BaseController
         $product->save();
 
         return $this->success(
-            $this->encodeIds($product->toArray()),
+            $product->toArray(),
             $product->status === 1 ? '已上架' : '已下架'
         );
     }
@@ -193,6 +193,6 @@ class ProductController extends BaseController
         }
         $product->save();
 
-        return $this->success($this->encodeIds($product->toArray()), '库存更新成功');
+        return $this->success($product->toArray(), '库存更新成功');
     }
 }

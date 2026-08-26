@@ -62,7 +62,7 @@ class UserController extends BaseController
                               $parts = explode('@', $data['email']);
                               $data['email'] = mb_substr($parts[0], 0, 1) . '***@' . ($parts[1] ?? '');
                           }
-                          return $this->encodeIds($data);
+                          return $data;
                       });
 
         return $this->success([
@@ -116,7 +116,7 @@ class UserController extends BaseController
 
         $data = $user->toArray();
         unset($data['password'], $data['id_card']);
-        return $this->success($this->encodeIds($data), trans('messages.create_success'));
+        return $this->success($data, trans('messages.create_success'));
     }
 
     /**
@@ -137,7 +137,7 @@ class UserController extends BaseController
         $data = $user->toArray();
         unset($data['password'], $data['id_card']);
         // Encryptable cast 已自动解密，phone/email 直接为明文
-        return $this->success($this->encodeIds($data));
+        return $this->success($data);
     }
 
     /**
@@ -178,7 +178,7 @@ class UserController extends BaseController
 
         $data = $user->toArray();
         unset($data['password'], $data['id_card']);
-        return $this->success($this->encodeIds($data), trans('messages.update_success'));
+        return $this->success($data, trans('messages.update_success'));
     }
 
     /**

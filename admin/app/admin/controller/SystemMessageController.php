@@ -23,7 +23,7 @@ class SystemMessageController extends BaseController
         $configs = SystemConfig::where('group', 'message_template')
             ->orderBy('key')
             ->get()
-            ->map(fn($c) => $this->encodeIds($c->toArray()));
+            ->map(fn($c) => $c->toArray());
 
         return $this->success(['list' => $configs]);
     }
@@ -47,7 +47,7 @@ class SystemMessageController extends BaseController
         }
         $config->save();
 
-        return $this->success($this->encodeIds($config->toArray()), '模板更新成功');
+        return $this->success($config->toArray(), '模板更新成功');
     }
 
     /**

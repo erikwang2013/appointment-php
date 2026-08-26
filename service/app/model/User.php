@@ -7,7 +7,6 @@ namespace app\model;
 
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Erikwang2013\Encryptable\Encryptable;
-use Erikwang2013\Snowflake\Snowflake;
 use ErikJwt\JWTFactory;
 use support\Model;
 
@@ -74,16 +73,4 @@ class User extends Model
         ], 86400 * 7);
     }
 
-    /**
-     * 生成 snowflake ID
-     */
-    public static function generateId(): string
-    {
-        $snowflakeConfig = config('snowflake');
-        $snowflake = new Snowflake(
-            (int)($snowflakeConfig['datacenter_id'] ?? 1),
-            (int)($snowflakeConfig['worker_id'] ?? 1)
-        );
-        return (string)$snowflake->id();
-    }
 }

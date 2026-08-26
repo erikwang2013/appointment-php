@@ -42,6 +42,7 @@ class CouponDeductionTest extends TestCase
 
     protected function tearDown(): void
     {
+        Db::table('erik_product')->where('id', 1)->delete();
         foreach ($this->orderIds as $id) {
             OrderVerification::where('order_id', $id)->delete();
             OrderItem::where('order_id', $id)->delete();
@@ -124,7 +125,9 @@ class CouponDeductionTest extends TestCase
             'store_id'      => $this->hash((int) (9900000000000000 + random_int(1, 999999))),
             'items'        => [[
                 'target_type' => 'product',
-                'target_id'   => 1,
+                // 同 technician_id/store_id：items 经 http_build_query 后 *_id 为字符串，
+                // decodeIds 会按 hashid 解码，target_id 必须传编码值（raw 1 → 解码失败 → 0）
+                'target_id'   => $this->hash(1),
                 'name'        => '测试商品',
                 'price'       => $price,
                 'quantity'    => 1,
@@ -135,6 +138,13 @@ class CouponDeductionTest extends TestCase
         if ($userCouponIdHash !== null) {
             $post['user_coupon_id'] = $userCouponIdHash;
         }
+        // 下单校验商品存在且价格以库中记录为准：种 id=1 商品行，价格与用例一致
+        Db::table('erik_product')->updateOrInsert(['id' => 1], [
+            'name'   => '测试商品',
+            'price'  => $price,
+            'stock'  => 100,
+            'status' => 1,
+        ]);
         $request = $this->makeRequest($post);
         $request->user_id = $userId;
         return (new OrderController())->store($request);

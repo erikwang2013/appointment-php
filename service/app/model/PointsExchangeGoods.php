@@ -5,7 +5,6 @@ declare(strict_types=1);
 
 namespace app\model;
 
-use Erikwang2013\Snowflake\Snowflake;
 use support\Model;
 
 class PointsExchangeGoods extends Model
@@ -20,16 +19,4 @@ class PointsExchangeGoods extends Model
         'stock', 'status', 'sort',
     ];
 
-    /**
-     * 生成 snowflake ID
-     */
-    public static function generateId(): string
-    {
-        $snowflakeConfig = config('snowflake');
-        $snowflake = new Snowflake(
-            (int)($snowflakeConfig['datacenter_id'] ?? 1),
-            (int)($snowflakeConfig['worker_id'] ?? 1)
-        );
-        return (string)$snowflake->id();
-    }
 }

@@ -45,7 +45,7 @@ class TrainingController extends BaseController
                        ->orderBy('sort', 'asc')
                        ->orderBy('id', 'desc')
                        ->get()
-                       ->map(fn($c) => $this->encodeIds($c->toArray()));
+                       ->map(fn($c) => $c->toArray());
 
         return $this->success([
             'list'  => $list,
@@ -81,7 +81,7 @@ class TrainingController extends BaseController
         $course->status           = (int) $request->input('status', 1);
         $course->save();
 
-        return $this->success($this->encodeIds($course->toArray()), '课程创建成功');
+        return $this->success($course->toArray(), '课程创建成功');
     }
 
     /**
@@ -101,7 +101,7 @@ class TrainingController extends BaseController
         $data['completed_count'] = TrainingProgress::where('course_id', $id)
             ->where('status', 'completed')->count();
 
-        return $this->success($this->encodeIds($data));
+        return $this->success($data);
     }
 
     /**
@@ -138,7 +138,7 @@ class TrainingController extends BaseController
         }
         $course->save();
 
-        return $this->success($this->encodeIds($course->toArray()), '课程更新成功');
+        return $this->success($course->toArray(), '课程更新成功');
     }
 
     /**
@@ -183,7 +183,6 @@ class TrainingController extends BaseController
                     ->first();
 
                 $data = $course->toArray();
-                $data['id'] = $this->encodeId($data['id']);
                 $data['progress'] = $progress ? $progress->progress : 0;
                 $data['learning_status'] = $progress ? $progress->status : 'not_started';
                 $data['completed_at'] = $progress ? $progress->completed_at : null;
@@ -199,7 +198,7 @@ class TrainingController extends BaseController
             : 0;
 
         return $this->success([
-            'technician_id'    => $this->encodeId($technicianId),
+            'technician_id'    => $technicianId,
             'technician_name'  => $profile->real_name,
             'courses'          => $courses,
             'completed_count'  => $overallProgress,
@@ -233,7 +232,7 @@ class TrainingController extends BaseController
         $this->dispatchTrainingReminder($technicianId, $pendingCourses);
 
         return $this->success([
-            'technician_id'   => $this->encodeId($technicianId),
+            'technician_id'   => $technicianId,
             'pending_courses' => $pendingCourses,
             'pending_count'   => count($pendingCourses),
             'reminded_at'     => date('Y-m-d H:i:s'),

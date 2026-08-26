@@ -47,7 +47,7 @@ class WithdrawalAccountController extends BaseController
                            if (!empty($data['account_name'])) {
                                $data['account_name'] = mb_substr($data['account_name'], 0, 1) . '**';
                            }
-                           return $this->encodeIds($data);
+                           return $data;
                        });
 
         return $this->success([

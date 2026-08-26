@@ -65,7 +65,7 @@ class PermissionController extends BaseController
         $perm->sort = (int) $request->input('sort', 0);
         $perm->save();
 
-        return $this->success($this->encodeIds($perm->toArray()), '创建成功');
+        return $this->success($perm->toArray(), '创建成功');
     }
 
     /**
@@ -89,7 +89,7 @@ class PermissionController extends BaseController
         $perm->sort = (int) $request->input('sort', $perm->sort);
         $perm->save();
 
-        return $this->success($this->encodeIds($perm->toArray()), '更新成功');
+        return $this->success($perm->toArray(), '更新成功');
     }
 
     /**
@@ -131,7 +131,6 @@ class PermissionController extends BaseController
         foreach ($permissions as $perm) {
             if ($perm['parent_id'] == $parentId) {
                 $originalId = $perm['id'];
-                $perm = $this->encodeIds($perm);
                 $children = $this->buildTree($permissions, $originalId);
                 if ($children) {
                     $perm['children'] = $children;

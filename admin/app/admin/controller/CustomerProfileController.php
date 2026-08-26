@@ -66,7 +66,7 @@ class CustomerProfileController extends BaseController
             ->map(function ($row) {
                 $tech = \app\model\TechnicianProfile::find($row->technician_id);
                 return [
-                    'technician_id'   => $this->encodeId((int) $row->technician_id),
+                    'technician_id'   => (int) $row->technician_id,
                     'technician_name' => $tech ? mb_substr($tech->real_name, 0, 1) . '**' : '未知',
                     'order_count'     => $row->order_count,
                     'avg_rating'      => round((float) $row->avg_rating, 1),
@@ -93,7 +93,7 @@ class CustomerProfileController extends BaseController
             ->with('card')
             ->orderBy('created_at', 'desc')
             ->get()
-            ->map(fn($mc) => $this->encodeIds($mc->toArray()))
+            ->map(fn($mc) => $mc->toArray())
             ->toArray();
 
         $activeMemberCards = UserMemberCard::where('user_id', $userId)
@@ -114,7 +114,7 @@ class CustomerProfileController extends BaseController
         $isReturningCustomer = Order::where('user_id', $userId)->count() > 1;
 
         return $this->success([
-            'user_id'              => $this->encodeId((int) $userId),
+            'user_id'              => (int) $userId,
             'basic'                => $basicInfo,
             'total_orders'         => $totalOrders,
             'total_spent'          => round($totalSpent, 2),

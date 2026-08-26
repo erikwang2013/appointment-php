@@ -54,7 +54,12 @@ class WithdrawController extends BaseController
         $settledTotal = (float)($summary['settled'] ?? 0);
         $withdrawnTotal = (float)($summary['withdrawn'] ?? 0);
 
-        $balance = $settledTotal - $withdrawnTotal;
+        // 在途提现预留（pending/approved 未打款仍占用可提余额），防多笔申请叠加超提
+        $pendingTotal = (float) TechnicianWithdrawal::where('technician_id', $technicianId)
+            ->whereIn('status', ['pending', 'approved'])
+            ->sum('amount');
+
+        $balance = $settledTotal - $withdrawnTotal - $pendingTotal;
 
         if ($amount > $balance) {
             return $this->error('可提现余额不足');

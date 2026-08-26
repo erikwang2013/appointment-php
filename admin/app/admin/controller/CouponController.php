@@ -36,7 +36,7 @@ class CouponController extends BaseController
                        ->limit($limit)
                        ->orderBy('id', 'desc')
                        ->get()
-                       ->map(fn($c) => $this->encodeIds($c->toArray()));
+                       ->map(fn($c) => $c->toArray());
 
         return $this->success([
             'list'  => $list,
@@ -77,7 +77,7 @@ class CouponController extends BaseController
         $coupon->status     = (int) $request->input('status', 1);
         $coupon->save();
 
-        return $this->success($this->encodeIds($coupon->toArray()), '创建成功');
+        return $this->success($coupon->toArray(), '创建成功');
     }
 
     /**
@@ -94,7 +94,7 @@ class CouponController extends BaseController
         $data = $coupon->toArray();
         $data['used_qty'] = $coupon->total_qty - $coupon->remain_qty;
 
-        return $this->success($this->encodeIds($data));
+        return $this->success($data);
     }
 
     /**
@@ -136,7 +136,7 @@ class CouponController extends BaseController
         }
         $coupon->save();
 
-        return $this->success($this->encodeIds($coupon->toArray()), '更新成功');
+        return $this->success($coupon->toArray(), '更新成功');
     }
 
     /**

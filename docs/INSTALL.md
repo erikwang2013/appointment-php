@@ -35,7 +35,7 @@ php start.php start -d     # 默认端口 8787
 3. **管理员账号** — 设置应用名称、管理员用户名和密码
 4. **执行安装** — 自动导入 SQL → 创建管理员 → 写入 .env 配置
 
-安装完成后使用设置的用户名密码登录。建议完成后删除 `admin/config/route.php` 中的 `/install` 路由。
+安装完成后使用设置的用户名密码登录。安装成功会写入 `.install.lock` 文件，`/install` 接口双重校验（文件锁 + isInstalled）防重复安装；`.install.lock` 已加入 `.gitignore`。建议生产环境删除 `admin/config/route.php` 中的 `/install` 路由。
 
 ---
 

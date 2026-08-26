@@ -38,7 +38,7 @@ class VideoAuditController extends BaseController
         $list  = $query->offset(($page - 1) * $limit)
                        ->limit($limit)
                        ->get()
-                       ->map(fn($v) => $this->encodeIds($v->toArray()));
+                       ->map(fn($v) => $v->toArray());
 
         return $this->success([
             'list'  => $list,
@@ -78,7 +78,7 @@ class VideoAuditController extends BaseController
         $video->save();
 
         return $this->success(
-            $this->encodeIds($video->toArray()),
+            $video->toArray(),
             $action === 'approve' ? '已通过审核' : '已拒绝'
         );
     }

@@ -28,7 +28,7 @@ class AgreementController extends BaseController
         $list = $query->orderBy('type')
                       ->orderBy('version', 'desc')
                       ->get()
-                      ->map(fn($a) => $this->encodeIds($a->toArray()));
+                      ->map(fn($a) => $a->toArray());
 
         return $this->success(['list' => $list]);
     }
@@ -44,7 +44,7 @@ class AgreementController extends BaseController
             return $this->fail('协议不存在', 404);
         }
 
-        return $this->success($this->encodeIds($agreement->toArray()));
+        return $this->success($agreement->toArray());
     }
 
     /**
@@ -69,7 +69,7 @@ class AgreementController extends BaseController
         }
         $agreement->save();
 
-        return $this->success($this->encodeIds($agreement->toArray()), '更新成功');
+        return $this->success($agreement->toArray(), '更新成功');
     }
 
     /**
@@ -92,6 +92,6 @@ class AgreementController extends BaseController
         $agreement->published_at = date('Y-m-d H:i:s');
         $agreement->save();
 
-        return $this->success($this->encodeIds($agreement->toArray()), '发布成功');
+        return $this->success($agreement->toArray(), '发布成功');
     }
 }

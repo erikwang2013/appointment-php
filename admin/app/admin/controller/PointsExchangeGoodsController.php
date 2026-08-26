@@ -41,7 +41,7 @@ class PointsExchangeGoodsController extends BaseController
                        ->orderBy('sort', 'desc')
                        ->orderBy('id', 'desc')
                        ->get()
-                       ->map(fn($g) => $this->encodeIds($g->toArray()));
+                       ->map(fn($g) => $g->toArray());
 
         return $this->success([
             'list'  => $list,
@@ -83,7 +83,7 @@ class PointsExchangeGoodsController extends BaseController
         $goods->sort        = (int) $request->input('sort', 0);
         $goods->save();
 
-        return $this->success($this->encodeIds($goods->toArray()), '创建成功');
+        return $this->success($goods->toArray(), '创建成功');
     }
 
     /**
@@ -100,7 +100,7 @@ class PointsExchangeGoodsController extends BaseController
         $data = $goods->toArray();
         $data['exchanged_count'] = UserPointsExchange::where('goods_id', $goods->id)->count();
 
-        return $this->success($this->encodeIds($data));
+        return $this->success($data);
     }
 
     /**
@@ -144,7 +144,7 @@ class PointsExchangeGoodsController extends BaseController
         }
         $goods->save();
 
-        return $this->success($this->encodeIds($goods->toArray()), '更新成功');
+        return $this->success($goods->toArray(), '更新成功');
     }
 
     /**
@@ -210,7 +210,7 @@ class PointsExchangeGoodsController extends BaseController
         $goods->save();
 
         return $this->success([
-            'id'     => $this->encodeIds($goods->toArray())['id'],
+            'id'     => $goods->id,
             'status' => $goods->status,
         ], $goods->status == 1 ? '已上架' : '已下架');
     }
@@ -238,7 +238,7 @@ class PointsExchangeGoodsController extends BaseController
             ->limit($limit)
             ->get()
             ->map(function ($record) {
-                $row = $this->encodeIds($record->toArray());
+                $row = $record->toArray();
                 $row['result'] = json_decode((string) $record->result, true) ?: (object) [];
                 $row['phone']  = $record->user ? $record->user->phone : '';
                 unset($row['user']);

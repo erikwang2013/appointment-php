@@ -16,11 +16,10 @@ use Webman\Http\Request;
 use Webman\Http\Response;
 
 /**
- * 拼团/秒杀闭环测试
+ * 拼团参与闭环测试
  *
- * 覆盖：秒杀库存上限（已抢光 422）、秒杀正常加入与 is_full 标记、
- * 拼团满员锁定（is_locked + 状态提升）、已成团拒绝 422、重复参与 422、
- * 到期未满员惰性关闭（join/show）。
+ * 覆盖：秒杀促销下线后参与被拒 422/400、拼团满员锁定（is_locked + 状态提升）、
+ * 已成团拒绝 422、重复参与 422、到期未满员惰性关闭（join/show）。
  * 基建与 GiftCardRedeemTest 一致（真实 DB + tearDown 清理）。
  */
 class PromotionJoinTest extends TestCase
@@ -114,41 +113,17 @@ class PromotionJoinTest extends TestCase
         return $this->body((new PromotionController())->show($hashId, $request));
     }
 
-    // ── 秒杀：库存上限 ──
+    // ── 秒杀促销下线：不再接受参与 ──
 
-    #[Test] public function flash_sale_oversell_rejected_when_stock_depleted(): void
+    #[Test] public function flash_sale_join_rejected_after_channel_removal(): void
     {
         $promo = $this->activePromotion(Promotion::TYPE_FLASH_SALE, 0, 1);
         $u1 = $this->makeUser();
-        $u2 = $this->makeUser();
 
         $r1 = $this->join($u1->id, $promo);
-        $this->assertSame(0, $r1['code'], json_encode($r1));
-        $this->assertTrue($r1['data']['is_full'], '库存 1 抢购后应标记 is_full');
-
-        $r2 = $this->join($u2->id, $promo);
-        $this->assertSame(422, $r2['code'], json_encode($r2));
-        $this->assertStringContainsString('抢光', (string) $r2['message']);
-        $this->assertSame(1, PromotionParticipant::where('promotion_id', $promo->id)->count());
-    }
-
-    #[Test] public function flash_sale_join_within_stock_succeeds(): void
-    {
-        $promo = $this->activePromotion(Promotion::TYPE_FLASH_SALE, 0, 2);
-        $u1 = $this->makeUser();
-        $u2 = $this->makeUser();
-
-        $r1 = $this->join($u1->id, $promo);
-        $this->assertSame(0, $r1['code'], json_encode($r1));
-        $this->assertSame(1, $r1['data']['current_count']);
-        $this->assertFalse($r1['data']['is_full']);
-
-        $r2 = $this->join($u2->id, $promo);
-        $this->assertSame(0, $r2['code'], json_encode($r2));
-        $this->assertSame(2, $r2['data']['current_count']);
-        $this->assertTrue($r2['data']['is_full']);
-
-        $this->assertSame(2, PromotionParticipant::where('promotion_id', $promo->id)->count());
+        $this->assertSame(400, $r1['code'], json_encode($r1));
+        $this->assertStringContainsString('不存在或已结束', (string) $r1['message']);
+        $this->assertSame(0, PromotionParticipant::where('promotion_id', $promo->id)->count());
     }
 
     // ── 拼团：满员锁定 ──
@@ -195,7 +170,7 @@ class PromotionJoinTest extends TestCase
 
     #[Test] public function duplicate_join_rejected_with_422(): void
     {
-        $promo = $this->activePromotion(Promotion::TYPE_FLASH_SALE, 0, 5);
+        $promo = $this->activePromotion(Promotion::TYPE_GROUP_BUY, 2, 5);
         $u1 = $this->makeUser();
 
         $r1 = $this->join($u1->id, $promo);

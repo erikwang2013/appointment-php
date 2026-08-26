@@ -110,7 +110,7 @@ class FinanceController extends BaseController
         if ($payment) {
             return $this->success([
                 'type' => 'payment',
-                'data' => $this->encodeIds($payment->toArray()),
+                'data' => $payment->toArray(),
             ]);
         }
 
@@ -118,7 +118,7 @@ class FinanceController extends BaseController
         if ($refund) {
             return $this->success([
                 'type' => 'refund',
-                'data' => $this->encodeIds($refund->toArray()),
+                'data' => $refund->toArray(),
             ]);
         }
 
@@ -126,7 +126,7 @@ class FinanceController extends BaseController
         if ($withdrawal) {
             return $this->success([
                 'type' => 'withdrawal',
-                'data' => $this->encodeIds($withdrawal->toArray()),
+                'data' => $withdrawal->toArray(),
             ]);
         }
 

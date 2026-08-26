@@ -45,7 +45,7 @@ class ServiceController extends BaseController
                        ->orderBy('sort', 'asc')
                        ->orderBy('id', 'desc')
                        ->get()
-                       ->map(fn($s) => $this->encodeIds($s->toArray()));
+                       ->map(fn($s) => $s->toArray());
 
         return $this->success([
             'list'  => $list,
@@ -93,7 +93,7 @@ class ServiceController extends BaseController
         $service->save();
 
         $this->clearSvcCache();
-        return $this->success($this->encodeIds($service->toArray()), '创建成功');
+        return $this->success($service->toArray(), '创建成功');
     }
 
     /**
@@ -107,7 +107,7 @@ class ServiceController extends BaseController
             return $this->fail('服务不存在', 404);
         }
 
-        return $this->success($this->encodeIds($service->toArray()));
+        return $this->success($service->toArray());
     }
 
     /**
@@ -143,7 +143,7 @@ class ServiceController extends BaseController
         $service->save();
 
         $this->clearSvcCache();
-        return $this->success($this->encodeIds($service->toArray()), '更新成功');
+        return $this->success($service->toArray(), '更新成功');
     }
 
     /**

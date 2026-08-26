@@ -61,10 +61,7 @@ class ReferralLevel2Controller extends BaseController
      */
     private function decorate(ReferralLevel2Reward $reward): array
     {
-        $data = $this->encodeIds(
-            $reward->toArray(),
-            ['id', 'order_id', 'referred_user_id', 'referrer_id']
-        );
+        $data = $reward->toArray();
 
         $data['amount']              = (float) $reward->amount;
         $data['referrer_nickname']   = $reward->referrer ? (string) $reward->referrer->nickname : '';

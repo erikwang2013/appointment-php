@@ -5,7 +5,6 @@ declare(strict_types=1);
 
 namespace app\model;
 
-use Erikwang2013\Snowflake\Snowflake;
 use support\Model;
 
 class UserMemberCard extends Model
@@ -30,16 +29,4 @@ class UserMemberCard extends Model
         return $this->belongsTo(MemberCard::class, 'card_id');
     }
 
-    /**
-     * 生成 snowflake ID
-     */
-    public static function generateId(): string
-    {
-        $snowflakeConfig = config('snowflake');
-        $snowflake = new Snowflake(
-            (int)($snowflakeConfig['datacenter_id'] ?? 1),
-            (int)($snowflakeConfig['worker_id'] ?? 1)
-        );
-        return (string)$snowflake->id();
-    }
 }

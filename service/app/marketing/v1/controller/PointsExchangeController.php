@@ -195,7 +195,8 @@ class PointsExchangeController extends BaseController
     {
         switch ($goods->type) {
             case 'coupon':
-                $coupon = Coupon::find((int) $goods->value);
+                // value 为 DECIMAL(25,2)，读回 "id.00"；(int) 强转会经 float64 丢精度（ID 超 2^53），须按字符串取整传 key
+                $coupon = Coupon::find(explode('.', (string) $goods->value)[0]);
                 if (!$coupon) {
                     throw new \RuntimeException('兑换优惠券不存在');
                 }

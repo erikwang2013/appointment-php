@@ -80,7 +80,7 @@ class TechnicianController extends BaseController
                            if (isset($data['real_name']) && !empty($data['real_name'])) {
                                $data['real_name'] = mb_substr($data['real_name'], 0, 1) . '**';
                            }
-                           return $this->encodeIds($data);
+                           return $data;
                        });
 
         return $this->success([
@@ -126,7 +126,7 @@ class TechnicianController extends BaseController
         $data['next_tier'] = $tierData['next'];
         $data['tier_progress'] = $tierData['progress'];
 
-        return $this->success($this->encodeIds($data));
+        return $this->success($data);
     }
 
     /**
@@ -149,7 +149,7 @@ class TechnicianController extends BaseController
         $profile->save();
 
         $this->clearSvcCache();
-        return $this->success($this->encodeIds($profile->toArray()), '更新成功');
+        return $this->success($profile->toArray(), '更新成功');
     }
 
     /**
@@ -177,7 +177,7 @@ class TechnicianController extends BaseController
 
         $this->clearSvcCache();
         return $this->success(
-            $this->encodeIds($profile->toArray()),
+            $profile->toArray(),
             $action === 'approve' ? '审核通过' : '已驳回'
         );
     }
@@ -264,7 +264,7 @@ class TechnicianController extends BaseController
             $schedule->save();
 
             $this->clearSvcCache();
-            return $this->success($this->encodeIds($schedule->toArray()), '排班创建成功');
+            return $this->success($schedule->toArray(), '排班创建成功');
         }
 
         // GET: 获取排班列表
@@ -274,7 +274,7 @@ class TechnicianController extends BaseController
             ->orderBy('date')
             ->limit(30)
             ->get()
-            ->map(fn($s) => $this->encodeIds($s->toArray()));
+            ->map(fn($s) => $s->toArray());
 
         return $this->success(['list' => $list]);
     }
@@ -332,7 +332,7 @@ class TechnicianController extends BaseController
         $list = TechnicianService::where('technician_id', $id)
             ->with('service')
             ->get()
-            ->map(fn($ts) => $this->encodeIds($ts->toArray()));
+            ->map(fn($ts) => $ts->toArray());
 
         return $this->success(['list' => $list]);
     }
@@ -370,7 +370,7 @@ class TechnicianController extends BaseController
             $restrictedServices = Service::whereIn('id', $restrictedServiceIds)
                 ->with('category')
                 ->get()
-                ->map(fn($s) => $this->encodeIds($s->toArray()));
+                ->map(fn($s) => $s->toArray());
         }
 
         return $this->success([

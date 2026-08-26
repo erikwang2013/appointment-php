@@ -37,7 +37,7 @@ class FaqController extends BaseController
                        ->orderBy('sort', 'asc')
                        ->orderBy('id', 'desc')
                        ->get()
-                       ->map(fn($f) => $this->encodeIds($f->toArray()));
+                       ->map(fn($f) => $f->toArray());
 
         return $this->success([
             'list'  => $list,
@@ -70,7 +70,7 @@ class FaqController extends BaseController
         $faq->save();
 
         $this->clearSvcCache();
-        return $this->success($this->encodeIds($faq->toArray()), '创建成功');
+        return $this->success($faq->toArray(), '创建成功');
     }
 
     /**
@@ -84,7 +84,7 @@ class FaqController extends BaseController
             return $this->fail('FAQ不存在', 404);
         }
 
-        return $this->success($this->encodeIds($faq->toArray()));
+        return $this->success($faq->toArray());
     }
 
     /**
@@ -111,7 +111,7 @@ class FaqController extends BaseController
         $faq->save();
 
         $this->clearSvcCache();
-        return $this->success($this->encodeIds($faq->toArray()), '更新成功');
+        return $this->success($faq->toArray(), '更新成功');
     }
 
     /**

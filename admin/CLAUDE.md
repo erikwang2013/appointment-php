@@ -69,7 +69,9 @@ open-admin/
 │   ├── common/                 # 公共工具类
 │   │   ├── HashidsService.php
 │   │   ├── SnowflakeService.php
-│   │   └── EncryptionService.php
+│   │   ├── EncryptionService.php
+│   │   ├── TechnicianWithdrawalService.php
+│   │   └── WechatPayService.php
 │   ├── common/                 # 公共定义（含 Apidoc Definitions）
 │   ├── middleware/             # 中间件（8 个）
 │   │   ├── Cors.php            # 跨域（全局）
@@ -79,7 +81,7 @@ open-admin/
 │   │   ├── AdminAuth.php       # JWT 认证 + 黑名单
 │   │   ├── AdminPermission.php # RBAC 权限校验（Redis 60s 缓存）
 │   │   └── OperationLog.php    # 操作日志自动记录（含来源端检测）
-│   ├── model/                  # 数据模型
+│   ├── model/                  # 数据模型（仅 6 个特有模型：AdminPermission/AdminRole/AdminUser/OperationLog/OperationLogDetail/SystemConfig；其余经 psr-4 共享 service 版）
 │   ├── queue/                  # 队列任务
 │   └── process/                # 进程 (Http, Monitor)
 ├── apps/

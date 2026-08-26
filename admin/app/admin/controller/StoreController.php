@@ -41,7 +41,7 @@ class StoreController extends BaseController
                        ->limit($limit)
                        ->orderBy('id', 'desc')
                        ->get()
-                       ->map(fn($s) => $this->encodeIds($s->toArray()));
+                       ->map(fn($s) => $s->toArray());
 
         return $this->success([
             'list'  => $list,
@@ -140,7 +140,7 @@ class StoreController extends BaseController
         $store->save();
         $this->clearSvcCache(); // 门店数据变更，失效 LBS 附近门店缓存（svc:lbs:stores:*）
 
-        return $this->success($this->encodeIds($store->toArray()), '创建成功');
+        return $this->success($store->toArray(), '创建成功');
     }
 
     /**
@@ -154,7 +154,7 @@ class StoreController extends BaseController
             return $this->fail('门店不存在', 404);
         }
 
-        return $this->success($this->encodeIds($store->toArray()));
+        return $this->success($store->toArray());
     }
 
     /**
@@ -195,7 +195,7 @@ class StoreController extends BaseController
         $store->save();
         $this->clearSvcCache(); // 门店数据变更，失效 LBS 附近门店缓存（svc:lbs:stores:*）
 
-        return $this->success($this->encodeIds($store->toArray()), '更新成功');
+        return $this->success($store->toArray(), '更新成功');
     }
 
     /**
@@ -236,7 +236,7 @@ class StoreController extends BaseController
         $this->clearSvcCache(); // 门店状态变更，失效 LBS 附近门店缓存（svc:lbs:stores:*）
 
         return $this->success(
-            $this->encodeIds($store->toArray()),
+            $store->toArray(),
             $store->status === 1 ? '已启用' : '已禁用'
         );
     }

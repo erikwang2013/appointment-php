@@ -31,7 +31,7 @@ use Webman\Http\Response;
  *
  * 覆盖：生效活动可被公开接口列出、下架/过期活动不返回、
  * 标准订单券后金额达门槛触发满减（discount_amount + 备注）、未达门槛不触发、
- * 拼团/秒杀订单跳过满减。基建与 FlashSaleOrderTest 一致（真实 DB + tearDown 清理）。
+ * 拼团订单跳过满减。基建与 FlashSaleOrderTest 一致（真实 DB + tearDown 清理）。
  */
 class FullReductionTest extends TestCase
 {
@@ -198,12 +198,12 @@ class FullReductionTest extends TestCase
     {
         $promotion = Promotion::create([
             'id'               => Promotion::generateId(),
-            'name'             => '限时秒杀',
-            'type'             => Promotion::TYPE_FLASH_SALE,
+            'name'             => '限时拼团',
+            'type'             => Promotion::TYPE_GROUP_BUY,
             'service_id'       => $service->id,
-            'min_people'       => 1,
+            'min_people'       => 2,
             'max_people'       => $maxPeople,
-            'discount_percent' => 30.0,
+            'discount_percent' => 50.0,
             'start_at'         => date('Y-m-d H:i:s', time() - 3600),
             'end_at'           => date('Y-m-d H:i:s', time() + 3600),
             'status'           => 1,
@@ -297,9 +297,9 @@ class FullReductionTest extends TestCase
         $this->orderIds[] = (string) $this->firstOrderByUser($u1->id)->id;
     }
 
-    // ── 拼团/秒杀订单跳过满减 ──
+    // ── 拼团订单跳过满减 ──
 
-    #[Test] public function flash_sale_order_skips_full_reduction(): void
+    #[Test] public function group_buy_order_skips_full_reduction(): void
     {
         $this->makeActivity('满100减10', 100.0, 10.0);
         $service = $this->makeService(100.0);
@@ -310,8 +310,8 @@ class FullReductionTest extends TestCase
         $resp = $this->order($u1->id, $service, ['promotion_id' => $this->encode((int) $promo->id)]);
 
         $this->assertSame(0, $resp['code'], json_encode($resp));
-        $this->assertSame(70.0, (float) $resp['data']['paid_amount'], '秒杀价 = 原价 × (1 - 30%)');
-        $this->assertSame(30.0, (float) $resp['data']['discount_amount'], '仅秒杀折扣，无满减');
+        $this->assertSame(50.0, (float) $resp['data']['paid_amount'], '拼团价 = 原价 × 50%');
+        $this->assertSame(50.0, (float) $resp['data']['discount_amount'], '仅拼团折扣，无满减');
         $this->assertStringNotContainsString('满减', (string) $resp['data']['remark']);
         $this->orderIds[] = (string) $this->firstOrderByUser($u1->id)->id;
     }

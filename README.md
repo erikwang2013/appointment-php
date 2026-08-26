@@ -131,7 +131,7 @@ cd ../service/ && cp .env.docker .env && docker-compose up -d
 | 积分体系 | 签到返积分；核销消费返积分 floor(paid×1)（order_id 幂等，balance 快照）；退款按比例回扣；明细分页 + type/source 过滤 |
 | 会员管理 | erik_user.member_level 列（迁移 000008）；管理端会员卡完整 CRUD（权限 365-369） |
 | 小程序下单链路 | 服务详情 → 确认订单（选券/门槛置灰/客户端预估金额）→ POST /order → 微信/余额支付；小程序共 20 个页面 |
-| 拼团/秒杀闭环 | join Redis NX 防超卖 + 重复参与 422 + 满员锁定 + 到期惰性关闭；成团下单 store 传 promotion_id 以拼团价（discount_percent）下单，禁用优惠券/次卡/积分叠加，未成团自动取消订单并释放技师锁 |
+| 拼团闭环 | join 重复参与 422 + 满员锁定 + 到期惰性关闭；成团下单 store 传 promotion_id 以拼团价（discount_percent）下单，禁用优惠券/次卡/积分叠加，未成团自动取消订单并释放技师锁（旧 FLASH_SALE 促销通道已下线，秒杀走独立通道） |
 | 店长工作台 | service /api/store-manager 4 接口（overview/orders/technicians/revenue）store_id 强制隔离（无门店 403）；admin 门店工作台概览 + 订单 store_id 筛选 + Flutter 页面 + 权限 372 |
 | 分销返佣 | 被推荐人首单 completed 后按 paid_amount × reward_rate（系统配置，默认 0.05）给推荐人返佣入钱包（WalletTxn referral_reward）；行锁+判空+首单复查三重幂等；earnings 明细 + admin 记录查看（权限 379） |
 | 积分兑换商城 | 兑换商品/兑换记录两表；兑换接口 Redis NX + 行锁防超兑 + uk_user_goods 同用户限一次；coupon 发券 / wallet 入账 / gift_card 卡密三结果；admin CRUD + 上下架 + 记录（权限 373-378） |
@@ -139,7 +139,7 @@ cd ../service/ && cp .env.docker .env && docker-compose up -d
 | 优惠券转赠 | 8 位唯一转赠码（uk_code 兜底，7 天有效）；claim 防滥用：Redis NX 锁 + 行锁复验防双花、uk_user_coupon 限转赠一次、被转赠券不可再转、不可自领；懒过期恢复原券 |
 | 积分过期 | expires_at（默认 365 天，配置 points.expiry_days）；PointsExpiryTimer 60s 游标扫描写 type=expire 负值扣减（三层幂等）+ 聚合站内通知；过期积分不可抵现/兑换 |
 | 技师等级自动评定 | TierRatingService 实时统计订单量+均分回写 profile，按 tier_config 从高到低匹配；仅升级不降级（allowDowngrade 供人工重评）；变更落 erik_technician_tier_log + 站内通知；admin 日志查看（权限 380） |
-| 秒杀下单闭环 | store() 传 promotion_id（flash_sale）以秒杀价 round(total×(100−discount_percent)/100,2) 下单；售罄（participants_count≥max_people）422「已抢光」；pay() 懒判定 isFlashSaleClosed 过期自动取消+释放技师锁 |
+| 秒杀下单闭环 | /api/seckill 活动 + buy 幂等/防并发，下单注入 seckill_id 复用 store()，库存统一在事务内行锁扣减（秒杀价 = seckill_price 以 DB 为准），售罄 422「已抢光」，取消不回补库存；旧 promotion flash_sale 通道已下线 |
 | 服务开始前提醒 | ServiceReminderTimer 60s 扫描 1h 内开始的 confirmed/serving 订单 → SCENE_REMINDER 订阅消息+站内通知（order_id+type 防重，三层幂等）；模板未配置自动降级站内通知 |
 | 到期提醒 | ExpiryReminderTimer 6h 扫描 3 天内到期的会员卡/优惠券 → type=card_expiry/coupon_expiry + SCENE_EXPIRY 订阅消息（order_id 记来源防重） |
 | 技师回复评价 | POST /api/technician/review/reply/{order_id}：非本人 404、重复回复 422、回复成功站内通知用户；erik_order_review 补 replied_at；admin 回复详情（权限 381） |
@@ -183,6 +183,8 @@ cd ../service/ && cp .env.docker .env && docker-compose up -d
 > Round-23 补充：用户健康档案（erik_user_health_profile）；钱包支付密码（erik_user_wallet pay_password 设置/校验）；技师批量排班（batch 导入 + 重叠冲突检测）；订单状态时间线（erik_order_status_log 8 状态埋点 + 用户端/后台展示）；积分幸运转盘（erik_lucky_wheel + erik_wheel_record 权重抽奖，权限 401-406）；积分有效期（points.expiry_days 配置 + 新 earn 流水带 expires_at）。
 >
 > Round-24 补充：游客模式（/api/guest/* 未登录只读浏览 + Redis 缓存）；秒杀（erik_seckill_activity + Redis NX 行锁抢购 + erik_order.seckill_id 注入下单，权限 407-411/420）；APP 版本管理与检测更新（erik_app_version + /api/app/version，权限 416-419）；回头客奖励（30 天二次消费奖金 type=return_customer，权限 412-414）；排班 CSV 导出（UTF-8 BOM + 时间槽明细，权限 415）。
+>
+> 2026-08-26 安全加固：下单接口订单项价格一律以数据库记录为准（客户端价格不可信，未知 target_type 422，target_id 必须 hashid），拼团/秒杀价同以 DB 为准；秒杀库存统一由 /api/order store() 事务内行锁扣减（SeckillController::buy 不再预扣，保留 Redis 活动锁 + client_token 幂等）；技师提现申请时在途预留、审批转账前复核、并发审批防双打款；微信支付回调 total_fee 与订单应付严格比对、支付宝回调日志脱敏；/install 安装成功写 .install.lock 双重校验防重装；依赖版本收敛（webman-scout 2.0.5 / opensearch-php ^2.6 / dompdf、security-php、webman-database 精确锁定）；两应用 phpstan.neon 修复可运行（php -d memory_limit=2G）。
 
 ## 文档导航
 

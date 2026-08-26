@@ -107,9 +107,6 @@ class ReviewAuditController extends BaseController
      */
     private function decorate(OrderReview $review): array
     {
-        return $this->encodeIds(
-            $review->toArray(),
-            ['id', 'order_id', 'user_id', 'technician_id']
-        );
+        return $review->toArray();
     }
 }

@@ -9,7 +9,6 @@ use app\common\BaseController;
 use app\model\Order;
 use app\model\SeckillActivity;
 use app\order\v1\controller\OrderController;
-use support\Db;
 use support\Log;
 use support\Redis;
 use Webman\Http\Request;
@@ -20,9 +19,10 @@ use Webman\Http\Response;
  *
  * GET  /api/seckill          进行中活动列表（含已售量）
  * GET  /api/seckill/{id}     活动详情（含剩余库存）
- * POST /api/seckill/{id}/buy 抢购：Redis NX 锁 + 行锁（lockForUpdate）扣库存、
- *                            client_token 幂等（SETNX 24h）、未开始/已结束/售罄 422；
- *                            下单复用 OrderController::store 秒杀通道（秒杀价结算）。
+ * POST /api/seckill/{id}/buy 抢购：Redis NX 锁 + client_token 幂等（SETNX 24h）、
+ *                            未开始/已结束/售罄 422；
+ *                            下单复用 OrderController::store 秒杀通道——库存由 store 事务内
+ *                            行锁（lockForUpdate）扣减，失败整体回滚，无需本控制器回补。
  */
 class SeckillController extends BaseController
 {
@@ -48,8 +48,10 @@ class SeckillController extends BaseController
         }
 
         $ids = $activities->pluck('id')->all();
+        // 已售量仅统计有效订单（支付成功/待服务/服务中/已完成），与 stock 扣减口径一致
         $sold = Order::whereIn('seckill_id', $ids)
             ->whereNotNull('seckill_id')
+            ->whereIn('status', [Order::STATUS_PAID, Order::STATUS_CONFIRMED, Order::STATUS_SERVING, Order::STATUS_COMPLETED])
             ->groupBy('seckill_id')
             ->selectRaw('seckill_id, COUNT(*) AS sold')
             ->pluck('sold', 'seckill_id');
@@ -81,7 +83,9 @@ class SeckillController extends BaseController
 
         $now = date('Y-m-d H:i:s');
         $data = $activity->toArray();
-        $data['sold'] = Order::where('seckill_id', $activity->id)->count();
+        $data['sold'] = Order::where('seckill_id', $activity->id)
+            ->whereIn('status', [Order::STATUS_PAID, Order::STATUS_CONFIRMED, Order::STATUS_SERVING, Order::STATUS_COMPLETED])
+            ->count();
         $data['remaining_stock'] = max(0, (int)$activity->stock);
         $data['state'] = $now < $activity->start_at ? 'not_started'
             : ($now > $activity->end_at ? 'ended' : 'ongoing');
@@ -145,33 +149,8 @@ class SeckillController extends BaseController
         }
 
         try {
-            // 行锁扣库存（事务内 lockForUpdate 复验状态/时间/库存）
-            try {
-                Db::beginTransaction();
-                $locked = SeckillActivity::where('id', $decodedId)->lockForUpdate()->first();
-                if (!$locked || $locked->status != 1) {
-                    throw new \RuntimeException('秒杀活动不存在或已结束');
-                }
-                $now = date('Y-m-d H:i:s');
-                if ($now < $locked->start_at) {
-                    throw new \RuntimeException('秒杀未开始');
-                }
-                if ($now > $locked->end_at) {
-                    throw new \RuntimeException('秒杀已结束');
-                }
-                if ((int)$locked->stock <= 0) {
-                    throw new \RuntimeException('已售罄');
-                }
-                $locked->stock = (int)$locked->stock - 1;
-                $locked->save();
-                Db::commit();
-            } catch (\Throwable $e) {
-                Db::rollBack();
-                Redis::del($tokenKey);
-                return $this->error($e->getMessage(), 422);
-            }
-
-            // 复用订单创建通道：注入秒杀参数，走 OrderController::store 秒杀分支结算
+            // 复用订单创建通道：注入秒杀参数，走 OrderController::store 秒杀分支结算。
+            // 库存扣减统一在 store 事务内行锁完成（失败整体回滚，任何退出路径都不丢库存）
             $request->setPost([
                 'items'         => $items,
                 'order_type'    => 'appointment',
@@ -185,16 +164,13 @@ class SeckillController extends BaseController
             $orderResponse = (new OrderController())->store($request);
             $orderBody = json_decode($orderResponse->rawBody(), true) ?: [];
             if (($orderBody['code'] ?? -1) !== 0) {
-                // 下单失败：回补库存、清除幂等键，允许更换 token 重试
-                SeckillActivity::where('id', $decodedId)
-                    ->where('stock', '>=', 0)
-                    ->increment('stock', 1);
+                // 下单失败（store 已回滚，库存未扣）：清除幂等键，允许更换 token 重试
                 Redis::del($tokenKey);
-                return $orderResponse;
             }
-
             return $orderResponse;
         } catch (\Throwable $e) {
+            // store 异常同样已回滚，仅需释放幂等键
+            Redis::del($tokenKey);
             Log::error('[SeckillController] buy failed: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
             return $this->error('抢购失败，请稍后重试');
         } finally {
