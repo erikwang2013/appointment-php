@@ -28,10 +28,10 @@ class WithdrawController extends BaseController
         $accountName = trim($request->input('account_name', ''));
         $accountNo = trim($request->input('account_no', ''));
 
-        // 校验：当前日期是否为20号
-        $currentDay = (int)date('d');
-        if ($currentDay !== 20) {
-            return $this->error('仅每月20号可申请提现');
+        // 校验：当前日期是否为门禁日（默认每月 20 号，config('withdraw.gate_day') 可覆盖）
+        $gateDay = (int)config('withdraw.gate_day', 20);
+        if ((int)date('d') !== $gateDay) {
+            return $this->error("仅每月{$gateDay}号可申请提现");
         }
 
         // 校验金额

@@ -17,9 +17,6 @@ use Webman\Http\Response;
  *
  * 覆盖：新增（含默认地址互斥）/ 必填校验 400 / 列表排序、
  * 详情与更新与删除的 404（他人地址不可见）、默认地址切换互斥、删除后不可见。
- *
- * 注意：本控制器 {id} 路由参数未做 hashids 解码（与 PointsExchange 等控制器不同），
- * 测试按实际行为传原始 ID 字符串。
  */
 class AddressControllerTest extends TestCase
 {

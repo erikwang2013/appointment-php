@@ -18,9 +18,6 @@ use Webman\Http\Response;
  *
  * 覆盖：无效收藏类型 400 / 空目标 400 / 收藏服务成功 / 重复收藏 400 /
  * 收藏技师 favorite_count 自增 / 列表关联目标详情与孤儿收藏 / 取消收藏自减与 404。
- *
- * 注意：destroy 的 {id} 路由参数未做 hashids 解码（与 AddressController 一致），
- * 测试按实际行为传原始 ID 字符串。
  */
 class FavoriteControllerTest extends TestCase
 {

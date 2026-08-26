@@ -37,7 +37,9 @@ return [
 
         'main' => [
             'salt' => '',
-            'length' => 0,
+            // 最小长度 8：编码恒 ≥8 字符，与裸数字 ID（<8 位或 16 位）长度不相交，
+            // 杜绝 decodeId 把裸数字 ID 误解码为其他 ID（AddressControllerTest 偶发 404 根因）
+            'length' => 8,
             // 'alphabet' => 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890',
         ],
 

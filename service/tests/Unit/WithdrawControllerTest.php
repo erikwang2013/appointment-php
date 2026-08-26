@@ -10,17 +10,17 @@ use app\model\TechnicianEarning;
 use app\model\TechnicianProfile;
 use app\model\TechnicianWithdrawal;
 use app\model\User;
+use Webman\Config;
 use Webman\Http\Request;
 use Webman\Http\Response;
 
 /**
  * 技师提现控制器测试
  *
- * 控制器第一道校验是"仅每月 20 号可申请提现"（硬门禁，非业务可绕过）：
- * - 非 20 号：断言门禁拒绝且不落库（全年可跑）
- * - 20 号当天：跑通成功路径（settled 收益充足 → 创建 pending 单 + 1% 手续费）、
+ * 门禁日经 config('withdraw.gate_day') 注入（默认每月 20 号），测试全天可跑：
+ * - 门禁日≠今天：断言拒绝且不落库
+ * - 门禁日=今天：跑通成功路径（settled 收益充足 → 创建 pending 单 + 1% 手续费）、
  *   余额不足拒绝、金额低于 10 拒绝、账户信息缺失拒绝
- * 非 20 号时后四者 markTestSkipped。
  */
 class WithdrawControllerTest extends TestCase
 {
@@ -36,8 +36,17 @@ class WithdrawControllerTest extends TestCase
     /** @var string[] 用例提现单号 */
     private array $withdrawalNos = [];
 
+    /** @var int 原门禁日（setUp 保存 / tearDown 恢复） */
+    private int $originalGateDay = 20;
+
+    protected function setUp(): void
+    {
+        $this->originalGateDay = config('withdraw.gate_day', 20);
+    }
+
     protected function tearDown(): void
     {
+        $this->setGateDay($this->originalGateDay);
         foreach ($this->earningIds as $id) {
             TechnicianEarning::where('id', $id)->delete();
         }
@@ -54,6 +63,16 @@ class WithdrawControllerTest extends TestCase
         $this->withdrawalNos = [];
         $this->technicianIds = [];
         $this->userIds = [];
+    }
+
+    /** 写 withdraw.gate_day（webman Config 无 setter，反射写静态数组并清 flatCache） */
+    private function setGateDay(int $day): void
+    {
+        $prop = new \ReflectionProperty(\Webman\Config::class, 'config');
+        $config = $prop->getValue();
+        $config['withdraw']['gate_day'] = $day;
+        $prop->setValue(null, $config);
+        (new \ReflectionProperty(\Webman\Config::class, 'flatCache'))->setValue(null, []);
     }
 
     private function makeRequest(array $post = []): Request
@@ -112,9 +131,8 @@ class WithdrawControllerTest extends TestCase
 
     #[Test] public function store_rejects_outside_20th_without_side_effects(): void
     {
-        if ((int) date('d') === 20) {
-            $this->markTestSkipped('今天是 20 号，门禁放行');
-        }
+        $today = (int) date('d');
+        $this->setGateDay($today === 31 ? 1 : $today + 1);
         $technician = $this->makeTechnician();
         $this->makeSettledEarning($technician, 200.0);
 
@@ -124,15 +142,14 @@ class WithdrawControllerTest extends TestCase
         ]);
 
         $this->assertSame(400, $resp['code']);
-        $this->assertStringContainsString('仅每月20号可申请提现', (string) $resp['message']);
+        $this->assertStringContainsString('仅每月', (string) $resp['message']);
+        $this->assertStringContainsString('号可申请提现', (string) $resp['message']);
         $this->assertSame(0, TechnicianWithdrawal::where('technician_id', $technician->id)->count(), '门禁拒绝不落库');
     }
 
     #[Test] public function store_success_creates_pending_withdrawal_with_fee(): void
     {
-        if ((int) date('d') !== 20) {
-            $this->markTestSkipped('仅每月 20 号可申请提现');
-        }
+        $this->setGateDay((int) date('d'));
         $technician = $this->makeTechnician();
         $this->makeSettledEarning($technician, 200.0);
 
@@ -151,9 +168,7 @@ class WithdrawControllerTest extends TestCase
 
     #[Test] public function store_rejects_insufficient_balance(): void
     {
-        if ((int) date('d') !== 20) {
-            $this->markTestSkipped('仅每月 20 号可申请提现');
-        }
+        $this->setGateDay((int) date('d'));
         $technician = $this->makeTechnician();
         $this->makeSettledEarning($technician, 10.0);
 
@@ -168,9 +183,7 @@ class WithdrawControllerTest extends TestCase
 
     #[Test] public function store_rejects_amount_below_minimum(): void
     {
-        if ((int) date('d') !== 20) {
-            $this->markTestSkipped('仅每月 20 号可申请提现');
-        }
+        $this->setGateDay((int) date('d'));
         $technician = $this->makeTechnician();
         $this->makeSettledEarning($technician, 100.0);
 
@@ -184,9 +197,7 @@ class WithdrawControllerTest extends TestCase
 
     #[Test] public function store_rejects_missing_account_info(): void
     {
-        if ((int) date('d') !== 20) {
-            $this->markTestSkipped('仅每月 20 号可申请提现');
-        }
+        $this->setGateDay((int) date('d'));
         $technician = $this->makeTechnician();
         $this->makeSettledEarning($technician, 100.0);
 

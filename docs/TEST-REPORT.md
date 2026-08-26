@@ -1,6 +1,6 @@
 # 测试团队报告 — 全量测试覆盖审计
 
-> 生成时间：2026-08-26　版本：v1.3.6
+> 生成时间：2026-08-26　版本：v1.3.8
 > 团队：deep-audit（tester-php / tester-api / tester-ui / tester-go / tester-rust）
 
 ## 1. 执行摘要
@@ -22,7 +22,7 @@
 
 ## 3. PHP 测试覆盖
 
-**全量结果：558 tests / 2495 assertions，0 失败 0 错误**（2 既有 deprecation、4 skipped 为提现 20 号门禁日期用例）
+**全量结果：558 tests / 2508 assertions，0 失败 0 错误 0 skip**（2 既有 vendor deprecation、2 既有 PHPUnit notice，均非本轮引入；原 4 个提现门禁 skip 已通过 config('withdraw.gate_day') 可注入消除，全天可跑）
 
 ### 本轮新增（tester-php，6 文件 32 用例，均真实 DB + 事务回滚）
 
@@ -33,7 +33,7 @@
 | AddressControllerTest | 7 | 新增+默认、必填 400、默认互斥、默认优先、越权 404、切默认、删除+二次 404 |
 | FavoriteControllerTest | 7 | 收藏服务/技师、非法类型 400、重复 400、favorite_count 增减、孤儿收藏、删除 404 |
 | ReferralControllerTest | 5 | 邀请码生成+统计、用户 404、二维码 URL、被推荐列表、返佣明细 |
-| WithdrawControllerTest | 5 | 20 号门禁拒绝、成功、余额不足、<10 元、缺账户（非 20 号 skip） |
+| WithdrawControllerTest | 5 | 门禁日拒绝（config 注入非今日）、成功、余额不足、<10 元、缺账户（全天可跑，0 skip） |
 
 ### 既有覆盖（70 文件，未变）
 
@@ -44,6 +44,13 @@
 - 【bug】AddressController::show/update/destroy 与 FavoriteController::destroy 未做 hashids 解码，hashid 调用 404。
   根因修复：`BaseController::decodeId` 增加纯数字透传兼容（hashids 解不出且 ctype_digit 时原样返回），
   全仓库 89 处调用统一受益；4 个控制器方法入口补 decodeId。全量回归通过。
+- 【bug】hashids min-length 为 0 时，部分裸数字 ID（如 306）恰好是其他 ID 的合法 hashids 编码，
+  decodeId 会误解码成错误 ID（AddressControllerTest 偶发 404，多轮全量运行随机复现）。
+  根因修复：service/admin `config/hashids.php` 的 main 连接 `length` 0→8，
+  编码恒 ≥8 字符，与裸数字 ID（<8 位或 16 位）长度不相交，歧义从编码空间消除。
+  连跑 5 轮 AddressControllerTest 验证稳定，全量回归通过。
+- 提现门禁日硬编码 20 号改为 `config('withdraw.gate_day')` 可注入（config/withdraw.php），
+  原 4 个"仅每月 20 号"skip 用例改为反射注入门禁日，全天可跑，0 skip。
 
 ## 4. API 自动化测试结论
 

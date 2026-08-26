@@ -37,7 +37,8 @@ return [
 
         'main' => [
             'salt' => '',
-            'length' => 0,
+            // 最小长度 8：编码恒 ≥8 字符，与裸数字 ID 长度不相交，杜绝裸数字 ID 被误解码（与 service 保持一致）
+            'length' => 8,
             // 'alphabet' => 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890',
         ],
 

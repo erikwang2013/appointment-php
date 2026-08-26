@@ -87,7 +87,8 @@
       "erikwang2013/encryptable": true,
       "erikwang2013/webman-scout": true,
       "erikwang2013/encryption": true,
-      "erikwang2013/security-php": true
+      "erikwang2013/security-php": true,
+      "php-http/discovery": true
     },
     "process-timeout": 6800
   },
