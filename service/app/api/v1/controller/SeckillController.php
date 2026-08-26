@@ -48,7 +48,8 @@ class SeckillController extends BaseController
         }
 
         $ids = $activities->pluck('id')->all();
-        // 已售量仅统计有效订单（支付成功/待服务/服务中/已完成），与 stock 扣减口径一致
+        // 已售量仅统计有效订单（支付成功/待服务/服务中/已完成）；库存在下单时即扣减（store 事务内行锁），
+        // 未支付订单不计入已售量，故 sold 与 remaining_stock 口径不同属预期
         $sold = Order::whereIn('seckill_id', $ids)
             ->whereNotNull('seckill_id')
             ->whereIn('status', [Order::STATUS_PAID, Order::STATUS_CONFIRMED, Order::STATUS_SERVING, Order::STATUS_COMPLETED])
