@@ -8,7 +8,8 @@ appointment-php/
 ├── service/            # 业务API服务 (webman v2)
 ├── apps/               # 用户端前端应用
 │   ├── wechat/         #   微信小程序（原生）
-│   └── flutter/        #   Flutter APP（iOS + Android）
+│   ├── flutter/        #   Flutter APP（iOS + Android）
+│   └── harmonyos/      #   HarmonyOS APP（鸿蒙原生）
 ├── docs/               # 项目文档
 └── .claude/            # Claude Code 配置
 ```
@@ -18,12 +19,12 @@ appointment-php/
 ```
 ┌──────────────────────────────────────────────┐
 │                   apps/                       │
-│  ┌─────────────┐  ┌──────────────────┐       │
-│  │ wechat/      │  │ flutter/          │       │
-│  │ 微信小程序    │  │ iOS/Android APP   │       │
-│  └──────┬──────┘  └────────┬─────────┘       │
-│         │         功能完全相同 │               │
-│         └──────────┬─────────┘               │
+│  ┌─────────────┐  ┌──────────┐  ┌─────────┐  │
+│  │ wechat/      │  │ flutter/  │  │harmonyos/│  │
+│  │ 微信小程序    │  │iOS/Android│  │ 鸿蒙 APP │  │
+│  └──────┬──────┘  └────┬─────┘  └────┬────┘  │
+│         │     功能完全相同      │            │
+│         └──────────┬─────────┘            │
 │                    │ HTTP API                 │
 ├────────────────────┼─────────────────────────┤
 │              service/                         │
@@ -103,7 +104,27 @@ admin/
 │   │   ├── CustomerProfileController #  客户画像
 │   │   ├── BatchMessageController   #   批量推送
 │   │   ├── RefundWorkflowController #   退款审核
-│   │   └── TechnicianTierController #   技师等级
+│   │   ├── TechnicianTierController #   技师等级
+│   │   │                            # ✅ 第22-25轮新增:
+│   │   ├── FullReductionController  #   满减活动
+│   │   ├── AttendanceController     #   技师考勤
+│   │   ├── ProfitSharingController  #   微信分账
+│   │   ├── LuckyWheelController     #   积分转盘
+│   │   ├── PointsExchangeGoodsController # 积分兑换商品
+│   │   ├── ReviewAuditController    #   评价图片审核
+│   │   ├── InvoiceController        #   电子发票
+│   │   ├── TicketController         #   客服工单
+│   │   ├── ReferralRewardController #   一级返佣记录
+│   │   ├── ReferralLevel2Controller #   二级返佣记录
+│   │   ├── ReturnCustomerController #   回头客奖励
+│   │   ├── SeckillController        #   秒杀活动
+│   │   ├── VersionController        #   APP版本管理
+│   │   ├── TechnicianScheduleController # 排班管理/CSV导出
+│   │   ├── AftersaleController      #   售后处理
+│   │   ├── OrderVerificationController # 核销记录
+│   │   ├── CommunityModerationController # 社区审核
+│   │   ├── VideoAuditController     #   视频审核
+│   │   └── InstallController        #   安装向导
 │   ├── api/v1/controller/      # 公开API v1
 │   │   ├── AuthController
 │   │   └── CaptchaController
@@ -124,32 +145,34 @@ admin/
 │   ├── queue/                  # 队列任务
 │   └── process/                # 进程
 ├── apps/
-│   └── flutter/                # Flutter Web 管理后台前端
-│       └── lib/app/
-│           ├── pages/           #   页面（20个）
-│           │   ├── dashboard/   #   仪表盘
-│           │   ├── login/       #   登录
-│           │   ├── user/        #   用户管理
-│           │   ├── member/      #   会员管理
-│           │   ├── role/        #   角色权限
-│           │   ├── config/      #   系统配置
-│           │   ├── log/         #   操作日志
-│           │   ├── profile/     #   个人中心
-│           │   ├── technician/  #   技师管理
-│           │   ├── schedule/    #   排班
-│           │   ├── service/     #   服务/产品管理
-│           │   ├── service_card/#   卡项设计
-│           │   ├── order/       #   订单管理
-│           │   ├── verification/#   核销记录
-│           │   ├── coupon/      #   优惠券
-│           │   ├── withdrawal/  #   提现审核
-│           │   ├── report/      #   报表统计
-│           │   ├── review/      #   评价管理
-│           │   ├── announcement/#   公告
-│           │   └── faq/         #   常见问题
-│           ├── services/        #   API服务层
-│           ├── layouts/         #   布局
-│           └── theme/           #   主题
+│   ├── flutter/                # Flutter Web 管理后台前端
+│   │   └── lib/app/
+│   │       ├── pages/           #   页面（20个）
+│   │       │   ├── dashboard/   #   仪表盘
+│   │       │   ├── login/       #   登录
+│   │       │   ├── user/        #   用户管理
+│   │       │   ├── member/      #   会员管理
+│   │       │   ├── role/        #   角色权限
+│   │       │   ├── config/      #   系统配置
+│   │       │   ├── log/         #   操作日志
+│   │       │   ├── profile/     #   个人中心
+│   │       │   ├── technician/  #   技师管理
+│   │       │   ├── schedule/    #   排班
+│   │       │   ├── service/     #   服务/产品管理
+│   │       │   ├── service_card/#   卡项设计
+│   │       │   ├── order/       #   订单管理
+│   │       │   ├── verification/#   核销记录
+│   │       │   ├── coupon/      #   优惠券
+│   │       │   ├── withdrawal/  #   提现审核
+│   │       │   ├── report/      #   报表统计
+│   │       │   ├── review/      #   评价管理
+│   │       │   ├── announcement/#   公告
+│   │       │   └── faq/         #   常见问题
+│   │       ├── services/        #   API服务层
+│   │       ├── layouts/         #   布局
+│   │       └── theme/           #   主题
+│   ├── harmonyos/               # HarmonyOS 管理端（ArkTS）
+│   └── weixin/                  # 微信管理端
 ├── config/                     # 配置文件
 │   ├── route.php
 │   ├── middleware.php
@@ -178,34 +201,60 @@ admin/
 ```
 service/
 ├── app/
-│   ├── api/v1/controller/       # 公开API v1
+│   ├── api/v1/controller/       # 公开API v1（26 控制器）
 │   │   ├── AuthController          # 登录/注册/忘记密码/刷新/身份切换
 │   │   ├── CaptchaController       # 短信验证码(Redis限流)
 │   │   ├── CommonController        # 公共配置/协议/区域
 │   │   ├── ContentController       # 轮播图/公告/文章
 │   │   ├── DocsController          # OpenAPI文档(hg/apidoc)
 │   │   ├── LbsController           # 附近门店(Haversine)/逆地理
-│   │   ├── SearchController        # ES全文搜索
-│   │   ├── ShareController          # 服务分享
+│   │   ├── GuestController         # 游客模式（未登录只读浏览，Redis缓存）
+│   │   ├── SeckillController       # 秒杀活动/抢购（独立通道）
+│   │   ├── PromotionController     # 拼团（旧 flash_sale 通道已下线）
+│   │   ├── ServiceController       # 服务分类/项目/产品/门店
 │   │   ├── ServicePackageController # 服务套餐
-│   │   ├── PromotionController      # 拼团秒杀
-│   │   └── ServiceController       # 服务分类/项目/产品/门店
-│   ├── user/v1/controller/      # 用户模块 v1
+│   │   ├── StoreManagerController  # 店长工作台（overview/orders/technicians/revenue）
+│   │   ├── TechnicianController    # 技师公开信息
+│   │   ├── BrowseHistoryController # 浏览足迹
+│   │   ├── CalendarController      # 预约月历（月/日视图）
+│   │   ├── CommunityController     # 社区动态
+│   │   ├── CommunityCommentController # 社区评论
+│   │   ├── FullReductionController # 满减活动
+│   │   ├── PaymentNotifyController # 支付回调（微信/支付宝）
+│   │   ├── PrintController         # 打印
+│   │   ├── PrivacyController       # 隐私合规（数据导出/注销）
+│   │   ├── QueueController         # 排队叫号
+│   │   ├── VersionController       # APP版本管理/检测更新
+│   │   ├── VideoController         # 视频
+│   │   ├── WechatController        # 微信相关
+│   │   └── WheelController         # 积分幸运转盘
+│   ├── user/v1/controller/      # 用户模块 v1（14 控制器）
 │   │   ├── ProfileController       # 个人信息/密码/手机/注销/登出
 │   │   ├── AddressController       # 地址CRUD(默认地址管理)
 │   │   ├── FavoriteController      # 收藏(服务/技师)
 │   │   ├── FeedbackController      # 意见反馈(文字+图片)
-│   │   └── ReferralController      # 推广/二维码/已推荐用户
-│   ├── technician/v1/controller/ # 技师模块 v1
+│   │   ├── ReferralController      # 推广/二维码/已推荐用户
+│   │   ├── CheckInController       # 签到打卡
+│   │   ├── DeviceController        # 用户设备管理
+│   │   ├── GrowthController        # 成长等级（概览/records/levels）
+│   │   ├── HealthProfileController # 健康档案
+│   │   ├── InvoiceController       # 电子发票申请/列表/详情
+│   │   ├── InvoiceTitleController  # 发票抬头库
+│   │   ├── NotifySettingController # 消息偏好设置
+│   │   ├── PointsTransferController# 积分转赠
+│   │   └── TicketController        # 客服工单
+│   ├── technician/v1/controller/ # 技师模块 v1（10 控制器）
 │   │   ├── ProfileController       # 技师档案/入驻申请
 │   │   ├── ScheduleController      # 排班查询/设置
 │   │   ├── OrderController         # 技师订单列表
 │   │   ├── WorkController          # 工作台(today/records/start/complete)
 │   │   ├── EarningController       # 收益概况+流水
-│   │   ├── WithdrawController      # 提现申请(每月20号)
+│   │   ├── WithdrawController      # 提现申请（每月 config('withdraw.gate_day') 号，可配置）
 │   │   ├── ServiceRecordController # 服务记录
-│   │   └── ExamController          # 在线考核
-│   ├── order/v1/controller/     # 订单模块 v1
+│   │   ├── ExamController          # 在线考核
+│   │   ├── AttendanceController    # 上下班打卡考勤
+│   │   └── ReviewController        # 技师回复评价
+│   ├── order/v1/controller/     # 订单模块 v1（8 控制器 + 9 trait）
 │   │   ├── OrderController         # 下单(锁技师)/列表/详情/取消/支付/退款/核销（聚合入口，38行，方法全部来自 trait）
 │   │   ├── OrderCreateTrait        # 订单创建 store/计价辅助 (475行)
 │   │   ├── OrderQueryTrait         # 订单查询 列表/详情/物流 (205行)
@@ -217,24 +266,34 @@ service/
 │   │   ├── OrderRescheduleTrait    # 预约改期 (181行)
 │   │   ├── OrderNotifyTrait        # 通知 订阅/模板/站内/WebSocket (195行)
 │   │   └── OrderLockTrait          # 分布式锁工具 (80行)
-│   ├── wallet/v1/controller/    # 钱包模块 v1
-│   │   └── WalletController        # 余额/充值/交易流水/余额支付
-│   ├── marketing/v1/controller/ # 营销模块 v1
+│   │   ├── AftersaleController     # 售后
+│   │   ├── CartController          # 购物车
+│   │   ├── IcsController           # ICS日历导出
+│   │   ├── ReviewController        # 评价/追评
+│   │   ├── SignatureController     # 签名
+│   │   ├── TimelineController      # 订单状态时间线
+│   │   └── WaitlistController      # 候补名单
+│   ├── wallet/v1/controller/    # 钱包模块 v1（2 控制器）
+│   │   ├── WalletController        # 余额/充值/交易流水/余额支付
+│   │   └── WalletTransferController# 用户间转账
+│   ├── marketing/v1/controller/ # 营销模块 v1（7 控制器）
 │   │   ├── CouponController        # 优惠券列表/领取/下单抵扣
 │   │   ├── CardController          # 会员卡列表/购买/次卡 my/use
 │   │   ├── PointController         # 积分流水/消费回扣
 │   │   ├── GiftCardController      # 礼品卡/兑换 redeem
-│   │   └── MemberBenefitController # 会员权益
-│   ├── notification/v1/controller/ # 通知模块 v1
+│   │   ├── MemberBenefitController # 会员权益
+│   │   ├── MemberCardController    # 会员卡定义
+│   │   └── PointsExchangeController# 积分兑换商城
+│   ├── notification/v1/controller/ # 通知模块 v1（1 控制器）
 │   │   └── NotificationController  # 通知列表/标记已读
-│   ├── common/                  # 公共能力
+│   ├── common/                  # 公共能力（BaseController 等）
 │   ├── middleware/              # 中间件
 │   │   ├── ApiVersion              # API版本控制(API-Version头)
 │   │   ├── Auth                    # JWT认证+用户状态校验
 │   │   ├── Cors                    # 跨域处理
 │   │   ├── Security                # 安全检测(security-php)
 │   │   └── TechnicianAuth          # 技师身份校验
-│   └── model/                   # 数据模型(36个)
+│   └── model/                   # 数据模型(81个)
 │       ├── User.php → erik_user
 │       ├── TechnicianProfile.php → erik_technician_profile
 │       ├── Service.php → erik_service (ES: erik_services)
@@ -244,7 +303,7 @@ service/
 │       ├── Coupon.php → erik_coupon
 │       ├── MemberCard.php → erik_member_card
 │       ├── Notification.php → erik_notification
-│       └── ... (共36个模型文件)
+│       └── ... (共81个模型文件；admin 另有 6 个特有模型，合计 87)
 ├── config/                     # 配置文件
 ├── public/                     # 入口
 ├── runtime/                    # 运行时
@@ -451,6 +510,35 @@ apps/flutter/
 | 营销 | erik_wheel_record | 转盘抽奖记录（第23轮） |
 | 营销 | erik_seckill_activity | 秒杀活动（第24轮） |
 | 系统 | erik_app_version | APP版本（第24轮） |
+
+### 补充清单（docs/install.sql 95 表中未在上方列出的部分，完整权威清单以 install.sql 为准）
+
+| 域 | 表名 | 说明 |
+|----|------|------|
+| 营销 | erik_card_transfer | 次卡转赠 |
+| 用户 | erik_check_in | 签到打卡 |
+| 内容 | erik_community_post | 社区动态 |
+| 内容 | erik_community_comment | 社区评论 |
+| 技师 | erik_exam | 考核 |
+| 技师 | erik_exam_question | 考核题目 |
+| 技师 | erik_exam_attempt | 考核答卷 |
+| 系统 | erik_operation_log_detail | 操作日志详情 |
+| 订单 | erik_order_aftersale | 订单售后 |
+| 营销 | erik_points_exchange_goods | 积分兑换商品 |
+| 营销 | erik_promotion | 拼团活动 |
+| 营销 | erik_promotion_participant | 拼团参与者 |
+| 订单 | erik_queue_number | 排队叫号 |
+| 服务 | erik_service_package | 服务套餐 |
+| 技师 | erik_service_record | 服务记录 |
+| 内容 | erik_share | 分享记录 |
+| 订单 | erik_signature | 签名 |
+| 技师 | erik_technician_tier_config | 技师等级配置 |
+| 技师 | erik_training_course | 培训课程 |
+| 技师 | erik_training_progress | 培训进度 |
+| 用户 | erik_user_device | 用户设备 |
+| 营销 | erik_user_points_exchange | 积分兑换记录 |
+| 内容 | erik_video_post | 视频动态 |
+| 订单 | erik_waitlist | 候补名单 |
 
 ## 外部服务预留
 

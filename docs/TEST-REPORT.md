@@ -57,8 +57,11 @@
 - 本项目无独立 HTTP 层测试脚本；70 个既有测试文件均为控制器层集成测试（真实 DB），
   覆盖 35+ 控制器，等价于接口自动化测试
 - 测试覆盖矩阵见 §3
-- 本地无运行中的本仓库 webman 服务（8787/8788/8789 均为其他项目或 /tmp 副本），
-  故未做 curl 级冒烟；如需 HTTP 冒烟可在 CI 中起服务后执行
+- **HTTP 冒烟已执行**（2026-08-26）：8787 被其他项目占用，故临时将 service
+  `config/process.php` 监听改为 8791 起服务（32 webman worker + websocket + 4 定时器全部 [OK]），
+  实测 `GET /health` → `{"code":0,"message":"ok"}`、`GET /api/guest/services` → HTTP 200
+  正常 JSON（hashids 编码 ID 可见），随后 stop 并还原配置，进程零残留
+- 建议 CI 中补充 flutter build web → Playwright 后台端关键路径 E2E（见 §5）
 
 ## 5. UI 端到端结论
 

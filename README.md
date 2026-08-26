@@ -1,8 +1,8 @@
 # 预约服务系统
 
-三端预约服务管理平台：用户端微信小程序 + Flutter APP（同账号身份切换）、PC管理后台。
+四端预约服务管理平台：用户端微信小程序 + Flutter APP + HarmonyOS APP（同账号身份切换）、PC 管理后台。
 
-> **项目状态**: 全部完成 ✅ | 143 控制器 | 140 模型 | 664 测试（service 528 / admin 136） | 95 数据表 | 361 路由
+> **项目状态**: 全部完成 ✅ | 143 控制器（service 69 / admin 74） | 87 模型 | 722 测试（service 558 / admin 164） | 95 数据表 | 388 路由（service 227 / admin 161）
 
 ## 项目结构
 
@@ -10,6 +10,7 @@
 appointment-php/
 ├── admin/                     # 管理后台 (webman v2 + Flutter Web，独立部署 :8787)
 │   ├── app/                   #   admin(后台控制器)/api/model/middleware/process/view
+│   ├── apps/                  #   Flutter Web 后台 / HarmonyOS / 微信管理端
 │   ├── config/                #   路由/数据库/进程/插件配置
 │   ├── database/              #   备份脚本（表结构与种子数据统一见 docs/install.sql）
 │   ├── tests/                 #   PHPUnit（#[\Test] 属性风格）
@@ -22,7 +23,8 @@ appointment-php/
 │   └── start.php
 ├── apps/                      # 用户端前端应用
 │   ├── wechat/                #   微信小程序（原生）
-│   └── flutter/               #   Flutter APP（iOS + Android）
+│   ├── flutter/               #   Flutter APP（iOS + Android）
+│   └── harmonyos/             #   HarmonyOS APP（鸿蒙原生）
 └── docs/                      # 项目文档
     ├── API.md / FEATURES.md / STRUCTURE.md / install.sql / README.md ...
     └── diagrams/              #   架构/流程图（SVG + mermaid）
@@ -81,6 +83,7 @@ cd ../service/ && cp .env.docker .env && docker-compose up -d
 | 管理后台前端 | Flutter Web | PC管理后台风格 |
 | 用户端APP | Flutter | iOS + Android |
 | 用户端小程序 | 原生微信小程序 | WXML/WXSS/JS |
+| 用户端鸿蒙APP | HarmonyOS ArkTS | 原生 @ohos.net.http |
 | ID生成 | erikwang2013/snowflake-php | BIGINT非自增主键 |
 | API ID加解密 | erikwang2013/hashids | 对外隐藏真实ID |
 | JWT认证 | erikwang2013/jwt-webman | Bearer Token |
@@ -198,6 +201,7 @@ cd ../service/ && cp .env.docker .env && docker-compose up -d
 | [安装说明](docs/INSTALL.md) | 环境要求、Docker部署、环境变量、第三方配置、常见问题 |
 | [使用说明](docs/USAGE.md) | 管理后台配置、用户端/技师端操作、API示例、退款规则 |
 | [项目结构](docs/STRUCTURE.md) | 完整目录布局、中间件执行链、数据库表清单 |
+| [测试报告](docs/TEST-REPORT.md) | 全量测试覆盖审计（558 用例 / 2508 断言） |
 | [设计规范](docs/superpowers/specs/2026-05-26-appointment-system-design.md) | 系统设计规范 |
 | [实现计划](docs/superpowers/plans/2026-05-26-appointment-system-plan.md) | 分阶段实现计划 |
 
