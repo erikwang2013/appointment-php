@@ -1,4 +1,5 @@
 # 예약 서비스 시스템 — 문서 색인
+> **Languages**: [中文](../README.md) · [English](../en/DOCS.md) · [Русский](../ru/DOCS.md) · [Deutsch](../de/DOCS.md) · [Français](../fr/DOCS.md) · [Español](../es/DOCS.md) · [Português](../pt/DOCS.md) · [हिन्दी](../hi/DOCS.md) · [العربية](../ar/DOCS.md) · [বাংলা](../bn/DOCS.md) · [Bahasa Indonesia](../id/DOCS.md) · [日本語](../ja/DOCS.md)
 
 > 한국어 번역 · 원본: [中文](../README.md)
 

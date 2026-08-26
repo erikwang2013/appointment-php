@@ -1,4 +1,5 @@
 # شرح الميزات
+> **Languages**: [中文](../FEATURES.md) · [English](../en/FEATURES.md) · [한국어](../ko/FEATURES.md) · [Русский](../ru/FEATURES.md) · [Deutsch](../de/FEATURES.md) · [Français](../fr/FEATURES.md) · [Español](../es/FEATURES.md) · [Português](../pt/FEATURES.md) · [हिन्दी](../hi/FEATURES.md) · [বাংলা](../bn/FEATURES.md) · [Bahasa Indonesia](../id/FEATURES.md) · [日本語](../ja/FEATURES.md)
 
 > **حالة المشروع**: مكتمل بالكامل ✅ | 109 وحدة تحكم | 103 نماذج | 344 اختبارًا (service 240 / admin 104) | WebSocket | استدعاءات الدفع | أرقام الطابور | التقييم | المجتمع
 

@@ -1,4 +1,5 @@
 # फ़ीचर विवरण
+> **Languages**: [中文](../FEATURES.md) · [English](../en/FEATURES.md) · [한국어](../ko/FEATURES.md) · [Русский](../ru/FEATURES.md) · [Deutsch](../de/FEATURES.md) · [Français](../fr/FEATURES.md) · [Español](../es/FEATURES.md) · [Português](../pt/FEATURES.md) · [العربية](../ar/FEATURES.md) · [বাংলা](../bn/FEATURES.md) · [Bahasa Indonesia](../id/FEATURES.md) · [日本語](../ja/FEATURES.md)
 
 > **परियोजना स्थिति**: सभी कार्य पूर्ण ✅ | 109 नियंत्रक | 103 मॉडल | 344 परीक्षण (service 240 / admin 104) | WebSocket | भुगतान कॉलबैक | कॉलिंग | परीक्षा | समुदाय
 

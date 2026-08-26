@@ -1,4 +1,5 @@
 # 아키텍처 설명
+> **Languages**: [中文](../ARCHITECTURE.md) · [English](../en/ARCHITECTURE.md) · [Русский](../ru/ARCHITECTURE.md) · [Deutsch](../de/ARCHITECTURE.md) · [Français](../fr/ARCHITECTURE.md) · [Español](../es/ARCHITECTURE.md) · [Português](../pt/ARCHITECTURE.md) · [हिन्दी](../hi/ARCHITECTURE.md) · [العربية](../ar/ARCHITECTURE.md) · [বাংলা](../bn/ARCHITECTURE.md) · [Bahasa Indonesia](../id/ARCHITECTURE.md) · [日本語](../ja/ARCHITECTURE.md)
 
 ## 시스템 개요
 

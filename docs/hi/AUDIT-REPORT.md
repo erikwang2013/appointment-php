@@ -1,4 +1,5 @@
 # अपॉइंटमेंट प्रणाली व्यापक ऑडिट रिपोर्ट (सुधार रिकॉर्ड सहित)
+> **Languages**: [中文](../AUDIT-REPORT.md) · [English](../en/AUDIT-REPORT.md) · [한국어](../ko/AUDIT-REPORT.md) · [Русский](../ru/AUDIT-REPORT.md) · [Deutsch](../de/AUDIT-REPORT.md) · [Français](../fr/AUDIT-REPORT.md) · [Español](../es/AUDIT-REPORT.md) · [Português](../pt/AUDIT-REPORT.md) · [العربية](../ar/AUDIT-REPORT.md) · [বাংলা](../bn/AUDIT-REPORT.md) · [Bahasa Indonesia](../id/AUDIT-REPORT.md) · [日本語](../ja/AUDIT-REPORT.md)
 
 **दिनांक**: 2026-08-03
 **ब्रांच**: main (d1a7285)

@@ -1,6 +1,7 @@
 > Tradução em português · Original: [中文](../USAGE.md)
 
 # Instruções de utilização
+> **Languages**: [中文](../USAGE.md) · [English](../en/USAGE.md) · [한국어](../ko/USAGE.md) · [Русский](../ru/USAGE.md) · [Deutsch](../de/USAGE.md) · [Français](../fr/USAGE.md) · [Español](../es/USAGE.md) · [हिन्दी](../hi/USAGE.md) · [العربية](../ar/USAGE.md) · [বাংলা](../bn/USAGE.md) · [Bahasa Indonesia](../id/USAGE.md) · [日本語](../ja/USAGE.md)
 
 ## Início de sessão no painel de administração
 

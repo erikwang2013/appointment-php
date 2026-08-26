@@ -1,4 +1,5 @@
 # Laporan Audit Menyeluruh Sistem Janji Temu (Termasuk Catatan Perbaikan)
+> **Languages**: [中文](../AUDIT-REPORT.md) · [English](../en/AUDIT-REPORT.md) · [한국어](../ko/AUDIT-REPORT.md) · [Русский](../ru/AUDIT-REPORT.md) · [Deutsch](../de/AUDIT-REPORT.md) · [Français](../fr/AUDIT-REPORT.md) · [Español](../es/AUDIT-REPORT.md) · [Português](../pt/AUDIT-REPORT.md) · [हिन्दी](../hi/AUDIT-REPORT.md) · [العربية](../ar/AUDIT-REPORT.md) · [বাংলা](../bn/AUDIT-REPORT.md) · [日本語](../ja/AUDIT-REPORT.md)
 
 > Terjemahan bahasa Indonesia · Asli: [中文](../../docs/AUDIT-REPORT.md)
 

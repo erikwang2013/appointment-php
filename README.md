@@ -230,6 +230,24 @@ cd ../service/ && cp .env.docker .env && docker-compose up -d
 | [实现计划](docs/superpowers/plans/2026-05-26-appointment-system-plan.md) | 分阶段实现计划 |
 | [文档索引](docs/README.md) | 全部文档索引（含 12 种语言入口） |
 
+## 多语言文档 / Languages
+
+| 语言 | 入口 |
+|------|------|
+| 简体中文 | [README.md（本页）](README.md（本页）) |
+| English | [docs/en/README.md](docs/en/README.md) |
+| 한국어 | [docs/ko/README.md](docs/ko/README.md) |
+| Русский | [docs/ru/README.md](docs/ru/README.md) |
+| Deutsch | [docs/de/README.md](docs/de/README.md) |
+| Français | [docs/fr/README.md](docs/fr/README.md) |
+| Español | [docs/es/README.md](docs/es/README.md) |
+| Português | [docs/pt/README.md](docs/pt/README.md) |
+| हिन्दी | [docs/hi/README.md](docs/hi/README.md) |
+| العربية | [docs/ar/README.md](docs/ar/README.md) |
+| বাংলা | [docs/bn/README.md](docs/bn/README.md) |
+| Bahasa Indonesia | [docs/id/README.md](docs/id/README.md) |
+| 日本語 | [docs/ja/README.md](docs/ja/README.md) |
+
 ## 支持项目 / Support
 
 如果这个项目对你有帮助，欢迎支持！感谢你的鼓励 :heart:

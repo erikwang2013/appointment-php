@@ -1,4 +1,5 @@
 # 预约系统 全面审查报告（含修复记录）
+> **多语言**：[English](en/AUDIT-REPORT.md) · [한국어](ko/AUDIT-REPORT.md) · [Русский](ru/AUDIT-REPORT.md) · [Deutsch](de/AUDIT-REPORT.md) · [Français](fr/AUDIT-REPORT.md) · [Español](es/AUDIT-REPORT.md) · [Português](pt/AUDIT-REPORT.md) · [हिन्दी](hi/AUDIT-REPORT.md) · [العربية](ar/AUDIT-REPORT.md) · [বাংলা](bn/AUDIT-REPORT.md) · [Bahasa Indonesia](id/AUDIT-REPORT.md) · [日本語](ja/AUDIT-REPORT.md)
 
 **日期**: 2026-08-03  
 **分支**: main (d1a7285)  

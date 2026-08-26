@@ -1,4 +1,5 @@
 # Rapport de l'équipe de test — Audit de couverture des tests
+> **Languages**: [中文](../TEST-REPORT.md) · [English](../en/TEST-REPORT.md) · [한국어](../ko/TEST-REPORT.md) · [Русский](../ru/TEST-REPORT.md) · [Deutsch](../de/TEST-REPORT.md) · [Español](../es/TEST-REPORT.md) · [Português](../pt/TEST-REPORT.md) · [हिन्दी](../hi/TEST-REPORT.md) · [العربية](../ar/TEST-REPORT.md) · [বাংলা](../bn/TEST-REPORT.md) · [Bahasa Indonesia](../id/TEST-REPORT.md) · [日本語](../ja/TEST-REPORT.md)
 
 > Généré le : 2026-08-26　Version : v1.3.8
 > Équipe : deep-audit (tester-php / tester-api / tester-ui / tester-go / tester-rust)

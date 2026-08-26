@@ -1,4 +1,5 @@
 # অ্যাপয়েন্টমেন্ট সিস্টেম — সম্পূর্ণ অডিট রিপোর্ট (ফিক্স রেকর্ড সহ)
+> **Languages**: [中文](../AUDIT-REPORT.md) · [English](../en/AUDIT-REPORT.md) · [한국어](../ko/AUDIT-REPORT.md) · [Русский](../ru/AUDIT-REPORT.md) · [Deutsch](../de/AUDIT-REPORT.md) · [Français](../fr/AUDIT-REPORT.md) · [Español](../es/AUDIT-REPORT.md) · [Português](../pt/AUDIT-REPORT.md) · [हिन्दी](../hi/AUDIT-REPORT.md) · [العربية](../ar/AUDIT-REPORT.md) · [Bahasa Indonesia](../id/AUDIT-REPORT.md) · [日本語](../ja/AUDIT-REPORT.md)
 
 **তারিখ**: ২০২৬-০৮-০৩  
 **ব্রাঞ্চ**: main (d1a7285)  

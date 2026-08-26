@@ -1,4 +1,5 @@
 # 기능 설명
+> **Languages**: [中文](../FEATURES.md) · [English](../en/FEATURES.md) · [Русский](../ru/FEATURES.md) · [Deutsch](../de/FEATURES.md) · [Français](../fr/FEATURES.md) · [Español](../es/FEATURES.md) · [Português](../pt/FEATURES.md) · [हिन्दी](../hi/FEATURES.md) · [العربية](../ar/FEATURES.md) · [বাংলা](../bn/FEATURES.md) · [Bahasa Indonesia](../id/FEATURES.md) · [日本語](../ja/FEATURES.md)
 
 > **프로젝트 상태**: 전체 완료 ✅ | 컨트롤러 109개 | 모델 103개 | 테스트 344개(service 240 / admin 104) | WebSocket | 결제 콜백 | 순번 호출 | 평가 | 커뮤니티
 

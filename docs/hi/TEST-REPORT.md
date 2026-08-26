@@ -1,4 +1,5 @@
 # परीक्षण टीम रिपोर्ट — पूर्ण परीक्षण कवरेज ऑडिट
+> **Languages**: [中文](../TEST-REPORT.md) · [English](../en/TEST-REPORT.md) · [한국어](../ko/TEST-REPORT.md) · [Русский](../ru/TEST-REPORT.md) · [Deutsch](../de/TEST-REPORT.md) · [Français](../fr/TEST-REPORT.md) · [Español](../es/TEST-REPORT.md) · [Português](../pt/TEST-REPORT.md) · [العربية](../ar/TEST-REPORT.md) · [বাংলা](../bn/TEST-REPORT.md) · [Bahasa Indonesia](../id/TEST-REPORT.md) · [日本語](../ja/TEST-REPORT.md)
 
 > जनरेशन समय: 2026-08-26　संस्करण: v1.3.8
 > टीम: deep-audit (tester-php / tester-api / tester-ui / tester-go / tester-rust)

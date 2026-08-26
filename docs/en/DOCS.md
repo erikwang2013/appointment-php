@@ -1,4 +1,5 @@
 # Appointment Service System — Documentation Index
+> **Languages**: [中文](../README.md) · [한국어](../ko/DOCS.md) · [Русский](../ru/DOCS.md) · [Deutsch](../de/DOCS.md) · [Français](../fr/DOCS.md) · [Español](../es/DOCS.md) · [Português](../pt/DOCS.md) · [हिन्दी](../hi/DOCS.md) · [العربية](../ar/DOCS.md) · [বাংলা](../bn/DOCS.md) · [Bahasa Indonesia](../id/DOCS.md) · [日本語](../ja/DOCS.md)
 
 > **Project status**: All complete ✅ | 143 controllers (service 69 / admin 74) | 87 models | 722 tests (service 558 / admin 164) | 95 database tables | 388 routes (service 227 / admin 161)
 

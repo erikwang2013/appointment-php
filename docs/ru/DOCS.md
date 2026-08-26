@@ -1,4 +1,5 @@
 # Система сервиса предварительной записи — Индекс документации
+> **Languages**: [中文](../README.md) · [English](../en/DOCS.md) · [한국어](../ko/DOCS.md) · [Deutsch](../de/DOCS.md) · [Français](../fr/DOCS.md) · [Español](../es/DOCS.md) · [Português](../pt/DOCS.md) · [हिन्दी](../hi/DOCS.md) · [العربية](../ar/DOCS.md) · [বাংলা](../bn/DOCS.md) · [Bahasa Indonesia](../id/DOCS.md) · [日本語](../ja/DOCS.md)
 
 > **Статус проекта**: всё выполнено ✅ | 143 контроллера (service 69 / admin 74) | 87 моделей | 722 теста (service 558 / admin 164) | 95 таблиц БД | 388 маршрутов (service 227 / admin 161)
 

@@ -1,6 +1,7 @@
 > Русский перевод · Оригинал: [中文](../../README.md)
 
 # Система сервиса предварительной записи
+> **Languages**: [中文](../README.md) · [English](../en/README.md) · [한국어](../ko/README.md) · [Deutsch](../de/README.md) · [Français](../fr/README.md) · [Español](../es/README.md) · [Português](../pt/README.md) · [हिन्दी](../hi/README.md) · [العربية](../ar/README.md) · [বাংলা](../bn/README.md) · [Bahasa Indonesia](../id/README.md) · [日本語](../ja/README.md)
 
 Платформа управления предварительной записью на четырёх платформах: WeChat Mini Program + Flutter APP + HarmonyOS APP для пользователей (переключение ролей под одной учётной записью) + PC-админка.
 

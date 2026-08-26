@@ -1,4 +1,5 @@
 # Desain Fitur
+> **Languages**: [中文](../FEATURE-DESIGN.md) · [English](../en/FEATURE-DESIGN.md) · [한국어](../ko/FEATURE-DESIGN.md) · [Русский](../ru/FEATURE-DESIGN.md) · [Deutsch](../de/FEATURE-DESIGN.md) · [Français](../fr/FEATURE-DESIGN.md) · [Español](../es/FEATURE-DESIGN.md) · [Português](../pt/FEATURE-DESIGN.md) · [हिन्दी](../hi/FEATURE-DESIGN.md) · [العربية](../ar/FEATURE-DESIGN.md) · [বাংলা](../bn/FEATURE-DESIGN.md) · [日本語](../ja/FEATURE-DESIGN.md)
 
 > Terjemahan bahasa Indonesia · Asli: [中文](../../docs/FEATURE-DESIGN.md)
 

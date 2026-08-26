@@ -1,4 +1,5 @@
 # Appointment Service System
+> **Languages**: [中文](../README.md) · [한국어](../ko/README.md) · [Русский](../ru/README.md) · [Deutsch](../de/README.md) · [Français](../fr/README.md) · [Español](../es/README.md) · [Português](../pt/README.md) · [हिन्दी](../hi/README.md) · [العربية](../ar/README.md) · [বাংলা](../bn/README.md) · [Bahasa Indonesia](../id/README.md) · [日本語](../ja/README.md)
 
 A four-client appointment service management platform: WeChat Mini Program + Flutter APP + HarmonyOS APP for users (same-account identity switching), plus a PC admin dashboard.
 

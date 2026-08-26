@@ -1,4 +1,5 @@
 # 功能说明
+> **多语言**：[English](en/FEATURES.md) · [한국어](ko/FEATURES.md) · [Русский](ru/FEATURES.md) · [Deutsch](de/FEATURES.md) · [Français](fr/FEATURES.md) · [Español](es/FEATURES.md) · [Português](pt/FEATURES.md) · [हिन्दी](hi/FEATURES.md) · [العربية](ar/FEATURES.md) · [বাংলা](bn/FEATURES.md) · [Bahasa Indonesia](id/FEATURES.md) · [日本語](ja/FEATURES.md)
 
 > **项目状态**: 全部完成 ✅ | 109 控制器 | 103 模型 | 344 测试（service 240 / admin 104） | WebSocket | 支付回调 | 叫号 | 考核 | 社区
 

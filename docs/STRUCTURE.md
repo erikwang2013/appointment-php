@@ -1,4 +1,5 @@
 # 预约服务系统 — 项目结构
+> **多语言**：[English](en/STRUCTURE.md) · [한국어](ko/STRUCTURE.md) · [Русский](ru/STRUCTURE.md) · [Deutsch](de/STRUCTURE.md) · [Français](fr/STRUCTURE.md) · [Español](es/STRUCTURE.md) · [Português](pt/STRUCTURE.md) · [हिन्दी](hi/STRUCTURE.md) · [العربية](ar/STRUCTURE.md) · [বাংলা](bn/STRUCTURE.md) · [Bahasa Indonesia](id/STRUCTURE.md) · [日本語](ja/STRUCTURE.md)
 
 ## 仓库总览
 

@@ -1,6 +1,7 @@
 > Traduction française · Original : [中文](../README.md)
 
 # Système de réservation de services — Index de la documentation
+> **Languages**: [中文](../README.md) · [English](../en/DOCS.md) · [한국어](../ko/DOCS.md) · [Русский](../ru/DOCS.md) · [Deutsch](../de/DOCS.md) · [Español](../es/DOCS.md) · [Português](../pt/DOCS.md) · [हिन्दी](../hi/DOCS.md) · [العربية](../ar/DOCS.md) · [বাংলা](../bn/DOCS.md) · [Bahasa Indonesia](../id/DOCS.md) · [日本語](../ja/DOCS.md)
 
 > **État du projet** : Tout est terminé ✅ | 143 contrôleurs (service 69 / admin 74) | 87 modèles | 722 tests (service 558 / admin 164) | 95 tables | 388 routes (service 227 / admin 161)
 

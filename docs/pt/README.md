@@ -1,6 +1,7 @@
 > Tradução em português · Original: [中文](../../README.md)
 
 # Sistema de Serviços de Agendamento
+> **Languages**: [中文](../README.md) · [English](../en/README.md) · [한국어](../ko/README.md) · [Русский](../ru/README.md) · [Deutsch](../de/README.md) · [Français](../fr/README.md) · [Español](../es/README.md) · [हिन्दी](../hi/README.md) · [العربية](../ar/README.md) · [বাংলা](../bn/README.md) · [Bahasa Indonesia](../id/README.md) · [日本語](../ja/README.md)
 
 Plataforma de gestão de agendamentos em quatro terminais: miniprograma WeChat do lado do utilizador + APP Flutter + APP HarmonyOS (alternância de identidade na mesma conta) e painel de administração PC.
 

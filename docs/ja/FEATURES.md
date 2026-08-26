@@ -1,4 +1,5 @@
 # 機能説明
+> **Languages**: [中文](../FEATURES.md) · [English](../en/FEATURES.md) · [한국어](../ko/FEATURES.md) · [Русский](../ru/FEATURES.md) · [Deutsch](../de/FEATURES.md) · [Français](../fr/FEATURES.md) · [Español](../es/FEATURES.md) · [Português](../pt/FEATURES.md) · [हिन्दी](../hi/FEATURES.md) · [العربية](../ar/FEATURES.md) · [বাংলা](../bn/FEATURES.md) · [Bahasa Indonesia](../id/FEATURES.md)
 
 > **プロジェクトステータス**: すべて完了 ✅ | 109 コントローラー | 103 モデル | 344 テスト（service 240 / admin 104） | WebSocket | 支払いコールバック | 呼び出し番号 | 試験 | コミュニティ
 

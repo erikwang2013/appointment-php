@@ -1,4 +1,5 @@
 # 機能設計
+> **Languages**: [中文](../FEATURE-DESIGN.md) · [English](../en/FEATURE-DESIGN.md) · [한국어](../ko/FEATURE-DESIGN.md) · [Русский](../ru/FEATURE-DESIGN.md) · [Deutsch](../de/FEATURE-DESIGN.md) · [Français](../fr/FEATURE-DESIGN.md) · [Español](../es/FEATURE-DESIGN.md) · [Português](../pt/FEATURE-DESIGN.md) · [हिन्दी](../hi/FEATURE-DESIGN.md) · [العربية](../ar/FEATURE-DESIGN.md) · [বাংলা](../bn/FEATURE-DESIGN.md) · [Bahasa Indonesia](../id/FEATURE-DESIGN.md)
 
 ## 購入フロー
 

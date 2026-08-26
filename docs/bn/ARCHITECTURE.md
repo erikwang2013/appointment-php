@@ -1,4 +1,5 @@
 # আর্কিটেকচার ব্যাখ্যা
+> **Languages**: [中文](../ARCHITECTURE.md) · [English](../en/ARCHITECTURE.md) · [한국어](../ko/ARCHITECTURE.md) · [Русский](../ru/ARCHITECTURE.md) · [Deutsch](../de/ARCHITECTURE.md) · [Français](../fr/ARCHITECTURE.md) · [Español](../es/ARCHITECTURE.md) · [Português](../pt/ARCHITECTURE.md) · [हिन्दी](../hi/ARCHITECTURE.md) · [العربية](../ar/ARCHITECTURE.md) · [Bahasa Indonesia](../id/ARCHITECTURE.md) · [日本語](../ja/ARCHITECTURE.md)
 
 > বাংলা অনুবাদ · মূল: [中文](../ARCHITECTURE.md)
 

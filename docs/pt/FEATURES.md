@@ -1,6 +1,7 @@
 > Tradução em português · Original: [中文](../FEATURES.md)
 
 # Descrição de funcionalidades
+> **Languages**: [中文](../FEATURES.md) · [English](../en/FEATURES.md) · [한국어](../ko/FEATURES.md) · [Русский](../ru/FEATURES.md) · [Deutsch](../de/FEATURES.md) · [Français](../fr/FEATURES.md) · [Español](../es/FEATURES.md) · [हिन्दी](../hi/FEATURES.md) · [العربية](../ar/FEATURES.md) · [বাংলা](../bn/FEATURES.md) · [Bahasa Indonesia](../id/FEATURES.md) · [日本語](../ja/FEATURES.md)
 
 > **Estado do projeto**: Concluído ✅ | 109 controladores | 103 modelos | 344 testes (service 240 / admin 104) | WebSocket | Callbacks de pagamento | Chamadas de senha | Avaliações | Comunidade
 

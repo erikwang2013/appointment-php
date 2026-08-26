@@ -1,6 +1,7 @@
 > Tradução em português · Original: [中文](../TEST-REPORT.md)
 
 # Relatório da equipa de testes — auditoria de cobertura total de testes
+> **Languages**: [中文](../TEST-REPORT.md) · [English](../en/TEST-REPORT.md) · [한국어](../ko/TEST-REPORT.md) · [Русский](../ru/TEST-REPORT.md) · [Deutsch](../de/TEST-REPORT.md) · [Français](../fr/TEST-REPORT.md) · [Español](../es/TEST-REPORT.md) · [हिन्दी](../hi/TEST-REPORT.md) · [العربية](../ar/TEST-REPORT.md) · [বাংলা](../bn/TEST-REPORT.md) · [Bahasa Indonesia](../id/TEST-REPORT.md) · [日本語](../ja/TEST-REPORT.md)
 
 > Data de geração: 2026-08-26　Versão: v1.3.8
 > Equipa: deep-audit (tester-php / tester-api / tester-ui / tester-go / tester-rust)

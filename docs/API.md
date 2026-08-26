@@ -1,4 +1,5 @@
 # API 说明文档
+> **多语言**：[English](en/API.md) · [한국어](ko/API.md) · [Русский](ru/API.md) · [Deutsch](de/API.md) · [Français](fr/API.md) · [Español](es/API.md) · [Português](pt/API.md) · [हिन्दी](hi/API.md) · [العربية](ar/API.md) · [বাংলা](bn/API.md) · [Bahasa Indonesia](id/API.md) · [日本語](ja/API.md)
 
 ## 概述
 

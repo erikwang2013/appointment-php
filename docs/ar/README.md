@@ -1,6 +1,7 @@
 > الترجمة العربية · الأصل: [中文](../../README.md)
 
 # نظام خدمات الحجز
+> **Languages**: [中文](../README.md) · [English](../en/README.md) · [한국어](../ko/README.md) · [Русский](../ru/README.md) · [Deutsch](../de/README.md) · [Français](../fr/README.md) · [Español](../es/README.md) · [Português](../pt/README.md) · [हिन्दी](../hi/README.md) · [বাংলা](../bn/README.md) · [Bahasa Indonesia](../id/README.md) · [日本語](../ja/README.md)
 
 منصة إدارة الحجوزات بأربع واجهات: برنامج WeChat الصغير + تطبيق Flutter + تطبيق HarmonyOS (تبديل الهوية بين الحسابات) + لوحة إدارة الكمبيوتر.
 

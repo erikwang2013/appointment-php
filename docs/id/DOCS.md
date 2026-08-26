@@ -1,4 +1,5 @@
 # Sistem Layanan Janji Temu — Indeks Dokumen
+> **Languages**: [中文](../README.md) · [English](../en/DOCS.md) · [한국어](../ko/DOCS.md) · [Русский](../ru/DOCS.md) · [Deutsch](../de/DOCS.md) · [Français](../fr/DOCS.md) · [Español](../es/DOCS.md) · [Português](../pt/DOCS.md) · [हिन्दी](../hi/DOCS.md) · [العربية](../ar/DOCS.md) · [বাংলা](../bn/DOCS.md) · [日本語](../ja/DOCS.md)
 
 > Terjemahan bahasa Indonesia · Asli: [中文](../../docs/README.md)
 

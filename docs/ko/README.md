@@ -1,4 +1,5 @@
 # 예약 서비스 시스템
+> **Languages**: [中文](../README.md) · [English](../en/README.md) · [Русский](../ru/README.md) · [Deutsch](../de/README.md) · [Français](../fr/README.md) · [Español](../es/README.md) · [Português](../pt/README.md) · [हिन्दी](../hi/README.md) · [العربية](../ar/README.md) · [বাংলা](../bn/README.md) · [Bahasa Indonesia](../id/README.md) · [日本語](../ja/README.md)
 
 > 한국어 번역 · 원본: [中文](../../README.md)
 

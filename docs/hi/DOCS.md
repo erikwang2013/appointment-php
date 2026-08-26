@@ -1,4 +1,5 @@
 # अपॉइंटमेंट सेवा प्रणाली — दस्तावेज़ सूचकांक
+> **Languages**: [中文](../README.md) · [English](../en/DOCS.md) · [한국어](../ko/DOCS.md) · [Русский](../ru/DOCS.md) · [Deutsch](../de/DOCS.md) · [Français](../fr/DOCS.md) · [Español](../es/DOCS.md) · [Português](../pt/DOCS.md) · [العربية](../ar/DOCS.md) · [বাংলা](../bn/DOCS.md) · [Bahasa Indonesia](../id/DOCS.md) · [日本語](../ja/DOCS.md)
 
 > **परियोजना स्थिति**: सभी कार्य पूर्ण ✅ | 143 नियंत्रक (service 69 / admin 74) | 87 मॉडल | 722 परीक्षण (service 558 / admin 164) | 95 डेटा तालिकाएँ | 388 रूट (service 227 / admin 161)
 

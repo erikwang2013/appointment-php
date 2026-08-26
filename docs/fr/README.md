@@ -1,6 +1,7 @@
 > Traduction française · Original : [中文](../../README.md)
 
 # Système de réservation de services
+> **Languages**: [中文](../README.md) · [English](../en/README.md) · [한국어](../ko/README.md) · [Русский](../ru/README.md) · [Deutsch](../de/README.md) · [Español](../es/README.md) · [Português](../pt/README.md) · [हिन्दी](../hi/README.md) · [العربية](../ar/README.md) · [বাংলা](../bn/README.md) · [Bahasa Indonesia](../id/README.md) · [日本語](../ja/README.md)
 
 Plateforme de gestion des réservations multi-appareils : mini-programme WeChat + application Flutter + application HarmonyOS côté utilisateur (changement d'identité avec le même compte), et back-office PC.
 

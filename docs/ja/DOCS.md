@@ -1,4 +1,5 @@
 # 予約サービスシステム — ドキュメントインデックス
+> **Languages**: [中文](../README.md) · [English](../en/DOCS.md) · [한국어](../ko/DOCS.md) · [Русский](../ru/DOCS.md) · [Deutsch](../de/DOCS.md) · [Français](../fr/DOCS.md) · [Español](../es/DOCS.md) · [Português](../pt/DOCS.md) · [हिन्दी](../hi/DOCS.md) · [العربية](../ar/DOCS.md) · [বাংলা](../bn/DOCS.md) · [Bahasa Indonesia](../id/DOCS.md)
 
 > **プロジェクトステータス**: すべて完了 ✅ | 143 コントローラー（service 69 / admin 74） | 87 モデル | 722 テスト（service 558 / admin 164） | 95 データテーブル | 388 ルート（service 227 / admin 161）
 

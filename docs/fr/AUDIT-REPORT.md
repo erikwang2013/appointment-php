@@ -1,4 +1,5 @@
 # Rapport d'audit complet du système de réservation (avec historique des correctifs)
+> **Languages**: [中文](../AUDIT-REPORT.md) · [English](../en/AUDIT-REPORT.md) · [한국어](../ko/AUDIT-REPORT.md) · [Русский](../ru/AUDIT-REPORT.md) · [Deutsch](../de/AUDIT-REPORT.md) · [Español](../es/AUDIT-REPORT.md) · [Português](../pt/AUDIT-REPORT.md) · [हिन्दी](../hi/AUDIT-REPORT.md) · [العربية](../ar/AUDIT-REPORT.md) · [বাংলা](../bn/AUDIT-REPORT.md) · [Bahasa Indonesia](../id/AUDIT-REPORT.md) · [日本語](../ja/AUDIT-REPORT.md)
 
 **Date** : 2026-08-03  
 **Branche** : main (d1a7285)  

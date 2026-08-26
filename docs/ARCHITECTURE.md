@@ -1,4 +1,5 @@
 # 架构说明
+> **多语言**：[English](en/ARCHITECTURE.md) · [한국어](ko/ARCHITECTURE.md) · [Русский](ru/ARCHITECTURE.md) · [Deutsch](de/ARCHITECTURE.md) · [Français](fr/ARCHITECTURE.md) · [Español](es/ARCHITECTURE.md) · [Português](pt/ARCHITECTURE.md) · [हिन्दी](hi/ARCHITECTURE.md) · [العربية](ar/ARCHITECTURE.md) · [বাংলা](bn/ARCHITECTURE.md) · [Bahasa Indonesia](id/ARCHITECTURE.md) · [日本語](ja/ARCHITECTURE.md)
 
 ## 系统总览
 

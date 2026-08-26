@@ -1,4 +1,5 @@
 # Описание функций
+> **Languages**: [中文](../FEATURES.md) · [English](../en/FEATURES.md) · [한국어](../ko/FEATURES.md) · [Deutsch](../de/FEATURES.md) · [Français](../fr/FEATURES.md) · [Español](../es/FEATURES.md) · [Português](../pt/FEATURES.md) · [हिन्दी](../hi/FEATURES.md) · [العربية](../ar/FEATURES.md) · [বাংলা](../bn/FEATURES.md) · [Bahasa Indonesia](../id/FEATURES.md) · [日本語](../ja/FEATURES.md)
 
 > **Статус проекта**: всё выполнено ✅ | 109 контроллеров | 103 модели | 344 теста (service 240 / admin 104) | WebSocket | платёжные колбэки | очередь | аттестация | сообщество
 

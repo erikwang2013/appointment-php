@@ -1,4 +1,5 @@
 # Sistema de Reservas de Servicios — Índice de documentación
+> **Languages**: [中文](../README.md) · [English](../en/DOCS.md) · [한국어](../ko/DOCS.md) · [Русский](../ru/DOCS.md) · [Deutsch](../de/DOCS.md) · [Français](../fr/DOCS.md) · [Português](../pt/DOCS.md) · [हिन्दी](../hi/DOCS.md) · [العربية](../ar/DOCS.md) · [বাংলা](../bn/DOCS.md) · [Bahasa Indonesia](../id/DOCS.md) · [日本語](../ja/DOCS.md)
 
 > **Estado del proyecto**: todo completado ✅ | 143 controladores (service 69 / admin 74) | 87 modelos | 722 pruebas (service 558 / admin 164) | 95 tablas de datos | 388 rutas (service 227 / admin 161)
 

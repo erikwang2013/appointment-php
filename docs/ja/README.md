@@ -1,4 +1,5 @@
 # 予約サービスシステム
+> **Languages**: [中文](../README.md) · [English](../en/README.md) · [한국어](../ko/README.md) · [Русский](../ru/README.md) · [Deutsch](../de/README.md) · [Français](../fr/README.md) · [Español](../es/README.md) · [Português](../pt/README.md) · [हिन्दी](../hi/README.md) · [العربية](../ar/README.md) · [বাংলা](../bn/README.md) · [Bahasa Indonesia](../id/README.md)
 
 四端予約サービス管理プラットフォーム：ユーザー端は微信ミニプログラム + Flutter APP + HarmonyOS APP（同一アカウントで身分切替）、PC 管理バックエンド。
 
