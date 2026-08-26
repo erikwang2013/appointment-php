@@ -1,6 +1,6 @@
 # 预约服务系统 — 文档索引
 
-> **项目状态**: 全部完成 ✅ | 104 控制器 | 58 模型 | 80 测试 | 55+ 数据表 | 242 路由
+> **项目状态**: 全部完成 ✅ | 143 控制器（service 69 / admin 74） | 87 模型 | 722 测试（service 558 / admin 164） | 95 数据表 | 388 路由（service 227 / admin 161）
 
 ## 核心文档
 
@@ -10,17 +10,24 @@
 | [FEATURES.md](FEATURES.md) | 功能说明：用户端 + 技师工作台 + 管理后台 完整功能清单 |
 | [ARCHITECTURE-DESIGN.md](ARCHITECTURE-DESIGN.md) | 架构设计：分层架构、中间件设计、数据库设计、安全设计、ES集成 |
 | [FEATURE-DESIGN.md](FEATURE-DESIGN.md) | 功能设计：购买流程、订单状态机、退款规则、会员卡设计、身份切换 |
-| [STRUCTURE.md](STRUCTURE.md) | 项目结构：三端完整目录布局、中间件执行链、数据库表清单 |
+| [STRUCTURE.md](STRUCTURE.md) | 项目结构：四端完整目录布局、中间件执行链、数据库表清单 |
 | [INSTALL.md](INSTALL.md) | 安装说明：Web安装向导、手动安装、Docker部署、环境变量、FAQ |
 | [USAGE.md](USAGE.md) | 使用说明：管理后台 / 用户端 / 技师端操作、API示例 |
 | [API.md](API.md) | API文档：业务API + 管理后台API，含请求响应示例 + OpenAPI端点 |
+
+## 测试与安全
+
+| 文档 | 说明 |
+|------|------|
+| [TEST-REPORT.md](TEST-REPORT.md) | 测试报告：全量 558 用例 / 2508 断言覆盖审计 + HTTP 冒烟记录 |
+| [AUDIT-REPORT.md](AUDIT-REPORT.md) | 审查报告：测试结果、生态配置评分、问题修复记录、代码架构分析 |
+| [SECURITY-AUDIT-REPORT.md](SECURITY-AUDIT-REPORT.md) | 安全审计报告 |
 
 ## 数据库与运维
 
 | 文档 | 说明 |
 |------|------|
-| [install.sql](install.sql) | 统一安装脚本：8 个迁移文件合并，1388 行，含全部表 + 权限 + 演示数据 |
-| [AUDIT-REPORT.md](AUDIT-REPORT.md) | 审查报告：测试结果、生态配置评分、问题修复记录、代码架构分析 |
+| [install.sql](install.sql) | 统一安装脚本：67 个迁移合并，2723 行，95 表 / 285 权限 / 38 配置 + 演示数据 |
 
 ## 规范与计划
 

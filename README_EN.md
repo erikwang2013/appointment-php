@@ -1,8 +1,8 @@
 # Appointment Service System
 
-A three-platform appointment service management platform: WeChat Mini Program + Flutter App (same-account role switching) + PC Admin Dashboard.
+A four-platform appointment service management platform: WeChat Mini Program + Flutter App + HarmonyOS App (same-account role switching) + PC Admin Dashboard.
 
-> **Status**: All complete | 126 Controllers | 123 Models | 571 tests (service 435 / admin 136) | 86 Tables | 338 Routes
+> **Status**: All complete | 143 Controllers (service 69 / admin 74) | 87 Models | 722 tests (service 558 / admin 164) | 95 Tables | 388 Routes (service 227 / admin 161)
 
 ## Project Structure
 
@@ -12,7 +12,8 @@ appointment-php/
 ├── service/            # Business API service (webman v2)
 ├── apps/               # Client-side frontend apps
 │   ├── wechat/         #   WeChat Mini Program (native)
-│   └── flutter/        #   Flutter App (iOS + Android)
+│   ├── flutter/        #   Flutter App (iOS + Android)
+│   └── harmonyos/      #   HarmonyOS App
 └── docs/               # Documentation
 ```
 
@@ -43,7 +44,7 @@ Open `http://localhost:8787/install` in browser and follow the wizard to configu
 cd service/ && cp .env.example .env && composer install
 cd ../admin/ && cp .env.example .env && composer install
 
-# 2. Import unified database script (55 tables + demo data)
+# 2. Import unified database script (95 tables + permissions/config seeds + demo data)
 mysql -u root -p < docs/install.sql
 
 # 3. Start services
@@ -69,6 +70,7 @@ cd ../service/ && cp .env.docker .env && docker-compose up -d
 | Admin Frontend | Flutter Web | PC admin dashboard style |
 | Client App | Flutter | iOS + Android |
 | Client Mini Program | Native WeChat Mini Program | WXML / WXSS / JS |
+| Client HarmonyOS App | HarmonyOS ArkTS | Native @ohos.net.http |
 | ID Generation | erikwang2013/snowflake-php | BIGINT non-auto-increment primary keys |
 | API ID Encode/Decode | erikwang2013/hashids | Hide real IDs from external exposure |
 | JWT Authentication | erikwang2013/jwt-webman | Bearer Token |
@@ -104,7 +106,7 @@ cd ../service/ && cp .env.docker .env && docker-compose up -d
 
 > More diagrams: [Flowcharts](docs/diagrams/FLOWCHART.md) (withdrawal/role switch) | [Function Map](docs/diagrams/FUNCTION-DIAGRAM.md) | [All Lifecycles](docs/diagrams/LIFECYCLE-DIAGRAM.md) | [Full Security Architecture](docs/diagrams/SECURITY-ARCHITECTURE.md)
 
-## Key Features (Rounds 6-10)
+## Key Features (Rounds 6-24)
 
 | Feature | Description |
 |---------|-------------|
@@ -168,6 +170,12 @@ cd ../service/ && cp .env.docker .env && docker-compose up -d
 >
 > Round-21 additions: growth level benefits realized (order discount_rate + payment points_multiplier, migration seeds 5-tier benefits); invoice titles (erik_invoice_title library + apply title_id link); ticket satisfaction (close rating rating/rated_at + admin summary, permission 388); review image audit (ReviewAuditController hide/restore, permissions 389-391); browse footprint (erik_browse_history + detail hook + list/delete/clear).
 >
+> Round-22 additions: full-reduction promotions (erik_full_reduction auto discount + threshold check, permissions 396-400); ICS calendar export (RFC5545 my appointments); technician attendance check-in (erik_technician_attendance clock-in/out + late marking + admin stats, permissions 392-393); APP push service (config-driven abstraction + 5 event hooks, erik_push_log); WeChat official profit sharing (erik_profit_sharing_log config-driven + graceful degradation, permission 394); privacy compliance (data export + account deletion 72h state machine close_status).
+>
+> Round-23 additions: user health profile (erik_user_health_profile); wallet pay password (erik_user_wallet pay_password set/verify); technician batch scheduling (batch import + overlap conflict detection); order status timeline (erik_order_status_log 8-state tracing + user/admin display); points lucky wheel (erik_lucky_wheel + erik_wheel_record weighted draw, permissions 401-406); points validity (points.expiry_days config + new earn ledger rows carry expires_at).
+>
+> Round-24 additions: guest mode (/api/guest/* read-only browsing without login + Redis cache); seckill (erik_seckill_activity + Redis NX row-lock purchase + erik_order.seckill_id injected at order creation, permissions 407-411/420); APP version management & update check (erik_app_version + /api/app/version, permissions 416-419); return-customer reward (second purchase within 30 days bonus type=return_customer, permissions 412-414); schedule CSV export (UTF-8 BOM + time-slot detail, permission 415).
+>
 > 2026-08-26 Security hardening: order item prices are taken from the database only (client-supplied prices are not trusted; unknown target_type → 422; target_id must be hashid-encoded), group-buy/flash-sale prices also from DB; flash-sale stock is deducted by row lock inside the /api/order store() transaction (SeckillController::buy no longer pre-deducts stock, Redis activity lock + client_token idempotency kept); technician withdrawal reserves in-transit balance at application time, re-checks before transfer, concurrent approvals cannot double-pay; WeChat payment callback total_fee strictly compared against order payable, Alipay callback logs desensitized; /install writes .install.lock on success with double-check against re-install; dependency versions pinned (webman-scout 2.0.5, opensearch-php ^2.6, exact pins for dompdf/security-php/webman-database); phpstan.neon fixed and runnable in both apps (php -d memory_limit=2G).
 
 ## Documentation
@@ -182,6 +190,7 @@ cd ../service/ && cp .env.docker .env && docker-compose up -d
 | [Installation](docs/INSTALL.md) | Requirements, Docker deployment, environment variables, third-party config, FAQ |
 | [Usage Guide](docs/USAGE.md) | Admin configuration, client/technician operations, API examples, refund rules |
 | [Project Structure](docs/STRUCTURE.md) | Full directory layout, middleware execution chain, database table list |
+| [Test Report](docs/TEST-REPORT.md) | Full test coverage audit (558 cases / 2508 assertions) |
 | [Design Spec](docs/superpowers/specs/2026-05-26-appointment-system-design.md) | System design specification |
 | [Implementation Plan](docs/superpowers/plans/2026-05-26-appointment-system-plan.md) | Phased implementation plan |
 
