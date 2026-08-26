@@ -106,6 +106,12 @@ cd ../service/ && cp .env.docker .env && docker-compose up -d
 
 > More diagrams: [Flowcharts](docs/diagrams/FLOWCHART.md) (withdrawal/role switch) | [Function Map](docs/diagrams/FUNCTION-DIAGRAM.md) | [All Lifecycles](docs/diagrams/LIFECYCLE-DIAGRAM.md) | [Full Security Architecture](docs/diagrams/SECURITY-ARCHITECTURE.md)
 
+## Project Intro
+
+<img src="docs/diagrams/mascot.svg" alt="Appointment service mascot — Booking Bunny (animated SVG)" width="200" align="right">
+
+**Appointment Service System** is a four-platform appointment management platform for the life-services industry: WeChat Mini Program + Flutter App + HarmonyOS App (same-account role switching) + PC Admin Dashboard, covering the full loop of user booking, technician fulfillment and admin operations — appointments, membership, marketing and settlement in one system, stable, secure and easy to extend.
+
 ## Key Features (Rounds 6-24)
 
 | Feature | Description |
