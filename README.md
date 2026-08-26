@@ -223,11 +223,12 @@ cd ../service/ && cp .env.docker .env && docker-compose up -d
 | [功能设计](docs/FEATURE-DESIGN.md) | 核心业务流程、业务规则、状态机、退款规则 |
 | [API文档](docs/API.md) | 业务API + 管理后台API，含请求/响应示例 + OpenAPI端点 |
 | [安装说明](docs/INSTALL.md) | 环境要求、Docker部署、环境变量、第三方配置、常见问题 |
-| [使用说明](docs/USAGE.md) | 管理后台配置、用户端/技师端操作、API示例、退款规则 |
+| [使用说明](docs/USAGE.md) | 管理后台配置、用户端/技师端操作、退款规则（API 接口见 API.md） |
 | [项目结构](docs/STRUCTURE.md) | 完整目录布局、中间件执行链、数据库表清单 |
 | [测试报告](docs/TEST-REPORT.md) | 全量测试覆盖审计（558 用例 / 2508 断言） |
 | [设计规范](docs/superpowers/specs/2026-05-26-appointment-system-design.md) | 系统设计规范 |
 | [实现计划](docs/superpowers/plans/2026-05-26-appointment-system-plan.md) | 分阶段实现计划 |
+| [文档索引](docs/README.md) | 全部文档索引（含 12 种语言入口） |
 
 ## 支持项目 / Support
 
@@ -247,6 +248,26 @@ If this project helps you, your support is welcome and appreciated!
     </td>
   </tr>
 </table>
+
+### 全球转账 / Global Bank Transfer
+
+支持全球转账打赏（港元 / 人民币 / 美元 / 其他币种），感谢你的慷慨 :heart:
+
+Global bank transfer donations are welcome (HKD / CNY / USD / other currencies). Thank you for your generosity!
+
+| 项目 Item | 信息 Details |
+|-----------|-------------|
+| 收款人姓名 Beneficiary Name | WANG KEXUN |
+| 收款账户号码 Account Number | 881015918251 |
+| 收款银行 Bank | ZA Bank Limited（SWIFT Code：AABLHKHHXXX，银行编号 Bank Code：387） |
+| 银行地址 Bank Address | Core F, Cyberport 3, 100 Cyberport Road, Hong Kong |
+
+> **跨境汇款代理银行（如需）/ Intermediary Bank (if required)**
+> 此为跨境汇款代理银行（中转银行）信息，非收款银行信息，请向汇款银行查询是否需要提供。
+> Note: this is intermediary bank information, not the receiving bank. Please check with your remitting bank whether it is required.
+>
+> - 汇入港元、人民币及美元（For HKD / CNY / USD）：**Citibank N.A. Hong Kong** — SWIFT Code：CITIHKHXXXX，银行编号 Bank Code：006，分行名称 Branch：Hong Kong Branch，分行编号 Branch Code：391，地址 Address：Citibank Tower, Citibank Plaza, 3 Garden Road, Central, Hong Kong
+> - 汇入其他币种（For other currencies）：**The Bank of New York Mellon** — SWIFT Code：IRVTUS3NXXX，地址 Address：240 Greenwich Street, New York, United States
 
 ## 版权
 

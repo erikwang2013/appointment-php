@@ -199,6 +199,7 @@ cd ../service/ && cp .env.docker .env && docker-compose up -d
 | [Test Report](docs/TEST-REPORT.md) | Full test coverage audit (558 cases / 2508 assertions) |
 | [Design Spec](docs/superpowers/specs/2026-05-26-appointment-system-design.md) | System design specification |
 | [Implementation Plan](docs/superpowers/plans/2026-05-26-appointment-system-plan.md) | Phased implementation plan |
+| [Docs Index](docs/README.md) | Full documentation index (12 languages) |
 
 ## Support
 
@@ -216,6 +217,23 @@ If this project helps you, your support is welcome and appreciated!
     </td>
   </tr>
 </table>
+
+### Global Bank Transfer
+
+Global bank transfer donations are welcome (HKD / CNY / USD / other currencies). Thank you for your generosity!
+
+| Item | Details |
+|------|---------|
+| Beneficiary Name | WANG KEXUN |
+| Account Number | 881015918251 |
+| Bank | ZA Bank Limited (SWIFT Code: AABLHKHHXXX, Bank Code: 387) |
+| Bank Address | Core F, Cyberport 3, 100 Cyberport Road, Hong Kong |
+
+> **Intermediary Bank (if required)**
+> This is intermediary bank information, not the receiving bank. Please check with your remitting bank whether it is required.
+>
+> - For HKD / CNY / USD: **Citibank N.A. Hong Kong** — SWIFT Code: CITIHKHXXXX, Bank Code: 006, Branch: Hong Kong Branch, Branch Code: 391, Address: Citibank Tower, Citibank Plaza, 3 Garden Road, Central, Hong Kong
+> - For other currencies: **The Bank of New York Mellon** — SWIFT Code: IRVTUS3NXXX, Address: 240 Greenwich Street, New York, United States
 
 ## License
 

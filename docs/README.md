@@ -12,7 +12,7 @@
 | [FEATURE-DESIGN.md](FEATURE-DESIGN.md) | 功能设计：购买流程、订单状态机、退款规则、会员卡设计、身份切换 |
 | [STRUCTURE.md](STRUCTURE.md) | 项目结构：四端完整目录布局、中间件执行链、数据库表清单 |
 | [INSTALL.md](INSTALL.md) | 安装说明：Web安装向导、手动安装、Docker部署、环境变量、FAQ |
-| [USAGE.md](USAGE.md) | 使用说明：管理后台 / 用户端 / 技师端操作、API示例 |
+| [USAGE.md](USAGE.md) | 使用说明：管理后台 / 用户端 / 技师端操作（API 接口见 [API.md](API.md)） |
 | [API.md](API.md) | API文档：业务API + 管理后台API，含请求响应示例 + OpenAPI端点 |
 
 ## 测试与安全
@@ -39,3 +39,21 @@
 ## 管理后台文档
 
 `admin/` 自有文档：ARCHITECTURE.md、DESIGN.md、SECURITY.md、API.md、nginx-security.conf。
+
+## 多语言文档 / Languages
+
+| 语言 | 入口 |
+|------|------|
+| 简体中文 | [docs/README.md](README.md)（本页） |
+| English | [docs/en/README.md](en/README.md) |
+| 한국어 | [docs/ko/README.md](ko/README.md) |
+| Русский | [docs/ru/README.md](ru/README.md) |
+| Deutsch | [docs/de/README.md](de/README.md) |
+| Français | [docs/fr/README.md](fr/README.md) |
+| Español | [docs/es/README.md](es/README.md) |
+| Português | [docs/pt/README.md](pt/README.md) |
+| हिन्दी | [docs/hi/README.md](hi/README.md) |
+| العربية | [docs/ar/README.md](ar/README.md) |
+| বাংলা | [docs/bn/README.md](bn/README.md) |
+| Bahasa Indonesia | [docs/id/README.md](id/README.md) |
+| 日本語 | [docs/ja/README.md](ja/README.md) |

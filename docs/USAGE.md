@@ -62,40 +62,7 @@ APP「我的」→ 切换技师 → 工作台
 
 ## API 接口
 
-### 认证
-```bash
-# 请求头
-Authorization: Bearer <JWT_TOKEN>
-API-Version: v1
-
-# 获取Token
-curl -X POST :8787/api/auth/login \
-  -H "API-Version: v1" \
-  -d '{"phone":"13800138000","password":"abc123"}'
-```
-
-### 常用接口
-
-| 方法 | 路径 | 说明 |
-|------|------|------|
-| GET | `/api/service/categories` | 服务分类 |
-| GET | `/api/service/items?page=1&sort=sales` | 服务列表 |
-| GET | `/api/service/detail/{id}` | 服务详情(含评价) |
-| GET | `/api/technician/list?lat=&lng=` | 技师列表(距离) |
-| GET | `/api/technician/detail/{id}` | 技师详情(项目/评价) |
-| POST | `/api/order` | 创建订单(锁技师) |
-| GET | `/api/order/list?status=paid` | 订单列表 |
-| POST | `/api/order/pay/{id}` | 发起支付 |
-| POST | `/api/order/cancel/{id}` | 取消订单 |
-| POST | `/api/order/refund/{id}` | 申请退款 |
-| GET | `/api/user/profile` | 个人信息 |
-| POST | `/api/user/switch-role` | 切换身份 |
-
-### OpenAPI 文档
-- 业务API: `GET :8787/api/docs`
-- 管理后台API: `GET :8787/api/docs`
-
-可导入 Swagger UI 查看交互式文档。
+接口文档已独立维护，见 [API.md](API.md)（业务 API + 管理后台 API，含请求/响应示例与 OpenAPI 端点）。
 
 ---
 
