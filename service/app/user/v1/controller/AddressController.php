@@ -84,6 +84,10 @@ class AddressController extends BaseController
     public function show(Request $request, string $id)
     {
         $userId = $request->user_id;
+        $id = $this->decodeId($id);
+        if ($id === null) {
+            return $this->error('地址不存在', 404);
+        }
 
         $address = UserAddress::where('user_id', $userId)
             ->where('id', $id)
@@ -103,6 +107,10 @@ class AddressController extends BaseController
     public function update(Request $request, string $id)
     {
         $userId = $request->user_id;
+        $id = $this->decodeId($id);
+        if ($id === null) {
+            return $this->error('地址不存在', 404);
+        }
 
         $address = UserAddress::where('user_id', $userId)
             ->where('id', $id)
@@ -157,6 +165,10 @@ class AddressController extends BaseController
     public function destroy(Request $request, string $id)
     {
         $userId = $request->user_id;
+        $id = $this->decodeId($id);
+        if ($id === null) {
+            return $this->error('地址不存在', 404);
+        }
 
         $address = UserAddress::where('user_id', $userId)
             ->where('id', $id)

@@ -182,11 +182,16 @@ class BaseController
 
         $result = Container::get('hashids')->decode($hashid);
 
-        if (empty($result)) {
-            return null;
+        if (!empty($result)) {
+            return (int) $result[0];
         }
 
-        return (int) $result[0];
+        // 兼容原始数字 ID（内部调用/测试直传裸 ID），哈希解不出且为纯数字时透传
+        if (ctype_digit($hashid)) {
+            return (int) $hashid;
+        }
+
+        return null;
     }
 
     /**

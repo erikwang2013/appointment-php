@@ -126,6 +126,10 @@ class FavoriteController extends BaseController
     public function destroy(Request $request, string $id)
     {
         $userId = $request->user_id;
+        $id = $this->decodeId($id);
+        if ($id === null) {
+            return $this->error('收藏记录不存在', 404);
+        }
 
         $favorite = UserFavorite::where('user_id', $userId)
             ->where('id', $id)
