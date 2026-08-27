@@ -22,7 +22,7 @@ class ServiceCardController extends BaseController
 {
     /**
      * 卡项设计列表
-     * 从 erik_system_config 中读取 card_designs JSON 配置
+     * 从 appointment_system_config 中读取 card_designs JSON 配置
      */
     public function index(Request $request): Response
     {
@@ -125,7 +125,7 @@ class ServiceCardController extends BaseController
             'updated_at'        => date('Y-m-d H:i:s'),
         ];
 
-        // 保存到 erik_system_config
+        // 保存到 appointment_system_config
         $this->saveCardDesigns($card);
 
         return $this->success($card, '创建成功');
@@ -221,7 +221,7 @@ class ServiceCardController extends BaseController
     // ── 内部辅助方法 ──
 
     /**
-     * 从 erik_system_config 读取全部卡项
+     * 从 appointment_system_config 读取全部卡项
      */
     private function getCardDesigns(): array
     {
@@ -290,7 +290,7 @@ class ServiceCardController extends BaseController
     }
 
     /**
-     * 持久化卡项配置到 erik_system_config
+     * 持久化卡项配置到 appointment_system_config
      */
     private function persistCardDesigns(array $cards): void
     {

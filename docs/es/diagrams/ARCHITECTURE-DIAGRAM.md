@@ -34,7 +34,7 @@ graph TB
     end
 
     subgraph 数据层["Capa de datos"]
-        MySQL[("MySQL 8.0<br/>55+ tablas · prefijo erik_<br/>Clave primaria BIGINT Snowflake")]
+        MySQL[("MySQL 8.0<br/>55+ tablas · prefijo appointment_<br/>Clave primaria BIGINT Snowflake")]
         Redis[("Redis<br/>Caché/límite de tráfico/Session<br/>Colas/bloqueo de técnico<br/>Caché de listas svc:*")]
         ES[("Elasticsearch<br/>Búsqueda de texto completo<br/>Sincronización automática webman-scout")]
     end

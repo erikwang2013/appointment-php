@@ -29,18 +29,18 @@ class ReviewAuditController extends BaseController
         $status = $request->input('status');
 
         $query = OrderReview::query()
-            ->leftJoin('erik_technician_profile as tp', 'tp.id', 'erik_order_review.technician_id')
-            ->leftJoin('erik_user as u', 'u.id', 'erik_order_review.user_id')
-            ->whereNotNull('erik_order_review.images')
-            ->whereRaw('JSON_LENGTH(erik_order_review.images) > 0')
-            ->select('erik_order_review.*', 'u.nickname as user_nickname', 'tp.real_name as technician_name');
+            ->leftJoin('appointment_technician_profile as tp', 'tp.id', 'appointment_order_review.technician_id')
+            ->leftJoin('appointment_user as u', 'u.id', 'appointment_order_review.user_id')
+            ->whereNotNull('appointment_order_review.images')
+            ->whereRaw('JSON_LENGTH(appointment_order_review.images) > 0')
+            ->select('appointment_order_review.*', 'u.nickname as user_nickname', 'tp.real_name as technician_name');
 
         if ($status !== null && $status !== '') {
-            $query->where('erik_order_review.status', (int) $status);
+            $query->where('appointment_order_review.status', (int) $status);
         }
 
         $total = $query->count();
-        $list  = $query->orderBy('erik_order_review.created_at', 'desc')
+        $list  = $query->orderBy('appointment_order_review.created_at', 'desc')
                        ->offset(($page - 1) * $limit)
                        ->limit($limit)
                        ->get()

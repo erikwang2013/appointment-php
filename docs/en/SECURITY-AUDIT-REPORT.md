@@ -157,7 +157,7 @@ Placeholder keys in `.env.docker` must be replaced with randomly generated value
 
 | Item | Fix |
 |------|-----|
-| Order tamper prevention | OrderController::store() order item prices all use database records (service→erik_service, product→erik_product); client prices never participate in calculation; unknown target_type 422; target_id must be a hashid (raw id decodes to 0 → 422 "product does not exist or is offline"); group-buy/seckill prices likewise DB-based |
+| Order tamper prevention | OrderController::store() order item prices all use database records (service→appointment_service, product→appointment_product); client prices never participate in calculation; unknown target_type 422; target_id must be a hashid (raw id decodes to 0 → 422 "product does not exist or is offline"); group-buy/seckill prices likewise DB-based |
 | Unified seckill inventory deduction | Inventory uniformly deducted via row locks inside the /api/order store() transaction; SeckillController::buy no longer pre-deducts inventory (keeps the Redis activity lock + client_token idempotency); calling /api/order directly with seckill_id also deducts inventory |
 | Technician withdrawals | Balance reserved in-transit (pending/approved) on application; re-check settled−withdrawn−in-transit ≥ withdrawal amount before approval transfer; concurrent approvals cannot cause double payouts |
 | Payment callbacks | WeChat callback total_fee strictly compared against the order's payable amount, mismatches rejected; Alipay callback logs masked (no buyer_id/seller_id, etc.) |

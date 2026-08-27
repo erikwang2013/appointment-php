@@ -14,7 +14,7 @@ use support\Model;
  */
 class WalletTransfer extends Model
 {
-    protected $table = 'erik_wallet_transfer';
+    protected $table = 'appointment_wallet_transfer';
 
     public const STATUS_COMPLETED = 'completed';
 

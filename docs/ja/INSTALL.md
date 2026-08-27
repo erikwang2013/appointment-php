@@ -10,7 +10,7 @@ Copyright (c) 2026 erik <erik@erik.xyz> — https://erik.xyz
 | コンポーネント | 最低バージョン | 説明 |
 |------|----------|------|
 | PHP | 8.3+ | 拡張: bcmath, curl, gd, mbstring, pdo, pdo_mysql, pcntl, redis |
-| MySQL | 8.0+ | テーブルプレフィックス `erik_`、文字セット utf8mb4 |
+| MySQL | 8.0+ | テーブルプレフィックス `appointment_`、文字セット utf8mb4 |
 | Redis | 6.0+ | キャッシュ / レート制限 / Session / 認証コード保存 |
 | Composer | 2.x | PHP 依存管理 |
 | Elasticsearch | 8.x (任意) | 全文検索、未インストールでもコア機能に影響なし |
@@ -182,22 +182,22 @@ docker exec -it appointment-svc-mysql mysql -u root -p appointment < /tmp/instal
 
 | ドメイン | テーブル数 | コアテーブル |
 |----|------|--------|
-| 管理バックエンド | 8 | `erik_admin_user`, `erik_admin_role`, `erik_admin_permission`, `erik_operation_log` |
-| ユーザードメイン | 4 | `erik_user`, `erik_user_address`, `erik_user_favorite`, `erik_user_device` |
-| スタッフドメイン | 8 | `erik_technician_profile`, `erik_technician_schedule`, `erik_technician_earning`, `erik_technician_withdrawal`, `erik_technician_tier_config` |
-| サービスドメイン | 4 | `erik_service_category`, `erik_service`, `erik_service_package`, `erik_service_record` |
-| 注文ドメイン | 5 | `erik_order`, `erik_order_item`, `erik_order_payment`, `erik_order_refund`, `erik_order_review` |
-| マーケティングドメイン | 8 | `erik_coupon`, `erik_member_card`, `erik_gift_card`, `erik_user_points`, `erik_promotion` |
-| 待ち番号 | 1 | `erik_queue_number` |
-| コンテンツドメイン | 5 | `erik_banner`, `erik_announcement`, `erik_faq`, `erik_feedback`, `erik_platform_agreement` |
-| コミュニティドメイン | 3 | `erik_post`, `erik_comment`, `erik_moment` |
-| 店舗 | 1 | `erik_store` |
-| 研修 | 2 | `erik_training_course`, `erik_training_progress` |
-| 試験 | 3 | `erik_exam`, `erik_exam_question`, `erik_exam_attempt` |
-| システム | 3 | `erik_system_config`, `erik_notification`, `erik_signature` |
+| 管理バックエンド | 8 | `appointment_admin_user`, `appointment_admin_role`, `appointment_admin_permission`, `appointment_operation_log` |
+| ユーザードメイン | 4 | `appointment_user`, `appointment_user_address`, `appointment_user_favorite`, `appointment_user_device` |
+| スタッフドメイン | 8 | `appointment_technician_profile`, `appointment_technician_schedule`, `appointment_technician_earning`, `appointment_technician_withdrawal`, `appointment_technician_tier_config` |
+| サービスドメイン | 4 | `appointment_service_category`, `appointment_service`, `appointment_service_package`, `appointment_service_record` |
+| 注文ドメイン | 5 | `appointment_order`, `appointment_order_item`, `appointment_order_payment`, `appointment_order_refund`, `appointment_order_review` |
+| マーケティングドメイン | 8 | `appointment_coupon`, `appointment_member_card`, `appointment_gift_card`, `appointment_user_points`, `appointment_promotion` |
+| 待ち番号 | 1 | `appointment_queue_number` |
+| コンテンツドメイン | 5 | `appointment_banner`, `appointment_announcement`, `appointment_faq`, `appointment_feedback`, `appointment_platform_agreement` |
+| コミュニティドメイン | 3 | `appointment_post`, `appointment_comment`, `appointment_moment` |
+| 店舗 | 1 | `appointment_store` |
+| 研修 | 2 | `appointment_training_course`, `appointment_training_progress` |
+| 試験 | 3 | `appointment_exam`, `appointment_exam_question`, `appointment_exam_attempt` |
+| システム | 3 | `appointment_system_config`, `appointment_notification`, `appointment_signature` |
 | **合計** | **55** | |
 
-全テーブルは `erik_` プレフィックスを使用し、主キー `id` は BIGINT 非自動採番（snowflake-php でアプリケーション層にて生成）。
+全テーブルは `appointment_` プレフィックスを使用し、主キー `id` は BIGINT 非自動採番（snowflake-php でアプリケーション層にて生成）。
 
 ---
 

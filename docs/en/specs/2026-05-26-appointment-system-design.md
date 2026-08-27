@@ -55,75 +55,75 @@ Three-client appointment service system: user side (WeChat Mini Program + Flutte
 
 ## Core Database Tables
 
-All tables use the `erik_` prefix with BIGINT non-auto-increment primary keys (Snowflake-generated). Sensitive fields use the encryptable trait for encryption/decryption.
+All tables use the `appointment_` prefix with BIGINT non-auto-increment primary keys (Snowflake-generated). Sensitive fields use the encryptable trait for encryption/decryption.
 
 ### User & Identity Domain
 
 | Table | Description | Core fields |
 |-------|-------------|-------------|
-| `erik_user` | Unified user table | phone, password, wx_openid, wx_unionid, avatar, nickname, user_type(customer/technician), status. Technician users also have customer features and can freely switch their currently active identity |
-| `erik_user_address` | User address | user_id, contact_name, contact_phone, province, city, district, detail, is_default |
-| `erik_technician_profile` | Technician profile | user_id, real_name, gender, id_card, id_card_front, id_card_back, avatar, rating, order_count, status(pending/approved/rejected), intro |
-| `erik_technician_schedule` | Technician schedule | technician_id, date, time_slots(JSON), status |
-| `erik_technician_service` | Services a technician can provide | technician_id, service_id |
-| `erik_technician_earnings` | Technician earnings ledger | technician_id, order_id, type(commission/bonus/penalty), amount, status |
-| `erik_technician_withdrawal` | Technician withdrawal records | technician_id, amount, actual_amount, commission_fee, account_info, status, reviewed_at |
-| `erik_technician_attendance` | Technician attendance | technician_id, date, check_in_at, check_out_at, clean_photo |
-| `erik_technician_member_note` | Member profile notes | technician_id, user_id, content, written_at |
+| `appointment_user` | Unified user table | phone, password, wx_openid, wx_unionid, avatar, nickname, user_type(customer/technician), status. Technician users also have customer features and can freely switch their currently active identity |
+| `appointment_user_address` | User address | user_id, contact_name, contact_phone, province, city, district, detail, is_default |
+| `appointment_technician_profile` | Technician profile | user_id, real_name, gender, id_card, id_card_front, id_card_back, avatar, rating, order_count, status(pending/approved/rejected), intro |
+| `appointment_technician_schedule` | Technician schedule | technician_id, date, time_slots(JSON), status |
+| `appointment_technician_service` | Services a technician can provide | technician_id, service_id |
+| `appointment_technician_earnings` | Technician earnings ledger | technician_id, order_id, type(commission/bonus/penalty), amount, status |
+| `appointment_technician_withdrawal` | Technician withdrawal records | technician_id, amount, actual_amount, commission_fee, account_info, status, reviewed_at |
+| `appointment_technician_attendance` | Technician attendance | technician_id, date, check_in_at, check_out_at, clean_photo |
+| `appointment_technician_member_note` | Member profile notes | technician_id, user_id, content, written_at |
 
 ### Service & Product Domain
 
 | Table | Description | Core fields |
 |-------|-------------|-------------|
-| `erik_service_category` | Service category | name, icon, parent_id, sort, status |
-| `erik_service` | Service item | category_id, name, description, cover_image, images(JSON), price, duration, sales_volume, specs(JSON), status |
-| `erik_product` | Product | category_id, name, cover_image, price, stock, sales_volume, type, status |
-| `erik_store` | Store | name, address, lat, lng, phone, business_hours(JSON), images, status |
+| `appointment_service_category` | Service category | name, icon, parent_id, sort, status |
+| `appointment_service` | Service item | category_id, name, description, cover_image, images(JSON), price, duration, sales_volume, specs(JSON), status |
+| `appointment_product` | Product | category_id, name, cover_image, price, stock, sales_volume, type, status |
+| `appointment_store` | Store | name, address, lat, lng, phone, business_hours(JSON), images, status |
 
 ### Order Domain
 
 | Table | Description | Core fields |
 |-------|-------------|-------------|
-| `erik_order` | Order master table | order_no, user_id, technician_id, store_id, total_amount, discount_amount, paid_amount, status, service_time, cancel_reason, remark |
-| `erik_order_item` | Order line items | order_id, service_id, product_id, type, name, price, quantity, spec_info |
-| `erik_order_payment` | Payment records | order_id, pay_type(wechat), transaction_id, amount, status, paid_at |
-| `erik_order_refund` | Refund records | order_id, payment_id, refund_no, amount, ratio, reason, status |
-| `erik_order_review` | Service reviews | order_id, user_id, technician_id, rating, content, images |
-| `erik_order_verification` | Verification records | order_id, code, verified_at, verified_by, location |
+| `appointment_order` | Order master table | order_no, user_id, technician_id, store_id, total_amount, discount_amount, paid_amount, status, service_time, cancel_reason, remark |
+| `appointment_order_item` | Order line items | order_id, service_id, product_id, type, name, price, quantity, spec_info |
+| `appointment_order_payment` | Payment records | order_id, pay_type(wechat), transaction_id, amount, status, paid_at |
+| `appointment_order_refund` | Refund records | order_id, payment_id, refund_no, amount, ratio, reason, status |
+| `appointment_order_review` | Service reviews | order_id, user_id, technician_id, rating, content, images |
+| `appointment_order_verification` | Verification records | order_id, code, verified_at, verified_by, location |
 
 ### Marketing Domain
 
 | Table | Description | Core fields |
 |-------|-------------|-------------|
-| `erik_coupon` | Coupon definition | name, type, amount, min_amount, total_qty, remain_qty, start_at, end_at, status |
-| `erik_user_coupon` | User coupon | user_id, coupon_id, status(available/used/expired), used_at |
-| `erik_member_card` | Member card definition | name, type(month/vip/times), price, duration_days, total_times, services(JSON) |
-| `erik_user_member_card` | User member card | user_id, card_id, start_at, end_at, total_times, used_times, status |
-| `erik_member_card_usage` | Session card usage records | user_card_id, order_id, service_id, used_at |
-| `erik_user_points` | Points ledger | user_id, type(earn/use), points, source, order_id |
-| `erik_gift_card` | Gift card | code, type, amount_or_gift, status, used_by, used_at |
-| `erik_user_referral` | User referral | referrer_id, referred_user_id, reward_type, reward_amount, registered_at, first_order_at |
+| `appointment_coupon` | Coupon definition | name, type, amount, min_amount, total_qty, remain_qty, start_at, end_at, status |
+| `appointment_user_coupon` | User coupon | user_id, coupon_id, status(available/used/expired), used_at |
+| `appointment_member_card` | Member card definition | name, type(month/vip/times), price, duration_days, total_times, services(JSON) |
+| `appointment_user_member_card` | User member card | user_id, card_id, start_at, end_at, total_times, used_times, status |
+| `appointment_member_card_usage` | Session card usage records | user_card_id, order_id, service_id, used_at |
+| `appointment_user_points` | Points ledger | user_id, type(earn/use), points, source, order_id |
+| `appointment_gift_card` | Gift card | code, type, amount_or_gift, status, used_by, used_at |
+| `appointment_user_referral` | User referral | referrer_id, referred_user_id, reward_type, reward_amount, registered_at, first_order_at |
 
 ### Content & Notification Domain
 
 | Table | Description | Core fields |
 |-------|-------------|-------------|
-| `erik_banner` | Carousel banners | position, image, jump_type(url/detail/none), jump_value, sort, status |
-| `erik_announcement` | Announcements | content, status, published_at |
-| `erik_platform_agreement` | Platform agreements | type(user_agreement/privacy_policy/service_agreement), title, content, version |
-| `erik_faq` | FAQ | title, content, sort |
-| `erik_feedback` | Feedback | user_id, content, images, handler_reply, status(pending/handled) |
-| `erik_moment` | Moments | content, images, published_at |
-| `erik_notification` | Notifications | user_id, type(order/system), title, content, is_read, created_at |
+| `appointment_banner` | Carousel banners | position, image, jump_type(url/detail/none), jump_value, sort, status |
+| `appointment_announcement` | Announcements | content, status, published_at |
+| `appointment_platform_agreement` | Platform agreements | type(user_agreement/privacy_policy/service_agreement), title, content, version |
+| `appointment_faq` | FAQ | title, content, sort |
+| `appointment_feedback` | Feedback | user_id, content, images, handler_reply, status(pending/handled) |
+| `appointment_moment` | Moments | content, images, published_at |
+| `appointment_notification` | Notifications | user_id, type(order/system), title, content, is_read, created_at |
 
 ### Finance Domain (admin side)
 
 | Table | Description | Core fields |
 |-------|-------------|-------------|
-| `erik_finance_transaction` | Income/expense ledger | user_id, order_id, type, direction(income/expense), amount, actual_amount, commission, status |
-| `erik_technician_commission_config` | Commission config | technician_id, commission_rate, settlement_cycle |
-| `erik_withdrawal_account` | Withdrawal account | user_id, type(wechat), account_name, account_no |
-| `erik_withdrawal_config` | Withdrawal limit config | min_amount, reserve_amount, round_to_hundred |
+| `appointment_finance_transaction` | Income/expense ledger | user_id, order_id, type, direction(income/expense), amount, actual_amount, commission, status |
+| `appointment_technician_commission_config` | Commission config | technician_id, commission_rate, settlement_cycle |
+| `appointment_withdrawal_account` | Withdrawal account | user_id, type(wechat), account_name, account_no |
+| `appointment_withdrawal_config` | Withdrawal limit config | min_amount, reserve_amount, round_to_hundred |
 
 ## Service API Modules
 

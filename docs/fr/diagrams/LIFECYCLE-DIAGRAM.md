@@ -351,7 +351,7 @@ stateDiagram-v2
 
     checked --> pending: Second achat<br/>(prime = montant payé × ratio<br/>idempotent par order_id+type)
 
-    pending --> settled: Règlement via la chaîne de règlement des commissions<br/>(erik_technician_earnings<br/>type=return_customer)
+    pending --> settled: Règlement via la chaîne de règlement des commissions<br/>(appointment_technician_earnings<br/>type=return_customer)
 
     settled --> [*]
     none --> [*]

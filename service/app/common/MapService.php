@@ -27,7 +27,7 @@ class MapService
 
     public function __construct()
     {
-        $configs = Db::table('erik_system_config')
+        $configs = Db::table('appointment_system_config')
             ->where('group', 'map_service')
             ->pluck('value', 'key')
             ->toArray();

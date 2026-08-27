@@ -33,7 +33,7 @@ class WechatTemplateMessageService
 
     public function __construct()
     {
-        $configs = Db::table('erik_system_config')
+        $configs = Db::table('appointment_system_config')
             ->where('group', 'wechat_app')
             ->pluck('value', 'key')
             ->toArray();

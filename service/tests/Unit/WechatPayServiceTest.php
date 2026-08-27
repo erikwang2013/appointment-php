@@ -35,10 +35,10 @@ class WechatPayServiceTest extends TestCase
     protected function tearDown(): void
     {
         foreach ($this->insertedPaymentNos as $no) {
-            Db::table('erik_order_payment')->where('payment_no', $no)->delete();
+            Db::table('appointment_order_payment')->where('payment_no', $no)->delete();
         }
         foreach ($this->insertedOrderIds as $id) {
-            Db::table('erik_order')->where('id', $id)->delete();
+            Db::table('appointment_order')->where('id', $id)->delete();
         }
         $this->insertedPaymentNos = [];
         $this->insertedOrderIds = [];
@@ -315,7 +315,7 @@ class WechatPayServiceTest extends TestCase
         $this->insertedPaymentNos[] = $paymentNo;
         $this->insertedOrderIds[] = (string) $orderId;
 
-        Db::table('erik_order_payment')->insert([
+        Db::table('appointment_order_payment')->insert([
             'id' => $orderId,
             'order_id' => $orderId,
             'payment_no' => $paymentNo,
@@ -347,7 +347,7 @@ class WechatPayServiceTest extends TestCase
         $this->assertSame('OK', $second['message']);
 
         // 幂等：支付记录未被二次处理（transaction_id 保持初始值）
-        $row = Db::table('erik_order_payment')->where('payment_no', $paymentNo)->first();
+        $row = Db::table('appointment_order_payment')->where('payment_no', $paymentNo)->first();
         $this->assertSame('TX_INIT_TEST', $row->transaction_id);
         $this->assertSame('success', $row->status);
     }
@@ -560,7 +560,7 @@ class WechatPayServiceTest extends TestCase
         $this->insertedPaymentNos[] = $paymentNo;
         $this->insertedOrderIds[] = (string) $orderId;
 
-        Db::table('erik_order')->insert([
+        Db::table('appointment_order')->insert([
             'id' => $orderId,
             'order_no' => 'ORDAMTMIS_' . uniqid(),
             'user_id' => (string) $orderId,
@@ -572,7 +572,7 @@ class WechatPayServiceTest extends TestCase
             'created_at' => date('Y-m-d H:i:s'),
             'updated_at' => date('Y-m-d H:i:s'),
         ]);
-        Db::table('erik_order_payment')->insert([
+        Db::table('appointment_order_payment')->insert([
             'id' => $orderId,
             'order_id' => $orderId,
             'payment_no' => $paymentNo,

@@ -13,7 +13,7 @@ class Store extends Model
 {
     use SoftDeletes;
 
-    protected $table = 'erik_store';
+    protected $table = 'appointment_store';
     public $incrementing = false;
     protected $keyType = 'string';
     public $timestamps = true;

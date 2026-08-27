@@ -15,7 +15,7 @@ use support\Model;
  */
 class UserPointsTransfer extends Model
 {
-    protected $table = 'erik_user_points_transfer';
+    protected $table = 'appointment_user_points_transfer';
     public $incrementing = false;
     protected $keyType = 'string';
     public $timestamps = false;

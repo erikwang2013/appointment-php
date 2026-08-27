@@ -13,7 +13,7 @@ use support\Model;
  */
 class ServicePackage extends Model
 {
-    protected $table = 'erik_service_package';
+    protected $table = 'appointment_service_package';
     public $incrementing = false;
     protected $keyType = 'string';
     public $timestamps = true;

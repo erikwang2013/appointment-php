@@ -15,7 +15,7 @@ use support\Model;
  */
 class PushLog extends Model
 {
-    protected $table = 'erik_push_log';
+    protected $table = 'appointment_push_log';
 
     public $timestamps = true;
 

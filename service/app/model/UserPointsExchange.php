@@ -9,7 +9,7 @@ use support\Model;
 
 class UserPointsExchange extends Model
 {
-    protected $table = 'erik_user_points_exchange';
+    protected $table = 'appointment_user_points_exchange';
     public $incrementing = false;
     protected $keyType = 'string';
     public $timestamps = false; // 表仅 created_at（DB 默认 CURRENT_TIMESTAMP）

@@ -46,7 +46,7 @@ class CustomerProfileController extends BaseController
 
         // 最常购买的服务 Top 5
         $topServices = OrderItem::whereIn('order_id', function ($q) use ($userId) {
-            $q->select('id')->from('erik_order')->where('user_id', $userId);
+            $q->select('id')->from('appointment_order')->where('user_id', $userId);
         })
             ->where('target_type', 'service')
             ->selectRaw('target_id, name, SUM(quantity) as total_qty, SUM(price * quantity) as total_amount')

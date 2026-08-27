@@ -100,7 +100,7 @@ Le mini-programme et l'application ont exactement les mêmes fonctionnalités. U
 |------|------|
 | Informations personnelles | Avatar / pseudo / téléphone |
 | Bascule d'identité | Client ↔ technicien |
-| Notifications | Notifications internes (erik_notification) ; page centre de notifications : pagination / rafraîchissement par glissement / surbrillance des lus / marquer lu / tout marquer lu |
+| Notifications | Notifications internes (appointment_notification) ; page centre de notifications : pagination / rafraîchissement par glissement / surbrillance des lus / marquer lu / tout marquer lu |
 | Mes cartes de membre | Mensuelle / VIP annuelle / à forfait (expiration / nombre / utilisées / restantes) |
 | Mes points | Historique d'obtention / points disponibles / historique d'utilisation (échange 1:100 contre une carte cadeau) ; points de présence / de consommation, reprise proportionnelle au remboursement, historique paginé + filtre type/source |
 | Mes cartes cadeaux | Carte monétaire / cadeau physique ; type cash : l'échange recharge directement le portefeuille |
@@ -193,7 +193,7 @@ Le mini-programme et l'application ont exactement les mêmes fonctionnalités. U
 
 | Fonction | Description |
 |------|------|
-| Autorisation d'abonnement | utils/subscribe.js centralise les ID de modèles (clés alignées sur erik_system_config.wechat_app.template_ids côté serveur) |
+| Autorisation d'abonnement | utils/subscribe.js centralise les ID de modèles (clés alignées sur appointment_system_config.wechat_app.template_ids côté serveur) |
 | Scénarios de déclenchement | wx.requestSubscribeMessage dans les gestes de réussite de réservation/paiement, silencieux si modèle non configuré ou refus |
 | Chaîne serveur | WechatTemplateMessageService (envoi) + NotificationReminderService (rappel 2 h ~ 1 h avant) + processus AutoCancelTimer |
 
@@ -222,16 +222,16 @@ Le mini-programme et l'application ont exactement les mêmes fonctionnalités. U
 |------|------|
 | Prix groupé | La réponse de join renvoie discount_percent/original_price/group_price |
 | Commande groupée | POST /api/order avec promotion_id : validation uniquement group_buy / activité active / l'appelant est participant / effectif non atteint / prestation correspondante ; prix groupé = prix plein × discount_percent/100, cumul bon/carte à forfait/points interdit (422) |
-| Marquage de commande | Nouvelles colonnes erik_order promotion_id/participant_id + index |
+| Marquage de commande | Nouvelles colonnes appointment_order promotion_id/participant_id + index |
 | Groupe non constitué | À l'expiration sans effectif complet : fermeture de l'activité + annulation par lot des commandes pending de l'activité (idempotent) ; pay() détecte paresseusement la fermeture et annule la commande en libérant le verrou technicien |
 
 ### 22. Commission de parrainage (tour 16)
 
 | Fonction | Description |
 |------|------|
-| Règle de versement | Après la première commande completed du filleul : montant = paid_amount × reward_rate (erik_system_config referral.reward_rate, défaut 0.05, repli sur constante si invalide), versé uniquement si >0 |
+| Règle de versement | Après la première commande completed du filleul : montant = paid_amount × reward_rate (appointment_system_config referral.reward_rate, défaut 0.05, repli sur constante si invalide), versé uniquement si >0 |
 | Point d'accroche | ReferralRewardService::handleOrderCompleted accroché dans la transaction de WorkController::complete (seule entrée serving→completed, la vérification verify s'arrête à serving sans déclencher), échec → rollback global et nouvelle tentative |
-| Idempotence | Verrou de ligne erik_user_referral lockForUpdate + contrôle rewarded_at + re-vérification de la première commande sous verrou (appels concurrents/doublons : un seul versement) |
+| Idempotence | Verrou de ligne appointment_user_referral lockForUpdate + contrôle rewarded_at + re-vérification de la première commande sous verrou (appels concurrents/doublons : un seul versement) |
 | Écriture | Verrou de ligne portefeuille + WalletTxn type='referral_reward' (balance_after + n° de commande en remark) ; l'enregistrement de parrainage écrit reward_type/reward_amount/rewarded_at/first_order_at |
 | Détail | GET /api/user/referral/earnings, pagination (pseudo/avatar du filleul, n° de commande, montant, date) |
 
@@ -239,10 +239,10 @@ Le mini-programme et l'application ont exactement les mêmes fonctionnalités. U
 
 | Fonction | Description |
 |------|------|
-| Produits d'échange | erik_points_exchange_goods : type=coupon/gift_card/wallet, points_cost/value (DECIMAL(25,2) contre la perte de précision des ID avalanche)/stock/status |
+| Produits d'échange | appointment_points_exchange_goods : type=coupon/gift_card/wallet, points_cost/value (DECIMAL(25,2) contre la perte de précision des ID avalanche)/stock/status |
 | Liste des produits | GET /api/marketing/points-exchange : produits en ligne + stock restant en temps réel + nombre déjà échangé |
 | Échange | POST /api/marketing/points-exchange/{id} : verrou Redis NX + verrou de ligne produit anti-surdébit ; contrôle du solde par agrégation SUM (insuffisant 422) + débit UserPoints type='consume' source='exchange' ; coupon délivré / solde wallet crédité (WalletTxn points_exchange) / clé de carte cadeau renvoyée |
-| Idempotence | Index unique uk_user_goods (un même utilisateur, un même produit, une seule fois) + re-vérification sous verrou + repli 1062 ; enregistrement d'échange instantané erik_user_points_exchange |
+| Idempotence | Index unique uk_user_goods (un même utilisateur, un même produit, une seule fois) + re-vérification sous verrou + repli 1062 ; enregistrement d'échange instantané appointment_user_points_exchange |
 
 ### 24. Report de rendez-vous (tour 17)
 
@@ -251,7 +251,7 @@ Le mini-programme et l'application ont exactement les mêmes fonctionnalités. U
 | Interface | POST /api/order/reschedule/{id} : new_service_time (obligatoire) + reason (facultatif), changement d'horaire avec le même technicien |
 | Règles | Commande personnelle uniquement (404 sinon) ; uniquement type appointment et statut pending/paid/confirmed (422 sinon) ; ≥6 h avant le début du service d'origine (même fenêtre que le remboursement intégral) |
 | Protection concurrentielle | B1 order_lock (même famille d'exclusion que pay/cancel/refund) → verrou technicien Redis SETNX EX 180 sur le nouveau créneau (anti-survente en report concurrent) → relecture par verrou de ligne en transaction + contrôle DB de conflit de planning B2 (hors commande courante) |
-| Fin | Mise à jour service_time + enregistrement erik_order_reschedule (avec reason) + libération des verrous du créneau d'origine/du nouveau créneau détenus par la commande ; en cas d'échec, rollback de la transaction et libération du verrou du nouveau créneau |
+| Fin | Mise à jour service_time + enregistrement appointment_order_reschedule (avec reason) + libération des verrous du créneau d'origine/du nouveau créneau détenus par la commande ; en cas d'échec, rollback de la transaction et libération du verrou du nouveau créneau |
 | Notifications | Message d'abonnement SCENE_RESCHEDULE (repli notification interne « Report de rendez-vous réussi » si modèle non configuré) + pushOrderUpdate |
 
 ### 25. Transfert de bon (tour 17)
@@ -267,7 +267,7 @@ Le mini-programme et l'application ont exactement les mêmes fonctionnalités. U
 
 | Fonction | Description |
 |------|------|
-| Validité | Colonne erik_user_points.expires_at ; toute écriture earn (présence/consommation/reprise) remplit expires_at = now + points.expiry_days (défaut 365, ≤0 : jamais expiré) ; les comportements consume/use laissent vide |
+| Validité | Colonne appointment_user_points.expires_at ; toute écriture earn (présence/consommation/reprise) remplit expires_at = now + points.expiry_days (défaut 365, ≤0 : jamais expiré) ; les comportements consume/use laissent vide |
 | Exécution de l'expiration | Processus planifié PointsExpiryTimer toutes les 60 s, scan curseur (100/lot) des lignes earn avec expires_at < now → écriture de débit négatif type=expire (source=expiry + order_id traçant la ligne d'origine) → notification interne agrégée par utilisateur « Vous avez X points expirés » |
 | Idempotence | ① la ligne expire porte order_id vers la ligne earn d'origine, lockForUpdate sur la ligne d'origine en transaction + re-vérification exists (les processus concurrents se sérialisent sur le verrou de ligne) ② pagination curseur par id ③ la notification n'est émise qu'aux tours de débit effectifs |
 | Périmètre | Le solde disponible (agrégation SUM) inclut les lignes négatives expire ; les points expirés ne sont plus utilisables en déduction/échange |
@@ -297,7 +297,7 @@ Le mini-programme et l'application ont exactement les mêmes fonctionnalités. U
 |------|------|
 | Interface | POST /api/technician/review/reply/{order_id} (middleware d'identité technicien) : avis inexistant / pas le sien → 404 unifié ; réponse existante 422 (refus idempotent sans écrasement) ; réponse vide 422 |
 | Après réponse | Notification interne à l'utilisateur (type='review_reply', try/catch non bloquant + Log) |
-| Données | Colonne replied_at ajoutée de manière idempotente à erik_order_review (colonne reply présente dès la création) ; les listes/détails d'avis admin exposent reply/replied_at via decorate()->toArray() |
+| Données | Colonne replied_at ajoutée de manière idempotente à appointment_order_review (colonne reply présente dès la création) ; les listes/détails d'avis admin exposent reply/replied_at via decorate()->toArray() |
 
 ### 30. Notification de recharge reçue (tour 18)
 
@@ -331,7 +331,7 @@ Le mini-programme et l'application ont exactement les mêmes fonctionnalités. U
 |------|------|
 | Avis complémentaire | POST /api/order/review/{order_id}/append : avis inexistant / pas le sien → 404 unifié, non completed 422, doublon 422 (append_content/append_at non vides → refus), contenu vide 422 ; succès : écriture append_content/append_images(JSON)/append_at + notification interne technicien type='review_append' |
 | Soumission d'avis | Enregistrement de POST /api/order/review/{order_id} (ReviewController::store n'avait pas de route, inaccessible) ; correction du TypeError latent : findByOrderId recevait un int en violation de la signature string (aligné sur la conversion (string) de append), l'enregistrement de la route exposait un 500 à l'appel |
-| Données | erik_order_review ajoute 3 colonnes append_content TEXT / append_images JSON / append_at DATETIME (migration idempotente) ; les réponses exposent les champs append |
+| Données | appointment_order_review ajoute 3 colonnes append_content TEXT / append_images JSON / append_at DATETIME (migration idempotente) ; les réponses exposent les champs append |
 
 ### 34. Suivi logistique côté utilisateur (tour 19)
 
@@ -345,9 +345,9 @@ Le mini-programme et l'application ont exactement les mêmes fonctionnalités. U
 
 | Fonction | Description |
 |------|------|
-| Données | Table erik_user_notify_setting (clé composite unique user_id+type uk_user_type, ligne absente = activé par défaut) ; 5 types : service_reminder rappel de service / card_expiry rappel d'expiration (parapluie cartes + bons) / points_expiry expiration des points / marketing marketing (réservé) / system système (non désactivable, PUT forcé à 1) |
+| Données | Table appointment_user_notify_setting (clé composite unique user_id+type uk_user_type, ligne absente = activé par défaut) ; 5 types : service_reminder rappel de service / card_expiry rappel d'expiration (parapluie cartes + bons) / points_expiry expiration des points / marketing marketing (réservé) / system système (non désactivable, PUT forcé à 1) |
 | Interfaces | GET /api/user/notify-settings renvoie les 5 interrupteurs ; PUT en upsert par lot sans lignes en double |
-| Contrôle | NotificationReminderService::notifySettingEnabled accroché à 3 processus planifiés (ServiceReminderTimer / ExpiryReminderTimer cartes + bons / PointsExpiryTimer ; les minuteurs écrivent directement dans erik_notification sans passer par le chemin de service, donc chacun ajoute son propre contrôle) + événements d'abonnement (sendSubscribeForOrderEvent, scénarios Notification PAY/REFUND/VERIFIED/RESCHEDULE → system toujours envoyé, REMINDER → service_reminder, EXPIRY → card_expiry) ; type désactivé → notification interne et message d'abonnement tous deux ignorés |
+| Contrôle | NotificationReminderService::notifySettingEnabled accroché à 3 processus planifiés (ServiceReminderTimer / ExpiryReminderTimer cartes + bons / PointsExpiryTimer ; les minuteurs écrivent directement dans appointment_notification sans passer par le chemin de service, donc chacun ajoute son propre contrôle) + événements d'abonnement (sendSubscribeForOrderEvent, scénarios Notification PAY/REFUND/VERIFIED/RESCHEDULE → system toujours envoyé, REMINDER → service_reminder, EXPIRY → card_expiry) ; type désactivé → notification interne et message d'abonnement tous deux ignorés |
 
 ---
 
@@ -456,13 +456,13 @@ Application monopage Flutter Web, 21 pages : dashboard/Utilisateurs/Rôles/Confi
 
 ### 14. Gestion des cartes de membre (tour 10)
 
-- Colonne erik_user.member_level (migration 000008)
+- Colonne appointment_user.member_level (migration 000008)
 - MemberCardController CRUD complet (permissions 365-369) : GET/POST/PUT/DELETE /admin/member-cards
 - Page Flutter de gestion des définitions de cartes de membre
 
 ### 15. Gestion après-vente (tour 14)
 
-- Table erik_order_aftersale (migration 000009) : type=refund/exchange, status=pending/approved/rejected/completed
+- Table appointment_order_aftersale (migration 000009) : type=refund/exchange, status=pending/approved/rejected/completed
 - AftersaleController : GET /admin/aftersales (pagination + filtres status/uid/order_no) + POST /admin/aftersales/{id}/review (approve/reject+remark)
 - Page Flutter de gestion après-vente (liste + boîte de dialogue de validation, permissions 370/371), layout enregistré
 
@@ -483,10 +483,10 @@ Application monopage Flutter Web, 21 pages : dashboard/Utilisateurs/Rôles/Confi
 
 ### 19. Évaluation automatique du niveau technicien (tour 17)
 
-- TierRatingService::evaluate(technicianId, allowDowngrade=false) : statistiques temps réel des commandes erik_order completed + moyenne des avis erik_order_review (arrondie à 1 décimale) écrites sur profile.order_count/rating, correspondance du plus haut au plus bas selon erik_technician_tier_config (min_orders/min_rating), niveau le plus bas si aucune correspondance
+- TierRatingService::evaluate(technicianId, allowDowngrade=false) : statistiques temps réel des commandes appointment_order completed + moyenne des avis appointment_order_review (arrondie à 1 décimale) écrites sur profile.order_count/rating, correspondance du plus haut au plus bas selon appointment_technician_tier_config (min_orders/min_rating), niveau le plus bas si aucune correspondance
 - Règle de montée/descente : montée uniquement (le niveau lie taux de commission et coefficient de prix, une descente automatique affecte les revenus du technicien et crée des litiges, la baisse est gérée manuellement par l'admin) ; allowDowngrade=true (scénario de réévaluation manuelle) exécute la descente, journalisée et notifiée elle aussi
 - Idempotence : si le niveau attendu est identique à profile.tier_id, synchronisation des statistiques seule, sans journal ni notification
-- Journal : changement écrit dans erik_technician_tier_log (id/technician_id/old_tier_id/new_tier_id/reason/created_at) + notification interne (type='tier')
+- Journal : changement écrit dans appointment_technician_tier_log (id/technician_id/old_tier_id/new_tier_id/reason/created_at) + notification interne (type='tier')
 - Points de déclenchement : WorkController::complete / écriture d'avis ReviewController / consultation du profil ProfileController avec évaluation paresseuse
 - Côté admin : TechnicianTierController conserve la configuration manuelle ; GET /admin/technician-tiers/logs, consultation paginée des journaux de changement (jointure nom technicien et noms des anciens/nouveaux niveaux, ID encodés hashid, permission 380)
 
@@ -499,26 +499,26 @@ Application monopage Flutter Web, 21 pages : dashboard/Utilisateurs/Rôles/Confi
 ### 21. Calendrier de réservation (tour 20)
 
 - CalendarController, vues mensuelle/journalière : GET /api/calendar/technician/{id} (vue mensuelle) + /day (vue journalière)
-- Source de données : time_slots JSON de technician_schedule déplié en créneaux horaires par jour de semaine, exclusion des créneaux déjà réservés erik_order du jour (status ∈ pending/paid/confirmed/serving), sortie des créneaux restants
+- Source de données : time_slots JSON de technician_schedule déplié en créneaux horaires par jour de semaine, exclusion des créneaux déjà réservés appointment_order du jour (status ∈ pending/paid/confirmed/serving), sortie des créneaux restants
 - Usage : sélection visuelle du créneau selon le planning de la boutique, défilement horizontal par jour + sélection des créneaux côté frontend
 
 ### 22. Niveau de croissance utilisateur (tour 20)
 
-- erik_user_growth (historique) + erik_growth_level (seed de 5 niveaux : Bronze 0 / Argent 100 / Or 500 / Platine 2000 / Diamant 5000)
+- appointment_user_growth (historique) + appointment_growth_level (seed de 5 niveaux : Bronze 0 / Argent 100 / Or 500 / Platine 2000 / Diamant 5000)
 - Points d'entrée des points de croissance : présence +10 (CheckInController) ; soumission d'avis +20 (ReviewController::store, pas pour un avis complémentaire) ; consommation floor(paid), 1 point par yuan (WechatPayService::markOrderPaid, réutilise la re-vérification de statut de paiement existante, idempotence naturelle, pas de double écriture sur callback répété)
 - Interfaces : GET /api/growth (aperçu du niveau actuel : balance/level/écart vers le niveau suivant) ; GET /api/growth/records (historique paginé) ; GET /api/growth/levels (liste publique des niveaux, sans connexion)
 - Stratégie d'échec : chaque point d'entrée en try/catch avec log, sans affecter le flux principal
 
 ### 23. Facture électronique (tour 20)
 
-- erik_invoice : uk_order_type(order_id,order_type) anti-demande en double pour la même commande (422, avec capture de repli MySQL 1062) ; idx_user_created/idx_status
+- appointment_invoice : uk_order_type(order_id,order_type) anti-demande en double pour la même commande (422, avec capture de repli MySQL 1062) ; idx_user_created/idx_status
 - Côté utilisateur : POST /api/invoices (demande, montant/intitulé fournis par le serveur depuis la commande, infalsifiables) ; GET /api/invoices (liste) ; GET /api/invoices/{id} (détail)
 - Côté admin : InvoiceController issue (émission : écriture invoice_no + status=issued + issued_at) / reject (rejet : status=rejected + reject_reason), permissions 382 liste / 383 émission / 384 rejet
 - Machine à états : pending → issued / rejected
 
 ### 24. Tickets de support (tour 20)
 
-- erik_ticket : l'utilisateur soumet (title/content), le back-office répond en ajout (reply_content/replied_at), l'utilisateur peut fermer (closed_at)
+- appointment_ticket : l'utilisateur soumet (title/content), le back-office répond en ajout (reply_content/replied_at), l'utilisateur peut fermer (closed_at)
 - Côté utilisateur : POST /api/tickets (soumission) ; GET /api/tickets (liste) ; GET /api/tickets/{id} (détail, personnel uniquement) ; POST /api/tickets/{id}/close (fermeture)
 - Côté admin : TicketController index (liste) / reply (réponse), routes statiques définies avant la resource pour éviter l'ombre {id} ; permissions 385 réponse / 387 consultation de liste
 - Machine à états : open → replied (retour à open après réponse, nouvelle réponse possible) / closed
@@ -539,14 +539,14 @@ Application monopage Flutter Web, 21 pages : dashboard/Utilisateurs/Rôles/Confi
 
 ### 27. Gestion des intitulés de facture (tour 21)
 
-- erik_invoice_title (uk_user_title(user_id, title_type, invoice_title) anti-doublon + idx_user_default)
+- appointment_invoice_title (uk_user_title(user_id, title_type, invoice_title) anti-doublon + idx_user_default)
 - Interfaces : POST /api/invoice-titles (enregistrement, company exige tax_no, doublon 422) ; GET (liste, défaut en tête) ; PUT /{id} (édition, personnel uniquement) ; DELETE /{id} (suppression, personnel uniquement) ; POST /{id}/default (définition du défaut, remise à zéro transactionnelle des autres lignes du même utilisateur)
 - Règle du défaut : le premier enregistrement est automatiquement le défaut ; la suppression du défaut désigne automatiquement le plus ancien
 - Liaison de demande : InvoiceController::store accepte un title_id facultatif, l'intitulé est résolu et reporté sur invoice_title/tax_no/title_type ; sans title_id, le chemin de saisie manuelle est conservé ; la logique anti-doublon uk_order_type est inchangée
 
 ### 28. Satisfaction des tickets (tour 21)
 
-- erik_ticket ajoute rating TINYINT NULL + rated_at DATETIME NULL (migration 000303)
+- appointment_ticket ajoute rating TINYINT NULL + rated_at DATETIME NULL (migration 000303)
 - Note à la fermeture : TicketController::close() accepte un rating facultatif 1-5 (validation entière filter_var, hors bornes/non entier 422 ; si fourni, écriture rating+rated_at, sinon NULL conservé pour compatibilité avec les anciens clients ; la règle de fermeture open uniquement est conservée)
 - Statistiques back-office : GET /admin/tickets/satisfaction (route statique avant la resource pour éviter l'ombre {id}) renvoie total/rated_count/unrated_count/average (1 décimale)/distribution (nombre par étoile 1-5, 0 si absent) ; permission 388
 
@@ -559,13 +559,13 @@ Application monopage Flutter Web, 21 pages : dashboard/Utilisateurs/Rôles/Confi
 
 ### 30. Historique de navigation utilisateur (tour 21)
 
-- erik_browse_history (uk_user_item(user_id, item_id) unique, les visites répétées ne rafraîchissent que viewed_at sans réinsertion ; idx_user_viewed pour le tri)
+- appointment_browse_history (uk_user_item(user_id, item_id) unique, les visites répétées ne rafraîchissent que viewed_at sans réinsertion ; idx_user_viewed pour le tri)
 - Enregistrement : ServiceController::detail() après succès (try/catch + Log::warning sans affecter le flux principal ; route publique sans JWT, user_id vide → anonyme ignoré)
-- Interfaces : GET /api/browse-history (jointure erik_service nom/couverture/prix/prix plein, viewed_at décroissant, per_page défaut 15 max 50, item_id hashid) ; DELETE /{item_id} (personnel uniquement, invalide/autre 404) ; DELETE / (vidage personnel uniquement)
+- Interfaces : GET /api/browse-history (jointure appointment_service nom/couverture/prix/prix plein, viewed_at décroissant, per_page défaut 15 max 50, item_id hashid) ; DELETE /{item_id} (personnel uniquement, invalide/autre 404) ; DELETE / (vidage personnel uniquement)
 
 ### 31. Marketing par réduction directe (tour 22)
 
-- erik_full_reduction_activity (threshold/reduction/title/status/start_at/end_at + idx_status_status_time)
+- appointment_full_reduction_activity (threshold/reduction/title/status/start_at/end_at + idx_status_status_time)
 - Cumul à la commande : commandes standard uniquement (group_buy/flash ignorés), seuil évalué sur le montant dû après déduction du bon/carte à forfait, ordre **bon/carte à forfait → réduction directe → remise de niveau** ; activité au plus grand montant de réduction ; montant intégré à discount_amount + remarque « Réduction directe : à partir de X, -Y » ; plancher de paiement effectif après réduction 0,01 yuan (centimes)
 - Côté utilisateur GET /api/full-reduction-activities (public, actives triées par montant de réduction décroissant)
 - admin FullReductionController : CRUD + toggle-status mise en ligne/sous ligne (destroy avec confirmPassword)
@@ -579,29 +579,29 @@ Application monopage Flutter Web, 21 pages : dashboard/Utilisateurs/Rôles/Confi
 
 ### 33. Pointage technicien (tour 22)
 
-- erik_technician_attendance (date/check_in_at/check_out_at/status + index unique uk_technician_date anti-pointage concurrent en double)
+- appointment_technician_attendance (date/check_in_at/check_out_at/status + index unique uk_technician_date anti-pointage concurrent en double)
 - Côté technicien (TechnicianAuth) : check-in en double le même jour 422 ; check-out sans pointage d'entrée / déjà sorti 422 + verrou de ligne ; >10:00 marqué en retard ; GET liste du mois + jours de présence / heures totales / heures moyennes (?month=YYYY-MM, invalide 422)
 - admin : GET /admin/attendance (filtre date + nom technicien, jointure real_name, hashid) + /stats (statistiques groupées par technicien)
 - Permissions : 392 liste / 393 statistiques
 
 ### 34. Service de push applicatif (tour 22)
 
-- AppPushService (config group=push : enabled défaut 0 / provider jpush/getui/placeholder) : non activé → repli silencieux sur simple log ; activé → construction de la structure plateforme/titre/contenu/payload avec Log + écriture erik_push_log (status=sent) ; l'intégration des SDK fournisseurs est laissée en TODO (aucun envoi réel sans identifiants)
+- AppPushService (config group=push : enabled défaut 0 / provider jpush/getui/placeholder) : non activé → repli silencieux sur simple log ; activé → construction de la structure plateforme/titre/contenu/payload avec Log + écriture appointment_push_log (status=sent) ; l'intégration des SDK fournisseurs est laissée en TODO (aucun envoi réel sans identifiants)
 - 5 points d'événement : paiement réussi (WechatPayService::markOrderPaid), remboursement automatique (autoRefundCancelledOrder), remboursement manuel (doRefund/refundToBalance), compensation de remboursement (completeOneRefundCompensation), rappel de début de service (ServiceReminderTimer) ; tous en try/catch sans bloquer le flux principal
-- erik_push_log (user_id/title/content/payload JSON/status/provider + idx_user)
+- appointment_push_log (user_id/title/content/payload JSON/status/provider + idx_user)
 
 ### 35. Répartition officielle WeChat (tour 22)
 
 - WechatProfitSharingService (config group=profit_sharing : enabled/receiver_ratio, identifiants réutilisés depuis wechat_pay) : non activé → repli disabled sur simple log sans écriture ; activé → validation du montant (>0 et ≤paid, défaut paid×0.7) + idempotence (même commande pending/success ignorée) → écriture de l'enregistrement pending → construction de la structure « demande de répartition unique » (sans identifiants, pas d'exécution HTTP, contenu de la requête journalisé, enregistrement conservé pending) ; HTTP isolé dans doRequest privé, testable
 - WechatPayService::markOrderPaid accroche requestSharing après soumission (échec try/catch : simple log)
-- erik_profit_sharing (uk_sharing_no unique + idx_order) ; admin GET /admin/profit-sharing liste (jointure n° de commande/pseudo technicien, filtres statut/n° de commande/nom technicien)
+- appointment_profit_sharing (uk_sharing_no unique + idx_order) ; admin GET /admin/profit-sharing liste (jointure n° de commande/pseudo technicien, filtres statut/n° de commande/nom technicien)
 - Permission : 394
 
 ### 36. Conformité vie privée (tour 22)
 
 - GET /api/privacy/data : export des données (groupes personal/orders/points/wallet_txns/reviews/addresses/invoices ; le journal n'enregistre que le téléphone masqué + le nombre)
 - Boucle de suppression de compte : close-request (solde non nul / commandes non terminées / tickets en cours 422 → close_status=1) → close-cancel (1→0) → close-confirm (72 h écoulées → close_status=2 + close_at + anonymisation phone/nickname en user{id} + status=0)
-- erik_user ajoute close_status/close_requested_at/close_at (migration ALTER idempotente) ; AuthController login/loginByCode renvoient 403 « Compte supprimé » pour close_status=2
+- appointment_user ajoute close_status/close_requested_at/close_at (migration ALTER idempotente) ; AuthController login/loginByCode renvoient 403 « Compte supprimé » pour close_status=2
 
 ### 37. Dossier santé utilisateur (tour 23)
 
@@ -633,7 +633,7 @@ Application monopage Flutter Web, 21 pages : dashboard/Utilisateurs/Rôles/Confi
 - GET /api/wheel/prizes (weight/stock masqués) ; POST /api/wheel/spin : Redis NX + verrou de ligne anti-concurrence, tirage pondéré random_int, idempotence client_token
 - Attribution des prix : points → écriture earn (avec date d'expiration, normalement expirable par PointsExpiryTimer), solde → lockForUpdate, bon → pending en attente de délivrance manuelle, pas de prix → lose
 - GET /api/wheel/records mes enregistrements paginés ; admin /admin/lucky-wheel CRUD + mise en ligne/sous ligne + enregistrements (permissions 401-406)
-- Migrations 000503 (erik_lucky_wheel + erik_wheel_record + seeds de démo w60/w40) + 000505 (seeds de permissions) ; LuckyWheelTest admin 3 + service 6 tests
+- Migrations 000503 (appointment_lucky_wheel + appointment_wheel_record + seeds de démo w60/w40) + 000505 (seeds de permissions) ; LuckyWheelTest admin 3 + service 6 tests
 
 ### 42. Mode invité (tour 24)
 
@@ -643,21 +643,21 @@ Application monopage Flutter Web, 21 pages : dashboard/Utilisateurs/Rôles/Confi
 
 ### 43. Vente flash (tour 24)
 
-- erik_seckill_activity (name/service_id/seckill_price/original_price/stock/start_at/end_at/status) ; quantité vendue = nombre de commandes erik_order.seckill_id
+- appointment_seckill_activity (name/service_id/seckill_price/original_price/stock/start_at/end_at/status) ; quantité vendue = nombre de commandes appointment_order.seckill_id
 - GET /api/seckill (status=1 + fenêtre de temps), /{id} (state=not_started/ongoing/ended), POST /{id}/buy : idempotence client_token (8-64 caractères, SETNX 24 h) + Redis NX 30 s anti-concurrence + validation de l'activité (depuis 2026-08-26, plus de pré-débit de stock)
 - Injection seckill_id à la commande, réutilisation d'OrderController::store ; le stock est décrémenté uniquement par verrou de ligne dans la transaction de store() (un appel direct à /api/order avec seckill_id décrémente aussi), prix flash = seckill_price (selon la base), pas de cumul bon/points/carte de membre ; l'annulation de commande ne rend pas le stock ; l'ancien canal FLASH_SALE est supprimé (la branche promotion de store() ne conserve que le group_buy, PromotionController index filtre flash_sale, show/join 400), la vente flash passe uniquement par ce canal
 - admin /admin/seckill CRUD + mise en ligne/sous ligne + liste des commandes (permissions 407-411, 420) ; migration 000606 seeds de permissions ; SeckillTest service + admin
 
 ### 44. Gestion des versions APP et détection de mise à jour (tour 24)
 
-- erik_app_version (platform/version_code/version_name/force_update/changelog/download_url/status)
+- appointment_app_version (platform/version_code/version_name/force_update/changelog/download_url/status)
 - GET /api/app/version?platform=android|ios détection publique des mises à jour (platform invalide 422 ; plus récente parmi status=1 ; objet vide si aucune)
 - admin /admin/versions CRUD (permissions 416-419) ; migration 000609 seeds de permissions ; VersionTest service + admin
 
 ### 45. Récompense du client fidèle (tour 24)
 
 - ReturnCustomerRewardService : à la 2e consommation du même utilisateur auprès du même technicien sous 30 jours (commande terminée), prime au technicien = paid_amount × ratio (system_config group=return_customer, ratio défaut 0.05, interrupteur enabled, repli sur défaut si invalide)
-- Écriture erik_technician_earnings (type=return_customer, status=pending) réutilisant la chaîne de règlement des commissions, le récapitulatif des revenus du technicien l'inclut automatiquement ; idempotence par order_id+type ; appelé dans la transaction à verrou de ligne de WorkController::complete
+- Écriture appointment_technician_earnings (type=return_customer, status=pending) réutilisant la chaîne de règlement des commissions, le récapitulatif des revenus du technicien l'inclut automatiquement ; idempotence par order_id+type ; appelé dans la transaction à verrou de ligne de WorkController::complete
 - admin /admin/return-customer/config (GET/PUT) + /rewards (?keyword nom technicien/n° de commande/pseudo utilisateur) (permissions 412-414) ; migration 000607 seeds de permissions ; ReturnCustomerRewardServiceTest
 
 ### 46. Export du planning (tour 24)

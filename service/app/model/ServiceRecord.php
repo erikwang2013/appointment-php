@@ -13,7 +13,7 @@ use support\Model;
  */
 class ServiceRecord extends Model
 {
-    protected $table = 'erik_service_record';
+    protected $table = 'appointment_service_record';
     public $incrementing = false;
     protected $keyType = 'string';
     public $timestamps = true;

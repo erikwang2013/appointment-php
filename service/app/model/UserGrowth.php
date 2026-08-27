@@ -11,12 +11,12 @@ use support\Model;
  * 用户成长值流水表
  *
  * value 列存单次增量（正数），balance 列是单次增量快照，
- * 真实累计成长值 = SUM(value)（与 erik_user_points 同模式）。
+ * 真实累计成长值 = SUM(value)（与 appointment_user_points 同模式）。
  * 类型：consume=消费（每实付 1 元 1 点）/ signin=签到 / review=评价。
  */
 class UserGrowth extends Model
 {
-    protected $table = 'erik_user_growth';
+    protected $table = 'appointment_user_growth';
 
     public $timestamps = false;
 

@@ -16,7 +16,7 @@ use support\Model;
  */
 class VideoPost extends Model
 {
-    protected $table = 'erik_video_post';
+    protected $table = 'appointment_video_post';
     public $incrementing = false;
     protected $keyType = 'string';
     public $timestamps = true;

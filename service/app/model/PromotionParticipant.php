@@ -12,12 +12,12 @@ use support\Model;
  */
 class PromotionParticipant extends Model
 {
-    protected $table = 'erik_promotion_participant';
+    protected $table = 'appointment_promotion_participant';
     public $incrementing = false;
     protected $keyType = 'string';
     public $timestamps = true;
 
-    // ── 参与状态常量（与 erik_promotion_participant.status tinyint 一致）──
+    // ── 参与状态常量（与 appointment_promotion_participant.status tinyint 一致）──
     public const STATUS_PENDING   = 0;
     public const STATUS_JOINED    = 1;
     public const STATUS_PAID      = 2;

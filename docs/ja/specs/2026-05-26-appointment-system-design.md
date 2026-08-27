@@ -55,75 +55,75 @@
 
 ## データベースのコアテーブル
 
-全テーブルは `erik_` プレフィックスを使用、BIGINT 非自動採番主キー（Snowflake生成）。機密フィールドは encryptable trait で暗号化/復号。
+全テーブルは `appointment_` プレフィックスを使用、BIGINT 非自動採番主キー（Snowflake生成）。機密フィールドは encryptable trait で暗号化/復号。
 
 ### ユーザーと身分ドメイン
 
 | テーブル名 | 説明 | コアフィールド |
 |------|------|----------|
-| `erik_user` | 統一ユーザーテーブル | phone, password, wx_openid, wx_unionid, avatar, nickname, user_type(customer/technician), status。technicianユーザーは顧客機能も同時に持ち、現在のアクティブ身分を自由に切替可能 |
-| `erik_user_address` | ユーザー住所 | user_id, contact_name, contact_phone, province, city, district, detail, is_default |
-| `erik_technician_profile` | スタッフカルテ | user_id, real_name, gender, id_card, id_card_front, id_card_back, avatar, rating, order_count, status(pending/approved/rejected), intro |
-| `erik_technician_schedule` | スタッフ排班 | technician_id, date, time_slots(JSON), status |
-| `erik_technician_service` | スタッフ提供可能なサービス項目 | technician_id, service_id |
-| `erik_technician_earnings` | スタッフ収益流水 | technician_id, order_id, type(commission/bonus/penalty), amount, status |
-| `erik_technician_withdrawal` | スタッフ出金記録 | technician_id, amount, actual_amount, commission_fee, account_info, status, reviewed_at |
-| `erik_technician_attendance` | スタッフ勤怠 | technician_id, date, check_in_at, check_out_at, clean_photo |
-| `erik_technician_member_note` | 会員カルテ | technician_id, user_id, content, written_at |
+| `appointment_user` | 統一ユーザーテーブル | phone, password, wx_openid, wx_unionid, avatar, nickname, user_type(customer/technician), status。technicianユーザーは顧客機能も同時に持ち、現在のアクティブ身分を自由に切替可能 |
+| `appointment_user_address` | ユーザー住所 | user_id, contact_name, contact_phone, province, city, district, detail, is_default |
+| `appointment_technician_profile` | スタッフカルテ | user_id, real_name, gender, id_card, id_card_front, id_card_back, avatar, rating, order_count, status(pending/approved/rejected), intro |
+| `appointment_technician_schedule` | スタッフ排班 | technician_id, date, time_slots(JSON), status |
+| `appointment_technician_service` | スタッフ提供可能なサービス項目 | technician_id, service_id |
+| `appointment_technician_earnings` | スタッフ収益流水 | technician_id, order_id, type(commission/bonus/penalty), amount, status |
+| `appointment_technician_withdrawal` | スタッフ出金記録 | technician_id, amount, actual_amount, commission_fee, account_info, status, reviewed_at |
+| `appointment_technician_attendance` | スタッフ勤怠 | technician_id, date, check_in_at, check_out_at, clean_photo |
+| `appointment_technician_member_note` | 会員カルテ | technician_id, user_id, content, written_at |
 
 ### サービスと商品ドメイン
 
 | テーブル名 | 説明 | コアフィールド |
 |------|------|----------|
-| `erik_service_category` | サービス分類 | name, icon, parent_id, sort, status |
-| `erik_service` | サービス項目 | category_id, name, description, cover_image, images(JSON), price, duration, sales_volume, specs(JSON), status |
-| `erik_product` | 商品 | category_id, name, cover_image, price, stock, sales_volume, type, status |
-| `erik_store` | 店舗 | name, address, lat, lng, phone, business_hours(JSON), images, status |
+| `appointment_service_category` | サービス分類 | name, icon, parent_id, sort, status |
+| `appointment_service` | サービス項目 | category_id, name, description, cover_image, images(JSON), price, duration, sales_volume, specs(JSON), status |
+| `appointment_product` | 商品 | category_id, name, cover_image, price, stock, sales_volume, type, status |
+| `appointment_store` | 店舗 | name, address, lat, lng, phone, business_hours(JSON), images, status |
 
 ### 注文ドメイン
 
 | テーブル名 | 説明 | コアフィールド |
 |------|------|----------|
-| `erik_order` | 注文マスターテーブル | order_no, user_id, technician_id, store_id, total_amount, discount_amount, paid_amount, status, service_time, cancel_reason, remark |
-| `erik_order_item` | 注文明細 | order_id, service_id, product_id, type, name, price, quantity, spec_info |
-| `erik_order_payment` | 支払い記録 | order_id, pay_type(wechat), transaction_id, amount, status, paid_at |
-| `erik_order_refund` | 返金記録 | order_id, payment_id, refund_no, amount, ratio, reason, status |
-| `erik_order_review` | サービス評価 | order_id, user_id, technician_id, rating, content, images |
-| `erik_order_verification` | 核销記録 | order_id, code, verified_at, verified_by, location |
+| `appointment_order` | 注文マスターテーブル | order_no, user_id, technician_id, store_id, total_amount, discount_amount, paid_amount, status, service_time, cancel_reason, remark |
+| `appointment_order_item` | 注文明細 | order_id, service_id, product_id, type, name, price, quantity, spec_info |
+| `appointment_order_payment` | 支払い記録 | order_id, pay_type(wechat), transaction_id, amount, status, paid_at |
+| `appointment_order_refund` | 返金記録 | order_id, payment_id, refund_no, amount, ratio, reason, status |
+| `appointment_order_review` | サービス評価 | order_id, user_id, technician_id, rating, content, images |
+| `appointment_order_verification` | 核销記録 | order_id, code, verified_at, verified_by, location |
 
 ### マーケティングドメイン
 
 | テーブル名 | 説明 | コアフィールド |
 |------|------|----------|
-| `erik_coupon` | クーポン定義 | name, type, amount, min_amount, total_qty, remain_qty, start_at, end_at, status |
-| `erik_user_coupon` | ユーザークーポン | user_id, coupon_id, status(available/used/expired), used_at |
-| `erik_member_card` | 会員カード定義 | name, type(month/vip/times), price, duration_days, total_times, services(JSON) |
-| `erik_user_member_card` | ユーザー会員カード | user_id, card_id, start_at, end_at, total_times, used_times, status |
-| `erik_member_card_usage` | 回数券使用記録 | user_card_id, order_id, service_id, used_at |
-| `erik_user_points` | ポイント流水 | user_id, type(earn/use), points, source, order_id |
-| `erik_gift_card` | ギフトカード | code, type, amount_or_gift, status, used_by, used_at |
-| `erik_user_referral` | ユーザー紹介 | referrer_id, referred_user_id, reward_type, reward_amount, registered_at, first_order_at |
+| `appointment_coupon` | クーポン定義 | name, type, amount, min_amount, total_qty, remain_qty, start_at, end_at, status |
+| `appointment_user_coupon` | ユーザークーポン | user_id, coupon_id, status(available/used/expired), used_at |
+| `appointment_member_card` | 会員カード定義 | name, type(month/vip/times), price, duration_days, total_times, services(JSON) |
+| `appointment_user_member_card` | ユーザー会員カード | user_id, card_id, start_at, end_at, total_times, used_times, status |
+| `appointment_member_card_usage` | 回数券使用記録 | user_card_id, order_id, service_id, used_at |
+| `appointment_user_points` | ポイント流水 | user_id, type(earn/use), points, source, order_id |
+| `appointment_gift_card` | ギフトカード | code, type, amount_or_gift, status, used_by, used_at |
+| `appointment_user_referral` | ユーザー紹介 | referrer_id, referred_user_id, reward_type, reward_amount, registered_at, first_order_at |
 
 ### コンテンツと通知ドメイン
 
 | テーブル名 | 説明 | コアフィールド |
 |------|------|----------|
-| `erik_banner` | カルーセル画像 | position, image, jump_type(url/detail/none), jump_value, sort, status |
-| `erik_announcement` | お知らせ | content, status, published_at |
-| `erik_platform_agreement` | プラットフォーム規約 | type(user_agreement/privacy_policy/service_agreement), title, content, version |
-| `erik_faq` | よくある質問 | title, content, sort |
-| `erik_feedback` | 意見フィードバック | user_id, content, images, handler_reply, status(pending/handled) |
-| `erik_moment` | モーメンツ動態 | content, images, published_at |
-| `erik_notification` | メッセージ通知 | user_id, type(order/system), title, content, is_read, created_at |
+| `appointment_banner` | カルーセル画像 | position, image, jump_type(url/detail/none), jump_value, sort, status |
+| `appointment_announcement` | お知らせ | content, status, published_at |
+| `appointment_platform_agreement` | プラットフォーム規約 | type(user_agreement/privacy_policy/service_agreement), title, content, version |
+| `appointment_faq` | よくある質問 | title, content, sort |
+| `appointment_feedback` | 意見フィードバック | user_id, content, images, handler_reply, status(pending/handled) |
+| `appointment_moment` | モーメンツ動態 | content, images, published_at |
+| `appointment_notification` | メッセージ通知 | user_id, type(order/system), title, content, is_read, created_at |
 
 ### 財務ドメイン（admin側）
 
 | テーブル名 | 説明 | コアフィールド |
 |------|------|----------|
-| `erik_finance_transaction` | 収支流水 | user_id, order_id, type, direction(income/expense), amount, actual_amount, commission, status |
-| `erik_technician_commission_config` | 歩合設定 | technician_id, commission_rate, settlement_cycle |
-| `erik_withdrawal_account` | 出金アカウント | user_id, type(wechat), account_name, account_no |
-| `erik_withdrawal_config` | 出金制限設定 | min_amount, reserve_amount, round_to_hundred |
+| `appointment_finance_transaction` | 収支流水 | user_id, order_id, type, direction(income/expense), amount, actual_amount, commission, status |
+| `appointment_technician_commission_config` | 歩合設定 | technician_id, commission_rate, settlement_cycle |
+| `appointment_withdrawal_account` | 出金アカウント | user_id, type(wechat), account_name, account_no |
+| `appointment_withdrawal_config` | 出金制限設定 | min_amount, reserve_amount, round_to_hundred |
 
 ## Service API モジュール
 

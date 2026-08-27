@@ -10,7 +10,7 @@ Copyright (c) 2026 erik <erik@erik.xyz> — https://erik.xyz
 | 구성 요소 | 최소 버전 | 설명 |
 |------|----------|------|
 | PHP | 8.3+ | 확장: bcmath, curl, gd, mbstring, pdo, pdo_mysql, pcntl, redis |
-| MySQL | 8.0+ | 테이블 접두사 `erik_`, 문자셋 utf8mb4 |
+| MySQL | 8.0+ | 테이블 접두사 `appointment_`, 문자셋 utf8mb4 |
 | Redis | 6.0+ | 캐시 / 속도 제한 / Session / 인증코드 저장 |
 | Composer | 2.x | PHP 의존성 관리 |
 | Elasticsearch | 8.x (선택) | 전문 검색, 미설치 시 핵심 기능에 영향 없음 |
@@ -182,22 +182,22 @@ docker exec -it appointment-svc-mysql mysql -u root -p appointment < /tmp/instal
 
 | 도메인 | 테이블 수 | 핵심 테이블 |
 |----|------|--------|
-| 관리 백엔드 | 8 | `erik_admin_user`, `erik_admin_role`, `erik_admin_permission`, `erik_operation_log` |
-| 사용자 도메인 | 4 | `erik_user`, `erik_user_address`, `erik_user_favorite`, `erik_user_device` |
-| 기술자 도메인 | 8 | `erik_technician_profile`, `erik_technician_schedule`, `erik_technician_earning`, `erik_technician_withdrawal`, `erik_technician_tier_config` |
-| 서비스 도메인 | 4 | `erik_service_category`, `erik_service`, `erik_service_package`, `erik_service_record` |
-| 주문 도메인 | 5 | `erik_order`, `erik_order_item`, `erik_order_payment`, `erik_order_refund`, `erik_order_review` |
-| 마케팅 도메인 | 8 | `erik_coupon`, `erik_member_card`, `erik_gift_card`, `erik_user_points`, `erik_promotion` |
-| 대기열 | 1 | `erik_queue_number` |
-| 콘텐츠 도메인 | 5 | `erik_banner`, `erik_announcement`, `erik_faq`, `erik_feedback`, `erik_platform_agreement` |
-| 커뮤니티 도메인 | 3 | `erik_post`, `erik_comment`, `erik_moment` |
-| 매장 | 1 | `erik_store` |
-| 교육 | 2 | `erik_training_course`, `erik_training_progress` |
-| 평가 | 3 | `erik_exam`, `erik_exam_question`, `erik_exam_attempt` |
-| 시스템 | 3 | `erik_system_config`, `erik_notification`, `erik_signature` |
+| 관리 백엔드 | 8 | `appointment_admin_user`, `appointment_admin_role`, `appointment_admin_permission`, `appointment_operation_log` |
+| 사용자 도메인 | 4 | `appointment_user`, `appointment_user_address`, `appointment_user_favorite`, `appointment_user_device` |
+| 기술자 도메인 | 8 | `appointment_technician_profile`, `appointment_technician_schedule`, `appointment_technician_earning`, `appointment_technician_withdrawal`, `appointment_technician_tier_config` |
+| 서비스 도메인 | 4 | `appointment_service_category`, `appointment_service`, `appointment_service_package`, `appointment_service_record` |
+| 주문 도메인 | 5 | `appointment_order`, `appointment_order_item`, `appointment_order_payment`, `appointment_order_refund`, `appointment_order_review` |
+| 마케팅 도메인 | 8 | `appointment_coupon`, `appointment_member_card`, `appointment_gift_card`, `appointment_user_points`, `appointment_promotion` |
+| 대기열 | 1 | `appointment_queue_number` |
+| 콘텐츠 도메인 | 5 | `appointment_banner`, `appointment_announcement`, `appointment_faq`, `appointment_feedback`, `appointment_platform_agreement` |
+| 커뮤니티 도메인 | 3 | `appointment_post`, `appointment_comment`, `appointment_moment` |
+| 매장 | 1 | `appointment_store` |
+| 교육 | 2 | `appointment_training_course`, `appointment_training_progress` |
+| 평가 | 3 | `appointment_exam`, `appointment_exam_question`, `appointment_exam_attempt` |
+| 시스템 | 3 | `appointment_system_config`, `appointment_notification`, `appointment_signature` |
 | **합계** | **55** | |
 
-모든 테이블은 `erik_` 접두사, 기본 키 `id`는 BIGINT 비자동증가(snowflake-php가 애플리케이션 계층에서 생성).
+모든 테이블은 `appointment_` 접두사, 기본 키 `id`는 BIGINT 비자동증가(snowflake-php가 애플리케이션 계층에서 생성).
 
 ---
 

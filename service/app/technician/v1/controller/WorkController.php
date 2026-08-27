@@ -38,44 +38,44 @@ class WorkController extends BaseController
     {
         $technicianId = $request->technician_id;
 
-        $firstItem = Db::table('erik_order_item')
+        $firstItem = Db::table('appointment_order_item')
             ->select('order_id')
             ->selectRaw('MIN(id) AS first_item_id')
             ->whereIn('order_id', function ($q) use ($technicianId) {
                 $q->select('id')
-                    ->from('erik_order')
+                    ->from('appointment_order')
                     ->where('technician_id', $technicianId);
             })
             ->groupBy('order_id');
 
-        $tasks = Db::table('erik_order')
+        $tasks = Db::table('appointment_order')
             ->select([
-                'erik_order.id',
-                'erik_order.order_no',
-                'erik_order.user_id',
+                'appointment_order.id',
+                'appointment_order.order_no',
+                'appointment_order.user_id',
                 'item.target_id as service_id',
                 'item.name as service_name',
                 'item.price',
-                'erik_order.status',
-                'erik_order.service_time',
-                'erik_order.service_start_at',
-                'erik_order.service_end_at',
-                'erik_user.nickname',
-                'erik_user.avatar',
+                'appointment_order.status',
+                'appointment_order.service_time',
+                'appointment_order.service_start_at',
+                'appointment_order.service_end_at',
+                'appointment_user.nickname',
+                'appointment_user.avatar',
             ])
-            ->leftJoin('erik_user', 'erik_order.user_id', '=', 'erik_user.id')
+            ->leftJoin('appointment_user', 'appointment_order.user_id', '=', 'appointment_user.id')
             ->leftJoinSub($firstItem, 'first_item', function ($join) {
-                $join->on('erik_order.id', '=', 'first_item.order_id');
+                $join->on('appointment_order.id', '=', 'first_item.order_id');
             })
-            ->leftJoin('erik_order_item as item', 'item.id', '=', 'first_item.first_item_id')
-            ->where('erik_order.technician_id', $technicianId)
-            ->whereIn('erik_order.status', [Order::STATUS_CONFIRMED, Order::STATUS_SERVING])
+            ->leftJoin('appointment_order_item as item', 'item.id', '=', 'first_item.first_item_id')
+            ->where('appointment_order.technician_id', $technicianId)
+            ->whereIn('appointment_order.status', [Order::STATUS_CONFIRMED, Order::STATUS_SERVING])
             ->where(function ($q) {
                 // 今日任务：服务时间在今天（或未填写）的才上工作台
-                $q->whereNull('erik_order.service_time')
-                    ->orWhereDate('erik_order.service_time', date('Y-m-d'));
+                $q->whereNull('appointment_order.service_time')
+                    ->orWhereDate('appointment_order.service_time', date('Y-m-d'));
             })
-            ->orderBy('erik_order.service_time', 'asc')
+            ->orderBy('appointment_order.service_time', 'asc')
             ->get();
 
         return $this->success($tasks);
@@ -94,39 +94,39 @@ class WorkController extends BaseController
         $page = (int)$request->input('page', 1);
         $perPage = (int)$request->input('per_page', 15);
 
-        $firstItem = Db::table('erik_order_item')
+        $firstItem = Db::table('appointment_order_item')
             ->select('order_id')
             ->selectRaw('MIN(id) AS first_item_id')
             ->whereIn('order_id', function ($q) use ($technicianId) {
                 $q->select('id')
-                    ->from('erik_order')
+                    ->from('appointment_order')
                     ->where('technician_id', $technicianId);
             })
             ->groupBy('order_id');
 
-        $records = Db::table('erik_order')
+        $records = Db::table('appointment_order')
             ->select([
-                'erik_order.id',
-                'erik_order.order_no',
-                'erik_order.user_id',
+                'appointment_order.id',
+                'appointment_order.order_no',
+                'appointment_order.user_id',
                 'item.target_id as service_id',
                 'item.name as service_name',
                 'item.price',
-                'erik_order.status',
-                'erik_order.service_time',
-                'erik_order.service_start_at',
-                'erik_order.service_end_at',
-                'erik_user.nickname',
-                'erik_user.avatar',
+                'appointment_order.status',
+                'appointment_order.service_time',
+                'appointment_order.service_start_at',
+                'appointment_order.service_end_at',
+                'appointment_user.nickname',
+                'appointment_user.avatar',
             ])
-            ->leftJoin('erik_user', 'erik_order.user_id', '=', 'erik_user.id')
+            ->leftJoin('appointment_user', 'appointment_order.user_id', '=', 'appointment_user.id')
             ->leftJoinSub($firstItem, 'first_item', function ($join) {
-                $join->on('erik_order.id', '=', 'first_item.order_id');
+                $join->on('appointment_order.id', '=', 'first_item.order_id');
             })
-            ->leftJoin('erik_order_item as item', 'item.id', '=', 'first_item.first_item_id')
-            ->where('erik_order.technician_id', $technicianId)
-            ->whereIn('erik_order.status', [Order::STATUS_SERVING, Order::STATUS_COMPLETED])
-            ->orderByRaw('erik_order.service_end_at IS NULL, erik_order.service_end_at DESC, erik_order.updated_at DESC')
+            ->leftJoin('appointment_order_item as item', 'item.id', '=', 'first_item.first_item_id')
+            ->where('appointment_order.technician_id', $technicianId)
+            ->whereIn('appointment_order.status', [Order::STATUS_SERVING, Order::STATUS_COMPLETED])
+            ->orderByRaw('appointment_order.service_end_at IS NULL, appointment_order.service_end_at DESC, appointment_order.updated_at DESC')
             ->paginate($perPage, ['*'], 'page', $page);
 
         return $this->paginate($records);

@@ -295,15 +295,15 @@ service/
 │   │   ├── Security                # সিকিউরিটি ডিটেকশন (security-php)
 │   │   └── TechnicianAuth          # টেকনিশিয়ান পরিচয় ভ্যালিডেশন
 │   └── model/                   # ডেটা মডেল (৮১টি)
-│       ├── User.php → erik_user
-│       ├── TechnicianProfile.php → erik_technician_profile
-│       ├── Service.php → erik_service (ES: erik_services)
-│       ├── Product.php → erik_product (ES: erik_products)
-│       ├── Store.php → erik_store
-│       ├── Order.php → erik_order (রিফান্ড নিয়ম/স্টেট মেশিন সহ)
-│       ├── Coupon.php → erik_coupon
-│       ├── MemberCard.php → erik_member_card
-│       ├── Notification.php → erik_notification
+│       ├── User.php → appointment_user
+│       ├── TechnicianProfile.php → appointment_technician_profile
+│       ├── Service.php → appointment_service (ES: appointment_services)
+│       ├── Product.php → appointment_product (ES: appointment_products)
+│       ├── Store.php → appointment_store
+│       ├── Order.php → appointment_order (রিফান্ড নিয়ম/স্টেট মেশিন সহ)
+│       ├── Coupon.php → appointment_coupon
+│       ├── MemberCard.php → appointment_member_card
+│       ├── Notification.php → appointment_notification
 │       └── ... (মোট ৮১টি মডেল ফাইল; admin-এ আরও ৬টি স্বতন্ত্র মডেল, সর্বমোট ৮৭)
 ├── config/                     # কনফিগ ফাইল
 ├── public/                     # এন্ট্রি
@@ -435,111 +435,111 @@ apps/flutter/
 
 ## ডেটাবেস টেবিল তালিকা
 
-সব টেবিল `erik_` প্রিফিক্স ব্যবহার করে, BIGINT নন-অটোইনক্রিমেন্ট প্রাইমারি কী (Snowflake জেনারেটেড)।
+সব টেবিল `appointment_` প্রিফিক্স ব্যবহার করে, BIGINT নন-অটোইনক্রিমেন্ট প্রাইমারি কী (Snowflake জেনারেটেড)।
 
 | ডোমেইন | টেবিল নাম | বিবরণ |
 |----|------|------|
-| ইউজার | erik_user | ইউনিফাইড ইউজার টেবিল |
-| ইউজার | erik_user_address | প্রাপ্তির ঠিকানা |
-| টেকনিশিয়ান | erik_technician_profile | টেকনিশিয়ান প্রোফাইল |
-| টেকনিশিয়ান | erik_technician_schedule | টেকনিশিয়ান শিডিউল |
-| টেকনিশিয়ান | erik_technician_service | টেকনিশিয়ানের সার্ভিসযোগ্য আইটেম |
-| টেকনিশিয়ান | erik_technician_earnings | টেকনিশিয়ান আয় লেনদেন |
-| টেকনিশিয়ান | erik_technician_withdrawal | টেকনিশিয়ান উত্তোলন রেকর্ড |
-| টেকনিশিয়ান | erik_technician_attendance | টেকনিশিয়ান অ্যাটেন্ডেন্স |
-| টেকনিশিয়ান | erik_technician_member_note | মেম্বার প্রোফাইল |
-| সার্ভিস | erik_service_category | সার্ভিস ক্যাটাগরি |
-| সার্ভিস | erik_service | সার্ভিস আইটেম |
-| সার্ভিস | erik_product | পণ্য |
-| সার্ভিস | erik_store | স্টোর |
-| অর্ডার | erik_order | অর্ডার মূল টেবিল (সেকিল seckill_id অ্যাসোসিয়েটেড কলাম, রাউন্ড ২৪) |
-| অর্ডার | erik_order_item | অর্ডার ডিটেইল |
-| অর্ডার | erik_order_payment | পেমেন্ট রেকর্ড |
-| অর্ডার | erik_order_refund | রিফান্ড রেকর্ড |
-| অর্ডার | erik_order_review | সার্ভিস রিভিউ |
-| অর্ডার | erik_order_verification | ভেরিফিকেশন রেকর্ড |
-| অর্ডার | erik_order_reschedule | অ্যাপয়েন্টমেন্ট পুনঃনির্ধারণ রেকর্ড (রাউন্ড ১৭) |
-| মার্কেটিং | erik_coupon | কুপন ডেফিনিশন |
-| মার্কেটিং | erik_user_coupon | ইউজার কুপন |
-| মার্কেটিং | erik_user_coupon_transfer | কুপন ট্রান্সফার রেকর্ড (রাউন্ড ১৭) |
-| মার্কেটিং | erik_user_points_transfer | পয়েন্ট ট্রান্সফার রেকর্ড (রাউন্ড ১৯) |
-| মার্কেটিং | erik_technician_tier_log | টেকনিশিয়ান লেভেল পরিবর্তনের লগ (রাউন্ড ১৭) |
-| মার্কেটিং | erik_member_card | মেম্বার কার্ড ডেফিনিশন |
-| মার্কেটিং | erik_user_member_card | ইউজার মেম্বার কার্ড |
-| মার্কেটিং | erik_member_card_usage | টাইম কার্ড ব্যবহারের রেকর্ড |
-| মার্কেটিং | erik_user_points | পয়েন্ট লেনদেন |
-| মার্কেটিং | erik_gift_card | গিফট কার্ড |
-| মার্কেটিং | erik_user_referral | ইউজার প্রমোশন |
-| মার্কেটিং | erik_user_favorite | ইউজার ফেভারিট |
-| ওয়ালেট | erik_user_wallet | ইউজার ওয়ালেট ব্যালেন্স |
-| ওয়ালেট | erik_wallet_recharge | ওয়ালেট রিচার্জ রেকর্ড |
-| ওয়ালেট | erik_wallet_txn | ওয়ালেট ট্রানজেকশন |
-| ওয়ালেট | erik_wallet_transfer | ইউজারদের মধ্যে ট্রান্সফার রেকর্ড (রাউন্ড ১৯) |
-| ইউজার | erik_user_notify_setting | মেসেজ পছন্দ সেটিংস (রাউন্ড ১৯) |
-| কনটেন্ট | erik_banner | ক্যারোসেল |
-| কনটেন্ট | erik_announcement | নোটিশ |
-| কনটেন্ট | erik_platform_agreement | প্ল্যাটফর্ম চুক্তি |
-| কনটেন্ট | erik_faq | সাধারণ প্রশ্ন |
-| কনটেন্ট | erik_feedback | মতামত ফিডব্যাক |
-| কনটেন্ট | erik_moment | মোমেন্ট ফিড |
-| কনটেন্ট | erik_notification | মেসেজ নোটিফিকেশন |
-| ফাইন্যান্স | erik_finance_transaction | আয়-ব্যয় লেনদেন |
-| ফাইন্যান্স | erik_technician_commission_config | কমিশন কনফিগ |
-| ফাইন্যান্স | erik_withdrawal_account | উত্তোলন অ্যাকাউন্ট |
-| ফাইন্যান্স | erik_withdrawal_config | উত্তোলন সীমা কনফিগ |
-| সিস্টেম | erik_admin_user | ম্যানেজমেন্ট ইউজার (তৈরি করা হয়েছে) |
-| সিস্টেম | erik_admin_role | রোল (তৈরি করা হয়েছে) |
-| সিস্টেম | erik_admin_permission | পারমিশন (তৈরি করা হয়েছে) |
-| সিস্টেম | erik_admin_user_role | ইউজার রোল অ্যাসোসিয়েশন (তৈরি করা হয়েছে) |
-| সিস্টেম | erik_admin_role_permission | রোল পারমিশন অ্যাসোসিয়েশন (তৈরি করা হয়েছে) |
-| সিস্টেম | erik_system_config | সিস্টেম কনফিগ (তৈরি করা হয়েছে) |
-| সিস্টেম | erik_operation_log | অপারেশন লগ (তৈরি করা হয়েছে) |
-| ইউজার | erik_user_growth | গ্রোথ ভ্যালু লেনদেন (রাউন্ড ২০) |
-| ইউজার | erik_growth_level | গ্রোথ লেভেল ধাপ (রাউন্ড ২০) |
-| অর্ডার | erik_invoice | ইলেকট্রনিক ইনভয়েস (রাউন্ড ২০) |
-| ইউজার | erik_ticket | কাস্টমার সার্ভিস টিকিট (রাউন্ড ২০) |
-| মার্কেটিং | erik_referral_level2_reward | দ্বিতীয়-স্তর কমিশন রেকর্ড (রাউন্ড ২০) |
-| ইউজার | erik_invoice_title | ইনভয়েস টাইটেল লাইব্রেরি (রাউন্ড ২১) |
-| ইউজার | erik_browse_history | ব্রাউজ হিস্ট্রি (রাউন্ড ২১) |
-| মার্কেটিং | erik_full_reduction_activity | ফুল-রিডাকশন অ্যাক্টিভিটি (রাউন্ড ২২) |
-| টেকনিশিয়ান | erik_technician_attendance | টেকনিশিয়ান অ্যাটেন্ডেন্স (রাউন্ড ২২) |
-| সিস্টেম | erik_push_log | APP পুশ রেকর্ড (রাউন্ড ২২) |
-| ফাইন্যান্স | erik_profit_sharing | উইচ্যাট প্রফিট শেয়ারিং রেকর্ড (রাউন্ড ২২) |
-| অর্ডার | erik_order_status_log | অর্ডার স্ট্যাটাস টাইমলাইন (রাউন্ড ২৩) |
-| ইউজার | erik_user_health_profile | ইউজার হেলথ প্রোফাইল (রাউন্ড ২৩) |
-| মার্কেটিং | erik_lucky_wheel | হুইল প্রাইজ ডেফিনিশন (রাউন্ড ২৩) |
-| মার্কেটিং | erik_wheel_record | হুইল ড্র রেকর্ড (রাউন্ড ২৩) |
-| মার্কেটিং | erik_seckill_activity | সেকিল অ্যাক্টিভিটি (রাউন্ড ২৪) |
-| সিস্টেম | erik_app_version | APP ভার্সন (রাউন্ড ২৪) |
+| ইউজার | appointment_user | ইউনিফাইড ইউজার টেবিল |
+| ইউজার | appointment_user_address | প্রাপ্তির ঠিকানা |
+| টেকনিশিয়ান | appointment_technician_profile | টেকনিশিয়ান প্রোফাইল |
+| টেকনিশিয়ান | appointment_technician_schedule | টেকনিশিয়ান শিডিউল |
+| টেকনিশিয়ান | appointment_technician_service | টেকনিশিয়ানের সার্ভিসযোগ্য আইটেম |
+| টেকনিশিয়ান | appointment_technician_earnings | টেকনিশিয়ান আয় লেনদেন |
+| টেকনিশিয়ান | appointment_technician_withdrawal | টেকনিশিয়ান উত্তোলন রেকর্ড |
+| টেকনিশিয়ান | appointment_technician_attendance | টেকনিশিয়ান অ্যাটেন্ডেন্স |
+| টেকনিশিয়ান | appointment_technician_member_note | মেম্বার প্রোফাইল |
+| সার্ভিস | appointment_service_category | সার্ভিস ক্যাটাগরি |
+| সার্ভিস | appointment_service | সার্ভিস আইটেম |
+| সার্ভিস | appointment_product | পণ্য |
+| সার্ভিস | appointment_store | স্টোর |
+| অর্ডার | appointment_order | অর্ডার মূল টেবিল (সেকিল seckill_id অ্যাসোসিয়েটেড কলাম, রাউন্ড ২৪) |
+| অর্ডার | appointment_order_item | অর্ডার ডিটেইল |
+| অর্ডার | appointment_order_payment | পেমেন্ট রেকর্ড |
+| অর্ডার | appointment_order_refund | রিফান্ড রেকর্ড |
+| অর্ডার | appointment_order_review | সার্ভিস রিভিউ |
+| অর্ডার | appointment_order_verification | ভেরিফিকেশন রেকর্ড |
+| অর্ডার | appointment_order_reschedule | অ্যাপয়েন্টমেন্ট পুনঃনির্ধারণ রেকর্ড (রাউন্ড ১৭) |
+| মার্কেটিং | appointment_coupon | কুপন ডেফিনিশন |
+| মার্কেটিং | appointment_user_coupon | ইউজার কুপন |
+| মার্কেটিং | appointment_user_coupon_transfer | কুপন ট্রান্সফার রেকর্ড (রাউন্ড ১৭) |
+| মার্কেটিং | appointment_user_points_transfer | পয়েন্ট ট্রান্সফার রেকর্ড (রাউন্ড ১৯) |
+| মার্কেটিং | appointment_technician_tier_log | টেকনিশিয়ান লেভেল পরিবর্তনের লগ (রাউন্ড ১৭) |
+| মার্কেটিং | appointment_member_card | মেম্বার কার্ড ডেফিনিশন |
+| মার্কেটিং | appointment_user_member_card | ইউজার মেম্বার কার্ড |
+| মার্কেটিং | appointment_member_card_usage | টাইম কার্ড ব্যবহারের রেকর্ড |
+| মার্কেটিং | appointment_user_points | পয়েন্ট লেনদেন |
+| মার্কেটিং | appointment_gift_card | গিফট কার্ড |
+| মার্কেটিং | appointment_user_referral | ইউজার প্রমোশন |
+| মার্কেটিং | appointment_user_favorite | ইউজার ফেভারিট |
+| ওয়ালেট | appointment_user_wallet | ইউজার ওয়ালেট ব্যালেন্স |
+| ওয়ালেট | appointment_wallet_recharge | ওয়ালেট রিচার্জ রেকর্ড |
+| ওয়ালেট | appointment_wallet_txn | ওয়ালেট ট্রানজেকশন |
+| ওয়ালেট | appointment_wallet_transfer | ইউজারদের মধ্যে ট্রান্সফার রেকর্ড (রাউন্ড ১৯) |
+| ইউজার | appointment_user_notify_setting | মেসেজ পছন্দ সেটিংস (রাউন্ড ১৯) |
+| কনটেন্ট | appointment_banner | ক্যারোসেল |
+| কনটেন্ট | appointment_announcement | নোটিশ |
+| কনটেন্ট | appointment_platform_agreement | প্ল্যাটফর্ম চুক্তি |
+| কনটেন্ট | appointment_faq | সাধারণ প্রশ্ন |
+| কনটেন্ট | appointment_feedback | মতামত ফিডব্যাক |
+| কনটেন্ট | appointment_moment | মোমেন্ট ফিড |
+| কনটেন্ট | appointment_notification | মেসেজ নোটিফিকেশন |
+| ফাইন্যান্স | appointment_finance_transaction | আয়-ব্যয় লেনদেন |
+| ফাইন্যান্স | appointment_technician_commission_config | কমিশন কনফিগ |
+| ফাইন্যান্স | appointment_withdrawal_account | উত্তোলন অ্যাকাউন্ট |
+| ফাইন্যান্স | appointment_withdrawal_config | উত্তোলন সীমা কনফিগ |
+| সিস্টেম | appointment_admin_user | ম্যানেজমেন্ট ইউজার (তৈরি করা হয়েছে) |
+| সিস্টেম | appointment_admin_role | রোল (তৈরি করা হয়েছে) |
+| সিস্টেম | appointment_admin_permission | পারমিশন (তৈরি করা হয়েছে) |
+| সিস্টেম | appointment_admin_user_role | ইউজার রোল অ্যাসোসিয়েশন (তৈরি করা হয়েছে) |
+| সিস্টেম | appointment_admin_role_permission | রোল পারমিশন অ্যাসোসিয়েশন (তৈরি করা হয়েছে) |
+| সিস্টেম | appointment_system_config | সিস্টেম কনফিগ (তৈরি করা হয়েছে) |
+| সিস্টেম | appointment_operation_log | অপারেশন লগ (তৈরি করা হয়েছে) |
+| ইউজার | appointment_user_growth | গ্রোথ ভ্যালু লেনদেন (রাউন্ড ২০) |
+| ইউজার | appointment_growth_level | গ্রোথ লেভেল ধাপ (রাউন্ড ২০) |
+| অর্ডার | appointment_invoice | ইলেকট্রনিক ইনভয়েস (রাউন্ড ২০) |
+| ইউজার | appointment_ticket | কাস্টমার সার্ভিস টিকিট (রাউন্ড ২০) |
+| মার্কেটিং | appointment_referral_level2_reward | দ্বিতীয়-স্তর কমিশন রেকর্ড (রাউন্ড ২০) |
+| ইউজার | appointment_invoice_title | ইনভয়েস টাইটেল লাইব্রেরি (রাউন্ড ২১) |
+| ইউজার | appointment_browse_history | ব্রাউজ হিস্ট্রি (রাউন্ড ২১) |
+| মার্কেটিং | appointment_full_reduction_activity | ফুল-রিডাকশন অ্যাক্টিভিটি (রাউন্ড ২২) |
+| টেকনিশিয়ান | appointment_technician_attendance | টেকনিশিয়ান অ্যাটেন্ডেন্স (রাউন্ড ২২) |
+| সিস্টেম | appointment_push_log | APP পুশ রেকর্ড (রাউন্ড ২২) |
+| ফাইন্যান্স | appointment_profit_sharing | উইচ্যাট প্রফিট শেয়ারিং রেকর্ড (রাউন্ড ২২) |
+| অর্ডার | appointment_order_status_log | অর্ডার স্ট্যাটাস টাইমলাইন (রাউন্ড ২৩) |
+| ইউজার | appointment_user_health_profile | ইউজার হেলথ প্রোফাইল (রাউন্ড ২৩) |
+| মার্কেটিং | appointment_lucky_wheel | হুইল প্রাইজ ডেফিনিশন (রাউন্ড ২৩) |
+| মার্কেটিং | appointment_wheel_record | হুইল ড্র রেকর্ড (রাউন্ড ২৩) |
+| মার্কেটিং | appointment_seckill_activity | সেকিল অ্যাক্টিভিটি (রাউন্ড ২৪) |
+| সিস্টেম | appointment_app_version | APP ভার্সন (রাউন্ড ২৪) |
 
 ### সম্পূরক তালিকা (docs/install.sql-এর ৯৫টি টেবিলের মধ্যে উপরে তালিকাভুক্ত নয় এমন অংশ, সম্পূর্ণ কর্তৃত্বমূলক তালিকা install.sql অনুযায়ী)
 
 | ডোমেইন | টেবিল নাম | বিবরণ |
 |----|------|------|
-| মার্কেটিং | erik_card_transfer | টাইম কার্ড ট্রান্সফার |
-| ইউজার | erik_check_in | চেক-ইন |
-| কনটেন্ট | erik_community_post | কমিউনিটি ফিড |
-| কনটেন্ট | erik_community_comment | কমিউনিটি কমেন্ট |
-| টেকনিশিয়ান | erik_exam | অ্যাসেসমেন্ট |
-| টেকনিশিয়ান | erik_exam_question | অ্যাসেসমেন্ট প্রশ্ন |
-| টেকনিশিয়ান | erik_exam_attempt | অ্যাসেসমেন্ট উত্তরপত্র |
-| সিস্টেম | erik_operation_log_detail | অপারেশন লগ ডিটেইল |
-| অর্ডার | erik_order_aftersale | অর্ডার আফটার-সেলস |
-| মার্কেটিং | erik_points_exchange_goods | পয়েন্ট এক্সচেঞ্জ পণ্য |
-| মার্কেটিং | erik_promotion | গ্রুপ বাই অ্যাক্টিভিটি |
-| মার্কেটিং | erik_promotion_participant | গ্রুপ বাই অংশগ্রহণকারী |
-| অর্ডার | erik_queue_number | কিউ কলিং |
-| সার্ভিস | erik_service_package | সার্ভিস প্যাকেজ |
-| টেকনিশিয়ান | erik_service_record | সার্ভিস রেকর্ড |
-| কনটেন্ট | erik_share | শেয়ার রেকর্ড |
-| অর্ডার | erik_signature | সিগনেচার |
-| টেকনিশিয়ান | erik_technician_tier_config | টেকনিশিয়ান লেভেল কনফিগ |
-| টেকনিশিয়ান | erik_training_course | ট্রেনিং কোর্স |
-| টেকনিশিয়ান | erik_training_progress | ট্রেনিং প্রগ্রেস |
-| ইউজার | erik_user_device | ইউজার ডিভাইস |
-| মার্কেটিং | erik_user_points_exchange | পয়েন্ট এক্সচেঞ্জ রেকর্ড |
-| কনটেন্ট | erik_video_post | ভিডিও ফিড |
-| অর্ডার | erik_waitlist | ওয়েটলিস্ট |
+| মার্কেটিং | appointment_card_transfer | টাইম কার্ড ট্রান্সফার |
+| ইউজার | appointment_check_in | চেক-ইন |
+| কনটেন্ট | appointment_community_post | কমিউনিটি ফিড |
+| কনটেন্ট | appointment_community_comment | কমিউনিটি কমেন্ট |
+| টেকনিশিয়ান | appointment_exam | অ্যাসেসমেন্ট |
+| টেকনিশিয়ান | appointment_exam_question | অ্যাসেসমেন্ট প্রশ্ন |
+| টেকনিশিয়ান | appointment_exam_attempt | অ্যাসেসমেন্ট উত্তরপত্র |
+| সিস্টেম | appointment_operation_log_detail | অপারেশন লগ ডিটেইল |
+| অর্ডার | appointment_order_aftersale | অর্ডার আফটার-সেলস |
+| মার্কেটিং | appointment_points_exchange_goods | পয়েন্ট এক্সচেঞ্জ পণ্য |
+| মার্কেটিং | appointment_promotion | গ্রুপ বাই অ্যাক্টিভিটি |
+| মার্কেটিং | appointment_promotion_participant | গ্রুপ বাই অংশগ্রহণকারী |
+| অর্ডার | appointment_queue_number | কিউ কলিং |
+| সার্ভিস | appointment_service_package | সার্ভিস প্যাকেজ |
+| টেকনিশিয়ান | appointment_service_record | সার্ভিস রেকর্ড |
+| কনটেন্ট | appointment_share | শেয়ার রেকর্ড |
+| অর্ডার | appointment_signature | সিগনেচার |
+| টেকনিশিয়ান | appointment_technician_tier_config | টেকনিশিয়ান লেভেল কনফিগ |
+| টেকনিশিয়ান | appointment_training_course | ট্রেনিং কোর্স |
+| টেকনিশিয়ান | appointment_training_progress | ট্রেনিং প্রগ্রেস |
+| ইউজার | appointment_user_device | ইউজার ডিভাইস |
+| মার্কেটিং | appointment_user_points_exchange | পয়েন্ট এক্সচেঞ্জ রেকর্ড |
+| কনটেন্ট | appointment_video_post | ভিডিও ফিড |
+| অর্ডার | appointment_waitlist | ওয়েটলিস্ট |
 
 ## বাহ্যিক সার্ভিস রিজার্ভ
 

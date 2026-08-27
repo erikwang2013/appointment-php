@@ -12,7 +12,7 @@ use support\Model;
  */
 class OrderVerification extends Model
 {
-    protected $table = 'erik_order_verification';
+    protected $table = 'appointment_order_verification';
     public $incrementing = false;
     protected $keyType = 'string';
     public $timestamps = true;

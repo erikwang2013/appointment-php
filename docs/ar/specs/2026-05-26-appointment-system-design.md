@@ -55,75 +55,75 @@
 
 ## الجداول الأساسية لقاعدة البيانات
 
-جميع الجداول تستخدم البادئة `erik_`، مفاتيح أساسية BIGINT غير تلقائية (يولّدها Snowflake). الحقول الحساسة تشفَّر وتفك عبر trait encryptable.
+جميع الجداول تستخدم البادئة `appointment_`، مفاتيح أساسية BIGINT غير تلقائية (يولّدها Snowflake). الحقول الحساسة تشفَّر وتفك عبر trait encryptable.
 
 ### مجال المستخدم والهوية
 
 | اسم الجدول | الوصف | الحقول الأساسية |
 |------|------|----------|
-| `erik_user` | جدول المستخدمين الموحد | phone, password, wx_openid, wx_unionid, avatar, nickname, user_type(customer/technician), status. مستخدمو technician يملكون وظائف العميل أيضًا، ويمكنهم تبديل الهوية النشطة الحالية بحرية |
-| `erik_user_address` | عناوين المستخدم | user_id, contact_name, contact_phone, province, city, district, detail, is_default |
-| `erik_technician_profile` | ملف الفني | user_id, real_name, gender, id_card, id_card_front, id_card_back, avatar, rating, order_count, status(pending/approved/rejected), intro |
-| `erik_technician_schedule` | مواعيد الفني | technician_id, date, time_slots(JSON), status |
-| `erik_technician_service` | مشاريع خدمة الفني | technician_id, service_id |
-| `erik_technician_earnings` | عمليات أرباح الفني | technician_id, order_id, type(commission/bonus/penalty), amount, status |
-| `erik_technician_withdrawal` | سجلات سحب الفني | technician_id, amount, actual_amount, commission_fee, account_info, status, reviewed_at |
-| `erik_technician_attendance` | حضور الفني | technician_id, date, check_in_at, check_out_at, clean_photo |
-| `erik_technician_member_note` | ملف العضو | technician_id, user_id, content, written_at |
+| `appointment_user` | جدول المستخدمين الموحد | phone, password, wx_openid, wx_unionid, avatar, nickname, user_type(customer/technician), status. مستخدمو technician يملكون وظائف العميل أيضًا، ويمكنهم تبديل الهوية النشطة الحالية بحرية |
+| `appointment_user_address` | عناوين المستخدم | user_id, contact_name, contact_phone, province, city, district, detail, is_default |
+| `appointment_technician_profile` | ملف الفني | user_id, real_name, gender, id_card, id_card_front, id_card_back, avatar, rating, order_count, status(pending/approved/rejected), intro |
+| `appointment_technician_schedule` | مواعيد الفني | technician_id, date, time_slots(JSON), status |
+| `appointment_technician_service` | مشاريع خدمة الفني | technician_id, service_id |
+| `appointment_technician_earnings` | عمليات أرباح الفني | technician_id, order_id, type(commission/bonus/penalty), amount, status |
+| `appointment_technician_withdrawal` | سجلات سحب الفني | technician_id, amount, actual_amount, commission_fee, account_info, status, reviewed_at |
+| `appointment_technician_attendance` | حضور الفني | technician_id, date, check_in_at, check_out_at, clean_photo |
+| `appointment_technician_member_note` | ملف العضو | technician_id, user_id, content, written_at |
 
 ### مجال الخدمة والمنتجات
 
 | اسم الجدول | الوصف | الحقول الأساسية |
 |------|------|----------|
-| `erik_service_category` | تصنيفات الخدمة | name, icon, parent_id, sort, status |
-| `erik_service` | مشاريع الخدمة | category_id, name, description, cover_image, images(JSON), price, duration, sales_volume, specs(JSON), status |
-| `erik_product` | المنتجات | category_id, name, cover_image, price, stock, sales_volume, type, status |
-| `erik_store` | المتاجر | name, address, lat, lng, phone, business_hours(JSON), images, status |
+| `appointment_service_category` | تصنيفات الخدمة | name, icon, parent_id, sort, status |
+| `appointment_service` | مشاريع الخدمة | category_id, name, description, cover_image, images(JSON), price, duration, sales_volume, specs(JSON), status |
+| `appointment_product` | المنتجات | category_id, name, cover_image, price, stock, sales_volume, type, status |
+| `appointment_store` | المتاجر | name, address, lat, lng, phone, business_hours(JSON), images, status |
 
 ### مجال الطلبات
 
 | اسم الجدول | الوصف | الحقول الأساسية |
 |------|------|----------|
-| `erik_order` | الجدول الرئيسي للطلبات | order_no, user_id, technician_id, store_id, total_amount, discount_amount, paid_amount, status, service_time, cancel_reason, remark |
-| `erik_order_item` | بنود الطلب | order_id, service_id, product_id, type, name, price, quantity, spec_info |
-| `erik_order_payment` | سجلات الدفع | order_id, pay_type(wechat), transaction_id, amount, status, paid_at |
-| `erik_order_refund` | سجلات الاسترداد | order_id, payment_id, refund_no, amount, ratio, reason, status |
-| `erik_order_review` | تقييمات الخدمة | order_id, user_id, technician_id, rating, content, images |
-| `erik_order_verification` | سجلات التحقق | order_id, code, verified_at, verified_by, location |
+| `appointment_order` | الجدول الرئيسي للطلبات | order_no, user_id, technician_id, store_id, total_amount, discount_amount, paid_amount, status, service_time, cancel_reason, remark |
+| `appointment_order_item` | بنود الطلب | order_id, service_id, product_id, type, name, price, quantity, spec_info |
+| `appointment_order_payment` | سجلات الدفع | order_id, pay_type(wechat), transaction_id, amount, status, paid_at |
+| `appointment_order_refund` | سجلات الاسترداد | order_id, payment_id, refund_no, amount, ratio, reason, status |
+| `appointment_order_review` | تقييمات الخدمة | order_id, user_id, technician_id, rating, content, images |
+| `appointment_order_verification` | سجلات التحقق | order_id, code, verified_at, verified_by, location |
 
 ### مجال التسويق
 
 | اسم الجدول | الوصف | الحقول الأساسية |
 |------|------|----------|
-| `erik_coupon` | تعريف الكوبونات | name, type, amount, min_amount, total_qty, remain_qty, start_at, end_at, status |
-| `erik_user_coupon` | كوبونات المستخدم | user_id, coupon_id, status(available/used/expired), used_at |
-| `erik_member_card` | تعريف بطاقات العضوية | name, type(month/vip/times), price, duration_days, total_times, services(JSON) |
-| `erik_user_member_card` | بطاقات عضوية المستخدم | user_id, card_id, start_at, end_at, total_times, used_times, status |
-| `erik_member_card_usage` | سجلات استخدام بطاقات المرات | user_card_id, order_id, service_id, used_at |
-| `erik_user_points` | عمليات النقاط | user_id, type(earn/use), points, source, order_id |
-| `erik_gift_card` | بطاقات الهدايا | code, type, amount_or_gift, status, used_by, used_at |
-| `erik_user_referral` | ترويج المستخدم | referrer_id, referred_user_id, reward_type, reward_amount, registered_at, first_order_at |
+| `appointment_coupon` | تعريف الكوبونات | name, type, amount, min_amount, total_qty, remain_qty, start_at, end_at, status |
+| `appointment_user_coupon` | كوبونات المستخدم | user_id, coupon_id, status(available/used/expired), used_at |
+| `appointment_member_card` | تعريف بطاقات العضوية | name, type(month/vip/times), price, duration_days, total_times, services(JSON) |
+| `appointment_user_member_card` | بطاقات عضوية المستخدم | user_id, card_id, start_at, end_at, total_times, used_times, status |
+| `appointment_member_card_usage` | سجلات استخدام بطاقات المرات | user_card_id, order_id, service_id, used_at |
+| `appointment_user_points` | عمليات النقاط | user_id, type(earn/use), points, source, order_id |
+| `appointment_gift_card` | بطاقات الهدايا | code, type, amount_or_gift, status, used_by, used_at |
+| `appointment_user_referral` | ترويج المستخدم | referrer_id, referred_user_id, reward_type, reward_amount, registered_at, first_order_at |
 
 ### مجال المحتوى والإشعارات
 
 | اسم الجدول | الوصف | الحقول الأساسية |
 |------|------|----------|
-| `erik_banner` | الشرائح الدوارة | position, image, jump_type(url/detail/none), jump_value, sort, status |
-| `erik_announcement` | الإعلانات | content, status, published_at |
-| `erik_platform_agreement` | اتفاقيات المنصة | type(user_agreement/privacy_policy/service_agreement), title, content, version |
-| `erik_faq` | الأسئلة الشائعة | title, content, sort |
-| `erik_feedback` | الملاحظات | user_id, content, images, handler_reply, status(pending/handled) |
-| `erik_moment` | منشورات دائرة الأصدقاء | content, images, published_at |
-| `erik_notification` | إشعارات الرسائل | user_id, type(order/system), title, content, is_read, created_at |
+| `appointment_banner` | الشرائح الدوارة | position, image, jump_type(url/detail/none), jump_value, sort, status |
+| `appointment_announcement` | الإعلانات | content, status, published_at |
+| `appointment_platform_agreement` | اتفاقيات المنصة | type(user_agreement/privacy_policy/service_agreement), title, content, version |
+| `appointment_faq` | الأسئلة الشائعة | title, content, sort |
+| `appointment_feedback` | الملاحظات | user_id, content, images, handler_reply, status(pending/handled) |
+| `appointment_moment` | منشورات دائرة الأصدقاء | content, images, published_at |
+| `appointment_notification` | إشعارات الرسائل | user_id, type(order/system), title, content, is_read, created_at |
 
 ### مجال المالية (جانب admin)
 
 | اسم الجدول | الوصف | الحقول الأساسية |
 |------|------|----------|
-| `erik_finance_transaction` | عمليات الدخل والإنفاق | user_id, order_id, type, direction(income/expense), amount, actual_amount, commission, status |
-| `erik_technician_commission_config` | إعداد العمولات | technician_id, commission_rate, settlement_cycle |
-| `erik_withdrawal_account` | حسابات السحب | user_id, type(wechat), account_name, account_no |
-| `erik_withdrawal_config` | إعداد قيود السحب | min_amount, reserve_amount, round_to_hundred |
+| `appointment_finance_transaction` | عمليات الدخل والإنفاق | user_id, order_id, type, direction(income/expense), amount, actual_amount, commission, status |
+| `appointment_technician_commission_config` | إعداد العمولات | technician_id, commission_rate, settlement_cycle |
+| `appointment_withdrawal_account` | حسابات السحب | user_id, type(wechat), account_name, account_no |
+| `appointment_withdrawal_config` | إعداد قيود السحب | min_amount, reserve_amount, round_to_hundred |
 
 ## وحدات Service API
 

@@ -15,7 +15,7 @@ use support\Model;
  */
 class WalletRecharge extends Model
 {
-    protected $table = 'erik_wallet_recharge';
+    protected $table = 'appointment_wallet_recharge';
 
     // ── 充值单状态常量 ──
     public const STATUS_PENDING  = 'pending';

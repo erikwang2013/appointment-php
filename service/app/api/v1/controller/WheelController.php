@@ -29,8 +29,8 @@ use Webman\Http\Request;
  * 3. 事务内最后一条积分流水 lockForUpdate（同用户并发抽奖串行化），
  *    锁内复验余额与 client_token 幂等；奖品行锁复验状态/权重/库存防超抽；
  * 4. 权重=0 奖品不可中；随机用 random_int（安全随机）；
- * 5. 发放：points → erik_user_points earn 流水（含过期时间）；balance →
- *    erik_user_wallet 余额 + erik_wallet_txn 流水（lucky_wheel）；coupon →
+ * 5. 发放：points → appointment_user_points earn 流水（含过期时间）；balance →
+ *    appointment_user_wallet 余额 + appointment_wallet_txn 流水（lucky_wheel）；coupon →
  *    仅记录中奖（转盘奖品无优惠券模板 ID，发放需人工补发，响应标记
  *    prize.status=pending）；none 仅记录不发放；
  * 6. 幂等：可选 client_token，同用户同令牌仅抽一次（唯一索引兜底）。

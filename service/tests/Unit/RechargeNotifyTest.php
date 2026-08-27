@@ -32,7 +32,7 @@ class RechargeNotifyTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->savedApiKey = (string) Db::table('erik_system_config')
+        $this->savedApiKey = (string) Db::table('appointment_system_config')
             ->where('group', 'wechat_pay')
             ->where('key', 'api_key')
             ->value('value');
@@ -47,7 +47,7 @@ class RechargeNotifyTest extends TestCase
             UserWallet::where('user_id', $uid)->delete();
         }
         // 恢复 wechat_pay api_key 配置（若被用例覆盖）
-        Db::table('erik_system_config')
+        Db::table('appointment_system_config')
             ->where('group', 'wechat_pay')
             ->where('key', 'api_key')
             ->update(['value' => $this->savedApiKey]);
@@ -92,7 +92,7 @@ class RechargeNotifyTest extends TestCase
     private function enableWechatSign(): string
     {
         $key = 'TEST_API_KEY_' . uniqid();
-        Db::table('erik_system_config')
+        Db::table('appointment_system_config')
             ->where('group', 'wechat_pay')
             ->where('key', 'api_key')
             ->update(['value' => $key]);

@@ -73,7 +73,7 @@ Cors → Security(31 deteções de ataques) → RateLimit → Auth(JWT+estado do
 
 ### Prefixo de tabelas
 
-Prefixo unificado `erik_`, configurado em `config/database.php`. Os Model escrevem o nome original da tabela e o ORM adiciona o prefixo automaticamente.
+Prefixo unificado `appointment_`, configurado em `config/database.php`. Os Model escrevem o nome original da tabela e o ORM adiciona o prefixo automaticamente.
 
 ### Encriptação de campos sensíveis
 
@@ -149,7 +149,7 @@ use Erikwang2013\WebmanScout\Searchable;
 class Service extends Model
 {
     use Searchable;
-    public function searchableAs(): string { return 'erik_services'; }
+    public function searchableAs(): string { return 'appointment_services'; }
 }
 ```
 

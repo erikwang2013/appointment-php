@@ -78,11 +78,11 @@ class GuestTest extends TestCase
     {
         $id = ServiceCategory::generateId();
         $now = date('Y-m-d H:i:s');
-        Db::table('erik_service_category')->insert([
+        Db::table('appointment_service_category')->insert([
             'id' => $id, 'name' => $name, 'icon' => '', 'parent_id' => 0,
             'sort' => 1, 'status' => 1, 'created_at' => $now, 'updated_at' => $now,
         ]);
-        $this->track('erik_service_category', $id);
+        $this->track('appointment_service_category', $id);
         return ServiceCategory::find($id);
     }
 
@@ -91,13 +91,13 @@ class GuestTest extends TestCase
     {
         $id = Service::generateId();
         $now = date('Y-m-d H:i:s');
-        Db::table('erik_service')->insert([
+        Db::table('appointment_service')->insert([
             'id' => $id, 'category_id' => (string) $categoryId, 'name' => $name,
             'cover_image' => 'https://example.com/cover.jpg', 'price' => 99.9,
             'original_price' => 129.9, 'duration' => 60, 'sales_volume' => 0,
             'sort' => 1, 'status' => 1, 'created_at' => $now, 'updated_at' => $now,
         ]);
-        $this->track('erik_service', $id);
+        $this->track('appointment_service', $id);
         return Service::find($id);
     }
 
@@ -110,11 +110,11 @@ class GuestTest extends TestCase
             'user_type' => 'user',
             'status'    => 1,
         ]);
-        $this->track('erik_user', $user->id);
+        $this->track('appointment_user', $user->id);
 
         $id = TechnicianProfile::generateId();
         $now = date('Y-m-d H:i:s');
-        Db::table('erik_technician_profile')->insert([
+        Db::table('appointment_technician_profile')->insert([
             'id' => $id, 'user_id' => $user->id, 'real_name' => '游客测试技师',
             'gender' => 0, 'id_card' => '', 'id_card_front' => '', 'id_card_back' => '',
             'avatar' => '', 'intro' => '', 'cover_image' => '', 'video_url' => '',
@@ -122,7 +122,7 @@ class GuestTest extends TestCase
             'status' => 'approved', 'audit_remark' => '',
             'created_at' => $now, 'updated_at' => $now,
         ]);
-        $this->track('erik_technician_profile', $id);
+        $this->track('appointment_technician_profile', $id);
 
         return ['user' => $user, 'profile' => TechnicianProfile::find($id)];
     }
@@ -253,11 +253,11 @@ class GuestTest extends TestCase
 
         $tsId = Service::generateId();
         $now  = date('Y-m-d H:i:s');
-        Db::table('erik_technician_service')->insert([
+        Db::table('appointment_technician_service')->insert([
             'id' => $tsId, 'technician_id' => $linked['profile']->id,
             'service_id' => $service->id, 'created_at' => $now, 'updated_at' => $now,
         ]);
-        $this->track('erik_technician_service', $tsId);
+        $this->track('appointment_technician_service', $tsId);
 
         $resp = $this->body($this->guest()->technicians(
             $this->makeRequest('/api/guest/technicians?service_id=' . $this->hashidOf($service->id))

@@ -218,12 +218,12 @@ class ReportController extends BaseController
             ->groupBy('pay_type')->get()->keyBy('pay_type');
 
         // 余额支付：钱包消费流水（type=consume）按订单去重
-        $balanceOrders = DB::table('erik_wallet_txn')
+        $balanceOrders = DB::table('appointment_wallet_txn')
             ->where('type', 'consume')
             ->whereDate('created_at', '>=', $start)
             ->whereDate('created_at', '<=', $end)
             ->distinct()->count('order_id');
-        $balanceAmount = (float) DB::table('erik_wallet_txn')
+        $balanceAmount = (float) DB::table('appointment_wallet_txn')
             ->where('type', 'consume')
             ->whereDate('created_at', '>=', $start)
             ->whereDate('created_at', '<=', $end)

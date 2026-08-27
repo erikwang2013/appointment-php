@@ -46,7 +46,7 @@ class ReferralController extends BaseController
             ->count();
 
         // 统计推荐积分（从积分流水表查询）
-        $totalPoints = (int)Db::table('erik_user_points')
+        $totalPoints = (int)Db::table('appointment_user_points')
             ->where('user_id', $userId)
             ->where('source', 'referral')
             ->where('type', 'earn')

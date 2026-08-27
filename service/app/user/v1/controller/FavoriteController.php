@@ -39,7 +39,7 @@ class FavoriteController extends BaseController
             ];
 
             if ($favorite->target_type === 'service') {
-                $service = Db::table('erik_service')
+                $service = Db::table('appointment_service')
                     ->where('id', $favorite->target_id)
                     ->first();
 
@@ -53,7 +53,7 @@ class FavoriteController extends BaseController
                     ];
                 }
             } elseif ($favorite->target_type === 'technician') {
-                $technician = Db::table('erik_technician_profile')
+                $technician = Db::table('appointment_technician_profile')
                     ->where('id', $favorite->target_id)
                     ->first();
 
@@ -111,7 +111,7 @@ class FavoriteController extends BaseController
 
         // 更新技师的被收藏数
         if ($targetType === 'technician') {
-            Db::table('erik_technician_profile')
+            Db::table('appointment_technician_profile')
                 ->where('id', $targetId)
                 ->increment('favorite_count');
         }
@@ -141,7 +141,7 @@ class FavoriteController extends BaseController
 
         // 更新技师的被收藏数
         if ($favorite->target_type === 'technician') {
-            Db::table('erik_technician_profile')
+            Db::table('appointment_technician_profile')
                 ->where('id', $favorite->target_id)
                 ->where('favorite_count', '>', 0)
                 ->decrement('favorite_count');

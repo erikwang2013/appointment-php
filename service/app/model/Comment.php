@@ -13,7 +13,7 @@ use support\Model;
  */
 class Comment extends Model
 {
-    protected $table = 'erik_community_comment';
+    protected $table = 'appointment_community_comment';
     public $incrementing = false;
     protected $keyType = 'string';
     public $timestamps = true;

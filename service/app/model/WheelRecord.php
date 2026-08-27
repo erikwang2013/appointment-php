@@ -12,7 +12,7 @@ use support\Model;
  */
 class WheelRecord extends Model
 {
-    protected $table = 'erik_wheel_record';
+    protected $table = 'appointment_wheel_record';
     public $incrementing = false;
     protected $keyType = 'string';
     public $timestamps = false;

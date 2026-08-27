@@ -222,7 +222,7 @@ class TrainingController extends BaseController
         $pendingCourses = TrainingCourse::where('status', 1)
             ->whereNotIn('id', function ($query) use ($technicianId) {
                 $query->select('course_id')
-                    ->from('erik_training_progress')
+                    ->from('appointment_training_progress')
                     ->where('technician_id', $technicianId)
                     ->where('status', 'completed');
             })

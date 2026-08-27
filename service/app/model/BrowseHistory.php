@@ -9,7 +9,7 @@ use support\Model;
 
 class BrowseHistory extends Model
 {
-    protected $table = 'erik_browse_history';
+    protected $table = 'appointment_browse_history';
     public $incrementing = false;
     protected $keyType = 'string';
     public $timestamps = true;

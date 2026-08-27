@@ -12,7 +12,7 @@ use support\Model;
  */
 class TechnicianTierLog extends Model
 {
-    protected $table = 'erik_technician_tier_log';
+    protected $table = 'appointment_technician_tier_log';
     public $incrementing = false;
     protected $keyType = 'string';
     public $timestamps = true;

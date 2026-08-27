@@ -12,7 +12,7 @@ use support\Model;
  */
 class OrderPayment extends Model
 {
-    protected $table = 'erik_order_payment';
+    protected $table = 'appointment_order_payment';
     public $incrementing = false;
     protected $keyType = 'string';
     public $timestamps = true;

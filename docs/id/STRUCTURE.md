@@ -297,15 +297,15 @@ service/
 │   │   ├── Security                # 安全检测(security-php)
 │   │   └── TechnicianAuth          # 技师身份校验
 │   └── model/                   # 数据模型(81个)
-│       ├── User.php → erik_user
-│       ├── TechnicianProfile.php → erik_technician_profile
-│       ├── Service.php → erik_service (ES: erik_services)
-│       ├── Product.php → erik_product (ES: erik_products)
-│       ├── Store.php → erik_store
-│       ├── Order.php → erik_order (含退款规则/状态机)
-│       ├── Coupon.php → erik_coupon
-│       ├── MemberCard.php → erik_member_card
-│       ├── Notification.php → erik_notification
+│       ├── User.php → appointment_user
+│       ├── TechnicianProfile.php → appointment_technician_profile
+│       ├── Service.php → appointment_service (ES: appointment_services)
+│       ├── Product.php → appointment_product (ES: appointment_products)
+│       ├── Store.php → appointment_store
+│       ├── Order.php → appointment_order (含退款规则/状态机)
+│       ├── Coupon.php → appointment_coupon
+│       ├── MemberCard.php → appointment_member_card
+│       ├── Notification.php → appointment_notification
 │       └── ... (共81个模型文件；admin 另有 6 个特有模型，合计 87)
 ├── config/                     # 配置文件
 ├── public/                     # 入口
@@ -437,111 +437,111 @@ apps/flutter/
 
 ## Daftar Tabel Basis Data
 
-Semua tabel memakai prefiks `erik_`, primary key BIGINT non-auto-increment (dihasilkan Snowflake).
+Semua tabel memakai prefiks `appointment_`, primary key BIGINT non-auto-increment (dihasilkan Snowflake).
 
 | Domain | Nama tabel | Keterangan |
 |----|------|------|
-| Pengguna | erik_user | tabel pengguna terpadu |
-| Pengguna | erik_user_address | alamat pengiriman |
-| Teknisi | erik_technician_profile | arsip teknisi |
-| Teknisi | erik_technician_schedule | jadwal teknisi |
-| Teknisi | erik_technician_service | item layanan yang bisa dilayani teknisi |
-| Teknisi | erik_technician_earnings | transaksi pendapatan teknisi |
-| Teknisi | erik_technician_withdrawal | catatan penarikan dana teknisi |
-| Teknisi | erik_technician_attendance | kehadiran teknisi |
-| Teknisi | erik_technician_member_note | arsip member |
-| Layanan | erik_service_category | kategori layanan |
-| Layanan | erik_service | item layanan |
-| Layanan | erik_product | produk |
-| Layanan | erik_store | toko |
-| Pesanan | erik_order | tabel utama pesanan (kolom relasi seckill_id, ronde ke-24) |
-| Pesanan | erik_order_item | detail pesanan |
-| Pesanan | erik_order_payment | catatan pembayaran |
-| Pesanan | erik_order_refund | catatan refund |
-| Pesanan | erik_order_review | ulasan layanan |
-| Pesanan | erik_order_verification | catatan verifikasi |
-| Pesanan | erik_order_reschedule | catatan penggantian jadwal (ronde ke-17) |
-| Pemasaran | erik_coupon | definisi kupon |
-| Pemasaran | erik_user_coupon | kupon pengguna |
-| Pemasaran | erik_user_coupon_transfer | catatan transfer kupon (ronde ke-17) |
-| Pemasaran | erik_user_points_transfer | catatan transfer poin (ronde ke-19) |
-| Pemasaran | erik_technician_tier_log | log perubahan level teknisi (ronde ke-17) |
-| Pemasaran | erik_member_card | definisi kartu member |
-| Pemasaran | erik_user_member_card | kartu member pengguna |
-| Pemasaran | erik_member_card_usage | catatan penggunaan kartu kunjungan |
-| Pemasaran | erik_user_points | transaksi poin |
-| Pemasaran | erik_gift_card | kartu hadiah |
-| Pemasaran | erik_user_referral | promosi pengguna |
-| Pemasaran | erik_user_favorite | favorit pengguna |
-| Dompet | erik_user_wallet | saldo dompet pengguna |
-| Dompet | erik_wallet_recharge | catatan top-up dompet |
-| Dompet | erik_wallet_txn | transaksi dompet |
-| Dompet | erik_wallet_transfer | catatan transfer antar pengguna (ronde ke-19) |
-| Pengguna | erik_user_notify_setting | pengaturan preferensi pesan (ronde ke-19) |
-| Konten | erik_banner | banner |
-| Konten | erik_announcement | pengumuman |
-| Konten | erik_platform_agreement | perjanjian platform |
-| Konten | erik_faq | pertanyaan umum |
-| Konten | erik_feedback | masukan |
-| Konten | erik_moment | postingan momen |
-| Konten | erik_notification | notifikasi pesan |
-| Keuangan | erik_finance_transaction | transaksi pemasukan pengeluaran |
-| Keuangan | erik_technician_commission_config | konfigurasi komisi |
-| Keuangan | erik_withdrawal_account | akun penarikan |
-| Keuangan | erik_withdrawal_config | konfigurasi batas penarikan |
-| Sistem | erik_admin_user | pengguna admin (sudah dibuat) |
-| Sistem | erik_admin_role | peran (sudah dibuat) |
-| Sistem | erik_admin_permission | izin (sudah dibuat) |
-| Sistem | erik_admin_user_role | relasi pengguna peran (sudah dibuat) |
-| Sistem | erik_admin_role_permission | relasi peran izin (sudah dibuat) |
-| Sistem | erik_system_config | konfigurasi sistem (sudah dibuat) |
-| Sistem | erik_operation_log | log operasi (sudah dibuat) |
-| Pengguna | erik_user_growth | transaksi nilai pertumbuhan (ronde ke-20) |
-| Pengguna | erik_growth_level | tingkatan level pertumbuhan (ronde ke-20) |
-| Pesanan | erik_invoice | faktur elektronik (ronde ke-20) |
-| Pengguna | erik_ticket | tiket layanan pelanggan (ronde ke-20) |
-| Pemasaran | erik_referral_level2_reward | catatan komisi referral level dua (ronde ke-20) |
-| Pengguna | erik_invoice_title | pustaka judul faktur (ronde ke-21) |
-| Pengguna | erik_browse_history | jejak penjelajahan (ronde ke-21) |
-| Pemasaran | erik_full_reduction_activity | aktivitas potongan (ronde ke-22) |
-| Teknisi | erik_technician_attendance | kehadiran teknisi (ronde ke-22) |
-| Sistem | erik_push_log | catatan push APP (ronde ke-22) |
-| Keuangan | erik_profit_sharing | catatan bagi hasil WeChat (ronde ke-22) |
-| Pesanan | erik_order_status_log | garis waktu status pesanan (ronde ke-23) |
-| Pengguna | erik_user_health_profile | arsip kesehatan pengguna (ronde ke-23) |
-| Pemasaran | erik_lucky_wheel | definisi hadiah roda (ronde ke-23) |
-| Pemasaran | erik_wheel_record | catatan undian roda (ronde ke-23) |
-| Pemasaran | erik_seckill_activity | aktivitas flash sale (ronde ke-24) |
-| Sistem | erik_app_version | versi APP (ronde ke-24) |
+| Pengguna | appointment_user | tabel pengguna terpadu |
+| Pengguna | appointment_user_address | alamat pengiriman |
+| Teknisi | appointment_technician_profile | arsip teknisi |
+| Teknisi | appointment_technician_schedule | jadwal teknisi |
+| Teknisi | appointment_technician_service | item layanan yang bisa dilayani teknisi |
+| Teknisi | appointment_technician_earnings | transaksi pendapatan teknisi |
+| Teknisi | appointment_technician_withdrawal | catatan penarikan dana teknisi |
+| Teknisi | appointment_technician_attendance | kehadiran teknisi |
+| Teknisi | appointment_technician_member_note | arsip member |
+| Layanan | appointment_service_category | kategori layanan |
+| Layanan | appointment_service | item layanan |
+| Layanan | appointment_product | produk |
+| Layanan | appointment_store | toko |
+| Pesanan | appointment_order | tabel utama pesanan (kolom relasi seckill_id, ronde ke-24) |
+| Pesanan | appointment_order_item | detail pesanan |
+| Pesanan | appointment_order_payment | catatan pembayaran |
+| Pesanan | appointment_order_refund | catatan refund |
+| Pesanan | appointment_order_review | ulasan layanan |
+| Pesanan | appointment_order_verification | catatan verifikasi |
+| Pesanan | appointment_order_reschedule | catatan penggantian jadwal (ronde ke-17) |
+| Pemasaran | appointment_coupon | definisi kupon |
+| Pemasaran | appointment_user_coupon | kupon pengguna |
+| Pemasaran | appointment_user_coupon_transfer | catatan transfer kupon (ronde ke-17) |
+| Pemasaran | appointment_user_points_transfer | catatan transfer poin (ronde ke-19) |
+| Pemasaran | appointment_technician_tier_log | log perubahan level teknisi (ronde ke-17) |
+| Pemasaran | appointment_member_card | definisi kartu member |
+| Pemasaran | appointment_user_member_card | kartu member pengguna |
+| Pemasaran | appointment_member_card_usage | catatan penggunaan kartu kunjungan |
+| Pemasaran | appointment_user_points | transaksi poin |
+| Pemasaran | appointment_gift_card | kartu hadiah |
+| Pemasaran | appointment_user_referral | promosi pengguna |
+| Pemasaran | appointment_user_favorite | favorit pengguna |
+| Dompet | appointment_user_wallet | saldo dompet pengguna |
+| Dompet | appointment_wallet_recharge | catatan top-up dompet |
+| Dompet | appointment_wallet_txn | transaksi dompet |
+| Dompet | appointment_wallet_transfer | catatan transfer antar pengguna (ronde ke-19) |
+| Pengguna | appointment_user_notify_setting | pengaturan preferensi pesan (ronde ke-19) |
+| Konten | appointment_banner | banner |
+| Konten | appointment_announcement | pengumuman |
+| Konten | appointment_platform_agreement | perjanjian platform |
+| Konten | appointment_faq | pertanyaan umum |
+| Konten | appointment_feedback | masukan |
+| Konten | appointment_moment | postingan momen |
+| Konten | appointment_notification | notifikasi pesan |
+| Keuangan | appointment_finance_transaction | transaksi pemasukan pengeluaran |
+| Keuangan | appointment_technician_commission_config | konfigurasi komisi |
+| Keuangan | appointment_withdrawal_account | akun penarikan |
+| Keuangan | appointment_withdrawal_config | konfigurasi batas penarikan |
+| Sistem | appointment_admin_user | pengguna admin (sudah dibuat) |
+| Sistem | appointment_admin_role | peran (sudah dibuat) |
+| Sistem | appointment_admin_permission | izin (sudah dibuat) |
+| Sistem | appointment_admin_user_role | relasi pengguna peran (sudah dibuat) |
+| Sistem | appointment_admin_role_permission | relasi peran izin (sudah dibuat) |
+| Sistem | appointment_system_config | konfigurasi sistem (sudah dibuat) |
+| Sistem | appointment_operation_log | log operasi (sudah dibuat) |
+| Pengguna | appointment_user_growth | transaksi nilai pertumbuhan (ronde ke-20) |
+| Pengguna | appointment_growth_level | tingkatan level pertumbuhan (ronde ke-20) |
+| Pesanan | appointment_invoice | faktur elektronik (ronde ke-20) |
+| Pengguna | appointment_ticket | tiket layanan pelanggan (ronde ke-20) |
+| Pemasaran | appointment_referral_level2_reward | catatan komisi referral level dua (ronde ke-20) |
+| Pengguna | appointment_invoice_title | pustaka judul faktur (ronde ke-21) |
+| Pengguna | appointment_browse_history | jejak penjelajahan (ronde ke-21) |
+| Pemasaran | appointment_full_reduction_activity | aktivitas potongan (ronde ke-22) |
+| Teknisi | appointment_technician_attendance | kehadiran teknisi (ronde ke-22) |
+| Sistem | appointment_push_log | catatan push APP (ronde ke-22) |
+| Keuangan | appointment_profit_sharing | catatan bagi hasil WeChat (ronde ke-22) |
+| Pesanan | appointment_order_status_log | garis waktu status pesanan (ronde ke-23) |
+| Pengguna | appointment_user_health_profile | arsip kesehatan pengguna (ronde ke-23) |
+| Pemasaran | appointment_lucky_wheel | definisi hadiah roda (ronde ke-23) |
+| Pemasaran | appointment_wheel_record | catatan undian roda (ronde ke-23) |
+| Pemasaran | appointment_seckill_activity | aktivitas flash sale (ronde ke-24) |
+| Sistem | appointment_app_version | versi APP (ronde ke-24) |
 
 ### Daftar Pelengkap (bagian 95 tabel docs/install.sql yang belum tercantum di atas, daftar resmi lengkap mengacu install.sql)
 
 | Domain | Nama tabel | Keterangan |
 |----|------|------|
-| Pemasaran | erik_card_transfer | transfer kartu kunjungan |
-| Pengguna | erik_check_in | check-in |
-| Konten | erik_community_post | postingan komunitas |
-| Konten | erik_community_comment | komentar komunitas |
-| Teknisi | erik_exam | ujian |
-| Teknisi | erik_exam_question | soal ujian |
-| Teknisi | erik_exam_attempt | lembar jawaban ujian |
-| Sistem | erik_operation_log_detail | detail log operasi |
-| Pesanan | erik_order_aftersale | purna jual pesanan |
-| Pemasaran | erik_points_exchange_goods | barang tukar poin |
-| Pemasaran | erik_promotion | aktivitas belanja bersama |
-| Pemasaran | erik_promotion_participant | peserta belanja bersama |
-| Pesanan | erik_queue_number | nomor antrean |
-| Layanan | erik_service_package | paket layanan |
-| Teknisi | erik_service_record | catatan layanan |
-| Konten | erik_share | catatan berbagi |
-| Pesanan | erik_signature | tanda tangan |
-| Teknisi | erik_technician_tier_config | konfigurasi level teknisi |
-| Teknisi | erik_training_course | kursus pelatihan |
-| Teknisi | erik_training_progress | progres pelatihan |
-| Pengguna | erik_user_device | perangkat pengguna |
-| Pemasaran | erik_user_points_exchange | catatan tukar poin |
-| Konten | erik_video_post | postingan video |
-| Pesanan | erik_waitlist | daftar tunggu |
+| Pemasaran | appointment_card_transfer | transfer kartu kunjungan |
+| Pengguna | appointment_check_in | check-in |
+| Konten | appointment_community_post | postingan komunitas |
+| Konten | appointment_community_comment | komentar komunitas |
+| Teknisi | appointment_exam | ujian |
+| Teknisi | appointment_exam_question | soal ujian |
+| Teknisi | appointment_exam_attempt | lembar jawaban ujian |
+| Sistem | appointment_operation_log_detail | detail log operasi |
+| Pesanan | appointment_order_aftersale | purna jual pesanan |
+| Pemasaran | appointment_points_exchange_goods | barang tukar poin |
+| Pemasaran | appointment_promotion | aktivitas belanja bersama |
+| Pemasaran | appointment_promotion_participant | peserta belanja bersama |
+| Pesanan | appointment_queue_number | nomor antrean |
+| Layanan | appointment_service_package | paket layanan |
+| Teknisi | appointment_service_record | catatan layanan |
+| Konten | appointment_share | catatan berbagi |
+| Pesanan | appointment_signature | tanda tangan |
+| Teknisi | appointment_technician_tier_config | konfigurasi level teknisi |
+| Teknisi | appointment_training_course | kursus pelatihan |
+| Teknisi | appointment_training_progress | progres pelatihan |
+| Pengguna | appointment_user_device | perangkat pengguna |
+| Pemasaran | appointment_user_points_exchange | catatan tukar poin |
+| Konten | appointment_video_post | postingan video |
+| Pesanan | appointment_waitlist | daftar tunggu |
 
 ## Reservasi Layanan Eksternal
 

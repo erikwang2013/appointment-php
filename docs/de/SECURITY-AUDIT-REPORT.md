@@ -159,7 +159,7 @@ Die Platzhalter-Schlüssel in `.env.docker` müssen vor der Produktionsbereitste
 
 | Punkt | Reparaturinhalt |
 |----|---------|
-| Bestell-Manipulationsschutz | OrderController::store() Bestellpositionspreise ausschließlich aus der Datenbank (service→erik_service, product→erik_product), Client-Preise fließen nicht in die Berechnung ein; unbekannter target_type 422; target_id muss hashid sein (raw id zu 0 dekodiert → 422 „Produkt nicht vorhanden oder nicht mehr im Angebot"); Gruppen-/Blitzpreise ebenfalls DB-basiert |
+| Bestell-Manipulationsschutz | OrderController::store() Bestellpositionspreise ausschließlich aus der Datenbank (service→appointment_service, product→appointment_product), Client-Preise fließen nicht in die Berechnung ein; unbekannter target_type 422; target_id muss hashid sein (raw id zu 0 dekodiert → 422 „Produkt nicht vorhanden oder nicht mehr im Angebot"); Gruppen-/Blitzpreise ebenfalls DB-basiert |
 | Blitzangebot-Lagerbestand vereinheitlicht | Lagerbestand einheitlich in /api/order store() innerhalb der Transaktion per Zeilensperre abgezogen; SeckillController::buy reserviert keinen Lagerbestand mehr (Redis-Aktivitätssperre + client_token Idempotenz bleiben); direkter /api/order-Aufruf mit seckill_id zieht ebenfalls ab |
 | Techniker-Auszahlung | Bei Antrag wird das Guthaben um den unterwegs befindlichen Betrag (pending/approved) reduziert und reserviert; vor Freigabeüberweisung Nachprüfung settled−withdrawn−unterwegs ≥ Auszahlungsbetrag; parallele Freigaben verursachen keine Doppelauszahlung |
 | Zahlungsrückmeldungen | WeChat-Rückmeldung vergleicht total_fee strikt mit dem fälligen Bestellbetrag, bei Abweichung Ablehnung; Alipay-Rückmeldungslogs maskiert (ohne buyer_id/seller_id usw.) |

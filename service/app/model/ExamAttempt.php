@@ -10,11 +10,11 @@ use support\Model;
 /**
  * 技师考试作答记录模型
  *
- * 表: erik_exam_attempt
+ * 表: appointment_exam_attempt
  */
 class ExamAttempt extends Model
 {
-    protected $table = 'erik_exam_attempt';
+    protected $table = 'appointment_exam_attempt';
     public $incrementing = false;
     protected $keyType = 'string';
     public $timestamps = true;

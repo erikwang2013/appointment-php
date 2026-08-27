@@ -69,7 +69,7 @@ class ReportControllerTest extends TestCase
     protected function tearDown(): void
     {
         foreach ($this->txnUserIds as $uid) {
-            \Illuminate\Database\Capsule\Manager::table('erik_wallet_txn')->where('user_id', $uid)->delete();
+            \Illuminate\Database\Capsule\Manager::table('appointment_wallet_txn')->where('user_id', $uid)->delete();
         }
         foreach ($this->refundIds as $id) {
             OrderRefund::where('id', $id)->delete();
@@ -166,7 +166,7 @@ class ReportControllerTest extends TestCase
     {
         $userId = (string) (9900000000000000 + random_int(1, 999999));
         $this->txnUserIds[] = $userId;
-        \Illuminate\Database\Capsule\Manager::table('erik_wallet_txn')->insert([
+        \Illuminate\Database\Capsule\Manager::table('appointment_wallet_txn')->insert([
             'id'             => \app\common\SnowflakeService::generate(),
             'user_id'        => $userId,
             'type'           => 'consume',

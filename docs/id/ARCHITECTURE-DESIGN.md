@@ -73,7 +73,7 @@ Cors → Security(31种攻击检测) → RateLimit → Auth(JWT+用户状态)
 
 ### Prefiks Tabel
 
-Seragam prefiks `erik_`, dikonfigurasi di `config/database.php`. Model menulis nama tabel asli, ORM menambah prefiks otomatis.
+Seragam prefiks `appointment_`, dikonfigurasi di `config/database.php`. Model menulis nama tabel asli, ORM menambah prefiks otomatis.
 
 ### Enkripsi Kolom Sensitif
 
@@ -149,7 +149,7 @@ use Erikwang2013\WebmanScout\Searchable;
 class Service extends Model
 {
     use Searchable;
-    public function searchableAs(): string { return 'erik_services'; }
+    public function searchableAs(): string { return 'appointment_services'; }
 }
 ```
 

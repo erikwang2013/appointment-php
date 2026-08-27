@@ -354,7 +354,7 @@ class SystemMonitorController extends BaseController
     private function getSlowQueryCount(): int
     {
         try {
-            return (int) Redis::get('erik:slow_queries:count') ?: 0;
+            return (int) Redis::get('appointment:slow_queries:count') ?: 0;
         } catch (\Throwable) {
             return 0;
         }

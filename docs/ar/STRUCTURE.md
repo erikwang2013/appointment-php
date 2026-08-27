@@ -295,15 +295,15 @@ service/
 │   │   ├── Security                # 安全检测(security-php)
 │   │   └── TechnicianAuth          # 技师身份校验
 │   └── model/                   # 数据模型(81个)
-│       ├── User.php → erik_user
-│       ├── TechnicianProfile.php → erik_technician_profile
-│       ├── Service.php → erik_service (ES: erik_services)
-│       ├── Product.php → erik_product (ES: erik_products)
-│       ├── Store.php → erik_store
-│       ├── Order.php → erik_order (含退款规则/状态机)
-│       ├── Coupon.php → erik_coupon
-│       ├── MemberCard.php → erik_member_card
-│       ├── Notification.php → erik_notification
+│       ├── User.php → appointment_user
+│       ├── TechnicianProfile.php → appointment_technician_profile
+│       ├── Service.php → appointment_service (ES: appointment_services)
+│       ├── Product.php → appointment_product (ES: appointment_products)
+│       ├── Store.php → appointment_store
+│       ├── Order.php → appointment_order (含退款规则/状态机)
+│       ├── Coupon.php → appointment_coupon
+│       ├── MemberCard.php → appointment_member_card
+│       ├── Notification.php → appointment_notification
 │       └── ... (共81个模型文件；admin 另有 6 个特有模型，合计 87)
 ├── config/                     # 配置文件
 ├── public/                     # 入口
@@ -435,111 +435,111 @@ apps/flutter/
 
 ## قائمة جداول قاعدة البيانات
 
-جميع الجداول تستخدم بادئة `erik_`، مفاتيح أساسية BIGINT غير تلقائية (مولدة من Snowflake).
+جميع الجداول تستخدم بادئة `appointment_`، مفاتيح أساسية BIGINT غير تلقائية (مولدة من Snowflake).
 
 | المجال | اسم الجدول | الوصف |
 |----|------|------|
-| المستخدمون | erik_user | جدول المستخدمين الموحد |
-| المستخدمون | erik_user_address | عناوين الاستلام |
-| الفنيون | erik_technician_profile | ملف الفني |
-| الفنيون | erik_technician_schedule | جدولة الفني |
-| الفنيون | erik_technician_service | خدمات الفني المتاحة |
-| الفنيون | erik_technician_earnings | سجل أرباح الفني |
-| الفنيون | erik_technician_withdrawal | سجلات سحب الفني |
-| الفنيون | erik_technician_attendance | حضور الفني |
-| الفنيون | erik_technician_member_note | ملف العضو |
-| الخدمات | erik_service_category | تصنيفات الخدمة |
-| الخدمات | erik_service | الخدمات |
-| الخدمات | erik_product | المنتجات |
-| الخدمات | erik_store | المتاجر |
-| الطلبات | erik_order | جدول الطلبات الرئيسي (عمود ربط seckill_id، الجولة 24) |
-| الطلبات | erik_order_item | تفاصيل الطلب |
-| الطلبات | erik_order_payment | سجلات الدفع |
-| الطلبات | erik_order_refund | سجلات الاسترداد |
-| الطلبات | erik_order_review | تقييمات الخدمة |
-| الطلبات | erik_order_verification | سجلات التحقق |
-| الطلبات | erik_order_reschedule | سجلات إعادة جدولة الحجز (الجولة 17) |
-| التسويق | erik_coupon | تعريفات الكوبونات |
-| التسويق | erik_user_coupon | كوبونات المستخدمين |
-| التسويق | erik_user_coupon_transfer | سجلات إهداء الكوبونات (الجولة 17) |
-| التسويق | erik_user_points_transfer | سجلات إهداء النقاط (الجولة 19) |
-| التسويق | erik_technician_tier_log | سجل تغيير مستوى الفني (الجولة 17) |
-| التسويق | erik_member_card | تعريفات بطاقات العضوية |
-| التسويق | erik_user_member_card | بطاقات عضوية المستخدمين |
-| التسويق | erik_member_card_usage | سجلات استخدام بطاقة المرات |
-| التسويق | erik_user_points | سجل النقاط |
-| التسويق | erik_gift_card | بطاقات الهدايا |
-| التسويق | erik_user_referral | ترويج المستخدمين |
-| التسويق | erik_user_favorite | مفضلات المستخدمين |
-| المحفظة | erik_user_wallet | رصيد محفظة المستخدم |
-| المحفظة | erik_wallet_recharge | سجلات شحن المحفظة |
-| المحفظة | erik_wallet_txn | سجل معاملات المحفظة |
-| المحفظة | erik_wallet_transfer | سجلات التحويل بين المستخدمين (الجولة 19) |
-| المستخدمون | erik_user_notify_setting | إعدادات تفضيل الإشعارات (الجولة 19) |
-| المحتوى | erik_banner | الشرائح الدوارة |
-| المحتوى | erik_announcement | الإعلانات |
-| المحتوى | erik_platform_agreement | اتفاقيات المنصة |
-| المحتوى | erik_faq | الأسئلة الشائعة |
-| المحتوى | erik_feedback | الملاحظات |
-| المحتوى | erik_moment | منشورات اللحظات |
-| المحتوى | erik_notification | إشعارات الرسائل |
-| المالية | erik_finance_transaction | سجل الإيرادات والمصروفات |
-| المالية | erik_technician_commission_config | إعداد العمولة |
-| المالية | erik_withdrawal_account | حسابات السحب |
-| المالية | erik_withdrawal_config | إعدادات قيود السحب |
-| النظام | erik_admin_user | مستخدمو الإدارة (مُنشأ) |
-| النظام | erik_admin_role | الأدوار (مُنشأ) |
-| النظام | erik_admin_permission | الصلاحيات (مُنشأ) |
-| النظام | erik_admin_user_role | ربط مستخدم-دور (مُنشأ) |
-| النظام | erik_admin_role_permission | ربط دور-صلاحية (مُنشأ) |
-| النظام | erik_system_config | إعدادات النظام (مُنشأ) |
-| النظام | erik_operation_log | سجلات العمليات (مُنشأ) |
-| المستخدمون | erik_user_growth | سجل قيم النمو (الجولة 20) |
-| المستخدمون | erik_growth_level | مستويات النمو (الجولة 20) |
-| الطلبات | erik_invoice | الفواتير الإلكترونية (الجولة 20) |
-| المستخدمون | erik_ticket | تذاكر خدمة العملاء (الجولة 20) |
-| التسويق | erik_referral_level2_reward | سجلات عمولة المستوى الثاني (الجولة 20) |
-| المستخدمون | erik_invoice_title | مكتبة ترويسات الفواتير (الجولة 21) |
-| المستخدمون | erik_browse_history | سجل التصفح (الجولة 21) |
-| التسويق | erik_full_reduction_activity | أنشطة التخفيض (الجولة 22) |
-| الفنيون | erik_technician_attendance | حضور الفني (الجولة 22) |
-| النظام | erik_push_log | سجلات دفع APP (الجولة 22) |
-| المالية | erik_profit_sharing | سجلات تقسيم WeChat (الجولة 22) |
-| الطلبات | erik_order_status_log | خط زمني لحالة الطلب (الجولة 23) |
-| المستخدمون | erik_user_health_profile | الملف الصحي للمستخدم (الجولة 23) |
-| التسويق | erik_lucky_wheel | تعريفات جوائز العجلة (الجولة 23) |
-| التسويق | erik_wheel_record | سجلات سحب العجلة (الجولة 23) |
-| التسويق | erik_seckill_activity | أنشطة الفلاش (الجولة 24) |
-| النظام | erik_app_version | إصدارات APP (الجولة 24) |
+| المستخدمون | appointment_user | جدول المستخدمين الموحد |
+| المستخدمون | appointment_user_address | عناوين الاستلام |
+| الفنيون | appointment_technician_profile | ملف الفني |
+| الفنيون | appointment_technician_schedule | جدولة الفني |
+| الفنيون | appointment_technician_service | خدمات الفني المتاحة |
+| الفنيون | appointment_technician_earnings | سجل أرباح الفني |
+| الفنيون | appointment_technician_withdrawal | سجلات سحب الفني |
+| الفنيون | appointment_technician_attendance | حضور الفني |
+| الفنيون | appointment_technician_member_note | ملف العضو |
+| الخدمات | appointment_service_category | تصنيفات الخدمة |
+| الخدمات | appointment_service | الخدمات |
+| الخدمات | appointment_product | المنتجات |
+| الخدمات | appointment_store | المتاجر |
+| الطلبات | appointment_order | جدول الطلبات الرئيسي (عمود ربط seckill_id، الجولة 24) |
+| الطلبات | appointment_order_item | تفاصيل الطلب |
+| الطلبات | appointment_order_payment | سجلات الدفع |
+| الطلبات | appointment_order_refund | سجلات الاسترداد |
+| الطلبات | appointment_order_review | تقييمات الخدمة |
+| الطلبات | appointment_order_verification | سجلات التحقق |
+| الطلبات | appointment_order_reschedule | سجلات إعادة جدولة الحجز (الجولة 17) |
+| التسويق | appointment_coupon | تعريفات الكوبونات |
+| التسويق | appointment_user_coupon | كوبونات المستخدمين |
+| التسويق | appointment_user_coupon_transfer | سجلات إهداء الكوبونات (الجولة 17) |
+| التسويق | appointment_user_points_transfer | سجلات إهداء النقاط (الجولة 19) |
+| التسويق | appointment_technician_tier_log | سجل تغيير مستوى الفني (الجولة 17) |
+| التسويق | appointment_member_card | تعريفات بطاقات العضوية |
+| التسويق | appointment_user_member_card | بطاقات عضوية المستخدمين |
+| التسويق | appointment_member_card_usage | سجلات استخدام بطاقة المرات |
+| التسويق | appointment_user_points | سجل النقاط |
+| التسويق | appointment_gift_card | بطاقات الهدايا |
+| التسويق | appointment_user_referral | ترويج المستخدمين |
+| التسويق | appointment_user_favorite | مفضلات المستخدمين |
+| المحفظة | appointment_user_wallet | رصيد محفظة المستخدم |
+| المحفظة | appointment_wallet_recharge | سجلات شحن المحفظة |
+| المحفظة | appointment_wallet_txn | سجل معاملات المحفظة |
+| المحفظة | appointment_wallet_transfer | سجلات التحويل بين المستخدمين (الجولة 19) |
+| المستخدمون | appointment_user_notify_setting | إعدادات تفضيل الإشعارات (الجولة 19) |
+| المحتوى | appointment_banner | الشرائح الدوارة |
+| المحتوى | appointment_announcement | الإعلانات |
+| المحتوى | appointment_platform_agreement | اتفاقيات المنصة |
+| المحتوى | appointment_faq | الأسئلة الشائعة |
+| المحتوى | appointment_feedback | الملاحظات |
+| المحتوى | appointment_moment | منشورات اللحظات |
+| المحتوى | appointment_notification | إشعارات الرسائل |
+| المالية | appointment_finance_transaction | سجل الإيرادات والمصروفات |
+| المالية | appointment_technician_commission_config | إعداد العمولة |
+| المالية | appointment_withdrawal_account | حسابات السحب |
+| المالية | appointment_withdrawal_config | إعدادات قيود السحب |
+| النظام | appointment_admin_user | مستخدمو الإدارة (مُنشأ) |
+| النظام | appointment_admin_role | الأدوار (مُنشأ) |
+| النظام | appointment_admin_permission | الصلاحيات (مُنشأ) |
+| النظام | appointment_admin_user_role | ربط مستخدم-دور (مُنشأ) |
+| النظام | appointment_admin_role_permission | ربط دور-صلاحية (مُنشأ) |
+| النظام | appointment_system_config | إعدادات النظام (مُنشأ) |
+| النظام | appointment_operation_log | سجلات العمليات (مُنشأ) |
+| المستخدمون | appointment_user_growth | سجل قيم النمو (الجولة 20) |
+| المستخدمون | appointment_growth_level | مستويات النمو (الجولة 20) |
+| الطلبات | appointment_invoice | الفواتير الإلكترونية (الجولة 20) |
+| المستخدمون | appointment_ticket | تذاكر خدمة العملاء (الجولة 20) |
+| التسويق | appointment_referral_level2_reward | سجلات عمولة المستوى الثاني (الجولة 20) |
+| المستخدمون | appointment_invoice_title | مكتبة ترويسات الفواتير (الجولة 21) |
+| المستخدمون | appointment_browse_history | سجل التصفح (الجولة 21) |
+| التسويق | appointment_full_reduction_activity | أنشطة التخفيض (الجولة 22) |
+| الفنيون | appointment_technician_attendance | حضور الفني (الجولة 22) |
+| النظام | appointment_push_log | سجلات دفع APP (الجولة 22) |
+| المالية | appointment_profit_sharing | سجلات تقسيم WeChat (الجولة 22) |
+| الطلبات | appointment_order_status_log | خط زمني لحالة الطلب (الجولة 23) |
+| المستخدمون | appointment_user_health_profile | الملف الصحي للمستخدم (الجولة 23) |
+| التسويق | appointment_lucky_wheel | تعريفات جوائز العجلة (الجولة 23) |
+| التسويق | appointment_wheel_record | سجلات سحب العجلة (الجولة 23) |
+| التسويق | appointment_seckill_activity | أنشطة الفلاش (الجولة 24) |
+| النظام | appointment_app_version | إصدارات APP (الجولة 24) |
 
 ### قائمة تكميلية (الجزء غير المدرج أعلاه من جداول docs/install.sql البالغة 95 جدولًا، القائمة الرسمية الكاملة في install.sql)
 
 | المجال | اسم الجدول | الوصف |
 |----|------|------|
-| التسويق | erik_card_transfer | إهداء بطاقات المرات |
-| المستخدمون | erik_check_in | تسجيل الحضور |
-| المحتوى | erik_community_post | منشورات المجتمع |
-| المحتوى | erik_community_comment | تعليقات المجتمع |
-| الفنيون | erik_exam | التقييمات |
-| الفنيون | erik_exam_question | أسئلة التقييم |
-| الفنيون | erik_exam_attempt | إجابات التقييم |
-| النظام | erik_operation_log_detail | تفاصيل سجلات العمليات |
-| الطلبات | erik_order_aftersale | ما بعد البيع للطلبات |
-| التسويق | erik_points_exchange_goods | منتجات صرف النقاط |
-| التسويق | erik_promotion | أنشطة الشراء الجماعي |
-| التسويق | erik_promotion_participant | مشاركو الشراء الجماعي |
-| الطلبات | erik_queue_number | أرقام الطابور |
-| الخدمات | erik_service_package | حزم الخدمات |
-| الفنيون | erik_service_record | سجلات الخدمة |
-| المحتوى | erik_share | سجلات المشاركة |
-| الطلبات | erik_signature | التواقيع |
-| الفنيون | erik_technician_tier_config | إعدادات مستوى الفني |
-| الفنيون | erik_training_course | دورات التدريب |
-| الفنيون | erik_training_progress | تقدم التدريب |
-| المستخدمون | erik_user_device | أجهزة المستخدمين |
-| التسويق | erik_user_points_exchange | سجلات صرف النقاط |
-| المحتوى | erik_video_post | منشورات الفيديو |
-| الطلبات | erik_waitlist | قوائم الانتظار |
+| التسويق | appointment_card_transfer | إهداء بطاقات المرات |
+| المستخدمون | appointment_check_in | تسجيل الحضور |
+| المحتوى | appointment_community_post | منشورات المجتمع |
+| المحتوى | appointment_community_comment | تعليقات المجتمع |
+| الفنيون | appointment_exam | التقييمات |
+| الفنيون | appointment_exam_question | أسئلة التقييم |
+| الفنيون | appointment_exam_attempt | إجابات التقييم |
+| النظام | appointment_operation_log_detail | تفاصيل سجلات العمليات |
+| الطلبات | appointment_order_aftersale | ما بعد البيع للطلبات |
+| التسويق | appointment_points_exchange_goods | منتجات صرف النقاط |
+| التسويق | appointment_promotion | أنشطة الشراء الجماعي |
+| التسويق | appointment_promotion_participant | مشاركو الشراء الجماعي |
+| الطلبات | appointment_queue_number | أرقام الطابور |
+| الخدمات | appointment_service_package | حزم الخدمات |
+| الفنيون | appointment_service_record | سجلات الخدمة |
+| المحتوى | appointment_share | سجلات المشاركة |
+| الطلبات | appointment_signature | التواقيع |
+| الفنيون | appointment_technician_tier_config | إعدادات مستوى الفني |
+| الفنيون | appointment_training_course | دورات التدريب |
+| الفنيون | appointment_training_progress | تقدم التدريب |
+| المستخدمون | appointment_user_device | أجهزة المستخدمين |
+| التسويق | appointment_user_points_exchange | سجلات صرف النقاط |
+| المحتوى | appointment_video_post | منشورات الفيديو |
+| الطلبات | appointment_waitlist | قوائم الانتظار |
 
 ## خدمات خارجية محجوزة
 

@@ -56,7 +56,7 @@ class SeckillTest extends TestCase
             SeckillActivity::where('id', $aid)->delete();
         }
         foreach ($this->serviceIds as $sid) {
-            Db::table('erik_service')->where('id', $sid)->delete();
+            Db::table('appointment_service')->where('id', $sid)->delete();
         }
         foreach ($this->userIds as $uid) {
             User::where('id', $uid)->delete();
@@ -99,7 +99,7 @@ class SeckillTest extends TestCase
         // Service 模型带 Scout 搜索索引，测试环境索引引擎不可用，直接经 Db::table 落库
         $id = Service::generateId();
         $now = date('Y-m-d H:i:s');
-        Db::table('erik_service')->insert([
+        Db::table('appointment_service')->insert([
             'id'             => $id,
             'category_id'    => 1,
             'name'           => '秒杀测试服务',

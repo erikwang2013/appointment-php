@@ -73,7 +73,7 @@ Cors → Security(31种攻击检测) → RateLimit → Auth(JWT+用户状态)
 
 ### টেবিল প্রিফিক্স
 
-ইউনিফাইড `erik_` প্রিফিক্স, `config/database.php` এ কনফিগ। Model আসল টেবিল নাম লেখে, ORM অটো প্রিফিক্স যোগ করে।
+ইউনিফাইড `appointment_` প্রিফিক্স, `config/database.php` এ কনফিগ। Model আসল টেবিল নাম লেখে, ORM অটো প্রিফিক্স যোগ করে।
 
 ### সংবেদনশীল ফিল্ড এনক্রিপশন
 
@@ -149,7 +149,7 @@ use Erikwang2013\WebmanScout\Searchable;
 class Service extends Model
 {
     use Searchable;
-    public function searchableAs(): string { return 'erik_services'; }
+    public function searchableAs(): string { return 'appointment_services'; }
 }
 ```
 

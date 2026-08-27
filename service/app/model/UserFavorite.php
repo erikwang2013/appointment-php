@@ -9,7 +9,7 @@ use support\Model;
 
 class UserFavorite extends Model
 {
-    protected $table = 'erik_user_favorite';
+    protected $table = 'appointment_user_favorite';
     public $incrementing = false;
     protected $keyType = 'string';
     public $timestamps = true;

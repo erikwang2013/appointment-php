@@ -71,7 +71,7 @@ Cors → Security(31种攻击检测) → RateLimit → Auth(JWT+用户状态)
 
 ### टेबल उपसर्ग
 
-एकीकृत `erik_` उपसर्ग, `config/database.php` में कॉन्फ़िगर किया जाता है। Model मूल टेबल नाम लिखता है, ORM स्वचालित रूप से उपसर्ग जोड़ता है।
+एकीकृत `appointment_` उपसर्ग, `config/database.php` में कॉन्फ़िगर किया जाता है। Model मूल टेबल नाम लिखता है, ORM स्वचालित रूप से उपसर्ग जोड़ता है।
 
 ### संवेदनशील फ़ील्ड एन्क्रिप्शन
 
@@ -147,7 +147,7 @@ use Erikwang2013\WebmanScout\Searchable;
 class Service extends Model
 {
     use Searchable;
-    public function searchableAs(): string { return 'erik_services'; }
+    public function searchableAs(): string { return 'appointment_services'; }
 }
 ```
 

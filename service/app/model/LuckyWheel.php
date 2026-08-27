@@ -16,7 +16,7 @@ use support\Model;
  */
 class LuckyWheel extends Model
 {
-    protected $table = 'erik_lucky_wheel';
+    protected $table = 'appointment_lucky_wheel';
     public $incrementing = false;
     protected $keyType = 'string';
     public $timestamps = true;

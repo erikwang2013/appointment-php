@@ -352,7 +352,7 @@ stateDiagram-v2
 
     checked --> pending: 2차 소비<br/>(보너스=실결제×ratio<br/>같은 order_id+type 멱등)
 
-    pending --> settled: 수수료 정산 체인에서 일괄 정산<br/>(erik_technician_earnings<br/>type=return_customer)
+    pending --> settled: 수수료 정산 체인에서 일괄 정산<br/>(appointment_technician_earnings<br/>type=return_customer)
 
     settled --> [*]
     none --> [*]

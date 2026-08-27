@@ -298,15 +298,15 @@ service/
 │   │   ├── Security                # Sicherheitsprüfung (security-php)
 │   │   └── TechnicianAuth          # Techniker-Identitätsprüfung
 │   └── model/                   # Datenmodelle (81)
-│       ├── User.php → erik_user
-│       ├── TechnicianProfile.php → erik_technician_profile
-│       ├── Service.php → erik_service (ES: erik_services)
-│       ├── Product.php → erik_product (ES: erik_products)
-│       ├── Store.php → erik_store
-│       ├── Order.php → erik_order (inkl. Rückerstattungsregeln/Statusmaschine)
-│       ├── Coupon.php → erik_coupon
-│       ├── MemberCard.php → erik_member_card
-│       ├── Notification.php → erik_notification
+│       ├── User.php → appointment_user
+│       ├── TechnicianProfile.php → appointment_technician_profile
+│       ├── Service.php → appointment_service (ES: appointment_services)
+│       ├── Product.php → appointment_product (ES: appointment_products)
+│       ├── Store.php → appointment_store
+│       ├── Order.php → appointment_order (inkl. Rückerstattungsregeln/Statusmaschine)
+│       ├── Coupon.php → appointment_coupon
+│       ├── MemberCard.php → appointment_member_card
+│       ├── Notification.php → appointment_notification
 │       └── ... (insgesamt 81 Modelldateien; admin hat weitere 6 eigene Modelle, zusammen 87)
 ├── config/                     # Konfigurationsdateien
 ├── public/                     # Einstieg
@@ -438,111 +438,111 @@ Health-Check:     Cors → Security → RateLimit → Controller
 
 ## Datenbanktabellenliste
 
-Alle Tabellen verwenden das `erik_`-Präfix, BIGINT nicht autoinkrementierende Primärschlüssel (Snowflake-generiert).
+Alle Tabellen verwenden das `appointment_`-Präfix, BIGINT nicht autoinkrementierende Primärschlüssel (Snowflake-generiert).
 
 | Domäne | Tabellenname | Beschreibung |
 |----|------|------|
-| Benutzer | erik_user | Einheitliche Benutzertabelle |
-| Benutzer | erik_user_address | Lieferadressen |
-| Techniker | erik_technician_profile | Technikerprofil |
-| Techniker | erik_technician_schedule | Techniker-Schichtplan |
-| Techniker | erik_technician_service | Vom Techniker angebotene Leistungen |
-| Techniker | erik_technician_earnings | Techniker-Einnahmenbuchungen |
-| Techniker | erik_technician_withdrawal | Techniker-Auszahlungsprotokolle |
-| Techniker | erik_technician_attendance | Techniker-Anwesenheit |
-| Techniker | erik_technician_member_note | Mitgliederprofile |
-| Dienstleistung | erik_service_category | Servicekategorien |
-| Dienstleistung | erik_service | Serviceleistungen |
-| Dienstleistung | erik_product | Produkte |
-| Dienstleistung | erik_store | Filialen |
-| Bestellung | erik_order | Bestell-Haupttabelle (seckill_id-Verknüpfungsspalte, Runde 24) |
-| Bestellung | erik_order_item | Bestellpositionen |
-| Bestellung | erik_order_payment | Zahlungsprotokolle |
-| Bestellung | erik_order_refund | Rückerstattungsprotokolle |
-| Bestellung | erik_order_review | Servicebewertungen |
-| Bestellung | erik_order_verification | Verifizierungsprotokolle |
-| Bestellung | erik_order_reschedule | Buchungsumänderungen (Runde 17) |
-| Marketing | erik_coupon | Gutschein-Definitionen |
-| Marketing | erik_user_coupon | Benutzergutscheine |
-| Marketing | erik_user_coupon_transfer | Gutschein-Weitergabeprotokolle (Runde 17) |
-| Marketing | erik_user_points_transfer | Punkte-Weitergabeprotokolle (Runde 19) |
-| Marketing | erik_technician_tier_log | Techniker-Stufenänderungsprotokolle (Runde 17) |
-| Marketing | erik_member_card | Mitgliederkarten-Definitionen |
-| Marketing | erik_user_member_card | Benutzer-Mitgliederkarten |
-| Marketing | erik_member_card_usage | Stempelkarten-Nutzungsprotokolle |
-| Marketing | erik_user_points | Punktebuchungen |
-| Marketing | erik_gift_card | Geschenkkarten |
-| Marketing | erik_user_referral | Benutzerwerbung |
-| Marketing | erik_user_favorite | Benutzerfavoriten |
-| Wallet | erik_user_wallet | Benutzer-Wallet-Guthaben |
-| Wallet | erik_wallet_recharge | Wallet-Aufladeprotokolle |
-| Wallet | erik_wallet_txn | Wallet-Transaktionsbuchungen |
-| Wallet | erik_wallet_transfer | Überweisungsprotokolle zwischen Benutzern (Runde 19) |
-| Benutzer | erik_user_notify_setting | Nachrichteneinstellungen (Runde 19) |
-| Inhalt | erik_banner | Karussell |
-| Inhalt | erik_announcement | Ankündigungen |
-| Inhalt | erik_platform_agreement | Plattformvereinbarungen |
-| Inhalt | erik_faq | FAQ |
-| Inhalt | erik_feedback | Feedback |
-| Inhalt | erik_moment | Moments-Beiträge |
-| Inhalt | erik_notification | Benachrichtigungen |
-| Finanzen | erik_finance_transaction | Einnahmen-Ausgaben-Buchungen |
-| Finanzen | erik_technician_commission_config | Provisionskonfiguration |
-| Finanzen | erik_withdrawal_account | Auszahlungskonten |
-| Finanzen | erik_withdrawal_config | Auszahlungslimit-Konfiguration |
-| System | erik_admin_user | Verwaltungsbenutzer (angelegt) |
-| System | erik_admin_role | Rollen (angelegt) |
-| System | erik_admin_permission | Berechtigungen (angelegt) |
-| System | erik_admin_user_role | Benutzer-Rollen-Verknüpfung (angelegt) |
-| System | erik_admin_role_permission | Rollen-Berechtigungs-Verknüpfung (angelegt) |
-| System | erik_system_config | Systemkonfiguration (angelegt) |
-| System | erik_operation_log | Betriebsprotokolle (angelegt) |
-| Benutzer | erik_user_growth | Wachstumswert-Buchungen (Runde 20) |
-| Benutzer | erik_growth_level | Wachstumsstufen (Runde 20) |
-| Bestellung | erik_invoice | Elektronische Rechnungen (Runde 20) |
-| Benutzer | erik_ticket | Kundenservice-Tickets (Runde 20) |
-| Marketing | erik_referral_level2_reward | Zweitstufen-Provisionen (Runde 20) |
-| Benutzer | erik_invoice_title | Rechnungsanschrift-Bibliothek (Runde 21) |
-| Benutzer | erik_browse_history | Browserverlauf (Runde 21) |
-| Marketing | erik_full_reduction_activity | Rabatt-ab-Mindestbetrag-Aktionen (Runde 22) |
-| Techniker | erik_technician_attendance | Techniker-Anwesenheit (Runde 22) |
-| System | erik_push_log | APP-Push-Protokolle (Runde 22) |
-| Finanzen | erik_profit_sharing | WeChat-Profit-Sharing-Protokolle (Runde 22) |
-| Bestellung | erik_order_status_log | Bestellstatus-Zeitachse (Runde 23) |
-| Benutzer | erik_user_health_profile | Benutzer-Gesundheitsprofile (Runde 23) |
-| Marketing | erik_lucky_wheel | Glücksrad-Preise (Runde 23) |
-| Marketing | erik_wheel_record | Glücksrad-Ziehungsprotokolle (Runde 23) |
-| Marketing | erik_seckill_activity | Blitzangebots-Aktivitäten (Runde 24) |
-| System | erik_app_version | APP-Versionen (Runde 24) |
+| Benutzer | appointment_user | Einheitliche Benutzertabelle |
+| Benutzer | appointment_user_address | Lieferadressen |
+| Techniker | appointment_technician_profile | Technikerprofil |
+| Techniker | appointment_technician_schedule | Techniker-Schichtplan |
+| Techniker | appointment_technician_service | Vom Techniker angebotene Leistungen |
+| Techniker | appointment_technician_earnings | Techniker-Einnahmenbuchungen |
+| Techniker | appointment_technician_withdrawal | Techniker-Auszahlungsprotokolle |
+| Techniker | appointment_technician_attendance | Techniker-Anwesenheit |
+| Techniker | appointment_technician_member_note | Mitgliederprofile |
+| Dienstleistung | appointment_service_category | Servicekategorien |
+| Dienstleistung | appointment_service | Serviceleistungen |
+| Dienstleistung | appointment_product | Produkte |
+| Dienstleistung | appointment_store | Filialen |
+| Bestellung | appointment_order | Bestell-Haupttabelle (seckill_id-Verknüpfungsspalte, Runde 24) |
+| Bestellung | appointment_order_item | Bestellpositionen |
+| Bestellung | appointment_order_payment | Zahlungsprotokolle |
+| Bestellung | appointment_order_refund | Rückerstattungsprotokolle |
+| Bestellung | appointment_order_review | Servicebewertungen |
+| Bestellung | appointment_order_verification | Verifizierungsprotokolle |
+| Bestellung | appointment_order_reschedule | Buchungsumänderungen (Runde 17) |
+| Marketing | appointment_coupon | Gutschein-Definitionen |
+| Marketing | appointment_user_coupon | Benutzergutscheine |
+| Marketing | appointment_user_coupon_transfer | Gutschein-Weitergabeprotokolle (Runde 17) |
+| Marketing | appointment_user_points_transfer | Punkte-Weitergabeprotokolle (Runde 19) |
+| Marketing | appointment_technician_tier_log | Techniker-Stufenänderungsprotokolle (Runde 17) |
+| Marketing | appointment_member_card | Mitgliederkarten-Definitionen |
+| Marketing | appointment_user_member_card | Benutzer-Mitgliederkarten |
+| Marketing | appointment_member_card_usage | Stempelkarten-Nutzungsprotokolle |
+| Marketing | appointment_user_points | Punktebuchungen |
+| Marketing | appointment_gift_card | Geschenkkarten |
+| Marketing | appointment_user_referral | Benutzerwerbung |
+| Marketing | appointment_user_favorite | Benutzerfavoriten |
+| Wallet | appointment_user_wallet | Benutzer-Wallet-Guthaben |
+| Wallet | appointment_wallet_recharge | Wallet-Aufladeprotokolle |
+| Wallet | appointment_wallet_txn | Wallet-Transaktionsbuchungen |
+| Wallet | appointment_wallet_transfer | Überweisungsprotokolle zwischen Benutzern (Runde 19) |
+| Benutzer | appointment_user_notify_setting | Nachrichteneinstellungen (Runde 19) |
+| Inhalt | appointment_banner | Karussell |
+| Inhalt | appointment_announcement | Ankündigungen |
+| Inhalt | appointment_platform_agreement | Plattformvereinbarungen |
+| Inhalt | appointment_faq | FAQ |
+| Inhalt | appointment_feedback | Feedback |
+| Inhalt | appointment_moment | Moments-Beiträge |
+| Inhalt | appointment_notification | Benachrichtigungen |
+| Finanzen | appointment_finance_transaction | Einnahmen-Ausgaben-Buchungen |
+| Finanzen | appointment_technician_commission_config | Provisionskonfiguration |
+| Finanzen | appointment_withdrawal_account | Auszahlungskonten |
+| Finanzen | appointment_withdrawal_config | Auszahlungslimit-Konfiguration |
+| System | appointment_admin_user | Verwaltungsbenutzer (angelegt) |
+| System | appointment_admin_role | Rollen (angelegt) |
+| System | appointment_admin_permission | Berechtigungen (angelegt) |
+| System | appointment_admin_user_role | Benutzer-Rollen-Verknüpfung (angelegt) |
+| System | appointment_admin_role_permission | Rollen-Berechtigungs-Verknüpfung (angelegt) |
+| System | appointment_system_config | Systemkonfiguration (angelegt) |
+| System | appointment_operation_log | Betriebsprotokolle (angelegt) |
+| Benutzer | appointment_user_growth | Wachstumswert-Buchungen (Runde 20) |
+| Benutzer | appointment_growth_level | Wachstumsstufen (Runde 20) |
+| Bestellung | appointment_invoice | Elektronische Rechnungen (Runde 20) |
+| Benutzer | appointment_ticket | Kundenservice-Tickets (Runde 20) |
+| Marketing | appointment_referral_level2_reward | Zweitstufen-Provisionen (Runde 20) |
+| Benutzer | appointment_invoice_title | Rechnungsanschrift-Bibliothek (Runde 21) |
+| Benutzer | appointment_browse_history | Browserverlauf (Runde 21) |
+| Marketing | appointment_full_reduction_activity | Rabatt-ab-Mindestbetrag-Aktionen (Runde 22) |
+| Techniker | appointment_technician_attendance | Techniker-Anwesenheit (Runde 22) |
+| System | appointment_push_log | APP-Push-Protokolle (Runde 22) |
+| Finanzen | appointment_profit_sharing | WeChat-Profit-Sharing-Protokolle (Runde 22) |
+| Bestellung | appointment_order_status_log | Bestellstatus-Zeitachse (Runde 23) |
+| Benutzer | appointment_user_health_profile | Benutzer-Gesundheitsprofile (Runde 23) |
+| Marketing | appointment_lucky_wheel | Glücksrad-Preise (Runde 23) |
+| Marketing | appointment_wheel_record | Glücksrad-Ziehungsprotokolle (Runde 23) |
+| Marketing | appointment_seckill_activity | Blitzangebots-Aktivitäten (Runde 24) |
+| System | appointment_app_version | APP-Versionen (Runde 24) |
 
 ### Ergänzungsliste (Teil der 95 Tabellen aus docs/install.sql, die oben nicht aufgeführt sind; die vollständige maßgebliche Liste ist install.sql)
 
 | Domäne | Tabellenname | Beschreibung |
 |----|------|------|
-| Marketing | erik_card_transfer | Stempelkarten-Weitergabe |
-| Benutzer | erik_check_in | Check-in |
-| Inhalt | erik_community_post | Community-Momente |
-| Inhalt | erik_community_comment | Community-Kommentare |
-| Techniker | erik_exam | Prüfungen |
-| Techniker | erik_exam_question | Prüfungsfragen |
-| Techniker | erik_exam_attempt | Prüfungsantworten |
-| System | erik_operation_log_detail | Betriebsprotokoll-Details |
-| Bestellung | erik_order_aftersale | Bestell-Kundendienst |
-| Marketing | erik_points_exchange_goods | Punkte-Einlöseartikel |
-| Marketing | erik_promotion | Gruppeneinkauf-Aktivitäten |
-| Marketing | erik_promotion_participant | Gruppeneinkauf-Teilnehmer |
-| Bestellung | erik_queue_number | Wartenummern-Ruf |
-| Dienstleistung | erik_service_package | Servicepakete |
-| Techniker | erik_service_record | Serviceprotokolle |
-| Inhalt | erik_share | Teilungsprotokolle |
-| Bestellung | erik_signature | Signaturen |
-| Techniker | erik_technician_tier_config | Techniker-Stufenkonfiguration |
-| Techniker | erik_training_course | Schulungskurse |
-| Techniker | erik_training_progress | Schulungsfortschritt |
-| Benutzer | erik_user_device | Benutzergeräte |
-| Marketing | erik_user_points_exchange | Punkte-Einlöseprotokolle |
-| Inhalt | erik_video_post | Video-Momente |
-| Bestellung | erik_waitlist | Warteliste |
+| Marketing | appointment_card_transfer | Stempelkarten-Weitergabe |
+| Benutzer | appointment_check_in | Check-in |
+| Inhalt | appointment_community_post | Community-Momente |
+| Inhalt | appointment_community_comment | Community-Kommentare |
+| Techniker | appointment_exam | Prüfungen |
+| Techniker | appointment_exam_question | Prüfungsfragen |
+| Techniker | appointment_exam_attempt | Prüfungsantworten |
+| System | appointment_operation_log_detail | Betriebsprotokoll-Details |
+| Bestellung | appointment_order_aftersale | Bestell-Kundendienst |
+| Marketing | appointment_points_exchange_goods | Punkte-Einlöseartikel |
+| Marketing | appointment_promotion | Gruppeneinkauf-Aktivitäten |
+| Marketing | appointment_promotion_participant | Gruppeneinkauf-Teilnehmer |
+| Bestellung | appointment_queue_number | Wartenummern-Ruf |
+| Dienstleistung | appointment_service_package | Servicepakete |
+| Techniker | appointment_service_record | Serviceprotokolle |
+| Inhalt | appointment_share | Teilungsprotokolle |
+| Bestellung | appointment_signature | Signaturen |
+| Techniker | appointment_technician_tier_config | Techniker-Stufenkonfiguration |
+| Techniker | appointment_training_course | Schulungskurse |
+| Techniker | appointment_training_progress | Schulungsfortschritt |
+| Benutzer | appointment_user_device | Benutzergeräte |
+| Marketing | appointment_user_points_exchange | Punkte-Einlöseprotokolle |
+| Inhalt | appointment_video_post | Video-Momente |
+| Bestellung | appointment_waitlist | Warteliste |
 
 ## Reservierte externe Dienste
 

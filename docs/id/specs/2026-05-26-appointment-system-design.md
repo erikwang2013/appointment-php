@@ -57,75 +57,75 @@ Sistem layanan janji temu tiga platform: sisi pengguna (WeChat Mini Program + Fl
 
 ## Tabel Inti Database
 
-Semua tabel menggunakan prefiks `erik_`, primary key BIGINT non-auto-increment (dihasilkan Snowflake). Kolom sensitif menggunakan trait encryptable untuk enkripsi/dekripsi.
+Semua tabel menggunakan prefiks `appointment_`, primary key BIGINT non-auto-increment (dihasilkan Snowflake). Kolom sensitif menggunakan trait encryptable untuk enkripsi/dekripsi.
 
 ### Domain Pengguna dan Identitas
 
 | Nama tabel | Keterangan | Kolom inti |
 |------|------|----------|
-| `erik_user` | Tabel pengguna terpadu | phone, password, wx_openid, wx_unionid, avatar, nickname, user_type(customer/technician), status. Pengguna teknisi sekaligus memiliki fungsi pelanggan, dapat bebas mengalihkan identitas aktif saat ini |
-| `erik_user_address` | Alamat pengguna | user_id, contact_name, contact_phone, province, city, district, detail, is_default |
-| `erik_technician_profile` | Arsip teknisi | user_id, real_name, gender, id_card, id_card_front, id_card_back, avatar, rating, order_count, status(pending/approved/rejected), intro |
-| `erik_technician_schedule` | Jadwal teknisi | technician_id, date, time_slots(JSON), status |
-| `erik_technician_service` | Item layanan teknisi | technician_id, service_id |
-| `erik_technician_earnings` | Riwayat pendapatan teknisi | technician_id, order_id, type(commission/bonus/penalty), amount, status |
-| `erik_technician_withdrawal` | Catatan penarikan teknisi | technician_id, amount, actual_amount, commission_fee, account_info, status, reviewed_at |
-| `erik_technician_attendance` | Kehadiran teknisi | technician_id, date, check_in_at, check_out_at, clean_photo |
-| `erik_technician_member_note` | Arsip anggota | technician_id, user_id, content, written_at |
+| `appointment_user` | Tabel pengguna terpadu | phone, password, wx_openid, wx_unionid, avatar, nickname, user_type(customer/technician), status. Pengguna teknisi sekaligus memiliki fungsi pelanggan, dapat bebas mengalihkan identitas aktif saat ini |
+| `appointment_user_address` | Alamat pengguna | user_id, contact_name, contact_phone, province, city, district, detail, is_default |
+| `appointment_technician_profile` | Arsip teknisi | user_id, real_name, gender, id_card, id_card_front, id_card_back, avatar, rating, order_count, status(pending/approved/rejected), intro |
+| `appointment_technician_schedule` | Jadwal teknisi | technician_id, date, time_slots(JSON), status |
+| `appointment_technician_service` | Item layanan teknisi | technician_id, service_id |
+| `appointment_technician_earnings` | Riwayat pendapatan teknisi | technician_id, order_id, type(commission/bonus/penalty), amount, status |
+| `appointment_technician_withdrawal` | Catatan penarikan teknisi | technician_id, amount, actual_amount, commission_fee, account_info, status, reviewed_at |
+| `appointment_technician_attendance` | Kehadiran teknisi | technician_id, date, check_in_at, check_out_at, clean_photo |
+| `appointment_technician_member_note` | Arsip anggota | technician_id, user_id, content, written_at |
 
 ### Domain Layanan dan Produk
 
 | Nama tabel | Keterangan | Kolom inti |
 |------|------|----------|
-| `erik_service_category` | Kategori layanan | name, icon, parent_id, sort, status |
-| `erik_service` | Item layanan | category_id, name, description, cover_image, images(JSON), price, duration, sales_volume, specs(JSON), status |
-| `erik_product` | Produk | category_id, name, cover_image, price, stock, sales_volume, type, status |
-| `erik_store` | Toko | name, address, lat, lng, phone, business_hours(JSON), images, status |
+| `appointment_service_category` | Kategori layanan | name, icon, parent_id, sort, status |
+| `appointment_service` | Item layanan | category_id, name, description, cover_image, images(JSON), price, duration, sales_volume, specs(JSON), status |
+| `appointment_product` | Produk | category_id, name, cover_image, price, stock, sales_volume, type, status |
+| `appointment_store` | Toko | name, address, lat, lng, phone, business_hours(JSON), images, status |
 
 ### Domain Pesanan
 
 | Nama tabel | Keterangan | Kolom inti |
 |------|------|----------|
-| `erik_order` | Tabel utama pesanan | order_no, user_id, technician_id, store_id, total_amount, discount_amount, paid_amount, status, service_time, cancel_reason, remark |
-| `erik_order_item` | Rincian pesanan | order_id, service_id, product_id, type, name, price, quantity, spec_info |
-| `erik_order_payment` | Catatan pembayaran | order_id, pay_type(wechat), transaction_id, amount, status, paid_at |
-| `erik_order_refund` | Catatan refund | order_id, payment_id, refund_no, amount, ratio, reason, status |
-| `erik_order_review` | Ulasan layanan | order_id, user_id, technician_id, rating, content, images |
-| `erik_order_verification` | Catatan verifikasi | order_id, code, verified_at, verified_by, location |
+| `appointment_order` | Tabel utama pesanan | order_no, user_id, technician_id, store_id, total_amount, discount_amount, paid_amount, status, service_time, cancel_reason, remark |
+| `appointment_order_item` | Rincian pesanan | order_id, service_id, product_id, type, name, price, quantity, spec_info |
+| `appointment_order_payment` | Catatan pembayaran | order_id, pay_type(wechat), transaction_id, amount, status, paid_at |
+| `appointment_order_refund` | Catatan refund | order_id, payment_id, refund_no, amount, ratio, reason, status |
+| `appointment_order_review` | Ulasan layanan | order_id, user_id, technician_id, rating, content, images |
+| `appointment_order_verification` | Catatan verifikasi | order_id, code, verified_at, verified_by, location |
 
 ### Domain Pemasaran
 
 | Nama tabel | Keterangan | Kolom inti |
 |------|------|----------|
-| `erik_coupon` | Definisi kupon | name, type, amount, min_amount, total_qty, remain_qty, start_at, end_at, status |
-| `erik_user_coupon` | Kupon pengguna | user_id, coupon_id, status(available/used/expired), used_at |
-| `erik_member_card` | Definisi kartu member | name, type(month/vip/times), price, duration_days, total_times, services(JSON) |
-| `erik_user_member_card` | Kartu member pengguna | user_id, card_id, start_at, end_at, total_times, used_times, status |
-| `erik_member_card_usage` | Catatan penggunaan kartu kunjungan | user_card_id, order_id, service_id, used_at |
-| `erik_user_points` | Riwayat poin | user_id, type(earn/use), points, source, order_id |
-| `erik_gift_card` | Kartu hadiah | code, type, amount_or_gift, status, used_by, used_at |
-| `erik_user_referral` | Promosi pengguna | referrer_id, referred_user_id, reward_type, reward_amount, registered_at, first_order_at |
+| `appointment_coupon` | Definisi kupon | name, type, amount, min_amount, total_qty, remain_qty, start_at, end_at, status |
+| `appointment_user_coupon` | Kupon pengguna | user_id, coupon_id, status(available/used/expired), used_at |
+| `appointment_member_card` | Definisi kartu member | name, type(month/vip/times), price, duration_days, total_times, services(JSON) |
+| `appointment_user_member_card` | Kartu member pengguna | user_id, card_id, start_at, end_at, total_times, used_times, status |
+| `appointment_member_card_usage` | Catatan penggunaan kartu kunjungan | user_card_id, order_id, service_id, used_at |
+| `appointment_user_points` | Riwayat poin | user_id, type(earn/use), points, source, order_id |
+| `appointment_gift_card` | Kartu hadiah | code, type, amount_or_gift, status, used_by, used_at |
+| `appointment_user_referral` | Promosi pengguna | referrer_id, referred_user_id, reward_type, reward_amount, registered_at, first_order_at |
 
 ### Domain Konten dan Notifikasi
 
 | Nama tabel | Keterangan | Kolom inti |
 |------|------|----------|
-| `erik_banner` | Banner | position, image, jump_type(url/detail/none), jump_value, sort, status |
-| `erik_announcement` | Pengumuman | content, status, published_at |
-| `erik_platform_agreement` | Perjanjian platform | type(user_agreement/privacy_policy/service_agreement), title, content, version |
-| `erik_faq` | Pertanyaan umum | title, content, sort |
-| `erik_feedback` | Umpan balik | user_id, content, images, handler_reply, status(pending/handled) |
-| `erik_moment` | Dinamika momen | content, images, published_at |
-| `erik_notification` | Notifikasi pesan | user_id, type(order/system), title, content, is_read, created_at |
+| `appointment_banner` | Banner | position, image, jump_type(url/detail/none), jump_value, sort, status |
+| `appointment_announcement` | Pengumuman | content, status, published_at |
+| `appointment_platform_agreement` | Perjanjian platform | type(user_agreement/privacy_policy/service_agreement), title, content, version |
+| `appointment_faq` | Pertanyaan umum | title, content, sort |
+| `appointment_feedback` | Umpan balik | user_id, content, images, handler_reply, status(pending/handled) |
+| `appointment_moment` | Dinamika momen | content, images, published_at |
+| `appointment_notification` | Notifikasi pesan | user_id, type(order/system), title, content, is_read, created_at |
 
 ### Domain Keuangan (sisi admin)
 
 | Nama tabel | Keterangan | Kolom inti |
 |------|------|----------|
-| `erik_finance_transaction` | Riwayat pemasukan/pengeluaran | user_id, order_id, type, direction(income/expense), amount, actual_amount, commission, status |
-| `erik_technician_commission_config` | Konfigurasi komisi | technician_id, commission_rate, settlement_cycle |
-| `erik_withdrawal_account` | Akun penarikan | user_id, type(wechat), account_name, account_no |
-| `erik_withdrawal_config` | Konfigurasi batas penarikan | min_amount, reserve_amount, round_to_hundred |
+| `appointment_finance_transaction` | Riwayat pemasukan/pengeluaran | user_id, order_id, type, direction(income/expense), amount, actual_amount, commission, status |
+| `appointment_technician_commission_config` | Konfigurasi komisi | technician_id, commission_rate, settlement_cycle |
+| `appointment_withdrawal_account` | Akun penarikan | user_id, type(wechat), account_name, account_no |
+| `appointment_withdrawal_config` | Konfigurasi batas penarikan | min_amount, reserve_amount, round_to_hundred |
 
 ## Modul API Service
 

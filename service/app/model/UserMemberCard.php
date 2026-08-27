@@ -9,7 +9,7 @@ use support\Model;
 
 class UserMemberCard extends Model
 {
-    protected $table = 'erik_user_member_card';
+    protected $table = 'appointment_user_member_card';
     public $incrementing = false;
     protected $keyType = 'string';
     public $timestamps = true;

@@ -308,7 +308,7 @@ Saat diatur sebagai default otomatis membatalkan alamat default lain.
 | GET | `/api/user/referral/referred-users` | daftar pengguna yang direkomendasikan |
 | GET | `/api/user/referral/earnings` | detail komisi referral (paginasi: nama panggilan/avatar/nomor pesanan/jumlah/waktu ter-referral) |
 
-**Komisi referral**: setelah pesanan pertama ter-referral completed, jumlah = paid_amount × reward_rate (erik_system_config referral.reward_rate, default 0.05, nilai ilegal jatuh konstanta). Row lock + cek kosong rewarded_at + periksa ulang pesanan pertama tiga lapis idempoten; pencatatan WalletTxn type=referral_reward.
+**Komisi referral**: setelah pesanan pertama ter-referral completed, jumlah = paid_amount × reward_rate (appointment_system_config referral.reward_rate, default 0.05, nilai ilegal jatuh konstanta). Row lock + cek kosong rewarded_at + periksa ulang pesanan pertama tiga lapis idempoten; pencatatan WalletTxn type=referral_reward.
 
 #### 2.6 Transfer Poin (ronde ke-19)
 
@@ -326,7 +326,7 @@ Saat diatur sebagai default otomatis membatalkan alamat default lain.
 | GET | `/api/user/notify-settings` | kueri saklar notifikasi (5 jenis lengkap) |
 | PUT | `/api/user/notify-settings` | perbarui saklar massal (types: {service_reminder: 0/1, ...}) |
 
-**Saklar notifikasi**: tabel erik_user_notify_setting (kunci unik gabungan user_id+type, baris default kosong=default nyala). 5 jenis: service_reminder pengingat layanan / card_expiry pengingat kedaluwarsa (kartu+kupon payung seragam) / points_expiry kedaluwarsa poin / marketing pemasaran (cadangan) / system sistem (tidak bisa dimatikan, PUT paksa 1). Gerbang: notifySettingEnabled pasang 3 proses timer ServiceReminderTimer/ExpiryReminderTimer/PointsExpiryTimer + pemetaan skenario event subscription (PAY/REFUND/VERIFIED/RESCHEDULE→system selalu kirim, REMINDER→service_reminder, EXPIRY→card_expiry); jenis dimatikan notifikasi situs dan subscription message sama-sama dilewati.
+**Saklar notifikasi**: tabel appointment_user_notify_setting (kunci unik gabungan user_id+type, baris default kosong=default nyala). 5 jenis: service_reminder pengingat layanan / card_expiry pengingat kedaluwarsa (kartu+kupon payung seragam) / points_expiry kedaluwarsa poin / marketing pemasaran (cadangan) / system sistem (tidak bisa dimatikan, PUT paksa 1). Gerbang: notifySettingEnabled pasang 3 proses timer ServiceReminderTimer/ExpiryReminderTimer/PointsExpiryTimer + pemetaan skenario event subscription (PAY/REFUND/VERIFIED/RESCHEDULE→system selalu kirim, REMINDER→service_reminder, EXPIRY→card_expiry); jenis dimatikan notifikasi situs dan subscription message sama-sama dilewati.
 
 ---
 
@@ -405,7 +405,7 @@ Aturan: setiap tanggal 20 bisa menarik, T+1 masuk, jumlah minimum/batas kelipata
 
 **Saat buat pesanan**: Redis SETNX kunci teknisi 3 menit, keluar halaman atau timeout lepaskan.
 
-**Anti tamper harga (2026-08-26)**: jumlah item pesanan selalu berdasarkan catatan database (target_type=service cari erik_service, product cari erik_product), harga kiriman klien tidak ikut perhitungan; target_type tidak dikenal 422; target_id wajib kirim nilai encode hashid (kirim raw id decode menjadi 0 → 422「Barang tidak ada atau sudah dihapus」); harga belanja bersama/flash sale juga berdasarkan DB.
+**Anti tamper harga (2026-08-26)**: jumlah item pesanan selalu berdasarkan catatan database (target_type=service cari appointment_service, product cari appointment_product), harga kiriman klien tidak ikut perhitungan; target_type tidak dikenal 422; target_id wajib kirim nilai encode hashid (kirim raw id decode menjadi 0 → 422「Barang tidak ada atau sudah dihapus」); harga belanja bersama/flash sale juga berdasarkan DB.
 
 **Aturan refund**: dalam 15 menit pemesanan atau jarak mulai >6 jam refund 100% / ≤6 jam 90% / sudah mulai 80% / setelah konfirmasi mulai tidak refund.
 
@@ -413,7 +413,7 @@ Aturan: setiap tanggal 20 bisa menarik, T+1 masuk, jumlah minimum/batas kelipata
 
 **Pembayaran saldo & refund**: badan permintaan pembayaran kirim `pay_channel: "balance"` pakai saldo dompet; refund WeChat dan refund saldo sama-sama isi ulang jumlah ke saldo dompet.
 
-**Poin setara uang**: badan permintaan pembayaran opsional kirim `use_points` (bilangan bulat). Validasi SUM agregat saldo poin (kolom balance erik_user_points adalah snapshot kenaikan satuan, tidak bisa langsung dipakai sebagai saldo), jumlah potongan = floor(use_points / config('app.points_rate', 100)) yuan, jumlah bayar aktual = terutang asli - potongan (batas bawah 0.01, melebihi terutang potong sesuai terutang tidak buang poin). Sukses tulis transaksi konsumsi type=consume/source=points_offset (idempoten, retry tidak potong ulang). Saldo kurang 422.
+**Poin setara uang**: badan permintaan pembayaran opsional kirim `use_points` (bilangan bulat). Validasi SUM agregat saldo poin (kolom balance appointment_user_points adalah snapshot kenaikan satuan, tidak bisa langsung dipakai sebagai saldo), jumlah potongan = floor(use_points / config('app.points_rate', 100)) yuan, jumlah bayar aktual = terutang asli - potongan (batas bawah 0.01, melebihi terutang potong sesuai terutang tidak buang poin). Sukses tulis transaksi konsumsi type=consume/source=points_offset (idempoten, retry tidak potong ulang). Saldo kurang 422.
 
 **Isi ulang poin**: saat batalkan/refund kembalikan poin yang dikonsumsi points_offset (type=earn/source=points_refund): batal penuh, refund proporsional, 5 titik pemasangan idempoten (refundOffsetPoints).
 
@@ -421,7 +421,7 @@ Aturan: setiap tanggal 20 bisa menarik, T+1 masuk, jumlah minimum/batas kelipata
 
 **Pemesanan flash sale (ronde ke-18, sudah dimatikan)**: ~~buat pesanan kirim `promotion_id` (tipe flash_sale)~~ —— mulai 2026-08 kanal promosi lama FLASH_SALE dihapus, cabang promosi store() tinggal GROUP_BUY belanja bersama (non belanja bersama promotion 422); flash sale seragam lewat kanal `/api/seckill` ronde ke-24 (seckill_id injeksi ke store, potong stok row lock dalam transaksi), PromotionController::index filter flash_sale, show/join untuk itu mengembalikan 400, konstanta `Promotion::TYPE_FLASH_SALE` dipertahankan kompatibel data historis.
 
-**Ganti jadwal janji temu (ronde ke-17)**: `POST /api/order/reschedule/{id}` kirim new_service_time (wajib) + reason (opsional), ganti waktu teknisi sama. Aturan: hanya pesanan sendiri (bukan sendiri 404), hanya tipe appointment dan status pending/paid/confirmed bisa ganti (lainnya 422), jarak mulai layanan asli ≥ 6 jam (selaras jendela refund penuh) baru bisa ganti. Proteksi bersamaan: B1 order_lock (keluarga mutual exclusion sama dengan pay/cancel/refund) → kunci teknisi slot baru Redis SETNX EX 180 (cegah oversold ganti jadwal bersamaan) → row lock baca ulang dalam transaksi + validasi DB konflik jadwal B2 (kecuali pesanan ini) → perbarui service_time + tulis catatan erik_order_reschedule → lepaskan kunci slot lama, kunci slot baru dipegang pesanan ini → subscription message SCENE_RESCHEDULE (tidak dikonfigurasi degradasi notifikasi situs). Jalur gagal rollback transaksi sekaligus lepaskan kunci slot baru.
+**Ganti jadwal janji temu (ronde ke-17)**: `POST /api/order/reschedule/{id}` kirim new_service_time (wajib) + reason (opsional), ganti waktu teknisi sama. Aturan: hanya pesanan sendiri (bukan sendiri 404), hanya tipe appointment dan status pending/paid/confirmed bisa ganti (lainnya 422), jarak mulai layanan asli ≥ 6 jam (selaras jendela refund penuh) baru bisa ganti. Proteksi bersamaan: B1 order_lock (keluarga mutual exclusion sama dengan pay/cancel/refund) → kunci teknisi slot baru Redis SETNX EX 180 (cegah oversold ganti jadwal bersamaan) → row lock baca ulang dalam transaksi + validasi DB konflik jadwal B2 (kecuali pesanan ini) → perbarui service_time + tulis catatan appointment_order_reschedule → lepaskan kunci slot lama, kunci slot baru dipegang pesanan ini → subscription message SCENE_RESCHEDULE (tidak dikonfigurasi degradasi notifikasi situs). Jalur gagal rollback transaksi sekaligus lepaskan kunci slot baru.
 
 **Pelacakan logistik (ronde ke-19)**: `GET /api/order/logistics/{id}` — hanya pesanan product sendiri yang bisa dilihat (bukan sendiri/bukan barang/belum kirim seragam 404). Baca order.remark JSON (shipping_company/tracking_no/shipped_at, ditulis saat pengiriman oleh admin MallOrderController::ship()), parseShippingInfo/parseReceiver dua parsing fallback format lama; nomor ponsel penerima deidentifikasi 138****5678.
 
@@ -478,7 +478,7 @@ Aturan: setiap tanggal 20 bisa menarik, T+1 masuk, jumlah minimum/batas kelipata
 
 **Aturan poin**: detail paginasi, filter type (earn/use/expire), filter source (order/referral/gift_card/check_in/admin). Check-in kembali poin (CheckIn, type=earn); konsumsi kembali poin floor(paid_amount×1), dibagikan saat verifikasi dan idempoten; refund potong poin proporsional.
 
-**Kedaluwarsa poin (ronde ke-17)**: kolom erik_user_points.expires_at (config points.expiry_days, default 365 hari, ≤0 tidak pernah kedaluwarsa), semua earn masuk DB isi masa berlaku; proses terjadwal PointsExpiryTimer setiap 60s pemindaian kursor baris earn kedaluwarsa, tulis baris potongan negatif type=expire (source=expiry + order_id telusur transaksi asli, tiga lapis idempoten) + agregat notifikasi situs「Anda memiliki X poin telah kedaluwarsa」; standar saldo tersedia SUM termasuk baris negatif expire, poin kedaluwarsa tidak bisa setara uang/tukar lagi.
+**Kedaluwarsa poin (ronde ke-17)**: kolom appointment_user_points.expires_at (config points.expiry_days, default 365 hari, ≤0 tidak pernah kedaluwarsa), semua earn masuk DB isi masa berlaku; proses terjadwal PointsExpiryTimer setiap 60s pemindaian kursor baris earn kedaluwarsa, tulis baris potongan negatif type=expire (source=expiry + order_id telusur transaksi asli, tiga lapis idempoten) + agregat notifikasi situs「Anda memiliki X poin telah kedaluwarsa」; standar saldo tersedia SUM termasuk baris negatif expire, poin kedaluwarsa tidak bisa setara uang/tukar lagi.
 
 **Transfer kupon (ronde ke-17)**: transfer validasi kupon milik sendiri/available/definisi kupon belum kedaluwarsa/belum pernah ditransfer, hasilkan kode transfer 8 karakter unik anti-ambigu (indeks unik uk_code fallback), berlaku 7 hari. claim anti penyalahgunaan: kunci Redis NX (coupon_transfer_claim:{code} 30s) + verifikasi ulang row lock cegah double-spend, indeks unik uk_user_coupon batasi kupon sama hanya bisa ditransfer sekali, kupon ditransfer tidak bisa ditransfer lagi (kupon baru tanpa catatan transfer terblokir natural), tidak bisa klaim kupon yang ditransfer sendiri 422, penerima bukan pemegang asli; malas menilai kedaluwarsa set expired dan pulihkan kupon asli available. Dalam transaksi claim kupon asli set used + buat UserCoupon baru ikat penerima (coupon_id tidak berubah artinya masa berlaku tidak berubah) + catatan set claimed.
 
@@ -524,7 +524,7 @@ Aturan: setiap tanggal 20 bisa menarik, T+1 masuk, jumlah minimum/batas kelipata
 | GET | `/api/store-manager/technicians` | daftar teknisi (termasuk jadwal hari ini) |
 | GET | `/api/store-manager/revenue` | agregat pendapatan 7 hari terakhir |
 
-**Isolasi store_id**: requireStoreId() paksa pengguna saat ini terikat toko (erik_user.store_id), tanpa toko 403; semua kueri difilter berdasarkan store_id.
+**Isolasi store_id**: requireStoreId() paksa pengguna saat ini terikat toko (appointment_user.store_id), tanpa toko 403; semua kueri difilter berdasarkan store_id.
 
 ---
 
@@ -673,7 +673,7 @@ Pintu masuk jelajah tanpa login tanpa otentikasi (hanya middleware ApiVersion).
 
 | Metode | Jalur | Keterangan |
 |------|------|------|
-| GET | `/api/seckill` | daftar aktivitas flash sale (status=1 dan dalam jendela waktu; termasuk jumlah terjual = jumlah pesanan erik_order.seckill_id, sisa stok) |
+| GET | `/api/seckill` | daftar aktivitas flash sale (status=1 dan dalam jendela waktu; termasuk jumlah terjual = jumlah pesanan appointment_order.seckill_id, sisa stok) |
 | GET | `/api/seckill/{id}` | detail aktivitas (state=not_started/ongoing/ended) |
 | POST | `/api/seckill/{id}/buy` | pesan flash sale (client_token idempoten + Redis NX 30s cegah bersamaan + validasi aktivitas; tidak lagi pre-deduct stok) |
 
@@ -761,7 +761,7 @@ ID izin: 379.
 
 ID izin: 380.
 
-**Penilaian otomatis**: TierRatingService::evaluate statistik real-time (jumlah pesanan erik_order completed + rata-rata ulasan, pembulatan 1 desimal) tulis ulang profile.order_count/rating, cocokkan dari tinggi ke rendah sesuai erik_technician_tier_config (min_orders/min_rating), tanpa cocok jatuh ke level terendah. Hanya naik tidak turun (turun mempengaruhi rasio komisi dan koefisien harga, ditangani manual backend sebagai fallback; allowDowngrade=true untuk penilaian ulang manual); idempoten (level sama hanya sinkron statistik); perubahan tulis erik_technician_tier_log + notifikasi situs. Titik pemicu: WorkController::complete / penulisan ulasan ReviewController / penilaian malas saat lihat profil ProfileController.
+**Penilaian otomatis**: TierRatingService::evaluate statistik real-time (jumlah pesanan appointment_order completed + rata-rata ulasan, pembulatan 1 desimal) tulis ulang profile.order_count/rating, cocokkan dari tinggi ke rendah sesuai appointment_technician_tier_config (min_orders/min_rating), tanpa cocok jatuh ke level terendah. Hanya naik tidak turun (turun mempengaruhi rasio komisi dan koefisien harga, ditangani manual backend sebagai fallback; allowDowngrade=true untuk penilaian ulang manual); idempoten (level sama hanya sinkron statistik); perubahan tulis appointment_technician_tier_log + notifikasi situs. Titik pemicu: WorkController::complete / penulisan ulasan ReviewController / penilaian malas saat lihat profil ProfileController.
 
 ### Lihat Balasan Ulasan (ronde ke-18)
 
@@ -836,7 +836,7 @@ ID izin: 396 daftar / 397 tambah / 398 edit / 399 tayang/tidak tayang / 400 hapu
 |------|------|------|
 | GET | `/admin/profit-sharing` | catatan bagi hasil (leftJoin nomor pesanan/nama panggilan teknisi, ?status&order_no&technician_name&page=, encode hashid) |
 
-ID izin: 394. Logika server: erik_system_config group=profit_sharing (enabled/receiver_ratio); tidak diaktifkan degradasi disabled hanya log; setelah diaktifkan pembayaran sukses otomatis minta bagi hasil (jumlah=bayar aktual×receiver_ratio default 0.7, pesanan sama pending/success idempoten lewati); tanpa kredensial tidak eksekusi HTTP, struktur permintaan dicatat log.
+ID izin: 394. Logika server: appointment_system_config group=profit_sharing (enabled/receiver_ratio); tidak diaktifkan degradasi disabled hanya log; setelah diaktifkan pembayaran sukses otomatis minta bagi hasil (jumlah=bayar aktual×receiver_ratio default 0.7, pesanan sama pending/success idempoten lewati); tanpa kredensial tidak eksekusi HTTP, struktur permintaan dicatat log.
 
 ### Manajemen Roda Poin (ronde ke-23)
 
@@ -859,7 +859,7 @@ ID izin: 401-406. Rute statis `/lucky-wheel/records` dan `/lucky-wheel/{id}/togg
 | PUT | `/admin/return-customer/config` | perbarui konfigurasi (enabled in:0,1；ratio between:0.01,1) |
 | GET | `/admin/return-customer/rewards` | daftar catatan bonus (?keyword nama teknisi/nomor pesanan/nama panggilan pengguna, type=return_customer paginasi) |
 
-ID izin: 412-414. Aturan bonus: pengguna konsumsi kedua (pesanan selesai) ke teknisi sama dalam 30 hari terbit bonus = bayar aktual × ratio (default 0.05), tulis erik_technician_earnings (type=return_customer, status=pending) ikut rantai penyelesaian komisi diselesaikan seragam; pesanan sama idempoten tidak terbit ulang.
+ID izin: 412-414. Aturan bonus: pengguna konsumsi kedua (pesanan selesai) ke teknisi sama dalam 30 hari terbit bonus = bayar aktual × ratio (default 0.05), tulis appointment_technician_earnings (type=return_customer, status=pending) ikut rantai penyelesaian komisi diselesaikan seragam; pesanan sama idempoten tidak terbit ulang.
 
 ### Manajemen Aktivitas Flash Sale (ronde ke-24)
 
@@ -873,7 +873,7 @@ ID izin: 412-414. Aturan bonus: pengguna konsumsi kedua (pesanan selesai) ke tek
 | POST | `/admin/seckill/{id}/toggle-status` | tayang/tidak tayang |
 | GET | `/admin/seckill/{id}/orders` | daftar pesanan flash sale |
 
-ID izin: 407-411、420. Jumlah terjual = jumlah pesanan erik_order.seckill_id; stok potong row lock, sold out intersepsi.
+ID izin: 407-411、420. Jumlah terjual = jumlah pesanan appointment_order.seckill_id; stok potong row lock, sold out intersepsi.
 
 ### Manajemen Versi APP (ronde ke-24)
 

@@ -15,7 +15,7 @@ use support\Model;
  */
 class AppVersion extends Model
 {
-    protected $table = 'erik_app_version';
+    protected $table = 'appointment_app_version';
     public $incrementing = false;
     protected $keyType = 'string';
     public $timestamps = true;

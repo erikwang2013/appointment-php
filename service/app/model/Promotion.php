@@ -13,7 +13,7 @@ use support\Model;
  */
 class Promotion extends Model
 {
-    protected $table = 'erik_promotion';
+    protected $table = 'appointment_promotion';
     public $incrementing = false;
     protected $keyType = 'string';
     public $timestamps = true;

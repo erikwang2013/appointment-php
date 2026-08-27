@@ -14,7 +14,7 @@ class User extends Model
 {
     use SoftDeletes;
 
-    protected $table = 'erik_user';
+    protected $table = 'appointment_user';
     public $incrementing = false;
     protected $keyType = 'string';
     public $timestamps = true;

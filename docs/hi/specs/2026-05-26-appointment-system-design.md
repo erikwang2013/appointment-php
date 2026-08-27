@@ -55,75 +55,75 @@
 
 ## डेटाबेस मुख्य टेबल
 
-सभी टेबल `erik_` उपसर्ग उपयोग करती हैं, प्राथमिक कुंजी BIGINT गैर-ऑटो-इंक्रीमेंट (Snowflake द्वारा उत्पन्न)। संवेदनशील फ़ील्ड encryptable trait से एन्क्रिप्ट-डिक्रिप्ट।
+सभी टेबल `appointment_` उपसर्ग उपयोग करती हैं, प्राथमिक कुंजी BIGINT गैर-ऑटो-इंक्रीमेंट (Snowflake द्वारा उत्पन्न)। संवेदनशील फ़ील्ड encryptable trait से एन्क्रिप्ट-डिक्रिप्ट।
 
 ### उपयोगकर्ता और पहचान डोमेन
 
 | टेबल नाम | विवरण | मुख्य फ़ील्ड |
 |------|------|----------|
-| `erik_user` | एकीकृत उपयोगकर्ता टेबल | phone, password, wx_openid, wx_unionid, avatar, nickname, user_type(customer/technician), status। technician उपयोगकर्ता के पास साथ ही ग्राहक कार्यक्षमताएँ हैं, वर्तमान सक्रिय पहचान स्वतंत्र रूप से स्विच कर सकता है |
-| `erik_user_address` | उपयोगकर्ता पता | user_id, contact_name, contact_phone, province, city, district, detail, is_default |
-| `erik_technician_profile` | तकनीशियन प्रोफ़ाइल | user_id, real_name, gender, id_card, id_card_front, id_card_back, avatar, rating, order_count, status(pending/approved/rejected), intro |
-| `erik_technician_schedule` | तकनीशियन शेड्यूल | technician_id, date, time_slots(JSON), status |
-| `erik_technician_service` | तकनीशियन की सेवा आइटम | technician_id, service_id |
-| `erik_technician_earnings` | तकनीशियन आय लेन-देन | technician_id, order_id, type(commission/bonus/penalty), amount, status |
-| `erik_technician_withdrawal` | तकनीशियन विड्रॉल रिकॉर्ड | technician_id, amount, actual_amount, commission_fee, account_info, status, reviewed_at |
-| `erik_technician_attendance` | तकनीशियन उपस्थिति | technician_id, date, check_in_at, check_out_at, clean_photo |
-| `erik_technician_member_note` | सदस्य प्रोफ़ाइल | technician_id, user_id, content, written_at |
+| `appointment_user` | एकीकृत उपयोगकर्ता टेबल | phone, password, wx_openid, wx_unionid, avatar, nickname, user_type(customer/technician), status। technician उपयोगकर्ता के पास साथ ही ग्राहक कार्यक्षमताएँ हैं, वर्तमान सक्रिय पहचान स्वतंत्र रूप से स्विच कर सकता है |
+| `appointment_user_address` | उपयोगकर्ता पता | user_id, contact_name, contact_phone, province, city, district, detail, is_default |
+| `appointment_technician_profile` | तकनीशियन प्रोफ़ाइल | user_id, real_name, gender, id_card, id_card_front, id_card_back, avatar, rating, order_count, status(pending/approved/rejected), intro |
+| `appointment_technician_schedule` | तकनीशियन शेड्यूल | technician_id, date, time_slots(JSON), status |
+| `appointment_technician_service` | तकनीशियन की सेवा आइटम | technician_id, service_id |
+| `appointment_technician_earnings` | तकनीशियन आय लेन-देन | technician_id, order_id, type(commission/bonus/penalty), amount, status |
+| `appointment_technician_withdrawal` | तकनीशियन विड्रॉल रिकॉर्ड | technician_id, amount, actual_amount, commission_fee, account_info, status, reviewed_at |
+| `appointment_technician_attendance` | तकनीशियन उपस्थिति | technician_id, date, check_in_at, check_out_at, clean_photo |
+| `appointment_technician_member_note` | सदस्य प्रोफ़ाइल | technician_id, user_id, content, written_at |
 
 ### सेवा और उत्पाद डोमेन
 
 | टेबल नाम | विवरण | मुख्य फ़ील्ड |
 |------|------|----------|
-| `erik_service_category` | सेवा श्रेणी | name, icon, parent_id, sort, status |
-| `erik_service` | सेवा आइटम | category_id, name, description, cover_image, images(JSON), price, duration, sales_volume, specs(JSON), status |
-| `erik_product` | उत्पाद | category_id, name, cover_image, price, stock, sales_volume, type, status |
-| `erik_store` | स्टोर | name, address, lat, lng, phone, business_hours(JSON), images, status |
+| `appointment_service_category` | सेवा श्रेणी | name, icon, parent_id, sort, status |
+| `appointment_service` | सेवा आइटम | category_id, name, description, cover_image, images(JSON), price, duration, sales_volume, specs(JSON), status |
+| `appointment_product` | उत्पाद | category_id, name, cover_image, price, stock, sales_volume, type, status |
+| `appointment_store` | स्टोर | name, address, lat, lng, phone, business_hours(JSON), images, status |
 
 ### ऑर्डर डोमेन
 
 | टेबल नाम | विवरण | मुख्य फ़ील्ड |
 |------|------|----------|
-| `erik_order` | ऑर्डर मुख्य टेबल | order_no, user_id, technician_id, store_id, total_amount, discount_amount, paid_amount, status, service_time, cancel_reason, remark |
-| `erik_order_item` | ऑर्डर विवरण | order_id, service_id, product_id, type, name, price, quantity, spec_info |
-| `erik_order_payment` | भुगतान रिकॉर्ड | order_id, pay_type(wechat), transaction_id, amount, status, paid_at |
-| `erik_order_refund` | रिफंड रिकॉर्ड | order_id, payment_id, refund_no, amount, ratio, reason, status |
-| `erik_order_review` | सेवा समीक्षा | order_id, user_id, technician_id, rating, content, images |
-| `erik_order_verification` | वेरिफिकेशन रिकॉर्ड | order_id, code, verified_at, verified_by, location |
+| `appointment_order` | ऑर्डर मुख्य टेबल | order_no, user_id, technician_id, store_id, total_amount, discount_amount, paid_amount, status, service_time, cancel_reason, remark |
+| `appointment_order_item` | ऑर्डर विवरण | order_id, service_id, product_id, type, name, price, quantity, spec_info |
+| `appointment_order_payment` | भुगतान रिकॉर्ड | order_id, pay_type(wechat), transaction_id, amount, status, paid_at |
+| `appointment_order_refund` | रिफंड रिकॉर्ड | order_id, payment_id, refund_no, amount, ratio, reason, status |
+| `appointment_order_review` | सेवा समीक्षा | order_id, user_id, technician_id, rating, content, images |
+| `appointment_order_verification` | वेरिफिकेशन रिकॉर्ड | order_id, code, verified_at, verified_by, location |
 
 ### मार्केटिंग डोमेन
 
 | टेबल नाम | विवरण | मुख्य फ़ील्ड |
 |------|------|----------|
-| `erik_coupon` | कूपन परिभाषा | name, type, amount, min_amount, total_qty, remain_qty, start_at, end_at, status |
-| `erik_user_coupon` | उपयोगकर्ता कूपन | user_id, coupon_id, status(available/used/expired), used_at |
-| `erik_member_card` | सदस्यता कार्ड परिभाषा | name, type(month/vip/times), price, duration_days, total_times, services(JSON) |
-| `erik_user_member_card` | उपयोगकर्ता सदस्यता कार्ड | user_id, card_id, start_at, end_at, total_times, used_times, status |
-| `erik_member_card_usage` | सेशन कार्ड उपयोग रिकॉर्ड | user_card_id, order_id, service_id, used_at |
-| `erik_user_points` | पॉइंट्स लेन-देन | user_id, type(earn/use), points, source, order_id |
-| `erik_gift_card` | गिफ्ट कार्ड | code, type, amount_or_gift, status, used_by, used_at |
-| `erik_user_referral` | उपयोगकर्ता प्रमोशन | referrer_id, referred_user_id, reward_type, reward_amount, registered_at, first_order_at |
+| `appointment_coupon` | कूपन परिभाषा | name, type, amount, min_amount, total_qty, remain_qty, start_at, end_at, status |
+| `appointment_user_coupon` | उपयोगकर्ता कूपन | user_id, coupon_id, status(available/used/expired), used_at |
+| `appointment_member_card` | सदस्यता कार्ड परिभाषा | name, type(month/vip/times), price, duration_days, total_times, services(JSON) |
+| `appointment_user_member_card` | उपयोगकर्ता सदस्यता कार्ड | user_id, card_id, start_at, end_at, total_times, used_times, status |
+| `appointment_member_card_usage` | सेशन कार्ड उपयोग रिकॉर्ड | user_card_id, order_id, service_id, used_at |
+| `appointment_user_points` | पॉइंट्स लेन-देन | user_id, type(earn/use), points, source, order_id |
+| `appointment_gift_card` | गिफ्ट कार्ड | code, type, amount_or_gift, status, used_by, used_at |
+| `appointment_user_referral` | उपयोगकर्ता प्रमोशन | referrer_id, referred_user_id, reward_type, reward_amount, registered_at, first_order_at |
 
 ### सामग्री और नोटिफिकेशन डोमेन
 
 | टेबल नाम | विवरण | मुख्य फ़ील्ड |
 |------|------|----------|
-| `erik_banner` | कैरोसेल | position, image, jump_type(url/detail/none), jump_value, sort, status |
-| `erik_announcement` | घोषणा | content, status, published_at |
-| `erik_platform_agreement` | प्लेटफ़ॉर्म समझौता | type(user_agreement/privacy_policy/service_agreement), title, content, version |
-| `erik_faq` | सामान्य प्रश्न | title, content, sort |
-| `erik_feedback` | फ़ीडबैक | user_id, content, images, handler_reply, status(pending/handled) |
-| `erik_moment` | मोमेंट्स फ़ीड | content, images, published_at |
-| `erik_notification` | मैसेज नोटिफिकेशन | user_id, type(order/system), title, content, is_read, created_at |
+| `appointment_banner` | कैरोसेल | position, image, jump_type(url/detail/none), jump_value, sort, status |
+| `appointment_announcement` | घोषणा | content, status, published_at |
+| `appointment_platform_agreement` | प्लेटफ़ॉर्म समझौता | type(user_agreement/privacy_policy/service_agreement), title, content, version |
+| `appointment_faq` | सामान्य प्रश्न | title, content, sort |
+| `appointment_feedback` | फ़ीडबैक | user_id, content, images, handler_reply, status(pending/handled) |
+| `appointment_moment` | मोमेंट्स फ़ीड | content, images, published_at |
+| `appointment_notification` | मैसेज नोटिफिकेशन | user_id, type(order/system), title, content, is_read, created_at |
 
 ### वित्त डोमेन (admin पक्ष)
 
 | टेबल नाम | विवरण | मुख्य फ़ील्ड |
 |------|------|----------|
-| `erik_finance_transaction` | आय-व्यय लेन-देन | user_id, order_id, type, direction(income/expense), amount, actual_amount, commission, status |
-| `erik_technician_commission_config` | कमीशन कॉन्फ़िगरेशन | technician_id, commission_rate, settlement_cycle |
-| `erik_withdrawal_account` | विड्रॉल खाता | user_id, type(wechat), account_name, account_no |
-| `erik_withdrawal_config` | विड्रॉल सीमा कॉन्फ़िगरेशन | min_amount, reserve_amount, round_to_hundred |
+| `appointment_finance_transaction` | आय-व्यय लेन-देन | user_id, order_id, type, direction(income/expense), amount, actual_amount, commission, status |
+| `appointment_technician_commission_config` | कमीशन कॉन्फ़िगरेशन | technician_id, commission_rate, settlement_cycle |
+| `appointment_withdrawal_account` | विड्रॉल खाता | user_id, type(wechat), account_name, account_no |
+| `appointment_withdrawal_config` | विड्रॉल सीमा कॉन्फ़िगरेशन | min_amount, reserve_amount, round_to_hundred |
 
 ## Service API मॉड्यूल
 

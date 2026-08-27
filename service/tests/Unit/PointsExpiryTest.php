@@ -37,11 +37,11 @@ class PointsExpiryTest extends TestCase
     {
         parent::setUp();
         // 固定有效期配置保证断言确定性（原值 tearDown 恢复）
-        $this->savedExpiryDays = Db::table('erik_system_config')
+        $this->savedExpiryDays = Db::table('appointment_system_config')
             ->where('group', 'points')
             ->where('key', 'expiry_days')
             ->value('value');
-        Db::table('erik_system_config')->updateOrInsert(
+        Db::table('appointment_system_config')->updateOrInsert(
             ['group' => 'points', 'key' => 'expiry_days'],
             ['value' => '365', 'type' => 'int', 'description' => '积分有效期（天）']
         );
@@ -58,12 +58,12 @@ class PointsExpiryTest extends TestCase
         $this->userIds = [];
 
         if ($this->savedExpiryDays === null) {
-            Db::table('erik_system_config')
+            Db::table('appointment_system_config')
                 ->where('group', 'points')
                 ->where('key', 'expiry_days')
                 ->delete();
         } else {
-            Db::table('erik_system_config')
+            Db::table('appointment_system_config')
                 ->where('group', 'points')
                 ->where('key', 'expiry_days')
                 ->update(['value' => $this->savedExpiryDays]);

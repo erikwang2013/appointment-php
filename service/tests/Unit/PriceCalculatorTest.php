@@ -19,7 +19,7 @@ use app\model\UserMemberCard;
  *   - calculate()：无优惠纯计算（零 DB）、fixed 券满/不满门槛、percent 券折扣额、
  *     次卡命中免单/未命中/次数不足、券卡互斥、积分未开放、金额分转元精度
  *   - consume()：券原子置 used / 已用影响 0 行报错、次卡 whereRaw 原子扣次防超扣、
- *     写 erik_member_card_usage、used_up 判定
+ *     写 appointment_member_card_usage、used_up 判定
  *
  * 策略：与本仓库现有测试一致——测试 DB 直连（bootstrap.php 已建 Eloquent Capsule），
  * 每用例自造数据并 tearDown 清理，绝不触碰既有数据（ID 用 snowflake 生成）。
@@ -82,7 +82,7 @@ class PriceCalculatorTest extends TestCase
             'type'       => $type,
             'amount'     => $amount,
             'min_amount' => $minAmount,
-            'status'     => 1, // erik_coupon.status 为 tinyint
+            'status'     => 1, // appointment_coupon.status 为 tinyint
         ]);
         $this->couponIds[] = $coupon->id;
         return $coupon;
@@ -116,7 +116,7 @@ class PriceCalculatorTest extends TestCase
                 fn($sid) => ['service_id' => (string) $sid, 'times' => 1],
                 $serviceIds
             ),
-            'status'      => 1, // erik_member_card.status 为 tinyint
+            'status'      => 1, // appointment_member_card.status 为 tinyint
         ]);
         $this->memberCardIds[] = $card->id;
 
@@ -251,7 +251,7 @@ class PriceCalculatorTest extends TestCase
 
     #[Test] public function calculate_fixed_coupon_by_definition_id(): void
     {
-        // M4: coupon_id 直通路径已禁用——券必须先领取（erik_user_coupon 领券记录），直通路径不校验有效期/状态且不消费
+        // M4: coupon_id 直通路径已禁用——券必须先领取（appointment_user_coupon 领券记录），直通路径不校验有效期/状态且不消费
         $coupon = $this->makeCoupon('fixed', 5, 10);
 
         $this->expectException(\InvalidArgumentException::class);
@@ -342,7 +342,7 @@ class PriceCalculatorTest extends TestCase
 
     #[Test] public function calculate_times_card_services_object_array_format_hits(): void
     {
-        // 回归：erik_member_card.services 为对象数组 [{"service_id":..,"times":..}]（迁移注释 + demo_seeds.sql 格式），
+        // 回归：appointment_member_card.services 为对象数组 [{"service_id":..,"times":..}]（迁移注释 + demo_seeds.sql 格式），
         // 此前按标量数组解析导致次卡抵扣完全失效
         $userId = $this->newUserId();
         $userCard = $this->makeTimesCard($userId, ['S1'], 5, 1);

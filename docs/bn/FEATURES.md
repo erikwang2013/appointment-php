@@ -102,7 +102,7 @@
 |------|------|
 | ব্যক্তিগত তথ্য | আভতার/নিকনেম/ফোন |
 | পরিচয় স্যুইচ | কাস্টমার ↔ টেকনিশিয়ান |
-| মেসেজ নোটিফিকেশন | সাইট-ইন নোটিফিকেশন (erik_notification); মেসেজ সেন্টার পেজ: পেজিনেশন/পুল-ডাউন রিফ্রেশ/পড়া হাইলাইট/পড়া মার্ক/সব পড়া |
+| মেসেজ নোটিফিকেশন | সাইট-ইন নোটিফিকেশন (appointment_notification); মেসেজ সেন্টার পেজ: পেজিনেশন/পুল-ডাউন রিফ্রেশ/পড়া হাইলাইট/পড়া মার্ক/সব পড়া |
 | আমার মেম্বার কার্ড | মাসিক কার্ড/VIP বার্ষিক কার্ড/টাইম কার্ড (এক্সপায়ার/সংখ্যা/ব্যবহৃত/বাকি) |
 | আমার পয়েন্ট | পাওয়ার রেকর্ড/উপলব্ধ পয়েন্ট/ব্যবহার রেকর্ড (১:১০০ গিফট কার্ড রিডিম); চেক-ইন/খরচে পয়েন্ট, রিফান্ডে অনুপাতে ফেরত, ডিটেইল পেজিনেশন+type/source ফিল্টার |
 | আমার গিফট কার্ড | ক্যাশ কার্ড/ফিজিক্যাল গিফট; cash টাইপ রিডিমে সরাসরি ওয়ালেটে রিচার্জ |
@@ -195,7 +195,7 @@
 
 | ফিচার | বিবরণ |
 |------|------|
-| সাবস্ক্রিপশন অথরাইজেশন | utils/subscribe.js কেন্দ্রীয়ভাবে টেমপ্লেট ID ম্যানেজ (কী নাম সার্ভার erik_system_config.wechat_app.template_ids এর সাথে সামঞ্জস্যপূর্ণ) |
+| সাবস্ক্রিপশন অথরাইজেশন | utils/subscribe.js কেন্দ্রীয়ভাবে টেমপ্লেট ID ম্যানেজ (কী নাম সার্ভার appointment_system_config.wechat_app.template_ids এর সাথে সামঞ্জস্যপূর্ণ) |
 | ট্রিগার দৃশ্য | অ্যাপয়েন্টমেন্ট/পেমেন্ট সফলের পর অঙ্গভঙ্গি কলব্যাকে wx.requestSubscribeMessage, টেমপ্লেট ID কনফিগ না থাকলে বা ব্যবহারকারী অস্বীকার করলে নীরব |
 | সার্ভার চেইন | WechatTemplateMessageService সেন্ড + NotificationReminderService অ্যাপয়েন্টমেন্টের ২ ঘণ্টা~১ ঘণ্টা আগে রিমাইন্ডার + AutoCancelTimer প্রসেস স্ক্যান |
 
@@ -224,16 +224,16 @@
 |------|------|
 | গ্রুপ প্রাইস | join রেসপন্সে discount_percent/original_price/group_price |
 | গ্রুপ বাই অর্ডার | POST /api/order তে promotion_id: শুধু group_buy/অ্যাক্টিভিটি বৈধ/কলার অংশগ্রহণকারী/অ-পূর্ণ/সার্ভিস ম্যাচ যাচাই; গ্রুপ প্রাইস=মূল্য×discount_percent/100, কুপন/টাইম কার্ড/পয়েন্ট স্ট্যাকিং নিষিদ্ধ (৪২২) |
-| অর্ডার মার্ক | erik_order-এ promotion_id/participant_id কলাম + ইনডেক্স |
+| অর্ডার মার্ক | appointment_order-এ promotion_id/participant_id কলাম + ইনডেক্স |
 | অ-গ্রুপ হ্যান্ডলিং | মেয়াদ শেষে অ-পূর্ণ→অ্যাক্টিভিটি ক্লোজ+ঐ অ্যাক্টিভিটির pending অর্ডার ব্যাচ বাতিল (আইডেম্পোটেন্ট); pay() লেজি ডিটেকশনে ক্লোজ হলে অটো অর্ডার বাতিল + টেকনিশিয়ান লক মুক্ত |
 
 ### 22. ডিস্ট্রিবিউশন রিবেট (রাউন্ড ১৬)
 
 | ফিচার | বিবরণ |
 |------|------|
-| ইস্যু রুল | রেফার করা ব্যক্তির প্রথম অর্ডার completed হলে: পরিমাণ=paid_amount×reward_rate (erik_system_config referral.reward_rate ডিফল্ট 0.05, অবৈধ হলে কনস্ট্যান্ট), >০ হলেই ইস্যু |
+| ইস্যু রুল | রেফার করা ব্যক্তির প্রথম অর্ডার completed হলে: পরিমাণ=paid_amount×reward_rate (appointment_system_config referral.reward_rate ডিফল্ট 0.05, অবৈধ হলে কনস্ট্যান্ট), >০ হলেই ইস্যু |
 | হুক পয়েন্ট | ReferralRewardService::handleOrderCompleted হুক WorkController::complete ট্রানজেকশনের ভেতরে (serving→completed একমাত্র এন্ট্রি, ভেরিফিকেশন verify শুধু serving পর্যন্ত যায় ট্রিগার হয় না), ব্যর্থ হলে পুরো রোলব্যাক পুনরায় চেষ্টা করা যায় |
-| আইডেম্পোটেন্সি | erik_user_referral সারি লক lockForUpdate + rewarded_at খালি চেক + লকের ভেতরে প্রথম অর্ডার পুনঃচেক (কনকারেন্ট/পুনরাবৃত্তি কল শুধু একবার ইস্যু) |
+| আইডেম্পোটেন্সি | appointment_user_referral সারি লক lockForUpdate + rewarded_at খালি চেক + লকের ভেতরে প্রথম অর্ডার পুনঃচেক (কনকারেন্ট/পুনরাবৃত্তি কল শুধু একবার ইস্যু) |
 | এন্ট্রি | ওয়ালেট সারি লক যোগ + WalletTxn type='referral_reward' (balance_after + অর্ডার নম্বর remark); রেফার রেকর্ডে reward_type/reward_amount/rewarded_at/first_order_at |
 | ডিটেইল | GET /api/user/referral/earnings পেজিনেশন (রেফার করা ব্যক্তির নিকনেম/আভতার/অর্ডার নম্বর/পরিমাণ/সময়) |
 
@@ -241,10 +241,10 @@
 
 | ফিচার | বিবরণ |
 |------|------|
-| রিডিম পণ্য | erik_points_exchange_goods: type=coupon/gift_card/wallet, points_cost/value (DECIMAL(25,2) অ্যাভালাঞ্চ ID প্রিসিশন ক্ষতি প্রতিরোধ)/stock/status |
+| রিডিম পণ্য | appointment_points_exchange_goods: type=coupon/gift_card/wallet, points_cost/value (DECIMAL(25,2) অ্যাভালাঞ্চ ID প্রিসিশন ক্ষতি প্রতিরোধ)/stock/status |
 | পণ্য লিস্ট | GET /api/marketing/points-exchange: প্রকাশিত পণ্য + রিয়েল-টাইম বাকি স্টক + রিডিমড সংখ্যা |
 | রিডিম | POST /api/marketing/points-exchange/{id}: Redis NX লক + পণ্য সারি লক অতিরিক্ত রিডিম প্রতিরোধ; পয়েন্ট SUM যাচাই (অপ্রতুল ৪২২) + UserPoints type='consume' source='exchange' কাটা; coupon কুপন / wallet ব্যালেন্স এন্ট্রি (WalletTxn points_exchange) / gift_card কার্ড-সিক্রেট রিটার্ন |
-| আইডেম্পোটেন্সি | uk_user_goods ইউনিক ইনডেক্স একই ব্যবহারকারী একই পণ্য একবার + লকের ভেতরে পুনঃযাচাই + ১০৬২ ফলব্যাক; রিডিম রেকর্ড স্ন্যাপশট erik_user_points_exchange |
+| আইডেম্পোটেন্সি | uk_user_goods ইউনিক ইনডেক্স একই ব্যবহারকারী একই পণ্য একবার + লকের ভেতরে পুনঃযাচাই + ১০৬২ ফলব্যাক; রিডিম রেকর্ড স্ন্যাপশট appointment_user_points_exchange |
 
 ### 24. অ্যাপয়েন্টমেন্ট রিশিডিউল (রাউন্ড ১৭)
 
@@ -253,7 +253,7 @@
 | API | POST /api/order/reschedule/{id}: new_service_time (বাধ্যতামূলক) + reason (অপশনাল), একই টেকনিশিয়ানে সময় পরিবর্তন |
 | রুল | শুধু নিজের অর্ডার (অ-নিজস্ব ৪০৪); শুধু appointment টাইপ এবং স্ট্যাটাস pending/paid/confirmed (বাকি ৪২২); মূল সার্ভিস শুরু থেকে ≥ ৬ ঘণ্টা (ফুল রিফান্ড উইন্ডোর সাথে সামঞ্জস্যপূর্ণ) |
 | কনকারেন্সি প্রতিরোধ | B1 order_lock (pay/cancel/refund এর সাথে একই মিউটেক্স গ্রুপ) → নতুন স্লট টেকনিশিয়ান লক Redis SETNX EX 180 (কনকারেন্ট রিশিডিউল ওভারসেল প্রতিরোধ) → ট্রানজেকশনে সারি লক পুনরায় পড়া + B2 শিডিউল সংঘর্ষ DB যাচাই (নিজের অর্ডার বাদ) |
-| সমাপ্তি | service_time আপডেট + erik_order_reschedule (reason সহ) + মূল স্লট লক/নতুন স্লট লকের নিজের হোল্ডিং মুক্ত; ব্যর্থ ট্রানজেকশন রোলব্যাকে নতুন স্লট লকও মুক্ত |
+| সমাপ্তি | service_time আপডেট + appointment_order_reschedule (reason সহ) + মূল স্লট লক/নতুন স্লট লকের নিজের হোল্ডিং মুক্ত; ব্যর্থ ট্রানজেকশন রোলব্যাকে নতুন স্লট লকও মুক্ত |
 | নোটিফিকেশন | SCENE_RESCHEDULE সাবস্ক্রিপশন মেসেজ (টেমপ্লেট কনফিগ না থাকলে সাইট-ইন নোটিফিকেশন "অ্যাপয়েন্টমেন্ট রিশিডিউল সফল") + pushOrderUpdate |
 
 ### 25. কুপন ট্রান্সফার (রাউন্ড ১৭)
@@ -269,7 +269,7 @@
 
 | ফিচার | বিবরণ |
 |------|------|
-| ভ্যালিডিটি | erik_user_points.expires_at কলাম; সব earn (চেক-ইন/খরচ ফেরত/রিফান্ড) লেনদেনে expires_at = now + points.expiry_days (ডিফল্ট ৩৬৫, ≤০ কখনো এক্সপায়ার হয় না); consume/use খালি |
+| ভ্যালিডিটি | appointment_user_points.expires_at কলাম; সব earn (চেক-ইন/খরচ ফেরত/রিফান্ড) লেনদেনে expires_at = now + points.expiry_days (ডিফল্ট ৩৬৫, ≤০ কখনো এক্সপায়ার হয় না); consume/use খালি |
 | এক্সপায়ার এক্সিকিউশন | PointsExpiryTimer টাইমার প্রতি ৬০ সেকেন্ড কার্সর স্ক্যান (১০০/ব্যাচ) expires_at < now এর earn সারি → type=expire নেতিবাচক কাটা সারি (source=expiry + order_id মূল লেনদেন ট্রেস) → ব্যবহারকারী অনুযায়ী অ্যাগ্রিগেট সাইট-ইন নোটিফিকেশন "আপনার X পয়েন্ট এক্সপায়ার হয়েছে" |
 | আইডেম্পোটেন্সি | ① expire সারির order_id মূল earn লেনদেনে পয়েন্ট, ট্রানজেকশনে মূল সারি lockForUpdate + exists পুনঃযাচাই (কনকারেন্ট প্রসেস সারি লকে সিরিয়াল) ② id কার্সর পেজিনেশন ③ নোটিফিকেশন শুধু বাস্তব কাটার রাউন্ডে |
 | নিয়ম | উপলব্ধ ব্যালেন্স SUM অ্যাগ্রিগেশনে expire নেতিবাচক সারি অন্তর্ভুক্ত; এক্সপায়ারড পয়েন্ট ক্যাশ/রিডিম করা যায় না |
@@ -299,7 +299,7 @@
 |------|------|
 | API | POST /api/technician/review/reply/{order_id} (টেকনিশিয়ান পরিচয় মিডলওয়্যার): রিভিউ নেই/অ-নিজস্ব ইউনিফাইড ৪০৪; রিপ্লাই আছে ৪২২ (আইডেম্পোটেন্ট প্রত্যাখ্যান ওভাররাইট হয় না); খালি রিপ্লাই ৪২২ |
 | রিপ্লাইয়ের পর | ব্যবহারকারীকে সাইট-ইন নোটিফিকেশন (type='review_reply', নন-ব্লকিং try/catch + Log) |
-| ডেটা | erik_order_review আইডেম্পোটেন্ট replied_at কলাম (reply কলাম টেবিল তৈরি থেকেই); অ্যাডমিন রিভিউ লিস্ট/show decorate()->toArray() দিয়ে reply/replied_at বের করে |
+| ডেটা | appointment_order_review আইডেম্পোটেন্ট replied_at কলাম (reply কলাম টেবিল তৈরি থেকেই); অ্যাডমিন রিভিউ লিস্ট/show decorate()->toArray() দিয়ে reply/replied_at বের করে |
 
 ### 30. রিচার্জ পৌঁছানোর নোটিফিকেশন (রাউন্ড ১৮)
 
@@ -333,7 +333,7 @@
 |------|------|
 | অ্যাপেন্ড | POST /api/order/review/{order_id}/append: রিভিউ নেই/অ-নিজস্ব ইউনিফাইড ৪০৪, অ-কমপ্লিটেড ৪২২, পুনরাবৃত্তি অ্যাপেন্ড ৪২২ (append_content/append_at যেকোনো একটি অ-খালি হলেই প্রত্যাখ্যান), খালি কনটেন্ট ৪২২; সফলে append_content/append_images(JSON)/append_at + টেকনিশিয়ান সাইট-ইন নোটিফিকেশন type='review_append' |
 | রিভিউ জমা | POST /api/order/review/{order_id} রেজিস্ট্রেশন (ReviewController::store আগে রাউট ছিল না); সাথে লুকানো TypeError ফিক্স: findByOrderId int পেলে string সিগনেচার লঙ্ঘন (append এর (string) কনভার্সনের তুলনায়), রেজিস্ট্রেশনে কল করলেই ৫০০ |
-| ডেটা | erik_order_review-এ append_content TEXT/append_images JSON/append_at DATETIME তিন কলাম (আইডেম্পোটেন্ট মাইগ্রেশন); রেসপন্সে append ফিল্ড |
+| ডেটা | appointment_order_review-এ append_content TEXT/append_images JSON/append_at DATETIME তিন কলাম (আইডেম্পোটেন্ট মাইগ্রেশন); রেসপন্সে append ফিল্ড |
 
 ### 34. ব্যবহারকারী লজিস্টিক ট্র্যাকিং (রাউন্ড ১৯)
 
@@ -347,9 +347,9 @@
 
 | ফিচার | বিবরণ |
 |------|------|
-| ডেটা | erik_user_notify_setting টেবিল (user_id+type কম্পোজিট ইউনিক কী uk_user_type, ডিফল্ট সারি=সব চালু); ৫ প্রকার: service_reminder সার্ভিস রিমাইন্ডার / card_expiry এক্সপায়ারি রিমাইন্ডার (কার্ড+কুপন ইউনিফাইড আমব্রেলা) / points_expiry পয়েন্ট এক্সপায়ার / marketing মার্কেটিং (রিজার্ভ) / system সিস্টেম (বন্ধ করা যায় না, PUT এ বাধ্যতামূলক ১) |
+| ডেটা | appointment_user_notify_setting টেবিল (user_id+type কম্পোজিট ইউনিক কী uk_user_type, ডিফল্ট সারি=সব চালু); ৫ প্রকার: service_reminder সার্ভিস রিমাইন্ডার / card_expiry এক্সপায়ারি রিমাইন্ডার (কার্ড+কুপন ইউনিফাইড আমব্রেলা) / points_expiry পয়েন্ট এক্সপায়ার / marketing মার্কেটিং (রিজার্ভ) / system সিস্টেম (বন্ধ করা যায় না, PUT এ বাধ্যতামূলক ১) |
 | API | GET /api/user/notify-settings ৫ প্রকার ফুল সুইচ; PUT ব্যাচ upsert ডুপ্লিকেট সারি তৈরি করে না |
-| গেট | NotificationReminderService::notifySettingEnabled হুক ৩ টাইমার প্রসেস (ServiceReminderTimer/ExpiryReminderTimer কার্ড+কুপন/PointsExpiryTimer, টাইমার সরাসরি erik_notification টেবিলে লেখে সার্ভিস রাইট পাথ দিয়ে যায় না তাই প্রতিটিতে একই গেট) + সাবস্ক্রিপশন ইভেন্ট (sendSubscribeForOrderEvent/Notification দৃশ্য ম্যাপিং PAY/REFUND/VERIFIED/RESCHEDULE→system সর্বদা সেন্ড, REMINDER→service_reminder, EXPIRY→card_expiry); টাইপ বন্ধ থাকলে সাইট-ইন নোটিফিকেশন ও সাবস্ক্রিপশন মেসেজ দুটোই বাদ |
+| গেট | NotificationReminderService::notifySettingEnabled হুক ৩ টাইমার প্রসেস (ServiceReminderTimer/ExpiryReminderTimer কার্ড+কুপন/PointsExpiryTimer, টাইমার সরাসরি appointment_notification টেবিলে লেখে সার্ভিস রাইট পাথ দিয়ে যায় না তাই প্রতিটিতে একই গেট) + সাবস্ক্রিপশন ইভেন্ট (sendSubscribeForOrderEvent/Notification দৃশ্য ম্যাপিং PAY/REFUND/VERIFIED/RESCHEDULE→system সর্বদা সেন্ড, REMINDER→service_reminder, EXPIRY→card_expiry); টাইপ বন্ধ থাকলে সাইট-ইন নোটিফিকেশন ও সাবস্ক্রিপশন মেসেজ দুটোই বাদ |
 
 ---
 
@@ -458,13 +458,13 @@ Flutter Web সিঙ্গেল-পেজ অ্যাপ, মোট ২১ �
 
 ### 14. মেম্বার কার্ড ম্যানেজমেন্ট (রাউন্ড ১০)
 
-- erik_user.member_level মেম্বার লেভেল কলাম (মাইগ্রেশন 000008)
+- appointment_user.member_level মেম্বার লেভেল কলাম (মাইগ্রেশন 000008)
 - MemberCardController সম্পূর্ণ CRUD (পারমিশন ৩৬৫-৩৬৯): GET/POST/PUT/DELETE /admin/member-cards
 - Flutter মেম্বার কার্ড ডেফিনিশন ম্যানেজমেন্ট পেজ
 
 ### 15. আফটারসেল ম্যানেজমেন্ট (রাউন্ড ১৪)
 
-- erik_order_aftersale টেবিল (মাইগ্রেশন 000009): type=refund/exchange, status=pending/approved/rejected/completed
+- appointment_order_aftersale টেবিল (মাইগ্রেশন 000009): type=refund/exchange, status=pending/approved/rejected/completed
 - AftersaleController: GET /admin/aftersales (পেজিনেশন+status/uid/order_no ফিল্টার) + POST /admin/aftersales/{id}/review (approve/reject+remark)
 - Flutter আফটারসেল ম্যানেজমেন্ট পেজ (লিস্ট+অডিট ডায়ালগ, পারমিশন ৩৭০/৩৭১), লেআউট রেজিস্টার্ড
 
@@ -485,10 +485,10 @@ Flutter Web সিঙ্গেল-পেজ অ্যাপ, মোট ২১ �
 
 ### 19. টেকনিশিয়ান লেভেল অটো অ্যাসেসমেন্ট (রাউন্ড ১৭)
 
-- TierRatingService::evaluate(technicianId, allowDowngrade=false): রিয়েল-টাইম erik_order completed অর্ডার সংখ্যা + erik_order_review গড় স্কোর (১ দশমিকে রাউন্ড) profile.order_count/rating এ লেখা, erik_technician_tier_config (min_orders/min_rating) অনুযায়ী উঁচু থেকে নিচু ম্যাচ, ম্যাচ না হলে সর্বনিম্ন লেভেল
+- TierRatingService::evaluate(technicianId, allowDowngrade=false): রিয়েল-টাইম appointment_order completed অর্ডার সংখ্যা + appointment_order_review গড় স্কোর (১ দশমিকে রাউন্ড) profile.order_count/rating এ লেখা, appointment_technician_tier_config (min_orders/min_rating) অনুযায়ী উঁচু থেকে নিচু ম্যাচ, ম্যাচ না হলে সর্বনিম্ন লেভেল
 - আপগ্রেড/ডাউনগ্রেড রুল: শুধু আপগ্রেড (লেভেল কমিশন রেট ও প্রাইস কোফিসিয়েন্টের সাথে বাঁধা, অটো ডাউনগ্রেড টেকনিশিয়ানের আয় প্রভাবিত করে বিবাদ সৃষ্টি করতে পারে, পতন admin ম্যানুয়াল ফলব্যাক); allowDowngrade=true (ব্যাকএন্ড ম্যানুয়াল পুনঃমূল্যায়ন) হলেই ডাউনগ্রেড, ডাউনগ্রেডও লগ+নোটিফিকেশন
 - আইডেম্পোটেন্সি: প্রাপ্য লেভেল profile.tier_id এর সাথে মিললে শুধু স্ট্যাট সিঙ্ক, লগ/নোটিফিকেশন নেই
-- লগ: পরিবর্তন erik_technician_tier_log (id/technician_id/old_tier_id/new_tier_id/reason/created_at) + সাইট-ইন নোটিফিকেশন (type='tier')
+- লগ: পরিবর্তন appointment_technician_tier_log (id/technician_id/old_tier_id/new_tier_id/reason/created_at) + সাইট-ইন নোটিফিকেশন (type='tier')
 - ট্রিগার: WorkController::complete / ReviewController রিভিউ লেখা / ProfileController প্রোফাইল দেখায় লেজি ডিটেকশন
 - অ্যাডমিন: TechnicianTierController ম্যানুয়াল কনফিগ ক্ষমতা ধরে রাখে; GET /admin/technician-tiers/logs পেজিনেশন লগ (join টেকনিশিয়ান নাম ও নতুন/পুরনো লেভেল নাম, ID hashid এনকোড, পারমিশন ৩৮০)
 
@@ -501,26 +501,26 @@ Flutter Web সিঙ্গেল-পেজ অ্যাপ, মোট ২১ �
 ### 21. অ্যাপয়েন্টমেন্ট ক্যালেন্ডার (রাউন্ড ২০)
 
 - CalendarController মাস/দিন ভিউ: GET /api/calendar/technician/{id} (মাস ভিউ) + /day (দিন ভিউ)
-- ডেটা সোর্স: technician_schedule.time_slots JSON সপ্তাহ অনুযায়ী ঘণ্টা স্লটে বিস্তৃত, erik_order ঐ দিনের বুকড স্লট বাদ (status ∈ pending/paid/confirmed/serving), বাকি বুকযোগ্য স্লট আউটপুট
+- ডেটা সোর্স: technician_schedule.time_slots JSON সপ্তাহ অনুযায়ী ঘণ্টা স্লটে বিস্তৃত, appointment_order ঐ দিনের বুকড স্লট বাদ (status ∈ pending/paid/confirmed/serving), বাকি বুকযোগ্য স্লট আউটপুট
 - ব্যবহার: শাখা শিডিউল ভিজুয়ালাইজড সময় নির্বাচন, ফ্রন্টএন্ড দিন অনুযায়ী অনুভূমিক স্ক্রল + সময় গ্রিড নির্বাচন
 
 ### 22. ব্যবহারকারী গ্রোথ লেভেল (রাউন্ড ২০)
 
-- erik_user_growth (লেনদেন) + erik_growth_level (লেভেল সিড ৫ স্তর: ব্রোঞ্জ ০/সিলভার ১০০/গোল্ড ৫০০/প্লাটিনাম ২০০০/ডায়মন্ড ৫০০০)
+- appointment_user_growth (লেনদেন) + appointment_growth_level (লেভেল সিড ৫ স্তর: ব্রোঞ্জ ০/সিলভার ১০০/গোল্ড ৫০০/প্লাটিনাম ২০০০/ডায়মন্ড ৫০০০)
 - গ্রোথ পয়েন্ট এন্ট্রি: চেক-ইন +১০ (CheckInController); রিভিউ জমা +২০ (ReviewController::store, অ্যাপেন্ড এন্ট্রি হয় না); খরচ floor(paid) প্রতি ১ ইউয়ানে ১ পয়েন্ট (WechatPayService::markOrderPaid, বিদ্যমান পেমেন্ট স্ট্যাটাস পুনঃযাচাই প্রাকৃতিক আইডেম্পোটেন্ট, ডুপ কলব্যাকে ডুপ এন্ট্রি হয় না)
 - API: GET /api/growth (বর্তমান লেভেল ওভারভিউ: balance/level/পরের লেভেলের গ্যাপ); GET /api/growth/records (লেনদেন পেজিনেশন); GET /api/growth/levels (পাবলিক লেভেল লিস্ট, লগইন লাগে না)
 - ব্যর্থ নীতি: প্রতিটি এন্ট্রি পয়েন্ট try/catch লগ, মূল ফ্লো প্রভাবিত হয় না
 
 ### 23. ইলেকট্রনিক ইনভয়েস (রাউন্ড ২০)
 
-- erik_invoice: uk_order_type(order_id,order_type) একই অর্ডার ডুপ আবেদন প্রতিরোধ (ডুপ আবেদন ৪২২, MySQL ১০৬২ ক্যাচ ফলব্যাক সহ); idx_user_created/idx_status
+- appointment_invoice: uk_order_type(order_id,order_type) একই অর্ডার ডুপ আবেদন প্রতিরোধ (ডুপ আবেদন ৪২২, MySQL ১০৬২ ক্যাচ ফলব্যাক সহ); idx_user_created/idx_status
 - ব্যবহারকারী: POST /api/invoices (আবেদন, পরিমাণ/টাইটেল সার্ভার-সাইড অর্ডার থেকে, টেম্পার করা যায় না); GET /api/invoices (লিস্ট); GET /api/invoices/{id} (ডিটেইল)
 - অ্যাডমিন: InvoiceController issue (ইনভয়েস: invoice_no + status=issued + issued_at লেখা) / reject (প্রত্যাখ্যান: status=rejected + reject_reason), পারমিশন ৩৮২ লিস্ট/৩৮৩ ইনভয়েস/৩৮৪ প্রত্যাখ্যান
 - স্টেট মেশিন: pending → issued / rejected
 
 ### 24. কাস্টমার টিকেট (রাউন্ড ২০)
 
-- erik_ticket: ব্যবহারকারী টিকেট জমা (title/content), ব্যাকএন্ড রিপ্লাই অ্যাপেন্ড (reply_content/replied_at), ব্যবহারকারী ক্লোজ করতে পারে (closed_at)
+- appointment_ticket: ব্যবহারকারী টিকেট জমা (title/content), ব্যাকএন্ড রিপ্লাই অ্যাপেন্ড (reply_content/replied_at), ব্যবহারকারী ক্লোজ করতে পারে (closed_at)
 - ব্যবহারকারী: POST /api/tickets (জমা); GET /api/tickets (লিস্ট); GET /api/tickets/{id} (ডিটেইল, শুধু নিজের); POST /api/tickets/{id}/close (ক্লোজ)
 - অ্যাডমিন: TicketController index (লিস্ট) / reply (রিপ্লাই), স্ট্যাটিক রাউট resource এর আগে {id} shadow এড়াতে; পারমিশন ৩৮৫ টিকেট রিপ্লাই/৩৮৭ টিকেট লিস্ট দেখা
 - স্টেট মেশিন: open → replied (রিপ্লাইয়ের পর open এ ফেরত আবার রিপ্লাই করা যায়) / closed
@@ -541,14 +541,14 @@ Flutter Web সিঙ্গেল-পেজ অ্যাপ, মোট ২১ �
 
 ### 27. ইনভয়েস হেডার ম্যানেজমেন্ট (রাউন্ড ২১)
 
-- erik_invoice_title (uk_user_title(user_id, title_type, invoice_title) ডুপ প্রতিরোধ + idx_user_default)
+- appointment_invoice_title (uk_user_title(user_id, title_type, invoice_title) ডুপ প্রতিরোধ + idx_user_default)
 - API: POST /api/invoice-titles (সেভ, company হলে tax_no বাধ্যতামূলক, ডুপ ৪২২); GET (লিস্ট, ডিফল্ট উপরে); PUT /{id} (এডিট, শুধু নিজের); DELETE /{id} (ডিলিট, শুধু নিজের); POST /{id}/default (ডিফল্ট সেট, ট্রানজেকশনে একই ব্যবহারকারীর অন্য সারি শূন্য)
 - ডিফল্ট রুল: প্রথম সেভ অটো ডিফল্ট; ডিফল্ট ডিলিট করলে স্বয়ংক্রিয়ভাবে প্রথম সারি ডিফল্ট
 - আবেদন লিংক: InvoiceController::store অপশনাল title_id পার্স করে invoice_title/tax_no/title_type আনে, title_id না থাকলে পুরনো ম্যানুয়াল পথ; uk_order_type ডুপ লজিক অপরিবর্তিত
 
 ### 28. টিকেট স্যাটিসফ্যাকশন (রাউন্ড ২১)
 
-- erik_ticket-এ rating TINYINT NULL + rated_at DATETIME NULL (মাইগ্রেশন 000303)
+- appointment_ticket-এ rating TINYINT NULL + rated_at DATETIME NULL (মাইগ্রেশন 000303)
 - ক্লোজ রেটিং: TicketController::close() অপশনাল rating ১-৫ (filter_var ইন্টিজার যাচাই, বাউন্ডারির বাইরে/অ-ইন্টিজার ৪২২; দিলে rating+rated_at, না দিলে NULL পুরনো ক্লায়েন্ট কম্প্যাটিবল; শুধু open টিকেট ক্লোজ রুল রাখা)
 - ব্যাকএন্ড স্ট্যাট: GET /admin/tickets/satisfaction (স্ট্যাটিক রাউট resource এর আগে {id} shadow এড়াতে) total/rated_count/unrated_count/average (১ দশমিক)/distribution (১-৫ স্টার সংখ্যা, ঘাটতি ০); পারমিশন ৩৮৮
 
@@ -561,13 +561,13 @@ Flutter Web সিঙ্গেল-পেজ অ্যাপ, মোট ২১ �
 
 ### 30. ব্যবহারকারী ব্রাউজ হিস্ট্রি (রাউন্ড ২১)
 
-- erik_browse_history (uk_user_item(user_id, item_id) ইউনিক, ডুপ ব্রাউজ শুধু viewed_at আপডেট ডুপ ইনসার্ট নয়; idx_user_viewed সর্ট)
+- appointment_browse_history (uk_user_item(user_id, item_id) ইউনিক, ডুপ ব্রাউজ শুধু viewed_at আপডেট ডুপ ইনসার্ট নয়; idx_user_viewed সর্ট)
 - রেকর্ড হুক: ServiceController::detail() সফলের পর রেকর্ড (try/catch + Log::warning মূল ফ্লো প্রভাবিত করে না; পাবলিক রাউট JWT নেই, user_id খালি হলে অ্যানোনিমাস স্কিপ)
-- API: GET /api/browse-history (join erik_service নাম/কভার/দাম/মূল্য, viewed_at ডিসেন্ডিং, per_page ডিফল্ট ১৫ সর্বোচ্চ ৫০, item_id hashid); DELETE /{item_id} (শুধু নিজের, অবৈধ/অন্যের ৪০৪); DELETE / (শুধু নিজের ক্লিয়ার)
+- API: GET /api/browse-history (join appointment_service নাম/কভার/দাম/মূল্য, viewed_at ডিসেন্ডিং, per_page ডিফল্ট ১৫ সর্বোচ্চ ৫০, item_id hashid); DELETE /{item_id} (শুধু নিজের, অবৈধ/অন্যের ৪০৪); DELETE / (শুধু নিজের ক্লিয়ার)
 
 ### 31. ফুল রিডাকশন মার্কেটিং (রাউন্ড ২২)
 
-- erik_full_reduction_activity (threshold/reduction/title/status/start_at/end_at + idx_status_status_time)
+- appointment_full_reduction_activity (threshold/reduction/title/status/start_at/end_at + idx_status_status_time)
 - অর্ডার স্ট্যাকিং: শুধু স্ট্যান্ডার্ড অর্ডার (গ্রুপ বাই/সেকিল স্কিপ), কুপন/টাইম কার্ড ছাড়ের পর পাওনা পরিমাণে শর্ত, ক্রম **কুপন/টাইম কার্ড → ফুল রিডাকশন → লেভেল ছাড়**; সবচেয়ে বেশি ছাড়ের অ্যাক্টিভিটি; ছাড়ের পরিমাণ discount_amount + মন্তব্য "ফুল রিডাকশন: X এর উপরে Y ছাড়"; ফুল রিডাকশনের পর সর্বনিম্ন 0.01 ইউয়ান (পয়সা)
 - ব্যবহারকারী GET /api/full-reduction-activities (পাবলিক, চলমান ছাড়ের পরিমাণ ডিসেন্ডিং)
 - admin FullReductionController: CRUD + toggle-status প্রকাশ/আড়াল (destroy confirmPassword সহ)
@@ -581,29 +581,29 @@ Flutter Web সিঙ্গেল-পেজ অ্যাপ, মোট ২১ �
 
 ### 33. টেকনিশিয়ান উপস্থিতি (রাউন্ড ২২)
 
-- erik_technician_attendance (date/check_in_at/check_out_at/status + uk_technician_date ইউনিক ইনডেক্স কনকারেন্ট ডুপ চেক-ইন প্রতিরোধ)
+- appointment_technician_attendance (date/check_in_at/check_out_at/status + uk_technician_date ইউনিক ইনডেক্স কনকারেন্ট ডুপ চেক-ইন প্রতিরোধ)
 - টেকনিশিয়ান পাশ (TechnicianAuth): check-in ঐ দিন ডুপ ৪২২; check-out কাজ শুরু না/ইতিমধ্যে আউট ৪২২ + সারি লক; >১০:০০ লেট মার্ক; GET মাসিক লিস্ট + উপস্থিতি দিন/মোট ঘণ্টা/গড় ঘণ্টা (?month=YYYY-MM অবৈধ ৪২২)
 - admin: GET /admin/attendance (date+টেকনিশিয়ান নাম ফিল্টার, join real_name, hashid) + /stats (টেকনিশিয়ান অনুযায়ী গ্রুপ স্ট্যাট)
 - পারমিশন: ৩৯২ লিস্ট / ৩৯৩ স্ট্যাট
 
 ### 34. APP পুশ সার্ভিস (রাউন্ড ২২)
 
-- AppPushService (config group=push: enabled ডিফল্ট ০ / provider jpush/getui/placeholder): চালু না থাকলে নীরব ডাউনগ্রেড শুধু লগ; চালু থাকলে প্ল্যাটফর্ম/টাইটেল/কনটেন্ট/payload স্ট্রাকচার লগ + erik_push_log (status=sent); ভেন্ডর SDK ইন্টিগ্রেশন TODO (কোনো ক্রেডেনশিয়াল নেই আসল সেন্ড হয় না)
+- AppPushService (config group=push: enabled ডিফল্ট ০ / provider jpush/getui/placeholder): চালু না থাকলে নীরব ডাউনগ্রেড শুধু লগ; চালু থাকলে প্ল্যাটফর্ম/টাইটেল/কনটেন্ট/payload স্ট্রাকচার লগ + appointment_push_log (status=sent); ভেন্ডর SDK ইন্টিগ্রেশন TODO (কোনো ক্রেডেনশিয়াল নেই আসল সেন্ড হয় না)
 - হুক ৫ ইভেন্ট: পেমেন্ট সফল (WechatPayService::markOrderPaid)、অটো রিফান্ড (autoRefundCancelledOrder)、ম্যানুয়াল রিফান্ড (doRefund/refundToBalance)、রিফান্ড কমপেনসেশন (completeOneRefundCompensation)、সার্ভিস শুরুর রিমাইন্ডার (ServiceReminderTimer); সব try/catch মূল ফ্লো ব্লক করে না
-- erik_push_log (user_id/title/content/payload JSON/status/provider + idx_user)
+- appointment_push_log (user_id/title/content/payload JSON/status/provider + idx_user)
 
 ### 35. WeChat অফিসিয়াল প্রফিট শেয়ারিং (রাউন্ড ২২)
 
 - WechatProfitSharingService (config group=profit_sharing: enabled/receiver_ratio, ক্রেডেনশিয়াল wechat_pay পুনঃব্যবহার): চালু না থাকলে disabled ডাউনগ্রেড শুধু লগ লিখে না; চালু থাকলে→পরিমাণ যাচাই (>০ এবং ≤paid, বাস্তব পেমেন্ট×0.7 ডিফল্ট) + আইডেম্পোটেন্সি (একই অর্ডার pending/success স্কিপ) → pending রেকর্ড → "একবার প্রফিট শেয়ারিং" স্ট্রাকচার (ক্রেডেনশিয়াল নেই HTTP না, রিকোয়েস্ট কনটেন্ট লগ, রেকর্ড pending থাকে); HTTP আইসোলেটেড প্রাইভেট doRequest টেস্টযোগ্য
 - WechatPayService::markOrderPaid জমার পর requestSharing হুক (try/catch ব্যর্থ হলে শুধু লগ)
-- erik_profit_sharing (uk_sharing_no ইউনিক + idx_order); admin GET /admin/profit-sharing লিস্ট (join অর্ডার নম্বর/টেকনিশিয়ান নিকনেম, স্ট্যাটাস/অর্ডার নম্বর/টেকনিশিয়ান নাম ফিল্টার)
+- appointment_profit_sharing (uk_sharing_no ইউনিক + idx_order); admin GET /admin/profit-sharing লিস্ট (join অর্ডার নম্বর/টেকনিশিয়ান নিকনেম, স্ট্যাটাস/অর্ডার নম্বর/টেকনিশিয়ান নাম ফিল্টার)
 - পারমিশন: ৩৯৪
 
 ### 36. প্রাইভেসি কমপ্লায়েন্স (রাউন্ড ২২)
 
 - GET /api/privacy/data: ডেটা এক্সপোর্ট (personal/orders/points/wallet_txns/reviews/addresses/invoices গ্রুপ; লগ শুধু মাস্কড ফোন+সংখ্যা)
 - ডিলিটেশন বন্ধনী: close-request (ব্যালেন্স ০ নয় / অসম্পূর্ণ অর্ডার / চলমান টিকেট ৪২২ → close_status=1) → close-cancel (১→০) → close-confirm (৭২ ঘণ্টা পূর্ণ → close_status=2 + close_at + phone/nickname অ্যানোনিমাইজ user{id} + status=0)
-- erik_user-এ close_status/close_requested_at/close_at (আইডেম্পোটেন্ট ALTER মাইগ্রেশন); AuthController login/loginByCode close_status=2 হলে ৪০৩ "অ্যাকাউন্ট ডিলিট করা হয়েছে"
+- appointment_user-এ close_status/close_requested_at/close_at (আইডেম্পোটেন্ট ALTER মাইগ্রেশন); AuthController login/loginByCode close_status=2 হলে ৪০৩ "অ্যাকাউন্ট ডিলিট করা হয়েছে"
 
 ### 37. ব্যবহারকারী হেলথ প্রোফাইল (রাউন্ড ২৩)
 
@@ -635,7 +635,7 @@ Flutter Web সিঙ্গেল-পেজ অ্যাপ, মোট ২১ �
 - GET /api/wheel/prizes (weight/stock লুকানো); POST /api/wheel/spin: Redis NX + সারি লক কনকারেন্সি প্রতিরোধ, random_int ওয়েটেড ড্র, client_token আইডেম্পোটেন্ট
 - পুরস্কার এন্ট্রি: পয়েন্ট→earn লেনদেন (এক্সপায়ার সময় সহ, PointsExpiryTimer স্বাভাবিক এক্সপায়ার)、ব্যালেন্স→lockForUpdate、কুপন→pending ম্যানুয়াল ইস্যু、কিছু নেই→lose
 - GET /api/wheel/records আমার রেকর্ড পেজিনেশন; admin /admin/lucky-wheel CRUD + প্রকাশ/আড়াল + রেকর্ড (পারমিশন ৪০১-৪০৬)
-- মাইগ্রেশন 000503 (erik_lucky_wheel + erik_wheel_record + w60/w40 ডেমো সিড) + 000505 (পারমিশন সিড); LuckyWheelTest admin ৩ + service ৬ টেস্ট
+- মাইগ্রেশন 000503 (appointment_lucky_wheel + appointment_wheel_record + w60/w40 ডেমো সিড) + 000505 (পারমিশন সিড); LuckyWheelTest admin ৩ + service ৬ টেস্ট
 
 ### 42. গেস্ট মোড (রাউন্ড ২৪)
 
@@ -645,21 +645,21 @@ Flutter Web সিঙ্গেল-পেজ অ্যাপ, মোট ২১ �
 
 ### 43. সেকিল (রাউন্ড ২৪)
 
-- erik_seckill_activity (name/service_id/seckill_price/original_price/stock/start_at/end_at/status); বিক্রিত = erik_order.seckill_id অর্ডার সংখ্যা
+- appointment_seckill_activity (name/service_id/seckill_price/original_price/stock/start_at/end_at/status); বিক্রিত = appointment_order.seckill_id অর্ডার সংখ্যা
 - GET /api/seckill (status=1 + টাইম উইন্ডো)、/{id} (state=not_started/ongoing/ended)、POST /{id}/buy: client_token (৮-৬৪ অক্ষর, SETNX ২৪ ঘণ্টা) আইডেম্পোটেন্ট + Redis NX ৩০ সেকেন্ড কনকারেন্সি প্রতিরোধ + অ্যাক্টিভিটি যাচাই (2026-08-26 থেকে আর প্রি-ডিডাক্ট স্টক নেই)
 - অর্ডারে seckill_id ইনজেক্ট OrderController::store পুনঃব্যবহার; স্টক ইউনিফাইড store() ট্রানজেকশনে সারি লক কাটা (সরাসরি /api/order তে seckill_id দিলেও স্টক কাটা হয়), সেকিল প্রাইস = seckill_price (DB-ই প্রামাণ্য), কুপন/পয়েন্ট/মেম্বার কার্ড স্ট্যাকিং নেই; অর্ডার বাতিলে স্টক ফেরত নেই; পুরনো FLASH_SALE চ্যানেল ডিলিট (store() প্রোমো শাখায় শুধু গ্রুপ বাই, PromotionController index flash_sale ফিল্টার, show/join ৪০০), সেকিল শুধু এই চ্যানেল
 - admin /admin/seckill CRUD + প্রকাশ/আড়াল + অর্ডার লিস্ট (পারমিশন ৪০৭-৪১১、৪২০); মাইগ্রেশন 000606 পারমিশন সিড; SeckillTest service + admin
 
 ### 44. APP ভার্সন ম্যানেজমেন্ট ও আপডেট ডিটেকশন (রাউন্ড ২৪)
 
-- erik_app_version (platform/version_code/version_name/force_update/changelog/download_url/status)
+- appointment_app_version (platform/version_code/version_name/force_update/changelog/download_url/status)
 - GET /api/app/version?platform=android|ios পাবলিক আপডেট ডিটেকশন (platform অবৈধ ৪২২; status=1 এর মধ্যে সর্বশেষ; নেই খালি অবজেক্ট)
 - admin /admin/versions CRUD (পারমিশন ৪১৬-৪১৯); মাইগ্রেশন 000609 পারমিশন সিড; VersionTest service + admin
 
 ### 45. রিটার্ন কাস্টমার রিওয়ার্ড (রাউন্ড ২৪)
 
 - ReturnCustomerRewardService: ব্যবহারকারী একই টেকনিশিয়ানে ৩০ দিনের মধ্যে ২য় খরচ (অর্ডার সম্পন্ন) হলে টেকনিশিয়ানকে বোনাস = বাস্তব পেমেন্ট paid_amount × ratio (system_config group=return_customer, ratio ডিফল্ট 0.05、enabled সুইচ, অবৈধ মান ডিফল্টে ফেরত)
-- erik_technician_earnings (type=return_customer, status=pending) কমিশন সেটেলমেন্ট চেইন পুনঃব্যবহার, টেকনিশিয়ান earnings সামারি অটো অন্তর্ভুক্ত; একই order_id+type আইডেম্পোটেন্ট; WorkController::complete সারি লক ট্রানজেকশনে কল
+- appointment_technician_earnings (type=return_customer, status=pending) কমিশন সেটেলমেন্ট চেইন পুনঃব্যবহার, টেকনিশিয়ান earnings সামারি অটো অন্তর্ভুক্ত; একই order_id+type আইডেম্পোটেন্ট; WorkController::complete সারি লক ট্রানজেকশনে কল
 - admin /admin/return-customer/config (GET/PUT) + /rewards (?keyword টেকনিশিয়ান নাম/অর্ডার নম্বর/ব্যবহারকারী নিকনেম) (পারমিশন ৪১২-৪১৪); মাইগ্রেশন 000607 পারমিশন সিড; ReturnCustomerRewardServiceTest
 
 ### 46. শিডিউল এক্সপোর্ট (রাউন্ড ২৪)

@@ -100,7 +100,7 @@
 |------|------|
 | Личные данные | Аватар/никнейм/телефон |
 | Смена роли | Клиент ↔ мастер |
-| Уведомления | Внутрисайтовые уведомления (erik_notification); страница центра уведомлений: пагинация/обновление вниз/подсветка прочитанных/отметить прочитанным/все прочитаны |
+| Уведомления | Внутрисайтовые уведомления (appointment_notification); страница центра уведомлений: пагинация/обновление вниз/подсветка прочитанных/отметить прочитанным/все прочитаны |
 | Мои карты участника | Месячная/VIP годовая/посещения (истекла/количество/использовано/осталось) |
 | Мои бонусы | Записи начисления/доступные бонусы/записи использования (обмен 1:100 на подарочные карты); бонусы за отметку/покупки, возврат списывает пропорционально, детализация с пагинацией + фильтр type/source |
 | Мои подарочные карты | Денежные карты/подарки; обмен типа cash зачисляет прямо на кошелёк |
@@ -193,7 +193,7 @@
 
 | Функция | Описание |
 |------|------|
-| Авторизация подписки | utils/subscribe.js централизованно управляет ID шаблонов (имена ключей совпадают с erik_system_config.wechat_app.template_ids на сервере) |
+| Авторизация подписки | utils/subscribe.js централизованно управляет ID шаблонов (имена ключей совпадают с appointment_system_config.wechat_app.template_ids на сервере) |
 | Сценарии запуска | wx.requestSubscribeMessage в жестах-колбэках после успешной записи/оплаты; при отсутствии ID шаблона или отказе пользователя — тихо |
 | Цепочка на сервере | WechatTemplateMessageService отправка + NotificationReminderService напоминание за 2ч~1ч до записи + процесс AutoCancelTimer сканирует |
 
@@ -222,16 +222,16 @@
 |------|------|
 | Групповая цена | join в ответе возвращает discount_percent/original_price/group_price |
 | Групповой заказ | POST /api/order с promotion_id: проверки — только group_buy/акция активна/вызывающий — участник/не заполнена/услуга совпадает; групповая цена = исходная × discount_percent/100, купоны/карты посещений/бонусы запрещены к суммированию (422) |
-| Пометка заказа | В erik_order добавлены колонки promotion_id/participant_id + индексы |
+| Пометка заказа | В appointment_order добавлены колонки promotion_id/participant_id + индексы |
 | Несформированная группа | По истечении без заполнения — акция закрывается + массовая отмена pending-заказов акции (идемпотентно); pay() лениво определяет закрытие и автоматически отменяет заказ и освобождает блокировку мастера |
 
 ### 22. Дистрибьюторская комиссия (раунд 16)
 
 | Функция | Описание |
 |------|------|
-| Правила выдачи | После первого заказа приглашённого со статусом completed: сумма = paid_amount×reward_rate (erik_system_config referral.reward_rate, по умолчанию 0.05, при недопустимом значении — откат к константе), выдача только при >0 |
+| Правила выдачи | После первого заказа приглашённого со статусом completed: сумма = paid_amount×reward_rate (appointment_system_config referral.reward_rate, по умолчанию 0.05, при недопустимом значении — откат к константе), выдача только при >0 |
 | Точка подключения | ReferralRewardService::handleOrderCompleted подключается в транзакции WorkController::complete (serving→completed — единственный вход; подтверждение verify идёт только до serving и не запускает), при сбое — полный откат с возможностью повтора |
-| Идемпотентность | lockForUpdate по erik_user_referral + проверка rewarded_at на пустоту + повторная проверка первого заказа внутри блокировки (при параллелизме/повторных вызовах выдача только одна) |
+| Идемпотентность | lockForUpdate по appointment_user_referral + проверка rewarded_at на пустоту + повторная проверка первого заказа внутри блокировки (при параллелизме/повторных вызовах выдача только одна) |
 | Зачисление | Блокировка строк кошелька с накоплением + WalletTxn type='referral_reward' (balance_after + номер заказа в remark); в запись приглашения пишутся reward_type/reward_amount/rewarded_at/first_order_at |
 | Детализация | GET /api/user/referral/earnings — пагинация (никнейм/аватар приглашённого/номер заказа/сумма/время) |
 
@@ -239,10 +239,10 @@
 
 | Функция | Описание |
 |------|------|
-| Товары обмена | erik_points_exchange_goods: type=coupon/gift_card/wallet, points_cost/value (DECIMAL(25,2) против потери точности ID при снежной лавине)/stock/status |
+| Товары обмена | appointment_points_exchange_goods: type=coupon/gift_card/wallet, points_cost/value (DECIMAL(25,2) против потери точности ID при снежной лавине)/stock/status |
 | Список товаров | GET /api/marketing/points-exchange: опубликованные товары + остаток запаса в реальном времени + количество обменов |
 | Обмен | POST /api/marketing/points-exchange/{id}: блокировка Redis NX + блокировка строк товара против перевыдачи; проверка SUM бонусов (недостаточно — 422) + списание UserPoints type='consume' source='exchange'; coupon выдаёт купон / wallet зачисляет (WalletTxn points_exchange) / gift_card возвращает карту |
-| Идемпотентность | Уникальный индекс uk_user_goods — один пользователь на один товар максимум один обмен + повторная проверка внутри блокировки + запасной перехват 1062; запись обмена со снимком в erik_user_points_exchange |
+| Идемпотентность | Уникальный индекс uk_user_goods — один пользователь на один товар максимум один обмен + повторная проверка внутри блокировки + запасной перехват 1062; запись обмена со снимком в appointment_user_points_exchange |
 
 ### 24. Перенос записи (раунд 17)
 
@@ -251,7 +251,7 @@
 | Интерфейс | POST /api/order/reschedule/{id}: new_service_time (обязательно) + reason (опционально), смена времени у того же мастера |
 | Правила | Только свой заказ (не свой — 404); только тип appointment и статус pending/paid/confirmed (иначе 422); до начала исходной услуги ≥ 6 часов (совпадает с окном полного возврата) |
 | Защита от параллелизма | B1 order_lock (та же группа взаимного исключения, что pay/cancel/refund) → блокировка мастера на новый слот Redis SETNX EX 180 (параллельные переносы против перепродажи) → блокировка строк с повторным чтением в транзакции + проверка конфликтов расписания B2 в БД (с исключением данного заказа) |
-| Завершение | Обновление service_time + запись в erik_order_reschedule (включая reason) + снятие блокировки исходного слота/удерживаемой блокировки нового слота данного заказа; при сбое транзакция откатывается и блокировка нового слота снимается |
+| Завершение | Обновление service_time + запись в appointment_order_reschedule (включая reason) + снятие блокировки исходного слота/удерживаемой блокировки нового слота данного заказа; при сбое транзакция откатывается и блокировка нового слота снимается |
 | Уведомления | Подписочное сообщение SCENE_RESCHEDULE (при отсутствии шаблона — деградация на внутрисайтовое уведомление «Запись перенесена успешно») + pushOrderUpdate |
 
 ### 25. Передача купонов (раунд 17)
@@ -267,7 +267,7 @@
 
 | Функция | Описание |
 |------|------|
-| Срок действия | Колонка erik_user_points.expires_at; все earn (отметка/покупки/возврат) при записи получают expires_at = now + points.expiry_days (по умолчанию 365, ≤0 — никогда не истекает); consume/use остаются пустыми |
+| Срок действия | Колонка appointment_user_points.expires_at; все earn (отметка/покупки/возврат) при записи получают expires_at = now + points.expiry_days (по умолчанию 365, ≤0 — никогда не истекает); consume/use остаются пустыми |
 | Выполнение истечения | Таймерный процесс PointsExpiryTimer каждые 60с сканирует курсором (по 100) earn-строки с expires_at < now → пишет строку списания type=expire (source=expiry + order_id указывает на исходную запись) → агрегированное внутрисайтовое уведомление «У вас истекло X бонусов» по пользователям |
 | Идемпотентность | ① order_id строки expire указывает на исходную earn-запись, в транзакции lockForUpdate по исходной строке + повторная проверка exists (параллельные процессы сериализуются блокировкой строк) ② курсорная пагинация по id ③ уведомление только в фактическом раунде списания |
 | Трактовка | Доступный баланс SUM агрегирует и строки с отрицательными expire; истёкшие бонусы нельзя использовать для зачёта оплаты/обмена |
@@ -297,7 +297,7 @@
 |------|------|
 | Интерфейс | POST /api/technician/review/reply/{order_id} (middleware роли мастера): отзыв не существует/не свой — единообразно 404; уже есть ответ — 422 (идемпотентный отказ без перезаписи); пустой ответ — 422 |
 | После ответа | Внутрисайтовое уведомление пользователю (type='review_reply', неблокирующий try/catch + Log) |
-| Данные | В erik_order_review идемпотентно добавлена колонка replied_at (колонка reply была в таблице изначально); в админке list/show отзывов через decorate()->toArray() отдаются reply/replied_at |
+| Данные | В appointment_order_review идемпотентно добавлена колонка replied_at (колонка reply была в таблице изначально); в админке list/show отзывов через decorate()->toArray() отдаются reply/replied_at |
 
 ### 30. Уведомление о пополнении (раунд 18)
 
@@ -331,7 +331,7 @@
 |------|------|
 | Дополнение | POST /api/order/review/{order_id}/append: отзыв не существует/не свой — единообразно 404, не completed — 422, повторное дополнение — 422 (если append_content/append_at непустые — отказ), пустое содержание — 422; при успехе пишутся append_content/append_images(JSON)/append_at + внутрисайтовое уведомление мастеру type='review_append' |
 | Отправка отзыва | Дозарегистрирован POST /api/order/review/{order_id} (у ReviewController::store исходно не было маршрута — был недоступен); заодно исправлен скрытый TypeError: findByOrderId получал int при сигнатуре string (по аналогии с приведением (string) в append), дорегистрация сразу выдала бы 500 при вызове |
-| Данные | В erik_order_review добавлены три колонки append_content TEXT/append_images JSON/append_at DATETIME (идемпотентная миграция); в ответе отдаются поля append |
+| Данные | В appointment_order_review добавлены три колонки append_content TEXT/append_images JSON/append_at DATETIME (идемпотентная миграция); в ответе отдаются поля append |
 
 ### 34. Отслеживание доставки в пользовательской части (раунд 19)
 
@@ -345,9 +345,9 @@
 
 | Функция | Описание |
 |------|------|
-| Данные | Таблица erik_user_notify_setting (составной уникальный ключ user_id+type uk_user_type, отсутствующая строка = включено по умолчанию); 5 типов: service_reminder напоминание об услуге / card_expiry напоминание об истечении (зонт для карт и купонов) / points_expiry истечение бонусов / marketing маркетинг (задел) / system системные (нельзя отключить, PUT принудительно ставит 1) |
+| Данные | Таблица appointment_user_notify_setting (составной уникальный ключ user_id+type uk_user_type, отсутствующая строка = включено по умолчанию); 5 типов: service_reminder напоминание об услуге / card_expiry напоминание об истечении (зонт для карт и купонов) / points_expiry истечение бонусов / marketing маркетинг (задел) / system системные (нельзя отключить, PUT принудительно ставит 1) |
 | Интерфейсы | GET /api/user/notify-settings возвращает все 5 переключателей; PUT — массовый upsert без дублирующих строк |
-| Управление | NotificationReminderService::notifySettingEnabled подключается к 3 таймерным процессам (ServiceReminderTimer/ExpiryReminderTimer карты+купоны/PointsExpiryTimer; таймеры пишут прямо в erik_notification минуя сервисный путь записи, поэтому каждый добавляет такую же проверку) + события подписки (sendSubscribeForOrderEvent/Notification: сценарии PAY/REFUND/VERIFIED/RESCHEDULE→system всегда отправляются, REMINDER→service_reminder, EXPIRY→card_expiry); при выключенном типе пропускаются и внутрисайтовые уведомления, и подписочные сообщения |
+| Управление | NotificationReminderService::notifySettingEnabled подключается к 3 таймерным процессам (ServiceReminderTimer/ExpiryReminderTimer карты+купоны/PointsExpiryTimer; таймеры пишут прямо в appointment_notification минуя сервисный путь записи, поэтому каждый добавляет такую же проверку) + события подписки (sendSubscribeForOrderEvent/Notification: сценарии PAY/REFUND/VERIFIED/RESCHEDULE→system всегда отправляются, REMINDER→service_reminder, EXPIRY→card_expiry); при выключенном типе пропускаются и внутрисайтовые уведомления, и подписочные сообщения |
 
 ---
 
@@ -456,13 +456,13 @@ Flutter Web — одностраничное приложение, всего 21
 
 ### 14. Управление картами участника (раунд 10)
 
-- Колонка уровня участника erik_user.member_level (миграция 000008)
+- Колонка уровня участника appointment_user.member_level (миграция 000008)
 - MemberCardController полный CRUD (права 365-369): GET/POST/PUT/DELETE /admin/member-cards
 - Страница определения карт участника Flutter
 
 ### 15. Управление послепродажным обслуживанием (раунд 14)
 
-- Таблица erik_order_aftersale (миграция 000009): type=refund/exchange, status=pending/approved/rejected/completed
+- Таблица appointment_order_aftersale (миграция 000009): type=refund/exchange, status=pending/approved/rejected/completed
 - AftersaleController: GET /admin/aftersales (пагинация + фильтр status/uid/order_no) + POST /admin/aftersales/{id}/review (approve/reject+remark)
 - Страница управления послепродажным обслуживанием Flutter (список + диалог проверки, права 370/371), маршрут зарегистрирован
 
@@ -483,10 +483,10 @@ Flutter Web — одностраничное приложение, всего 21
 
 ### 19. Автоматическое присвоение уровня мастера (раунд 17)
 
-- TierRatingService::evaluate(technicianId, allowDowngrade=false): в реальном времени считает количество заказов erik_order completed + средний балл erik_order_review (округление до 1 знака) и пишет обратно в profile.order_count/rating, подбор сверху вниз по erik_technician_tier_config (min_orders/min_rating), при отсутствии соответствия — самый низкий уровень
+- TierRatingService::evaluate(technicianId, allowDowngrade=false): в реальном времени считает количество заказов appointment_order completed + средний балл appointment_order_review (округление до 1 знака) и пишет обратно в profile.order_count/rating, подбор сверху вниз по appointment_technician_tier_config (min_orders/min_rating), при отсутствии соответствия — самый низкий уровень
 - Правила повышения/понижения: только повышение без понижения (уровень привязан к ставке комиссии и ценовому коэффициенту, автоматическое понижение затрагивает доход мастера и легко вызывает споры, снижение подхватывается вручную в админке); понижение выполняется только при allowDowngrade=true (сценарий ручной переоценки в админке), при понижении также пишется лог + уведомление
 - Идемпотентность: если положенный уровень совпадает с profile.tier_id — только синхронизация статистики, без лога и уведомлений
-- Лог: изменения пишутся в erik_technician_tier_log (id/technician_id/old_tier_id/new_tier_id/reason/created_at) + внутрисайтовое уведомление (type='tier')
+- Лог: изменения пишутся в appointment_technician_tier_log (id/technician_id/old_tier_id/new_tier_id/reason/created_at) + внутрисайтовое уведомление (type='tier')
 - Точки запуска: WorkController::complete / запись отзыва ReviewController / ленивая проверка при просмотре анкеты ProfileController
 - Админка: TechnicianTierController сохраняет ручную настройку; GET /admin/technician-tiers/logs — пагинация журнала изменений (join имени мастера и названий старого/нового уровней, ID в hashid-кодировке, право 380)
 
@@ -499,26 +499,26 @@ Flutter Web — одностраничное приложение, всего 21
 ### 21. Календарь записи (раунд 20)
 
 - CalendarController вид месяц/день: GET /api/calendar/technician/{id} (месяц) + /day (день)
-- Источник данных: time_slots JSON из technician_schedule разворачивается по дням недели в часовые слоты, занятые слоты erik_order этого дня исключаются (status ∈ pending/paid/confirmed/serving), выводятся оставшиеся доступные слоты
+- Источник данных: time_slots JSON из technician_schedule разворачивается по дням недели в часовые слоты, занятые слоты appointment_order этого дня исключаются (status ∈ pending/paid/confirmed/serving), выводятся оставшиеся доступные слоты
 - Назначение: визуальный выбор времени по расписанию филиала, фронтенд — горизонтальная прокрутка по дням + выбор точки времени
 
 ### 22. Уровни роста пользователя (раунд 20)
 
-- erik_user_growth (записи) + erik_growth_level (сид 5 уровней: бронза 0/серебро 100/золото 500/платина 2000/бриллиант 5000)
+- appointment_user_growth (записи) + appointment_growth_level (сид 5 уровней: бронза 0/серебро 100/золото 500/платина 2000/бриллиант 5000)
 - Точки начисления роста: отметка +10 (CheckInController); отправка отзыва +20 (ReviewController::store, дополнение не начисляет); покупки floor(paid) — 1 балл за каждый юань (WechatPayService::markOrderPaid, переиспользование существующей проверки статуса оплаты даёт естественную идемпотентность, повторный колбэк не начисляет повторно)
 - Интерфейсы: GET /api/growth (обзор текущего уровня: balance/level/разница до следующего); GET /api/growth/records (пагинация записей); GET /api/growth/levels (публичный список уровней, вход не нужен)
 - Стратегия при сбое: любая точка начисления в try/catch с записью в лог, основной процесс не страдает
 
 ### 23. Электронные счета (раунд 20)
 
-- erik_invoice: uk_order_type(order_id,order_type) против повторной заявки на один заказ (повторная заявка — 422, включая запасной перехват MySQL 1062); idx_user_created/idx_status
+- appointment_invoice: uk_order_type(order_id,order_type) против повторной заявки на один заказ (повторная заявка — 422, включая запасной перехват MySQL 1062); idx_user_created/idx_status
 - Пользовательская часть: POST /api/invoices (заявка, сумма/реквизиты берутся с сервера из заказа, подделать нельзя); GET /api/invoices (список); GET /api/invoices/{id} (детали)
 - Админка: InvoiceController issue (выписка: invoice_no + status=issued + issued_at) / reject (отклонение: status=rejected + reject_reason), права 382 список/383 выписка/384 отклонение
 - Конечный автомат: pending → issued / rejected
 
 ### 24. Тикеты поддержки (раунд 20)
 
-- erik_ticket: пользователь создаёт тикет (title/content), в админке добавляются ответы (reply_content/replied_at), пользователь может закрыть (closed_at)
+- appointment_ticket: пользователь создаёт тикет (title/content), в админке добавляются ответы (reply_content/replied_at), пользователь может закрыть (closed_at)
 - Пользовательская часть: POST /api/tickets (создание); GET /api/tickets (список); GET /api/tickets/{id} (детали, только свои); POST /api/tickets/{id}/close (закрытие)
 - Админка: TicketController index (список) / reply (ответ), статические маршруты определяются раньше resource против затенения {id}; права 385 ответ на тикет/387 просмотр списка тикетов
 - Конечный автомат: open → replied (после ответа возвращается в open, можно отвечать снова) / closed
@@ -539,14 +539,14 @@ Flutter Web — одностраничное приложение, всего 21
 
 ### 27. Управление реквизитами счёта (раунд 21)
 
-- erik_invoice_title (uk_user_title(user_id, title_type, invoice_title) против дублей + idx_user_default)
+- appointment_invoice_title (uk_user_title(user_id, title_type, invoice_title) против дублей + idx_user_default)
 - Интерфейсы: POST /api/invoice-titles (сохранение, company обязательно с tax_no, повтор — 422); GET (список, по умолчанию вверху); PUT /{id} (редактирование, только свои); DELETE /{id} (удаление, только свои); POST /{id}/default (установка по умолчанию, в транзакции обнуляются остальные строки пользователя)
 - Правила по умолчанию: первая сохранённая автоматически становится по умолчанию; после удаления по умолчанию автоматически назначается самая ранняя
 - Связь с заявкой: InvoiceController::store опционально принимает title_id, реквизиты подтягиваются в invoice_title/tax_no/title_type, при отсутствии title_id сохраняется прежний путь ручного ввода; логика защиты uk_order_type не тронута
 
 ### 28. Удовлетворённость тикетом (раунд 21)
 
-- В erik_ticket добавлены rating TINYINT NULL + rated_at DATETIME NULL (миграция 000303)
+- В appointment_ticket добавлены rating TINYINT NULL + rated_at DATETIME NULL (миграция 000303)
 - Оценка при закрытии: TicketController::close() поддерживает опциональный rating 1-5 (проверка целого через filter_var, вне диапазона/не целое — 422; если указан — пишутся rating+rated_at, если нет — остаётся NULL для совместимости со старыми клиентами; правило закрытия только open-тикетов сохранено)
 - Статистика в админке: GET /admin/tickets/satisfaction (статический маршрут раньше resource против затенения {id}) возвращает total/rated_count/unrated_count/average (1 знак)/distribution (количество по каждой из 1-5 звёзд, отсутствующие звёзды дополняются нулями); право 388
 
@@ -559,13 +559,13 @@ Flutter Web — одностраничное приложение, всего 21
 
 ### 30. История просмотров пользователя (раунд 21)
 
-- erik_browse_history (uk_user_item(user_id, item_id) уникальный — повторный просмотр только обновляет viewed_at без повторной вставки; idx_user_viewed для сортировки)
+- appointment_browse_history (uk_user_item(user_id, item_id) уникальный — повторный просмотр только обновляет viewed_at без повторной вставки; idx_user_viewed для сортировки)
 - Подключение записи: ServiceController::detail() записывает после успеха (try/catch + Log::warning без влияния на основной процесс; публичный маршрут без JWT, при пустом user_id аноним пропускается)
-- Интерфейсы: GET /api/browse-history (join erik_service — название/обложка/цена/исходная цена, сортировка viewed_at по убыванию, per_page по умолчанию 15, максимум 50, item_id в hashid); DELETE /{item_id} (только свои, чужие/недопустимые — 404); DELETE / (очистка только своих)
+- Интерфейсы: GET /api/browse-history (join appointment_service — название/обложка/цена/исходная цена, сортировка viewed_at по убыванию, per_page по умолчанию 15, максимум 50, item_id в hashid); DELETE /{item_id} (только свои, чужие/недопустимые — 404); DELETE / (очистка только своих)
 
 ### 31. Акция «скидка при достижении суммы» (раунд 22)
 
-- erik_full_reduction_activity (threshold/reduction/title/status/start_at/end_at + idx_status_status_time)
+- appointment_full_reduction_activity (threshold/reduction/title/status/start_at/end_at + idx_status_status_time)
 - Наложение при заказе: только стандартные заказы (групповые/распродажа пропускаются), порог считается по сумме к оплате после купона/карты посещений, порядок **купон/карта посещений → скидка при достижении → скидка уровня**; берётся акция с максимальной суммой скидки; сумма скидки включается в discount_amount + примечание «Скидка при достижении: при сумме X скидка Y»; нижний предел фактической оплаты после скидки 0.01 юаня (в фэнях)
 - Пользовательская часть GET /api/full-reduction-activities (публичный, действующие по убыванию суммы скидки)
 - admin FullReductionController: CRUD + toggle-status вкл-выкл (destroy с confirmPassword)
@@ -579,29 +579,29 @@ Flutter Web — одностраничное приложение, всего 21
 
 ### 33. Учёт рабочего времени мастера (раунд 22)
 
-- erik_technician_attendance (date/check_in_at/check_out_at/status + уникальный индекс uk_technician_date против повторной отметки при параллелизме)
+- appointment_technician_attendance (date/check_in_at/check_out_at/status + уникальный индекс uk_technician_date против повторной отметки при параллелизме)
 - Сторона мастера (TechnicianAuth): повторная отметка прихода за день — 422; отметка ухода без прихода/повторный уход — 422 + блокировка строк; позже 10:00 — метка опоздания; GET список за месяц + дни присутствия/суммарные часы/средние часы (?month=YYYY-MM, недопустимый — 422)
 - admin: GET /admin/attendance (фильтр по дате + имени мастера, join real_name, hashid) + /stats (статистика с группировкой по мастерам)
 - Права: 392 список / 393 статистика
 
 ### 34. Сервис APP-пуша (раунд 22)
 
-- AppPushService (config group=push: enabled по умолчанию 0 / provider jpush/getui/placeholder): при отключении — тихая деградация только в лог; при включении — структура платформа/заголовок/содержание/payload пишется в Log + erik_push_log (status=sent); интеграция SDK вендоров оставлена на TODO (без учётных данных фактическая отправка не выполняется)
+- AppPushService (config group=push: enabled по умолчанию 0 / provider jpush/getui/placeholder): при отключении — тихая деградация только в лог; при включении — структура платформа/заголовок/содержание/payload пишется в Log + appointment_push_log (status=sent); интеграция SDK вендоров оставлена на TODO (без учётных данных фактическая отправка не выполняется)
 - Подключены 5 событий: оплата успешна (WechatPayService::markOrderPaid), автоматический возврат (autoRefundCancelledOrder), ручной возврат (doRefund/refundToBalance), компенсация возврата (completeOneRefundCompensation), напоминание о начале услуги (ServiceReminderTimer); всё в try/catch без блокировки основного процесса
-- erik_push_log (user_id/title/content/payload JSON/status/provider + idx_user)
+- appointment_push_log (user_id/title/content/payload JSON/status/provider + idx_user)
 
 ### 35. Официальное разделение средств WeChat (раунд 22)
 
 - WechatProfitSharingService (config group=profit_sharing: enabled/receiver_ratio, учётные данные переиспользуются из wechat_pay): при отключении — деградация disabled только в лог, без записи в БД; при включении — проверка суммы (>0 и ≤paid, фактическая оплата ×0.7 по умолчанию) + идемпотентность (pending/success этого же заказа пропускаются) → запись pending → конструирование структуры «запрос единовременного разделения» (без учётных данных HTTP не выполняется, содержимое запроса пишется в лог, запись остаётся pending); изолированный приватный doRequest тестируем
 - После markOrderPaid в WechatPayService подключается requestSharing (сбой в try/catch — только лог)
-- erik_profit_sharing (uk_sharing_no уникальный + idx_order); admin GET /admin/profit-sharing список (join номера заказа/никнейма мастера, фильтр по статусу/номеру заказа/имени мастера)
+- appointment_profit_sharing (uk_sharing_no уникальный + idx_order); admin GET /admin/profit-sharing список (join номера заказа/никнейма мастера, фильтр по статусу/номеру заказа/имени мастера)
 - Право: 394
 
 ### 36. Конфиденциальность (раунд 22)
 
 - GET /api/privacy/data: экспорт данных (группы personal/orders/points/wallet_txns/reviews/addresses/invoices; в лог — только маскированный телефон + количество)
 - Замкнутый цикл удаления: close-request (баланс не 0 / незавершённые заказы / активные тикеты — 422 → close_status=1) → close-cancel (1→0) → close-confirm (прошло 72ч → close_status=2 + close_at + анонимизация phone/nickname в user{id} + status=0)
-- В erik_user добавлены close_status/close_requested_at/close_at (идемпотентная миграция ALTER); AuthController login/loginByCode для close_status=2 возвращает 403 «Учётная запись удалена»
+- В appointment_user добавлены close_status/close_requested_at/close_at (идемпотентная миграция ALTER); AuthController login/loginByCode для close_status=2 возвращает 403 «Учётная запись удалена»
 
 ### 37. Медицинский профиль пользователя (раунд 23)
 
@@ -633,7 +633,7 @@ Flutter Web — одностраничное приложение, всего 21
 - GET /api/wheel/prizes (скрыты weight/stock); POST /api/wheel/spin: Redis NX + блокировка строк против параллелизма, взвешенный выбор random_int, идемпотентность client_token
 - Зачисление призов: бонусы → запись earn (с временем истечения, нормально истекает через PointsExpiryTimer), баланс → lockForUpdate, купон → pending ручная выдача, без выигрыша → lose
 - GET /api/wheel/records — мои записи с пагинацией; admin /admin/lucky-wheel CRUD + вкл-выкл + записи (права 401-406)
-- Миграции 000503 (erik_lucky_wheel + erik_wheel_record + демо-сид w60/w40) + 000505 (сид прав); LuckyWheelTest admin 3 + service 6 tests
+- Миграции 000503 (appointment_lucky_wheel + appointment_wheel_record + демо-сид w60/w40) + 000505 (сид прав); LuckyWheelTest admin 3 + service 6 tests
 
 ### 42. Гостевой режим (раунд 24)
 
@@ -643,21 +643,21 @@ Flutter Web — одностраничное приложение, всего 21
 
 ### 43. Распродажа (раунд 24)
 
-- erik_seckill_activity (name/service_id/seckill_price/original_price/stock/start_at/end_at/status); продано = количество заказов erik_order.seckill_id
+- appointment_seckill_activity (name/service_id/seckill_price/original_price/stock/start_at/end_at/status); продано = количество заказов appointment_order.seckill_id
 - GET /api/seckill (status=1 + временное окно), /{id} (state=not_started/ongoing/ended), POST /{id}/buy: идемпотентность client_token (8-64 символа, SETNX 24ч) + Redis NX 30с против параллелизма + проверка акции (с 2026-08-26 предварительное резервирование запаса отменено)
 - При заказе подставляется seckill_id с переиспользованием OrderController::store; запас единообразно списывается блокировкой строк внутри транзакции store() (прямой вызов /api/order с seckill_id тоже списывает запас), цена распродажи = seckill_price (по данным БД), купоны/бонусы/карты участника не суммируются; при отмене заказа запас не восполняется; старый канал FLASH_SALE удалён (в ветке акций store() остались только групповые покупки, PromotionController index фильтрует flash_sale, show/join — 400), распродажа идёт только этим каналом
 - admin /admin/seckill CRUD + вкл-выкл + список заказов (права 407-411, 420); миграция 000606 сид прав; SeckillTest service + admin
 
 ### 44. Управление версиями APP и проверка обновлений (раунд 24)
 
-- erik_app_version (platform/version_code/version_name/force_update/changelog/download_url/status)
+- appointment_app_version (platform/version_code/version_name/force_update/changelog/download_url/status)
 - GET /api/app/version?platform=android|ios — публичная проверка обновлений (недопустимая platform — 422; из status=1 берётся последняя; нет — пустой объект)
 - admin /admin/versions CRUD (права 416-419); миграция 000609 сид прав; VersionTest service + admin
 
 ### 45. Награда постоянному клиенту (раунд 24)
 
 - ReturnCustomerRewardService: за 2-ю покупку пользователя у того же мастера в течение 30 дней (заказ завершён) мастеру начисляется премия = фактическая оплата paid_amount × ratio (system_config group=return_customer, ratio по умолчанию 0.05, переключатель enabled, при недопустимом значении — откат к умолчанию)
-- Запись в erik_technician_earnings (type=return_customer, status=pending) с переиспользованием цепочки расчёта комиссии, сводка earnings у мастера включает автоматически; идемпотентность по order_id+type; вызов в транзакции с блокировкой строк WorkController::complete
+- Запись в appointment_technician_earnings (type=return_customer, status=pending) с переиспользованием цепочки расчёта комиссии, сводка earnings у мастера включает автоматически; идемпотентность по order_id+type; вызов в транзакции с блокировкой строк WorkController::complete
 - admin /admin/return-customer/config (GET/PUT) + /rewards (?keyword имя мастера/номер заказа/никнейм пользователя) (права 412-414); миграция 000607 сид прав; ReturnCustomerRewardServiceTest
 
 ### 46. Экспорт расписания (раунд 24)

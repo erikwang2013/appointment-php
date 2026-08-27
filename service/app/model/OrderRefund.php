@@ -12,7 +12,7 @@ use support\Model;
  */
 class OrderRefund extends Model
 {
-    protected $table = 'erik_order_refund';
+    protected $table = 'appointment_order_refund';
     public $incrementing = false;
     protected $keyType = 'string';
     public $timestamps = true;

@@ -172,7 +172,7 @@ trait OrderVerifyTrait
     /**
      * M1: 核销成功后生成技师佣金收益（幂等：同订单同类型不重复生成）
      *
-     * 金额 = 订单实付 × 佣金率（erik_technician_commission_config.commission_rate，百分比）。
+     * 金额 = 订单实付 × 佣金率（appointment_technician_commission_config.commission_rate，百分比）。
      * 状态初始 pending（待结算），由 autoSettle 置 settled，提现时置 withdrawn。
      */
     private function createCommissionEarning(Order $order): void
@@ -189,7 +189,7 @@ trait OrderVerifyTrait
             return;
         }
 
-        $rate = (float) Db::table('erik_technician_commission_config')
+        $rate = (float) Db::table('appointment_technician_commission_config')
             ->where('technician_id', $order->technician_id)
             ->value('commission_rate');
         if ($rate <= 0) {

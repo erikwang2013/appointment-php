@@ -37,13 +37,13 @@ class OrderRefundFlowTest extends TestCase
     protected function tearDown(): void
     {
         foreach ($this->orderIds as $id) {
-            Db::table('erik_notification')->where('order_id', $id)->delete();
+            Db::table('appointment_notification')->where('order_id', $id)->delete();
             OrderRefund::where('order_id', $id)->delete();
             OrderPayment::where('order_id', $id)->delete();
             Order::where('id', $id)->delete();
         }
         foreach ($this->couponIds as $cid) {
-            Db::table('erik_user_coupon')->where('id', $cid)->delete();
+            Db::table('appointment_user_coupon')->where('id', $cid)->delete();
         }
         $this->orderIds = [];
         $this->couponIds = [];
@@ -173,7 +173,7 @@ class OrderRefundFlowTest extends TestCase
     private function makeUsedCoupon(int $userId): string
     {
         $id = (string) (9900000000000000 + random_int(1, 999999));
-        Db::table('erik_user_coupon')->insert([
+        Db::table('appointment_user_coupon')->insert([
             'id' => $id,
             'user_id' => $userId,
             'coupon_id' => $id,
@@ -227,7 +227,7 @@ class OrderRefundFlowTest extends TestCase
             'status'     => OrderRefund::STATUS_PENDING,
         ]);
         // 回拨 created_at 越过补偿阈值（600s）
-        Db::table('erik_order_refund')
+        Db::table('appointment_order_refund')
             ->where('id', $refund->id)
             ->update(['created_at' => date('Y-m-d H:i:s', time() - 660)]);
 
@@ -247,7 +247,7 @@ class OrderRefundFlowTest extends TestCase
         // 订单 refunding → refunded（不再卡死）
         $this->assertSame(Order::STATUS_REFUNDED, Order::find($order->id)->status);
         // 全额退款归还券
-        $coupon = Db::table('erik_user_coupon')->where('id', $order->user_coupon_id)->first();
+        $coupon = Db::table('appointment_user_coupon')->where('id', $order->user_coupon_id)->first();
         $this->assertSame('available', $coupon->status);
         $this->assertNull($coupon->used_at);
     }
@@ -265,7 +265,7 @@ class OrderRefundFlowTest extends TestCase
         $couponId = $order->user_coupon_id;
         $ctl->completeRefundCompensation();
         $this->assertSame(OrderRefund::STATUS_SUCCESS, OrderRefund::find($refund->id)->status);
-        $this->assertSame('available', Db::table('erik_user_coupon')->where('id', $couponId)->value('status'));
+        $this->assertSame('available', Db::table('appointment_user_coupon')->where('id', $couponId)->value('status'));
         $this->assertSame(Order::STATUS_REFUNDED, Order::find($order->id)->status);
     }
 
@@ -277,7 +277,7 @@ class OrderRefundFlowTest extends TestCase
         (new OrderController())->completeRefundCompensation();
 
         $this->assertSame(Order::STATUS_REFUNDED, Order::find($order->id)->status);
-        $this->assertSame('used', Db::table('erik_user_coupon')->where('id', $order->user_coupon_id)->value('status'));
+        $this->assertSame('used', Db::table('appointment_user_coupon')->where('id', $order->user_coupon_id)->value('status'));
     }
 
     #[Test] public function compensation_keeps_cancelled_terminal_state_and_restores_benefits(): void
@@ -290,7 +290,7 @@ class OrderRefundFlowTest extends TestCase
         $refund = OrderRefund::where('order_id', $order->id)->first();
         $this->assertSame(OrderRefund::STATUS_SUCCESS, $refund->status);
         $this->assertSame(Order::STATUS_CANCELLED, Order::find($order->id)->status);
-        $this->assertSame('available', Db::table('erik_user_coupon')->where('id', $order->user_coupon_id)->value('status'));
+        $this->assertSame('available', Db::table('appointment_user_coupon')->where('id', $order->user_coupon_id)->value('status'));
     }
 
     // ── 退款信息入契约：show()/index() 返回 refund_status/refund_amount/refunded_at ──
@@ -383,7 +383,7 @@ class OrderRefundFlowTest extends TestCase
             1.0,
         ]);
 
-        $notifications = Db::table('erik_notification')->where('order_id', $order->id)->get();
+        $notifications = Db::table('appointment_notification')->where('order_id', $order->id)->get();
         $this->assertCount(1, $notifications);
         $this->assertSame('order', $notifications->first()->type);
         $this->assertSame('退款申请已受理', $notifications->first()->title);
@@ -399,7 +399,7 @@ class OrderRefundFlowTest extends TestCase
             $order,
         ]);
 
-        $count = Db::table('erik_notification')
+        $count = Db::table('appointment_notification')
             ->where('order_id', $order->id)
             ->where('title', '退款申请已受理')
             ->count();
@@ -423,9 +423,9 @@ class OrderRefundFlowTest extends TestCase
         $failed = $this->makeRefund($order, OrderRefund::STATUS_FAILED);
         self::invokePrivate($ctl, 'writeRefundNotification', [$order, $failed]);
 
-        $this->assertSame(1, Db::table('erik_notification')->where('order_id', $order->id)->where('title', '退款申请已受理')->count());
-        $this->assertSame(1, Db::table('erik_notification')->where('order_id', $order->id)->where('title', '退款已到账')->count());
-        $this->assertSame(2, Db::table('erik_notification')->where('order_id', $order->id)->count());
+        $this->assertSame(1, Db::table('appointment_notification')->where('order_id', $order->id)->where('title', '退款申请已受理')->count());
+        $this->assertSame(1, Db::table('appointment_notification')->where('order_id', $order->id)->where('title', '退款已到账')->count());
+        $this->assertSame(2, Db::table('appointment_notification')->where('order_id', $order->id)->count());
     }
 
     #[Test] public function refund_notification_is_idempotent_by_order_and_title(): void
@@ -438,7 +438,7 @@ class OrderRefundFlowTest extends TestCase
         self::invokePrivate($ctl, 'writeRefundNotification', [$order, $refund]);
         self::invokePrivate($ctl, 'writeRefundNotification', [$order, $refund]);
 
-        $count = Db::table('erik_notification')
+        $count = Db::table('appointment_notification')
             ->where('order_id', $order->id)
             ->where('title', '退款已到账')
             ->count();
@@ -453,7 +453,7 @@ class OrderRefundFlowTest extends TestCase
         $ctl->completeRefundCompensation();
         $ctl->completeRefundCompensation(); // 幂等：重复扫描不得重复通知
 
-        $rows = Db::table('erik_notification')->where('order_id', $order->id)->get();
+        $rows = Db::table('appointment_notification')->where('order_id', $order->id)->get();
         $this->assertCount(1, $rows);
         $this->assertSame('退款已到账', $rows->first()->title);
         $this->assertStringContainsString('100.00', (string) $rows->first()->content);

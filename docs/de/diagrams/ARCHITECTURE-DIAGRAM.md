@@ -36,7 +36,7 @@ graph TB
     end
 
     subgraph 数据层["Datenschicht"]
-        MySQL[("MySQL 8.0<br/>55+ Tabellen · erik_ Präfix<br/>BIGINT Snowflake-Primärschlüssel")]
+        MySQL[("MySQL 8.0<br/>55+ Tabellen · appointment_ Präfix<br/>BIGINT Snowflake-Primärschlüssel")]
         Redis[("Redis<br/>Cache/Rate-Limit/Session<br/>Queue/Technikersperre<br/>svc:* Listen-Cache")]
         ES[("Elasticsearch<br/>Volltextsuche<br/>webman-scout automatische Synchronisation")]
     end

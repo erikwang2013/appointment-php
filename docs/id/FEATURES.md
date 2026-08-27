@@ -102,7 +102,7 @@ Fungsi Mini Program dan APP sisi pengguna sepenuhnya sama. Akun terpadu mendukun
 |------|------|
 | Info pribadi | avatar/nama panggilan/nomor ponsel |
 | Alih identitas | pelanggan ↔ teknisi |
-| Notifikasi pesan | notifikasi situs (erik_notification); halaman pusat pesan: paginasi/tarik-refresh/sorot sudah baca/tandai sudah baca/semua sudah baca |
+| Notifikasi pesan | notifikasi situs (appointment_notification); halaman pusat pesan: paginasi/tarik-refresh/sorot sudah baca/tandai sudah baca/semua sudah baca |
 | Kartu member saya | kartu bulanan/kartu tahunan VIP/kartu kunjungan (kedaluwarsa/jumlah/sudah pakai/sisa) |
 | Poin saya | catatan perolehan/poin tersedia/catatan penggunaan (1:100 tukar kartu hadiah); check-in/poin kembali konsumsi, refund dipotong proporsional, detail terbagi + filter type/source |
 | Kartu hadiah saya | kartu tunai/hadiah fisik; tipe cash tukar langsung top-up ke dompet |
@@ -195,7 +195,7 @@ Fungsi Mini Program dan APP sisi pengguna sepenuhnya sama. Akun terpadu mendukun
 
 | Fitur | Keterangan |
 |------|------|
-| Otorisasi berlangganan | utils/subscribe.js kelola terpusat ID template (nama kunci selaras erik_system_config.wechat_app.template_ids sisi server) |
+| Otorisasi berlangganan | utils/subscribe.js kelola terpusat ID template (nama kunci selaras appointment_system_config.wechat_app.template_ids sisi server) |
 | Skenario pemicu | dalam callback gesture setelah janji sukses/pembayaran sukses wx.requestSubscribeMessage, template ID tidak dikonfigurasi atau pengguna menolak keduanya diam |
 | Rantai sisi server | WechatTemplateMessageService kirim + NotificationReminderService pengingat 2 jam~1 jam sebelum janji + proses pemindaian AutoCancelTimer |
 
@@ -224,16 +224,16 @@ Fungsi Mini Program dan APP sisi pengguna sepenuhnya sama. Akun terpadu mendukun
 |------|------|
 | Harga belanja bersama | respons join mengembalikan discount_percent/original_price/group_price |
 | Pesan belanja bersama | POST /api/order kirim promotion_id: validasi hanya group_buy/aktivitas valid/pemanggil adalah peserta/belum penuh/layanan cocok; harga belanja bersama=harga asli×discount_percent/100, larang tumpuk kupon/kartu kunjungan/poin (422) |
-| Penanda pesanan | erik_order tambah kolom promotion_id/participant_id + indeks |
+| Penanda pesanan | appointment_order tambah kolom promotion_id/participant_id + indeks |
 | Penanganan belum terbentuk | kedaluwarsa belum penuh→tutup aktivitas+batalkan massal pesanan pending aktivitas tersebut (idempoten); pay() malas menilai sudah tutup maka otomatis batalkan pesanan dan lepaskan kunci teknisi |
 
 ### 22. Komisi Referral (ronde ke-16)
 
 | Fitur | Keterangan |
 |------|------|
-| Aturan pemberian | setelah pesanan pertama ter-referral completed: jumlah=paid_amount×reward_rate (erik_system_config referral.reward_rate default 0.05, ilegal jatuh ke konstanta), >0 baru beri |
+| Aturan pemberian | setelah pesanan pertama ter-referral completed: jumlah=paid_amount×reward_rate (appointment_system_config referral.reward_rate default 0.05, ilegal jatuh ke konstanta), >0 baru beri |
 | Titik pemasangan | ReferralRewardService::handleOrderCompleted dipasang dalam transaksi WorkController::complete (serving→completed satu-satunya pintu masuk, verifikasi hanya sampai serving tidak memicu), gagal rollback menyeluruh bisa retry |
-| Idempoten | row lock erik_user_referral lockForUpdate + cek kosong rewarded_at + periksa ulang pesanan pertama dalam kunci (panggilan bersamaan/duplikat hanya beri sekali) |
+| Idempoten | row lock appointment_user_referral lockForUpdate + cek kosong rewarded_at + periksa ulang pesanan pertama dalam kunci (panggilan bersamaan/duplikat hanya beri sekali) |
 | Pencatatan | row lock dompet akumulasi + WalletTxn type='referral_reward' (balance_after + nomor pesanan remark); catatan referral tulis reward_type/reward_amount/rewarded_at/first_order_at |
 | Detail | GET /api/user/referral/earnings paginasi (nama panggilan/avatar/nomor pesanan/jumlah/waktu ter-referral) |
 
@@ -241,10 +241,10 @@ Fungsi Mini Program dan APP sisi pengguna sepenuhnya sama. Akun terpadu mendukun
 
 | Fitur | Keterangan |
 |------|------|
-| Barang tukar | erik_points_exchange_goods: type=coupon/gift_card/wallet, points_cost/value (DECIMAL(25,2) cegah kehilangan presisi ID longsor)/stock/status |
+| Barang tukar | appointment_points_exchange_goods: type=coupon/gift_card/wallet, points_cost/value (DECIMAL(25,2) cegah kehilangan presisi ID longsor)/stock/status |
 | Daftar barang | GET /api/marketing/points-exchange: barang terpasang + sisa stok real-time + jumlah sudah ditukar |
 | Tukar | POST /api/marketing/points-exchange/{id}: kunci Redis NX + row lock barang cegah overtrade; validasi SUM poin (kurang 422) + UserPoints type='consume' source='exchange' potong; coupon terbit kupon / wallet masuk saldo (WalletTxn points_exchange) / gift_card kembalikan kode |
-| Idempoten | indeks unik uk_user_goods batasi sekali per pengguna per barang + verifikasi ulang dalam kunci + fallback 1062; snapshot catatan tukar erik_user_points_exchange |
+| Idempoten | indeks unik uk_user_goods batasi sekali per pengguna per barang + verifikasi ulang dalam kunci + fallback 1062; snapshot catatan tukar appointment_user_points_exchange |
 
 ### 24. Penggantian Jadwal Janji Temu (ronde ke-17)
 
@@ -253,7 +253,7 @@ Fungsi Mini Program dan APP sisi pengguna sepenuhnya sama. Akun terpadu mendukun
 | Antarmuka | POST /api/order/reschedule/{id}: new_service_time (wajib) + reason (opsional), ganti waktu teknisi sama |
 | Aturan | hanya pesanan sendiri (bukan sendiri 404); hanya tipe appointment dan status pending/paid/confirmed (lainnya 422); jarak mulai layanan asli ≥ 6 jam (selaras jendela refund penuh) |
 | Proteksi bersamaan | B1 order_lock (keluarga mutual exclusion sama dengan pay/cancel/refund) → kunci teknisi slot baru Redis SETNX EX 180 (cegah oversold pada ganti jadwal bersamaan) → row lock baca ulang dalam transaksi + validasi DB konflik jadwal B2 (kecuali pesanan ini) |
-| Penutup | perbarui service_time + tulis erik_order_reschedule (termasuk reason) + lepaskan kunci slot lama/kunci slot baru milik pesanan ini; gagal rollback transaksi sekaligus lepaskan kunci slot baru |
+| Penutup | perbarui service_time + tulis appointment_order_reschedule (termasuk reason) + lepaskan kunci slot lama/kunci slot baru milik pesanan ini; gagal rollback transaksi sekaligus lepaskan kunci slot baru |
 | Notifikasi | subscription message SCENE_RESCHEDULE (template tidak dikonfigurasi degradasi notifikasi situs「Penggantian jadwal janji temu berhasil」) + pushOrderUpdate |
 
 ### 25. Transfer Kupon (ronde ke-17)
@@ -269,7 +269,7 @@ Fungsi Mini Program dan APP sisi pengguna sepenuhnya sama. Akun terpadu mendukun
 
 | Fitur | Keterangan |
 |------|------|
-| Masa berlaku | kolom erik_user_points.expires_at; semua earn (check-in/kembali konsumsi/isi ulang) isi expires_at = now + points.expiry_days (default 365, ≤0 tidak pernah kedaluwarsa); consume/use kosong |
+| Masa berlaku | kolom appointment_user_points.expires_at; semua earn (check-in/kembali konsumsi/isi ulang) isi expires_at = now + points.expiry_days (default 365, ≤0 tidak pernah kedaluwarsa); consume/use kosong |
 | Eksekusi kedaluwarsa | proses terjadwal PointsExpiryTimer setiap 60s pemindaian kursor (100/batch) baris earn expires_at < now → tulis baris potongan negatif type=expire (source=expiry + order_id telusur transaksi asli) → agregat per pengguna notifikasi situs「Anda memiliki X poin telah kedaluwarsa」 |
 | Idempoten | ① baris expire order_id menunjuk transaksi earn asli, dalam transaksi lockForUpdate baris asli + verifikasi ulang exists (proses bersamaan serial di row lock) ② kursor id paginasi ③ notifikasi hanya muncul di ronde potongan aktual |
 | Standar | saldo tersedia SUM agregat termasuk baris negatif expire; poin kedaluwarsa tidak bisa setara uang/tukar lagi |
@@ -299,7 +299,7 @@ Fungsi Mini Program dan APP sisi pengguna sepenuhnya sama. Akun terpadu mendukun
 |------|------|
 | Antarmuka | POST /api/technician/review/reply/{order_id} (middleware identitas teknisi): ulasan tidak ada/bukan sendiri seragam 404; sudah ada balasan 422 (tolak idempoten tanpa timpa); balasan kosong 422 |
 | Setelah balas | notifikasi situs pengguna (type='review_reply', non-blocking try/catch + Log) |
-| Data | erik_order_review idempoten tambah kolom replied_at (kolom reply sudah ada saat create table); list/show ulasan sisi admin lewat decorate()->toArray() tampilkan reply/replied_at |
+| Data | appointment_order_review idempoten tambah kolom replied_at (kolom reply sudah ada saat create table); list/show ulasan sisi admin lewat decorate()->toArray() tampilkan reply/replied_at |
 
 ### 30. Notifikasi Top-up Masuk (ronde ke-18)
 
@@ -333,7 +333,7 @@ Fungsi Mini Program dan APP sisi pengguna sepenuhnya sama. Akun terpadu mendukun
 |------|------|
 | Ulasan susulan | POST /api/order/review/{order_id}/append: ulasan tidak ada/bukan sendiri seragam 404, non-completed 422, ulasan susulan duplikat 422 (append_content/append_at salah satu tidak kosong tolak), konten kosong 422; sukses tulis append_content/append_images(JSON)/append_at + notifikasi situs teknisi type='review_append' |
 | Submit ulasan | lengkapi registrasi POST /api/order/review/{order_id} (ReviewController::store aslinya tanpa rute tidak dapat diakses); sekalian perbaiki TypeError laten: findByOrderId menerima int melanggar signature string (bandingkan konversi (string) append), registrasi lengkap langsung memperlihatkan 500 saat dipanggil |
-| Data | erik_order_review tambah tiga kolom append_content TEXT/append_images JSON/append_at DATETIME (migrasi idempoten); respons tampilkan kolom append |
+| Data | appointment_order_review tambah tiga kolom append_content TEXT/append_images JSON/append_at DATETIME (migrasi idempoten); respons tampilkan kolom append |
 
 ### 34. Pelacakan Logistik Sisi Pengguna (ronde ke-19)
 
@@ -347,9 +347,9 @@ Fungsi Mini Program dan APP sisi pengguna sepenuhnya sama. Akun terpadu mendukun
 
 | Fitur | Keterangan |
 |------|------|
-| Data | tabel erik_user_notify_setting (kunci unik gabungan user_id+type uk_user_type, baris default kosong=default nyala); 5 jenis: service_reminder pengingat layanan / card_expiry pengingat kedaluwarsa (kartu+kupon payung seragam) / points_expiry kedaluwarsa poin / marketing pemasaran (cadangan) / system sistem (tidak bisa dimatikan, PUT paksa 1) |
+| Data | tabel appointment_user_notify_setting (kunci unik gabungan user_id+type uk_user_type, baris default kosong=default nyala); 5 jenis: service_reminder pengingat layanan / card_expiry pengingat kedaluwarsa (kartu+kupon payung seragam) / points_expiry kedaluwarsa poin / marketing pemasaran (cadangan) / system sistem (tidak bisa dimatikan, PUT paksa 1) |
 | Antarmuka | GET /api/user/notify-settings kembalikan 5 jenis saklar lengkap; PUT upsert massal tidak hasilkan baris duplikat |
-| Gerbang | NotificationReminderService::notifySettingEnabled pasang 3 proses timer (ServiceReminderTimer/ExpiryReminderTimer kartu+kupon/PointsExpiryTimer, timer langsung tulis tabel erik_notification tidak lewat jalur tulis layanan sehingga masing-masing tambah gerbang sama) + event subscription (pemetaan skenario sendSubscribeForOrderEvent/Notification PAY/REFUND/VERIFIED/RESCHEDULE→system selalu kirim, REMINDER→service_reminder, EXPIRY→card_expiry); jenis dimatikan notifikasi situs dan subscription message sama-sama dilewati |
+| Gerbang | NotificationReminderService::notifySettingEnabled pasang 3 proses timer (ServiceReminderTimer/ExpiryReminderTimer kartu+kupon/PointsExpiryTimer, timer langsung tulis tabel appointment_notification tidak lewat jalur tulis layanan sehingga masing-masing tambah gerbang sama) + event subscription (pemetaan skenario sendSubscribeForOrderEvent/Notification PAY/REFUND/VERIFIED/RESCHEDULE→system selalu kirim, REMINDER→service_reminder, EXPIRY→card_expiry); jenis dimatikan notifikasi situs dan subscription message sama-sama dilewati |
 
 ---
 
@@ -458,13 +458,13 @@ Aplikasi satu halaman Flutter Web, total 21 halaman: dashboard/pengguna/peran/ko
 
 ### 14. Manajemen Kartu Member (ronde ke-10)
 
-- Kolom level member erik_user.member_level (migrasi 000008)
+- Kolom level member appointment_user.member_level (migrasi 000008)
 - MemberCardController CRUD lengkap (izin 365-369): GET/POST/PUT/DELETE /admin/member-cards
 - Halaman manajemen definisi kartu member Flutter
 
 ### 15. Manajemen Purna Jual (ronde ke-14)
 
-- Tabel erik_order_aftersale (migrasi 000009): type=refund/exchange, status=pending/approved/rejected/completed
+- Tabel appointment_order_aftersale (migrasi 000009): type=refund/exchange, status=pending/approved/rejected/completed
 - AftersaleController: GET /admin/aftersales (paginasi + filter status/uid/order_no) + POST /admin/aftersales/{id}/review (approve/reject+remark)
 - Halaman manajemen purna jual Flutter (daftar + dialog audit, izin 370/371), tata letak sudah terdaftar
 
@@ -485,10 +485,10 @@ Aplikasi satu halaman Flutter Web, total 21 halaman: dashboard/pengguna/peran/ko
 
 ### 19. Penilaian Otomatis Level Teknisi (ronde ke-17)
 
-- TierRatingService::evaluate(technicianId, allowDowngrade=false): statistik real-time jumlah pesanan erik_order completed + rata-rata erik_order_review (pembulatan 1 desimal) tulis ulang profile.order_count/rating, cocokkan dari tinggi ke rendah sesuai erik_technician_tier_config (min_orders/min_rating), tanpa cocok jatuh ke level terendah
+- TierRatingService::evaluate(technicianId, allowDowngrade=false): statistik real-time jumlah pesanan appointment_order completed + rata-rata appointment_order_review (pembulatan 1 desimal) tulis ulang profile.order_count/rating, cocokkan dari tinggi ke rendah sesuai appointment_technician_tier_config (min_orders/min_rating), tanpa cocok jatuh ke level terendah
 - Aturan naik/turun: hanya naik tidak turun (level terikat rasio komisi dan koefisien harga, turun otomatis mempengaruhi pendapatan teknisi mudah memicu sengketa, penurunan ditangani manual admin sebagai fallback); allowDowngrade=true (skenario penilaian ulang manual backend) baru eksekusi turun, turun juga tulis log + notifikasi
 - Idempoten: level yang seharusnya cocok profile.tier_id hanya sinkron statistik, tidak tulis log tidak kirim notifikasi
-- Log: perubahan tulis erik_technician_tier_log (id/technician_id/old_tier_id/new_tier_id/reason/created_at) + notifikasi situs (type='tier')
+- Log: perubahan tulis appointment_technician_tier_log (id/technician_id/old_tier_id/new_tier_id/reason/created_at) + notifikasi situs (type='tier')
 - Titik pemicu: WorkController::complete / penulisan ulasan ReviewController / penilaian malas saat lihat profil ProfileController
 - Sisi admin: TechnicianTierController pertahankan kemampuan konfigurasi manual; GET /admin/technician-tiers/logs paginasi lihat log perubahan (join nama teknisi dan nama level lama baru, encode hashid ID, izin 380)
 
@@ -501,26 +501,26 @@ Aplikasi satu halaman Flutter Web, total 21 halaman: dashboard/pengguna/peran/ko
 ### 21. Kalender Bulanan Janji Temu (ronde ke-20)
 
 - CalendarController tampilan bulan/hari: GET /api/calendar/technician/{id} (tampilan bulan) + /day (tampilan hari)
-- Sumber data: time_slots JSON technician_schedule diperluas per hari kerja ke slot jam, slot sudah dijanjikan hari itu erik_order dikecualikan (status ∈ pending/paid/confirmed/serving), sisa slot bisa dijanjikan dioutput
+- Sumber data: time_slots JSON technician_schedule diperluas per hari kerja ke slot jam, slot sudah dijanjikan hari itu appointment_order dikecualikan (status ∈ pending/paid/confirmed/serving), sisa slot bisa dijanjikan dioutput
 - Kegunaan: visualisasi pemilihan waktu jadwal toko, frontend scroll horizontal per hari + pilih titik grid waktu
 
 ### 22. Level Pertumbuhan Pengguna (ronde ke-20)
 
-- erik_user_growth (transaksi) + erik_growth_level (seed tingkatan 5 level: Bronze0/Perak100/Emas500/Platinum2000/Berlian5000)
+- appointment_user_growth (transaksi) + appointment_growth_level (seed tingkatan 5 level: Bronze0/Perak100/Emas500/Platinum2000/Berlian5000)
 - Titik masuk nilai pertumbuhan: check-in +10 (CheckInController); submit ulasan +20 (ReviewController::store, ulasan susulan tidak masuk); konsumsi floor(paid) setiap 1 yuan 1 poin (WechatPayService::markOrderPaid, pakai kembali verifikasi ulang status pembayaran yang ada natural idempoten, callback duplikat tidak masuk ulang)
 - Antarmuka: GET /api/growth (ringkasan level saat ini: balance/level/selisih tingkatan berikutnya); GET /api/growth/records (transaksi paginasi); GET /api/growth/levels (daftar tingkatan publik, tidak perlu login)
 - Strategi gagal: titik masuk mana pun try/catch catat log, tidak mempengaruhi alur utama
 
 ### 23. Faktur Elektronik (ronde ke-20)
 
-- erik_invoice: uk_order_type(order_id,order_type) cegah pengajuan duplikat pesanan sama (pengajuan duplikat 422, termasuk tangkap MySQL 1062 fallback); idx_user_created/idx_status
+- appointment_invoice: uk_order_type(order_id,order_type) cegah pengajuan duplikat pesanan sama (pengajuan duplikat 422, termasuk tangkap MySQL 1062 fallback); idx_user_created/idx_status
 - Sisi pengguna: POST /api/invoices (pengajuan, jumlah/judul diambil server dari pesanan, tidak bisa diubah); GET /api/invoices (daftar); GET /api/invoices/{id} (detail)
 - Sisi admin: InvoiceController issue (terbit faktur: tulis invoice_no + status=issued + issued_at) / reject (tolak: status=rejected + reject_reason), izin 382 daftar/383 terbit/384 tolak
 - State machine: pending → issued / rejected
 
 ### 24. Tiket Layanan Pelanggan (ronde ke-20)
 
-- erik_ticket: pengguna submit tiket (title/content), backend balas tambah (reply_content/replied_at), pengguna bisa tutup (closed_at)
+- appointment_ticket: pengguna submit tiket (title/content), backend balas tambah (reply_content/replied_at), pengguna bisa tutup (closed_at)
 - Sisi pengguna: POST /api/tickets (submit); GET /api/tickets (daftar); GET /api/tickets/{id} (detail, hanya sendiri); POST /api/tickets/{id}/close (tutup)
 - Sisi admin: TicketController index (daftar) / reply (balas), rute statis didefinisikan mendahului resource hindari shadow {id}; izin 385 balas tiket/387 lihat daftar tiket
 - State machine: open → replied (setelah balas kembali open bisa balas lagi) / closed
@@ -541,14 +541,14 @@ Aplikasi satu halaman Flutter Web, total 21 halaman: dashboard/pengguna/peran/ko
 
 ### 27. Manajemen Judul Faktur (ronde ke-21)
 
-- erik_invoice_title (uk_user_title(user_id, title_type, invoice_title) cegah duplikat + idx_user_default)
+- appointment_invoice_title (uk_user_title(user_id, title_type, invoice_title) cegah duplikat + idx_user_default)
 - Antarmuka: POST /api/invoice-titles (simpan, company wajib tax_no, duplikat 422); GET (daftar, default di atas); PUT /{id} (edit, hanya sendiri); DELETE /{id} (hapus, hanya sendiri); POST /{id}/default (set default, transaksi nolkan baris lain pengguna sama)
 - Aturan default: penyimpanan pertama otomatis default; hapus default otomatis tunjuk baris paling awal
 - Kaitan pengajuan: InvoiceController::store opsional title_id parse judul bawa masuk invoice_title/tax_no/title_type, tanpa title_id pertahankan jalur isi manual asli; logika anti duplikat uk_order_type tidak diubah
 
 ### 28. Kepuasan Tiket (ronde ke-21)
 
-- erik_ticket tambah rating TINYINT NULL + rated_at DATETIME NULL (migrasi 000303)
+- appointment_ticket tambah rating TINYINT NULL + rated_at DATETIME NULL (migrasi 000303)
 - Skor saat tutup: TicketController::close() dukung rating opsional 1-5 (validasi bilangan bulat filter_var, di luar batas/bukan bilangan bulat 422; diberikan tulis rating+rated_at, tidak diberikan pertahankan NULL kompatibel klien lama; aturan hanya tutup tiket open dipertahankan)
 - Statistik backend: GET /admin/tickets/satisfaction (rute statis didefinisikan mendahului resource hindari shadow {id}) kembalikan total/rated_count/unrated_count/average (1 desimal)/distribution (jumlah masing 1-5 bintang, bintang kurang isi 0); izin 388
 
@@ -561,13 +561,13 @@ Aplikasi satu halaman Flutter Web, total 21 halaman: dashboard/pengguna/peran/ko
 
 ### 30. Jejak Penjelajahan Pengguna (ronde ke-21)
 
-- erik_browse_history (uk_user_item(user_id, item_id) unik, jelajah duplikat hanya refresh viewed_at tidak insert ulang; idx_user_viewed urutkan)
+- appointment_browse_history (uk_user_item(user_id, item_id) unik, jelajah duplikat hanya refresh viewed_at tidak insert ulang; idx_user_viewed urutkan)
 - Titik pemasangan catatan: ServiceController::detail() setelah sukses catat (try/catch + Log::warning tidak mempengaruhi alur utama; rute publik tanpa JWT, user_id kosong lewati anonim)
-- Antarmuka: GET /api/browse-history (join erik_service nama/sampul/harga/harga asli, viewed_at urutan turun, per_page default 15 batas atas 50, item_id hashid); DELETE /{item_id} (hanya sendiri, ilegal/punya orang lain 404); DELETE / (kosongkan hanya sendiri)
+- Antarmuka: GET /api/browse-history (join appointment_service nama/sampul/harga/harga asli, viewed_at urutan turun, per_page default 15 batas atas 50, item_id hashid); DELETE /{item_id} (hanya sendiri, ilegal/punya orang lain 404); DELETE / (kosongkan hanya sendiri)
 
 ### 31. Pemasaran Potongan (ronde ke-22)
 
-- erik_full_reduction_activity (threshold/reduction/title/status/start_at/end_at + idx_status_status_time)
+- appointment_full_reduction_activity (threshold/reduction/title/status/start_at/end_at + idx_status_status_time)
 - Tumpuk saat order: hanya pesanan standar (belanja bersama/flash sale lewati), ambang dinilai dari jumlah terutang setelah potongan kupon/kartu kunjungan, urutan **kupon/kartu kunjungan → potongan → diskon level**; ambil aktivitas pengurangan terbesar; jumlah diskon masuk discount_amount + catatan「Potongan: beli X potong Y」; batas bawah bayar aktual setelah potongan 0.01 yuan (basis sen)
 - Sisi pengguna GET /api/full-reduction-activities (publik, yang berlangsung urut pengurangan turun)
 - admin FullReductionController: CRUD + toggle-status tayang/tidak tayang (destroy dengan confirmPassword)
@@ -581,29 +581,29 @@ Aplikasi satu halaman Flutter Web, total 21 halaman: dashboard/pengguna/peran/ko
 
 ### 33. Kehadiran Teknisi (ronde ke-22)
 
-- erik_technician_attendance (date/check_in_at/check_out_at/status + indeks unik uk_technician_date cegah check-in duplikat bersamaan)
+- appointment_technician_attendance (date/check_in_at/check_out_at/status + indeks unik uk_technician_date cegah check-in duplikat bersamaan)
 - Sisi teknisi (TechnicianAuth): check-in hari sama duplikat 422; check-out belum masuk/sudah pulang 422 + row lock; >10:00 tandai terlambat; GET daftar bulan ini + hari hadir/jam kerja total/jam kerja rata-rata (?month=YYYY-MM ilegal 422)
 - admin: GET /admin/attendance (filter date+nama teknisi, join real_name, hashid) + /stats (statistik dikelompokkan per teknisi)
 - Izin: 392 daftar / 393 statistik
 
 ### 34. Layanan Push APP (ronde ke-22)
 
-- AppPushService (config group=push: enabled default 0 / provider jpush/getui/placeholder): tidak diaktifkan degradasi diam hanya log; diaktifkan bangun struktur platform/judul/konten/payload catat Log + tulis erik_push_log (status=sent); integrasi SDK vendor tinggal TODO (tanpa kredensial tidak kirim aktual)
+- AppPushService (config group=push: enabled default 0 / provider jpush/getui/placeholder): tidak diaktifkan degradasi diam hanya log; diaktifkan bangun struktur platform/judul/konten/payload catat Log + tulis appointment_push_log (status=sent); integrasi SDK vendor tinggal TODO (tanpa kredensial tidak kirim aktual)
 - Terhubung 5 titik event: pembayaran sukses (WechatPayService::markOrderPaid), refund otomatis (autoRefundCancelledOrder), refund manual (doRefund/refundToBalance), kompensasi refund (completeOneRefundCompensation), pengingat mulai layanan (ServiceReminderTimer); semua try/catch tidak blokir alur utama
-- erik_push_log (user_id/title/content/payload JSON/status/provider + idx_user)
+- appointment_push_log (user_id/title/content/payload JSON/status/provider + idx_user)
 
 ### 35. Bagi Hasil Resmi WeChat (ronde ke-22)
 
 - WechatProfitSharingService (config group=profit_sharing: enabled/receiver_ratio, kredensial pakai ulang wechat_pay): tidak diaktifkan degradasi disabled hanya log tidak tulis DB; diaktifkan→validasi jumlah (>0 dan ≤paid, bayar aktual×0.7 default) + idempoten (pesanan sama pending/success lewati) → tulis catatan pending → bangun struktur「request single profit sharing」(tanpa kredensial tidak eksekusi HTTP, isi permintaan catat log, catatan tetap pending); doRequest privat isolasi HTTP bisa diuji
 - WechatPayService::markOrderPaid setelah submit pasang requestSharing (try/catch gagal hanya log)
-- erik_profit_sharing (uk_sharing_no unik + idx_order); admin GET /admin/profit-sharing daftar (join nomor pesanan/nama panggilan teknisi, filter status/nomor pesanan/nama teknisi)
+- appointment_profit_sharing (uk_sharing_no unik + idx_order); admin GET /admin/profit-sharing daftar (join nomor pesanan/nama panggilan teknisi, filter status/nomor pesanan/nama teknisi)
 - Izin: 394
 
 ### 36. Kepatuhan Privasi (ronde ke-22)
 
 - GET /api/privacy/data: ekspor data (kelompok personal/orders/points/wallet_txns/reviews/addresses/invoices; log hanya catat nomor ponsel deidentifikasi + jumlah)
 - Siklus tertutup penghapusan: close-request (saldo bukan 0 / pesanan belum selesai / tiket berlangsung 422 → close_status=1) → close-cancel (1→0) → close-confirm (genap 72 jam → close_status=2 + close_at + phone/nickname anonimisasi user{id} + status=0)
-- erik_user tambah close_status/close_requested_at/close_at (migrasi ALTER idempoten); AuthController login/loginByCode untuk close_status=2 kembalikan 403「Akun telah dihapus」
+- appointment_user tambah close_status/close_requested_at/close_at (migrasi ALTER idempoten); AuthController login/loginByCode untuk close_status=2 kembalikan 403「Akun telah dihapus」
 
 ### 37. Arsip Kesehatan Pengguna (ronde ke-23)
 
@@ -635,7 +635,7 @@ Aplikasi satu halaman Flutter Web, total 21 halaman: dashboard/pengguna/peran/ko
 - GET /api/wheel/prizes (sembunyikan weight/stock); POST /api/wheel/spin: Redis NX + row lock cegah bersamaan, random_int undian berbobot, client_token idempoten
 - Penetapan hadiah: poin→transaksi earn (termasuk waktu kedaluwarsa, bisa kedaluwarsa normal oleh PointsExpiryTimer), saldo→lockForUpdate, kupon→pending terbit manual, tanpa hadiah→lose
 - GET /api/wheel/records catatan saya paginasi; admin /admin/lucky-wheel CRUD + tayang/tidak tayang + catatan (izin 401-406)
-- Migrasi 000503 (erik_lucky_wheel + erik_wheel_record + seed demo w60/w40) + 000505 (seed izin); LuckyWheelTest admin 3 + service 6 tests
+- Migrasi 000503 (appointment_lucky_wheel + appointment_wheel_record + seed demo w60/w40) + 000505 (seed izin); LuckyWheelTest admin 3 + service 6 tests
 
 ### 42. Mode Tamu (ronde ke-24)
 
@@ -645,21 +645,21 @@ Aplikasi satu halaman Flutter Web, total 21 halaman: dashboard/pengguna/peran/ko
 
 ### 43. Flash Sale (ronde ke-24)
 
-- erik_seckill_activity (name/service_id/seckill_price/original_price/stock/start_at/end_at/status); jumlah terjual = jumlah pesanan erik_order.seckill_id
+- appointment_seckill_activity (name/service_id/seckill_price/original_price/stock/start_at/end_at/status); jumlah terjual = jumlah pesanan appointment_order.seckill_id
 - GET /api/seckill (status=1 + jendela waktu)、/{id} (state=not_started/ongoing/ended)、POST /{id}/buy: client_token (8-64 karakter, SETNX 24 jam) idempoten + Redis NX 30s cegah bersamaan + validasi aktivitas (mulai 2026-08-26 tidak lagi pre-deduct stok)
 - Pemesanan injeksi seckill_id pakai ulang OrderController::store; stok seragam dipotong row lock dalam transaksi store() (panggil langsung /api/order bawa seckill_id juga potong stok), harga flash sale = seckill_price (berdasarkan DB), tidak tumpuk kupon/poin/kartu member; pembatalan pesanan tidak isi ulang stok; kanal FLASH_SALE promosi lama sudah dihapus (cabang promosi store() tinggal belanja bersama, PromotionController index filter flash_sale, show/join 400), flash sale hanya lewat kanal ini
 - admin /admin/seckill CRUD + tayang/tidak tayang + daftar pesanan (izin 407-411、420); migrasi 000606 seed izin; SeckillTest service + admin
 
 ### 44. Manajemen Versi APP & Deteksi Pembaruan (ronde ke-24)
 
-- erik_app_version (platform/version_code/version_name/force_update/changelog/download_url/status)
+- appointment_app_version (platform/version_code/version_name/force_update/changelog/download_url/status)
 - GET /api/app/version?platform=android|ios deteksi pembaruan publik (platform ilegal 422; status=1 ambil terbaru; tanpa ada objek kosong)
 - admin /admin/versions CRUD (izin 416-419); migrasi 000609 seed izin; VersionTest service + admin
 
 ### 45. Bonus Pelanggan Berulang (ronde ke-24)
 
 - ReturnCustomerRewardService: pengguna konsumsi kedua (pesanan selesai) ke teknisi sama dalam 30 hari beri bonus teknisi = bayar aktual paid_amount × ratio (system_config group=return_customer, ratio default 0.05, saklar enabled, nilai ilegal jatuh default)
-- Tulis erik_technician_earnings (type=return_customer, status=pending) pakai ulang rantai penyelesaian komisi, ringkasan earnings sisi teknisi otomatis termasuk; idempoten order_id+type sama; dipanggil dalam transaksi row lock WorkController::complete
+- Tulis appointment_technician_earnings (type=return_customer, status=pending) pakai ulang rantai penyelesaian komisi, ringkasan earnings sisi teknisi otomatis termasuk; idempoten order_id+type sama; dipanggil dalam transaksi row lock WorkController::complete
 - admin /admin/return-customer/config (GET/PUT) + /rewards (?keyword nama teknisi/nomor pesanan/nama panggilan pengguna) (izin 412-414); migrasi 000607 seed izin; ReturnCustomerRewardServiceTest
 
 ### 46. Ekspor Jadwal (ronde ke-24)

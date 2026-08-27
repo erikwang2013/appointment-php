@@ -13,7 +13,7 @@ use support\Model;
  */
 class OrderStatusLog extends Model
 {
-    protected $table = 'erik_order_status_log';
+    protected $table = 'appointment_order_status_log';
     public $incrementing = false;
     protected $keyType = 'string';
     public $timestamps = true;

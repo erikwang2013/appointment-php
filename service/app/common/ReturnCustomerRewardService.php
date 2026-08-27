@@ -14,10 +14,10 @@ use support\Log;
  * 回头客奖励服务（R24）
  *
  * 用户对同一技师 30 天内第 2 次消费（订单完成）时，给技师发放奖金：
- * 金额 = 订单实付 paid_amount × 奖励比例（erik_system_config group=return_customer
+ * 金额 = 订单实付 paid_amount × 奖励比例（appointment_system_config group=return_customer
  * key=ratio，默认 0.05）；enabled 开关为 0 时整体停用。
  *
- * 落账复用 erik_technician_earnings（type='return_customer'，status='pending'），
+ * 落账复用 appointment_technician_earnings（type='return_customer'，status='pending'），
  * 与佣金同表同结算链：由 admin autoSettle 统一置 settled，技师端
  * GET /api/technician/earnings 汇总/明细自动包含，无需新端点。
  *
@@ -36,7 +36,7 @@ class ReturnCustomerRewardService
     private const DEFAULT_RATIO    = 0.05;
     private const WINDOW_DAYS      = 30;
 
-    /** 收益记录类型（erik_technician_earnings.type） */
+    /** 收益记录类型（appointment_technician_earnings.type） */
     public const TYPE_RETURN_CUSTOMER = 'return_customer';
 
     /**
@@ -91,13 +91,13 @@ class ReturnCustomerRewardService
     }
 
     /**
-     * 奖励开关：erik_system_config (group=return_customer, key=enabled)，
+     * 奖励开关：appointment_system_config (group=return_customer, key=enabled)，
      * 缺省开启；'0'/'false'/'off' 视为关闭
      */
     public static function isEnabled(): bool
     {
         try {
-            $value = Db::table('erik_system_config')
+            $value = Db::table('appointment_system_config')
                 ->where('group', self::CONFIG_GROUP)
                 ->where('key', self::CONFIG_KEY_ENABLED)
                 ->value('value');
@@ -112,12 +112,12 @@ class ReturnCustomerRewardService
     }
 
     /**
-     * 奖励比例：erik_system_config (group=return_customer, key=ratio)，缺省 0.05
+     * 奖励比例：appointment_system_config (group=return_customer, key=ratio)，缺省 0.05
      */
     public static function getRatio(): float
     {
         try {
-            $ratio = (float) Db::table('erik_system_config')
+            $ratio = (float) Db::table('appointment_system_config')
                 ->where('group', self::CONFIG_GROUP)
                 ->where('key', self::CONFIG_KEY_RATIO)
                 ->value('value');

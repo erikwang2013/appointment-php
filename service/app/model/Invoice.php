@@ -16,7 +16,7 @@ use support\Model;
  */
 class Invoice extends Model
 {
-    protected $table = 'erik_invoice';
+    protected $table = 'appointment_invoice';
     public $incrementing = false;
     protected $keyType = 'string';
     public $timestamps = true;

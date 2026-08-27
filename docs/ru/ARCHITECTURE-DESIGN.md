@@ -71,7 +71,7 @@ Cors → Security(обнаружение 31 типа атак) → RateLimit →
 
 ### Префикс таблиц
 
-Единый префикс `erik_`, настраивается в `config/database.php`. Модель пишет исходное имя таблицы, ORM автоматически добавляет префикс.
+Единый префикс `appointment_`, настраивается в `config/database.php`. Модель пишет исходное имя таблицы, ORM автоматически добавляет префикс.
 
 ### Шифрование чувствительных полей
 
@@ -147,7 +147,7 @@ use Erikwang2013\WebmanScout\Searchable;
 class Service extends Model
 {
     use Searchable;
-    public function searchableAs(): string { return 'erik_services'; }
+    public function searchableAs(): string { return 'appointment_services'; }
 }
 ```
 

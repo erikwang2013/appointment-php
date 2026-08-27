@@ -127,7 +127,7 @@ return [
             'password'  => env('DB_PASSWORD', ''),
             'charset'   => 'utf8mb4',
             'collation' => 'utf8mb4_unicode_ci',
-            'prefix'    => 'erik_',       // 表前缀
+            'prefix'    => 'appointment_',       // 表前缀
             'strict'    => true,
         ],
     ],
@@ -526,7 +526,7 @@ class User extends Model
 {
     use SoftDeletes, Encryptable;
 
-    protected $table = 'erik_user';
+    protected $table = 'appointment_user';
     public $incrementing = false;
     protected $keyType = 'string';
     public $timestamps = true;

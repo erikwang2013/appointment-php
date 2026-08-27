@@ -189,10 +189,10 @@ flowchart LR
     end
 
     subgraph DB_저장["DB 계층 저장"]
-        D1["erik_user.phone<br/>평문 저장<br/>로그인/중복 확인 평문 조회 의존"]
-        D2["erik_technician_profile<br/>.id_card VARCHAR(500)<br/>encryptable 암호화"]
-        D3["erik_user.wx_openid<br/>평문 저장"]
-        D4["erik_user.real_name<br/>encryptable 암호화"]
+        D1["appointment_user.phone<br/>평문 저장<br/>로그인/중복 확인 평문 조회 의존"]
+        D2["appointment_technician_profile<br/>.id_card VARCHAR(500)<br/>encryptable 암호화"]
+        D3["appointment_user.wx_openid<br/>평문 저장"]
+        D4["appointment_user.real_name<br/>encryptable 암호화"]
     end
 
     subgraph ID_처리["ID 처리 (hashids + snowflake)"]

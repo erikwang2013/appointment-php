@@ -9,7 +9,7 @@ declare(strict_types=1);
  * 回调验签（B1 安全加固）：
  * - RSA/RSA2（推荐）：使用 alipay_public_key（支付宝公钥）openssl_verify 验签；
  * - MD5：使用 md5_key（支付宝 MD5 密钥），未配置时直接拒绝 MD5 分支（强制 RSA2）。
- * 配置来源：erik_system_config group=alipay_pay 优先，缺省回落到本文件（.env ALIPAY_* 键）。
+ * 配置来源：appointment_system_config group=alipay_pay 优先，缺省回落到本文件（.env ALIPAY_* 键）。
  */
 return [
     // 支付宝应用 ID（开放平台创建应用后获取）

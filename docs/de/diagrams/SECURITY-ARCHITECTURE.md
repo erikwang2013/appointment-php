@@ -191,10 +191,10 @@ flowchart LR
     end
 
     subgraph DB存储["DB-Ebenen-Speicherung"]
-        D1["erik_user.phone<br/>im Klartext gespeichert<br/>Login/Duplikatsuche hängt von Klartext-Abfrage ab"]
-        D2["erik_technician_profile<br/>.id_card VARCHAR(500)<br/>encryptable verschlüsselt"]
-        D3["erik_user.wx_openid<br/>im Klartext gespeichert"]
-        D4["erik_user.real_name<br/>encryptable verschlüsselt"]
+        D1["appointment_user.phone<br/>im Klartext gespeichert<br/>Login/Duplikatsuche hängt von Klartext-Abfrage ab"]
+        D2["appointment_technician_profile<br/>.id_card VARCHAR(500)<br/>encryptable verschlüsselt"]
+        D3["appointment_user.wx_openid<br/>im Klartext gespeichert"]
+        D4["appointment_user.real_name<br/>encryptable verschlüsselt"]
     end
 
     subgraph ID处理["ID-Verarbeitung (hashids + snowflake)"]

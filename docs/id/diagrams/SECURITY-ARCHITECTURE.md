@@ -191,10 +191,10 @@ flowchart LR
     end
 
     subgraph DB存储["DB层存储"]
-        D1["erik_user.phone<br/>明文存储<br/>登录/查重依赖明文查询"]
-        D2["erik_technician_profile<br/>.id_card VARCHAR(500)<br/>encryptable 加密"]
-        D3["erik_user.wx_openid<br/>明文存储"]
-        D4["erik_user.real_name<br/>encryptable 加密"]
+        D1["appointment_user.phone<br/>明文存储<br/>登录/查重依赖明文查询"]
+        D2["appointment_technician_profile<br/>.id_card VARCHAR(500)<br/>encryptable 加密"]
+        D3["appointment_user.wx_openid<br/>明文存储"]
+        D4["appointment_user.real_name<br/>encryptable 加密"]
     end
 
     subgraph ID处理["ID处理 (hashids + snowflake)"]

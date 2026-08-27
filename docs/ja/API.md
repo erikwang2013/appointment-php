@@ -306,7 +306,7 @@ technician への切替には approved 状態のスタッフカルテが必要�
 | GET | `/api/user/referral/referred-users` | 紹介済みユーザーリスト |
 | GET | `/api/user/referral/earnings` | 分销返金明細 (ページネーション: 被紹介者ニックネーム/アバター/注文番号/金額/発行時間) |
 
-**分销返金**: 被紹介者の初回注文 completed 後に発行、金額 = paid_amount × reward_rate（erik_system_config referral.reward_rate、デフォルト 0.05、不正値は定数にフォールバック）。行ロック + rewarded_at 空チェック + 初回注文再確認の三重冪等；入帳は WalletTxn type=referral_reward。
+**分销返金**: 被紹介者の初回注文 completed 後に発行、金額 = paid_amount × reward_rate（appointment_system_config referral.reward_rate、デフォルト 0.05、不正値は定数にフォールバック）。行ロック + rewarded_at 空チェック + 初回注文再確認の三重冪等；入帳は WalletTxn type=referral_reward。
 
 #### 2.6 ポイント転贈（第19ラウンド）
 
@@ -324,7 +324,7 @@ technician への切替には approved 状態のスタッフカルテが必要�
 | GET | `/api/user/notify-settings` | 通知スイッチの照会（5 種全量） |
 | PUT | `/api/user/notify-settings` | スイッチの一括更新 (types: {service_reminder: 0/1, ...}) |
 
-**通知スイッチ**: erik_user_notify_setting テーブル（user_id+type 複合ユニークキー、欠落行=デフォルトオン）。5 種：service_reminder サービスリマインダー / card_expiry 期限切れリマインダー（カード+クーポン統一の傘型）/ points_expiry ポイント失効 / marketing マーケティング（予約）/ system システム（オフ不可、PUT で強制的に 1）。ゲート制御：notifySettingEnabled が ServiceReminderTimer/ExpiryReminderTimer/PointsExpiryTimer の 3 タイマープロセス + 購読イベントシナリオマッピング（PAY/REFUND/VERIFIED/RESCHEDULE→system 恒常送信、REMINDER→service_reminder、EXPIRY→card_expiry）に接続；タイプがオフの場合は站内通知と購読メッセージをまとめてスキップ。
+**通知スイッチ**: appointment_user_notify_setting テーブル（user_id+type 複合ユニークキー、欠落行=デフォルトオン）。5 種：service_reminder サービスリマインダー / card_expiry 期限切れリマインダー（カード+クーポン統一の傘型）/ points_expiry ポイント失効 / marketing マーケティング（予約）/ system システム（オフ不可、PUT で強制的に 1）。ゲート制御：notifySettingEnabled が ServiceReminderTimer/ExpiryReminderTimer/PointsExpiryTimer の 3 タイマープロセス + 購読イベントシナリオマッピング（PAY/REFUND/VERIFIED/RESCHEDULE→system 恒常送信、REMINDER→service_reminder、EXPIRY→card_expiry）に接続；タイプがオフの場合は站内通知と購読メッセージをまとめてスキップ。
 
 ---
 
@@ -403,7 +403,7 @@ technician への切替には approved 状態のスタッフカルテが必要�
 
 **注文作成時**: Redis SETNX でスタッフを3分間ロック、ページ離脱またはタイムアウトで解放。
 
-**価格改ざん防止（2026-08-26）**: 注文項目の金額はすべてデータベース記録に従う（target_type=service は erik_service を照会、product は erik_product を照会）、クライアント送信価格は計算に参加しない；不明な target_type 422；target_id は hashid エンコード値を渡す必要あり（raw id を渡すと 0 にデコードされ 422「商品不存在或已下架」）；拼团/秒殺価格も同様に DB 基準。
+**価格改ざん防止（2026-08-26）**: 注文項目の金額はすべてデータベース記録に従う（target_type=service は appointment_service を照会、product は appointment_product を照会）、クライアント送信価格は計算に参加しない；不明な target_type 422；target_id は hashid エンコード値を渡す必要あり（raw id を渡すと 0 にデコードされ 422「商品不存在或已下架」）；拼团/秒殺価格も同様に DB 基準。
 
 **返金ルール**: 注文から15分以内または開始まで>6hは100%返金 / ≤6hは90% / 開始済みは80% / 開始確認後は返金なし。
 
@@ -411,7 +411,7 @@ technician への切替には approved 状態のスタッフカルテが必要�
 
 **残高支払いと返金**: 支払いリクエストボディに `pay_channel: "balance"` を渡すとウォレット残高を使用；微信返金と残高返金の両方で金額をウォレット残高に回充。
 
-**ポイント充当**: 支払いリクエストボディに任意で `use_points`（整数）を渡す。SUM 集計でポイント残高を検証（erik_user_points の balance 列は単回増分スナップショットのため、直接残高として使えない）、充当額 = floor(use_points / config('app.points_rate', 100)) 元、実払い金額 = 元の支払額 - 充当額（下限 0.01、支払額超過分は支払額いっぱいまで充当しポイントを無駄にしない）。成功時は type=consume/source=points_offset 消費流水を書き込み（冪等、リトライで二重引き落としなし）。残高不足 422。
+**ポイント充当**: 支払いリクエストボディに任意で `use_points`（整数）を渡す。SUM 集計でポイント残高を検証（appointment_user_points の balance 列は単回増分スナップショットのため、直接残高として使えない）、充当額 = floor(use_points / config('app.points_rate', 100)) 元、実払い金額 = 元の支払額 - 充当額（下限 0.01、支払額超過分は支払額いっぱいまで充当しポイントを無駄にしない）。成功時は type=consume/source=points_offset 消費流水を書き込み（冪等、リトライで二重引き落としなし）。残高不足 422。
 
 **ポイント返還**: キャンセル/返金時に points_offset で消費したポイントを返還（type=earn/source=points_refund）：キャンセルは全額、返金は比率に応じて、5 つの接続ポイントで冪等（refundOffsetPoints）。
 
@@ -419,7 +419,7 @@ technician への切替には approved 状態のスタッフカルテが必要�
 
 **秒殺注文（第18ラウンド、廃止）**: ~~注文作成時に `promotion_id`（flash_sale タイプ）を渡す~~ —— 2026-08 より旧プロモーション FLASH_SALE チャネルは削除、store() のプロモーション分岐は拼团 GROUP_BUY のみ（非拼团 promotion 422）；秒殺は統一して第24ラウンドの `/api/seckill` チャネルへ（seckill_id を store トランザクション内の行ロックで在庫引き落とし）、PromotionController::index は flash_sale をフィルタ、show/join は 400 を返す、`Promotion::TYPE_FLASH_SALE` 定数は履歴データ互換のため保持。
 
-**予約改期（第17ラウンド）**: `POST /api/order/reschedule/{id}` に new_service_time（必須）+ reason（任意）を渡し、同じスタッフで時間変更。ルール：本人の注文のみ（本人以外 404）、appointment タイプかつ状態 pending/paid/confirmed のみ変更可（その他 422）、元のサービス開始まで ≥ 6 時間（全額返金ウィンドウと一致）でのみ改期可。並行防御：B1 order_lock（pay/cancel/refund と同一の相互排他ファミリー）→ 新時間帯のスタッフロック Redis SETNX EX 180（並行改期での過剰販売防止）→ トランザクション内の行ロック再読み取り + B2 排班衝突の DB 検証（本注文を除外）→ service_time 更新 + erik_order_reschedule 記録 → 元時間帯ロックを解放、新時間帯ロックは本注文が保持 → SCENE_RESCHEDULE 購読メッセージ（未設定時は站内通知にフォールバック）。失敗時はトランザクションロールバックと同時に新時間帯ロックを解放。
+**予約改期（第17ラウンド）**: `POST /api/order/reschedule/{id}` に new_service_time（必須）+ reason（任意）を渡し、同じスタッフで時間変更。ルール：本人の注文のみ（本人以外 404）、appointment タイプかつ状態 pending/paid/confirmed のみ変更可（その他 422）、元のサービス開始まで ≥ 6 時間（全額返金ウィンドウと一致）でのみ改期可。並行防御：B1 order_lock（pay/cancel/refund と同一の相互排他ファミリー）→ 新時間帯のスタッフロック Redis SETNX EX 180（並行改期での過剰販売防止）→ トランザクション内の行ロック再読み取り + B2 排班衝突の DB 検証（本注文を除外）→ service_time 更新 + appointment_order_reschedule 記録 → 元時間帯ロックを解放、新時間帯ロックは本注文が保持 → SCENE_RESCHEDULE 購読メッセージ（未設定時は站内通知にフォールバック）。失敗時はトランザクションロールバックと同時に新時間帯ロックを解放。
 
 **物流追跡（第19ラウンド）**: `GET /api/order/logistics/{id}` — 本人の product 注文のみ照会可（本人以外/非商品/未発送は統一 404）。order.remark JSON を読み取り（shipping_company/tracking_no/shipped_at、admin MallOrderController::ship() が発送時に書き込み）、parseShippingInfo/parseReceiver の二重パースで旧形式を救済；受取人の携帯番号はマスキング 138****5678。
 
@@ -476,7 +476,7 @@ technician への切替には approved 状態のスタッフカルテが必要�
 
 **ポイントルール**: 明細はページネーション、type フィルタ (earn/use/expire)、source フィルタ (order/referral/gift_card/check_in/admin)。チェックインでポイント付与 (CheckIn, type=earn)；消費で floor(paid_amount×1) ポイント付与、核销時に発行かつ冪等；返金時は比率に応じてポイントを回収。
 
-**ポイント失効（第17ラウンド）**: erik_user_points.expires_at 列（設定 points.expiry_days、デフォルト 365 日、≤0 は失効なし）、すべての earn は保存時に有効期限を記入；PointsExpiryTimer タイマープロセスが 60 秒ごとにカーソルスキャンで失効 earn 行を検出し、type=expire 負値の引き落とし行を書き込み（source=expiry + order_id で元流水をトレース、三重冪等）+ 集約して站内通知「您有 X 积分已过期」；利用可能残高の SUM 口径は expire 負値行を含み、失効ポイントは以後の充当/交換に使えない。
+**ポイント失効（第17ラウンド）**: appointment_user_points.expires_at 列（設定 points.expiry_days、デフォルト 365 日、≤0 は失効なし）、すべての earn は保存時に有効期限を記入；PointsExpiryTimer タイマープロセスが 60 秒ごとにカーソルスキャンで失効 earn 行を検出し、type=expire 負値の引き落とし行を書き込み（source=expiry + order_id で元流水をトレース、三重冪等）+ 集約して站内通知「您有 X 积分已过期」；利用可能残高の SUM 口径は expire 負値行を含み、失効ポイントは以後の充当/交換に使えない。
 
 **クーポン転贈（第17ラウンド）**: transfer はクーポンが本人所有/available/クーポン定義が未失効/転贈済みでないことを検証し、8桁の紛らわしい文字を除いたユニーク転贈コードを生成（uk_code ユニークインデックスで兜底）、7日有効。claim は悪用防止：Redis NX ロック（coupon_transfer_claim:{code} 30s）+ 行ロック再検証で二重利用防止、uk_user_coupon ユニークインデックスで同一クーポンの転贈を1回のみに制限、転贈されたクーポンは再転贈不可（新クーポンは転贈記録がないため自然に阻止）、自分の転贈したクーポンの受領不可 422、受取人は元所有者以外；遅延判定で期限切れを expired にして元クーポンを available に復元。claim トランザクション内で元クーポンを used に + 受取人に紐付く新 UserCoupon を生成（coupon_id 不変＝有効期限不変）+ 記録を claimed に。
 
@@ -522,7 +522,7 @@ technician への切替には approved 状態のスタッフカルテが必要�
 | GET | `/api/store-manager/technicians` | スタッフリスト（今日の排班含む） |
 | GET | `/api/store-manager/revenue` | 直近 7 日の売上集計 |
 
-**store_id 分離**: requireStoreId() が現在のユーザーに店舗紐付け（erik_user.store_id）を強制、店舗なし 403；すべてのクエリは store_id でフィルタ。
+**store_id 分離**: requireStoreId() が現在のユーザーに店舗紐付け（appointment_user.store_id）を強制、店舗なし 403；すべてのクエリは store_id でフィルタ。
 
 ---
 
@@ -671,7 +671,7 @@ technician への切替には approved 状態のスタッフカルテが必要�
 
 | メソッド | パス | 説明 |
 |------|------|------|
-| GET | `/api/seckill` | 秒殺キャンペーンリスト（status=1 かつ時間窓内；販売済み量 = erik_order.seckill_id の注文数、残り在庫を含む） |
+| GET | `/api/seckill` | 秒殺キャンペーンリスト（status=1 かつ時間窓内；販売済み量 = appointment_order.seckill_id の注文数、残り在庫を含む） |
 | GET | `/api/seckill/{id}` | キャンペーン詳細（state=not_started/ongoing/ended） |
 | POST | `/api/seckill/{id}/buy` | 秒殺注文（client_token 冪等 + Redis NX 30s 並行防止 + キャンペーン検証；在庫は事前引き落とししない） |
 
@@ -759,7 +759,7 @@ technician への切替には approved 状態のスタッフカルテが必要�
 
 権限ID: 380。
 
-**自動評価**: TierRatingService::evaluate がリアルタイム集計（erik_order completed 注文数 + 評価平均点、四捨五入 1 桁）で profile.order_count/rating を書き戻し、erik_technician_tier_config（min_orders/min_rating）に従って高→低でマッチング、マッチなしは最低レベルに分類。昇格のみで降格なし（降格は歩合率と価格係数に影響するため、バックエンドで人為的にフォローアップ；allowDowngrade=true で人為的再評価をサポート）；冪等（レベル一致時は統計のみ同期）；変更は erik_technician_tier_log に記録 + 站内通知。トリガーポイント：WorkController::complete / ReviewController の評価書き込み / ProfileController のカルテ閲覧時遅延判定。
+**自動評価**: TierRatingService::evaluate がリアルタイム集計（appointment_order completed 注文数 + 評価平均点、四捨五入 1 桁）で profile.order_count/rating を書き戻し、appointment_technician_tier_config（min_orders/min_rating）に従って高→低でマッチング、マッチなしは最低レベルに分類。昇格のみで降格なし（降格は歩合率と価格係数に影響するため、バックエンドで人為的にフォローアップ；allowDowngrade=true で人為的再評価をサポート）；冪等（レベル一致時は統計のみ同期）；変更は appointment_technician_tier_log に記録 + 站内通知。トリガーポイント：WorkController::complete / ReviewController の評価書き込み / ProfileController のカルテ閲覧時遅延判定。
 
 ### 評価返信の閲覧（第18ラウンド）
 
@@ -834,7 +834,7 @@ technician への切替には approved 状態のスタッフカルテが必要�
 |------|------|------|
 | GET | `/admin/profit-sharing` | 分账記録（注文番号/スタッフニックネームを leftJoin、?status&order_no&technician_name&page=、hashid エンコード） |
 
-権限ID: 394。サーバー側ロジック：erik_system_config group=profit_sharing（enabled/receiver_ratio）；未有効化は disabled でログのみにフォールバック；有効化後は支払い成功で自動的に分账をリクエスト（金額=実払い×receiver_ratio デフォルト 0.7、同一注文の pending/success は冪等でスキップ）；資格情報なしでは HTTP を実行せず、リクエスト構造をログに記録。
+権限ID: 394。サーバー側ロジック：appointment_system_config group=profit_sharing（enabled/receiver_ratio）；未有効化は disabled でログのみにフォールバック；有効化後は支払い成功で自動的に分账をリクエスト（金額=実払い×receiver_ratio デフォルト 0.7、同一注文の pending/success は冪等でスキップ）；資格情報なしでは HTTP を実行せず、リクエスト構造をログに記録。
 
 ### ポイントルーレット管理（第23ラウンド）
 
@@ -857,7 +857,7 @@ technician への切替には approved 状態のスタッフカルテが必要�
 | PUT | `/admin/return-customer/config` | 設定更新（enabled in:0,1；ratio between:0.01,1） |
 | GET | `/admin/return-customer/rewards` | 報酬記録リスト（?keyword スタッフ名/注文番号/ユーザーニックネーム、type=return_customer ページネーション） |
 
-権限ID: 412-414。報酬ルール：ユーザーが同じスタッフに対して 30 日以内の 2 回目の消費（注文完了）でボーナス発行 = 実払い × ratio（デフォルト 0.05）、erik_technician_earnings に記録（type=return_customer、status=pending）し歩合精算チェーンで一括精算；同一注文は冪等で重複発行なし。
+権限ID: 412-414。報酬ルール：ユーザーが同じスタッフに対して 30 日以内の 2 回目の消費（注文完了）でボーナス発行 = 実払い × ratio（デフォルト 0.05）、appointment_technician_earnings に記録（type=return_customer、status=pending）し歩合精算チェーンで一括精算；同一注文は冪等で重複発行なし。
 
 ### 秒殺キャンペーン管理（第24ラウンド）
 
@@ -871,7 +871,7 @@ technician への切替には approved 状態のスタッフカルテが必要�
 | POST | `/admin/seckill/{id}/toggle-status` | 上架/下架 |
 | GET | `/admin/seckill/{id}/orders` | 秒殺注文リスト |
 
-権限ID: 407-411、420。販売済み量 = erik_order.seckill_id の注文数；在庫は行ロックで引き落とし、売り切れは遮断。
+権限ID: 407-411、420。販売済み量 = appointment_order.seckill_id の注文数；在庫は行ロックで引き落とし、売り切れは遮断。
 
 ### APP バージョン管理（第24ラウンド）
 

@@ -12,7 +12,7 @@ Copyright (c) 2026 erik <erik@erik.xyz> — https://erik.xyz
 | কম্পোনেন্ট | ন্যূনতম ভার্সন | বিবরণ |
 |------|----------|------|
 | PHP | 8.3+ | এক্সটেনশন: bcmath, curl, gd, mbstring, pdo, pdo_mysql, pcntl, redis |
-| MySQL | 8.0+ | টেবিল প্রিফিক্স `erik_`, ক্যারেক্টার সেট utf8mb4 |
+| MySQL | 8.0+ | টেবিল প্রিফিক্স `appointment_`, ক্যারেক্টার সেট utf8mb4 |
 | Redis | 6.0+ | ক্যাশ / রেট লিমিট / Session / ভেরিফিকেশন কোড স্টোরেজ |
 | Composer | 2.x | PHP ডিপেন্ডেন্সি ম্যানেজমেন্ট |
 | Elasticsearch | 8.x (অপশনাল) | ফুল-টেক্সট সার্চ, ইনস্টল না করলে মূল ফিচারে সমস্যা নেই |
@@ -184,22 +184,22 @@ docker exec -it appointment-svc-mysql mysql -u root -p appointment < /tmp/instal
 
 | ডোমেইন | টেবিল সংখ্যা | মূল টেবিল |
 |----|------|--------|
-| ম্যানেজমেন্ট ব্যাকএন্ড | ৮ | `erik_admin_user`, `erik_admin_role`, `erik_admin_permission`, `erik_operation_log` |
-| ব্যবহারকারী ডোমেইন | ৪ | `erik_user`, `erik_user_address`, `erik_user_favorite`, `erik_user_device` |
-| টেকনিশিয়ান ডোমেইন | ৮ | `erik_technician_profile`, `erik_technician_schedule`, `erik_technician_earning`, `erik_technician_withdrawal`, `erik_technician_tier_config` |
-| সার্ভিস ডোমেইন | ৪ | `erik_service_category`, `erik_service`, `erik_service_package`, `erik_service_record` |
-| অর্ডার ডোমেইন | ৫ | `erik_order`, `erik_order_item`, `erik_order_payment`, `erik_order_refund`, `erik_order_review` |
-| মার্কেটিং ডোমেইন | ৮ | `erik_coupon`, `erik_member_card`, `erik_gift_card`, `erik_user_points`, `erik_promotion` |
-| কিউ | ১ | `erik_queue_number` |
-| কনটেন্ট ডোমেইন | ৫ | `erik_banner`, `erik_announcement`, `erik_faq`, `erik_feedback`, `erik_platform_agreement` |
-| কমিউনিটি ডোমেইন | ৩ | `erik_post`, `erik_comment`, `erik_moment` |
-| শাখা | ১ | `erik_store` |
-| ট্রেনিং | ২ | `erik_training_course`, `erik_training_progress` |
-| পরীক্ষা | ৩ | `erik_exam`, `erik_exam_question`, `erik_exam_attempt` |
-| সিস্টেম | ৩ | `erik_system_config`, `erik_notification`, `erik_signature` |
+| ম্যানেজমেন্ট ব্যাকএন্ড | ৮ | `appointment_admin_user`, `appointment_admin_role`, `appointment_admin_permission`, `appointment_operation_log` |
+| ব্যবহারকারী ডোমেইন | ৪ | `appointment_user`, `appointment_user_address`, `appointment_user_favorite`, `appointment_user_device` |
+| টেকনিশিয়ান ডোমেইন | ৮ | `appointment_technician_profile`, `appointment_technician_schedule`, `appointment_technician_earning`, `appointment_technician_withdrawal`, `appointment_technician_tier_config` |
+| সার্ভিস ডোমেইন | ৪ | `appointment_service_category`, `appointment_service`, `appointment_service_package`, `appointment_service_record` |
+| অর্ডার ডোমেইন | ৫ | `appointment_order`, `appointment_order_item`, `appointment_order_payment`, `appointment_order_refund`, `appointment_order_review` |
+| মার্কেটিং ডোমেইন | ৮ | `appointment_coupon`, `appointment_member_card`, `appointment_gift_card`, `appointment_user_points`, `appointment_promotion` |
+| কিউ | ১ | `appointment_queue_number` |
+| কনটেন্ট ডোমেইন | ৫ | `appointment_banner`, `appointment_announcement`, `appointment_faq`, `appointment_feedback`, `appointment_platform_agreement` |
+| কমিউনিটি ডোমেইন | ৩ | `appointment_post`, `appointment_comment`, `appointment_moment` |
+| শাখা | ১ | `appointment_store` |
+| ট্রেনিং | ২ | `appointment_training_course`, `appointment_training_progress` |
+| পরীক্ষা | ৩ | `appointment_exam`, `appointment_exam_question`, `appointment_exam_attempt` |
+| সিস্টেম | ৩ | `appointment_system_config`, `appointment_notification`, `appointment_signature` |
 | **মোট** | **৫৫** | |
 
-সব টেবিল `erik_` প্রিফিক্স ব্যবহার, প্রাইমারি কী `id` BIGINT নন-অটোইনক্রিমেন্ট (snowflake-php দিয়ে অ্যাপ্লিকেশন লেয়ারে জেনারেট)।
+সব টেবিল `appointment_` প্রিফিক্স ব্যবহার, প্রাইমারি কী `id` BIGINT নন-অটোইনক্রিমেন্ট (snowflake-php দিয়ে অ্যাপ্লিকেশন লেয়ারে জেনারেট)।
 
 ---
 

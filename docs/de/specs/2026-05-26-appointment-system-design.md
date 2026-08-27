@@ -59,75 +59,75 @@ Drei-Endpunkte-Buchungsservicesystem: Benutzerseite (WeChat-MiniProgramm + Flutt
 
 ## Kern-Datenbanktabellen
 
-Alle Tabellen verwenden das `erik_`-Präfix, BIGINT nicht autoinkrementierende Primärschlüssel (Snowflake-generiert). Sensible Felder werden über das encryptable-Trait ver-/entschlüsselt.
+Alle Tabellen verwenden das `appointment_`-Präfix, BIGINT nicht autoinkrementierende Primärschlüssel (Snowflake-generiert). Sensible Felder werden über das encryptable-Trait ver-/entschlüsselt.
 
 ### Benutzer- und Identitätsdomäne
 
 | Tabellenname | Beschreibung | Kernfelder |
 |------|------|----------|
-| `erik_user` | Einheitliche Benutzertabelle | phone, password, wx_openid, wx_unionid, avatar, nickname, user_type(customer/technician), status. Technician-Benutzer besitzen gleichzeitig Kundenfunktionen und können die aktuell aktive Identität frei wechseln |
-| `erik_user_address` | Benutzeradresse | user_id, contact_name, contact_phone, province, city, district, detail, is_default |
-| `erik_technician_profile` | Technikerprofil | user_id, real_name, gender, id_card, id_card_front, id_card_back, avatar, rating, order_count, status(pending/approved/rejected), intro |
-| `erik_technician_schedule` | Techniker-Schichtplan | technician_id, date, time_slots(JSON), status |
-| `erik_technician_service` | Vom Techniker angebotene Leistungen | technician_id, service_id |
-| `erik_technician_earnings` | Techniker-Einnahmentransaktionen | technician_id, order_id, type(commission/bonus/penalty), amount, status |
-| `erik_technician_withdrawal` | Techniker-Auszahlungsprotokoll | technician_id, amount, actual_amount, commission_fee, account_info, status, reviewed_at |
-| `erik_technician_attendance` | Techniker-Anwesenheit | technician_id, date, check_in_at, check_out_at, clean_photo |
-| `erik_technician_member_note` | Mitgliedsprofil | technician_id, user_id, content, written_at |
+| `appointment_user` | Einheitliche Benutzertabelle | phone, password, wx_openid, wx_unionid, avatar, nickname, user_type(customer/technician), status. Technician-Benutzer besitzen gleichzeitig Kundenfunktionen und können die aktuell aktive Identität frei wechseln |
+| `appointment_user_address` | Benutzeradresse | user_id, contact_name, contact_phone, province, city, district, detail, is_default |
+| `appointment_technician_profile` | Technikerprofil | user_id, real_name, gender, id_card, id_card_front, id_card_back, avatar, rating, order_count, status(pending/approved/rejected), intro |
+| `appointment_technician_schedule` | Techniker-Schichtplan | technician_id, date, time_slots(JSON), status |
+| `appointment_technician_service` | Vom Techniker angebotene Leistungen | technician_id, service_id |
+| `appointment_technician_earnings` | Techniker-Einnahmentransaktionen | technician_id, order_id, type(commission/bonus/penalty), amount, status |
+| `appointment_technician_withdrawal` | Techniker-Auszahlungsprotokoll | technician_id, amount, actual_amount, commission_fee, account_info, status, reviewed_at |
+| `appointment_technician_attendance` | Techniker-Anwesenheit | technician_id, date, check_in_at, check_out_at, clean_photo |
+| `appointment_technician_member_note` | Mitgliedsprofil | technician_id, user_id, content, written_at |
 
 ### Leistungs- und Produktdomäne
 
 | Tabellenname | Beschreibung | Kernfelder |
 |------|------|----------|
-| `erik_service_category` | Leistungskategorie | name, icon, parent_id, sort, status |
-| `erik_service` | Leistungsposition | category_id, name, description, cover_image, images(JSON), price, duration, sales_volume, specs(JSON), status |
-| `erik_product` | Produkt | category_id, name, cover_image, price, stock, sales_volume, type, status |
-| `erik_store` | Filiale | name, address, lat, lng, phone, business_hours(JSON), images, status |
+| `appointment_service_category` | Leistungskategorie | name, icon, parent_id, sort, status |
+| `appointment_service` | Leistungsposition | category_id, name, description, cover_image, images(JSON), price, duration, sales_volume, specs(JSON), status |
+| `appointment_product` | Produkt | category_id, name, cover_image, price, stock, sales_volume, type, status |
+| `appointment_store` | Filiale | name, address, lat, lng, phone, business_hours(JSON), images, status |
 
 ### Bestelldomäne
 
 | Tabellenname | Beschreibung | Kernfelder |
 |------|------|----------|
-| `erik_order` | Bestellhaupttabelle | order_no, user_id, technician_id, store_id, total_amount, discount_amount, paid_amount, status, service_time, cancel_reason, remark |
-| `erik_order_item` | Bestellpositionen | order_id, service_id, product_id, type, name, price, quantity, spec_info |
-| `erik_order_payment` | Zahlungsprotokoll | order_id, pay_type(wechat), transaction_id, amount, status, paid_at |
-| `erik_order_refund` | Rückerstattungsprotokoll | order_id, payment_id, refund_no, amount, ratio, reason, status |
-| `erik_order_review` | Leistungsbewertung | order_id, user_id, technician_id, rating, content, images |
-| `erik_order_verification` | Verifizierungsprotokoll | order_id, code, verified_at, verified_by, location |
+| `appointment_order` | Bestellhaupttabelle | order_no, user_id, technician_id, store_id, total_amount, discount_amount, paid_amount, status, service_time, cancel_reason, remark |
+| `appointment_order_item` | Bestellpositionen | order_id, service_id, product_id, type, name, price, quantity, spec_info |
+| `appointment_order_payment` | Zahlungsprotokoll | order_id, pay_type(wechat), transaction_id, amount, status, paid_at |
+| `appointment_order_refund` | Rückerstattungsprotokoll | order_id, payment_id, refund_no, amount, ratio, reason, status |
+| `appointment_order_review` | Leistungsbewertung | order_id, user_id, technician_id, rating, content, images |
+| `appointment_order_verification` | Verifizierungsprotokoll | order_id, code, verified_at, verified_by, location |
 
 ### Marketingdomäne
 
 | Tabellenname | Beschreibung | Kernfelder |
 |------|------|----------|
-| `erik_coupon` | Gutscheindefinition | name, type, amount, min_amount, total_qty, remain_qty, start_at, end_at, status |
-| `erik_user_coupon` | Benutzergutschein | user_id, coupon_id, status(available/used/expired), used_at |
-| `erik_member_card` | Mitgliederkartendefinition | name, type(month/vip/times), price, duration_days, total_times, services(JSON) |
-| `erik_user_member_card` | Benutzer-Mitgliederkarte | user_id, card_id, start_at, end_at, total_times, used_times, status |
-| `erik_member_card_usage` | Stempelkarten-Nutzungsprotokoll | user_card_id, order_id, service_id, used_at |
-| `erik_user_points` | Punkte-Transaktionen | user_id, type(earn/use), points, source, order_id |
-| `erik_gift_card` | Geschenkkarte | code, type, amount_or_gift, status, used_by, used_at |
-| `erik_user_referral` | Benutzer-Empfehlung | referrer_id, referred_user_id, reward_type, reward_amount, registered_at, first_order_at |
+| `appointment_coupon` | Gutscheindefinition | name, type, amount, min_amount, total_qty, remain_qty, start_at, end_at, status |
+| `appointment_user_coupon` | Benutzergutschein | user_id, coupon_id, status(available/used/expired), used_at |
+| `appointment_member_card` | Mitgliederkartendefinition | name, type(month/vip/times), price, duration_days, total_times, services(JSON) |
+| `appointment_user_member_card` | Benutzer-Mitgliederkarte | user_id, card_id, start_at, end_at, total_times, used_times, status |
+| `appointment_member_card_usage` | Stempelkarten-Nutzungsprotokoll | user_card_id, order_id, service_id, used_at |
+| `appointment_user_points` | Punkte-Transaktionen | user_id, type(earn/use), points, source, order_id |
+| `appointment_gift_card` | Geschenkkarte | code, type, amount_or_gift, status, used_by, used_at |
+| `appointment_user_referral` | Benutzer-Empfehlung | referrer_id, referred_user_id, reward_type, reward_amount, registered_at, first_order_at |
 
 ### Inhalts- und Benachrichtigungsdomäne
 
 | Tabellenname | Beschreibung | Kernfelder |
 |------|------|----------|
-| `erik_banner` | Karussellbild | position, image, jump_type(url/detail/none), jump_value, sort, status |
-| `erik_announcement` | Ankündigung | content, status, published_at |
-| `erik_platform_agreement` | Plattformvereinbarung | type(user_agreement/privacy_policy/service_agreement), title, content, version |
-| `erik_faq` | Häufige Fragen | title, content, sort |
-| `erik_feedback` | Feedback | user_id, content, images, handler_reply, status(pending/handled) |
-| `erik_moment` | Momente-Beitrag | content, images, published_at |
-| `erik_notification` | Benachrichtigung | user_id, type(order/system), title, content, is_read, created_at |
+| `appointment_banner` | Karussellbild | position, image, jump_type(url/detail/none), jump_value, sort, status |
+| `appointment_announcement` | Ankündigung | content, status, published_at |
+| `appointment_platform_agreement` | Plattformvereinbarung | type(user_agreement/privacy_policy/service_agreement), title, content, version |
+| `appointment_faq` | Häufige Fragen | title, content, sort |
+| `appointment_feedback` | Feedback | user_id, content, images, handler_reply, status(pending/handled) |
+| `appointment_moment` | Momente-Beitrag | content, images, published_at |
+| `appointment_notification` | Benachrichtigung | user_id, type(order/system), title, content, is_read, created_at |
 
 ### Finanzdomäne (admin-Seite)
 
 | Tabellenname | Beschreibung | Kernfelder |
 |------|------|----------|
-| `erik_finance_transaction` | Einnahmen-/Ausgabentransaktionen | user_id, order_id, type, direction(income/expense), amount, actual_amount, commission, status |
-| `erik_technician_commission_config` | Provisionskonfiguration | technician_id, commission_rate, settlement_cycle |
-| `erik_withdrawal_account` | Auszahlungskonto | user_id, type(wechat), account_name, account_no |
-| `erik_withdrawal_config` | Auszahlungslimit-Konfiguration | min_amount, reserve_amount, round_to_hundred |
+| `appointment_finance_transaction` | Einnahmen-/Ausgabentransaktionen | user_id, order_id, type, direction(income/expense), amount, actual_amount, commission, status |
+| `appointment_technician_commission_config` | Provisionskonfiguration | technician_id, commission_rate, settlement_cycle |
+| `appointment_withdrawal_account` | Auszahlungskonto | user_id, type(wechat), account_name, account_no |
+| `appointment_withdrawal_config` | Auszahlungslimit-Konfiguration | min_amount, reserve_amount, round_to_hundred |
 
 ## Service-API-Module
 

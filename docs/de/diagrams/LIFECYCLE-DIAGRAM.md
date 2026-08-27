@@ -353,7 +353,7 @@ stateDiagram-v2
 
     checked --> pending: 2. Konsum<br/>(Bonus = real gezahlt × ratio<br/>idempotent über order_id+type)
 
-    pending --> settled: Einheitliche Abrechnung über die Provisionskette<br/>(erik_technician_earnings<br/>type=return_customer)
+    pending --> settled: Einheitliche Abrechnung über die Provisionskette<br/>(appointment_technician_earnings<br/>type=return_customer)
 
     settled --> [*]
     none --> [*]

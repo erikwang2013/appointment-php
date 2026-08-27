@@ -9,7 +9,7 @@ use support\Model;
 
 class Feedback extends Model
 {
-    protected $table = 'erik_feedback';
+    protected $table = 'appointment_feedback';
     public $incrementing = false;
     protected $keyType = 'string';
     public $timestamps = true;

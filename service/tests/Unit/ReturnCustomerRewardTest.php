@@ -21,7 +21,7 @@ use Webman\Http\Request;
  * 回头客奖励测试（R24：30 天内二次消费奖金）
  *
  * 规则：用户对同一技师 30 天窗口内已有 ≥2 次 completed 订单时，
- * 第 2 次起发放奖金（金额=订单实付×ratio，落 erik_technician_earnings
+ * 第 2 次起发放奖金（金额=订单实付×ratio，落 appointment_technician_earnings
  * type='return_customer' status='pending'）。
  * 覆盖：首单不发/窗口内第 2 单发放/窗口外不发/幂等/开关与比例配置/complete 集成。
  * 策略：真实库，tearDown 清理；配置用例恢复原值。
@@ -55,7 +55,7 @@ class ReturnCustomerRewardTest extends TestCase
             User::where('id', $id)->forceDelete();
         }
         foreach ($this->savedConfigs as $key => $value) {
-            Db::table('erik_system_config')
+            Db::table('appointment_system_config')
                 ->where('group', 'return_customer')
                 ->where('key', $key)
                 ->update(['value' => $value]);
@@ -112,12 +112,12 @@ class ReturnCustomerRewardTest extends TestCase
     private function setConfig(string $key, string $value): void
     {
         if (!isset($this->savedConfigs[$key])) {
-            $this->savedConfigs[$key] = (string) Db::table('erik_system_config')
+            $this->savedConfigs[$key] = (string) Db::table('appointment_system_config')
                 ->where('group', 'return_customer')
                 ->where('key', $key)
                 ->value('value');
         }
-        Db::table('erik_system_config')
+        Db::table('appointment_system_config')
             ->where('group', 'return_customer')
             ->where('key', $key)
             ->update(['value' => $value]);

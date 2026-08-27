@@ -10,7 +10,7 @@ Copyright (c) 2026 erik <erik@erik.xyz> — https://erik.xyz
 | 组件 | 最低版本 | 说明 |
 |------|----------|------|
 | PHP | 8.3+ | 扩展: bcmath, curl, gd, mbstring, pdo, pdo_mysql, pcntl, redis |
-| MySQL | 8.0+ | 表前缀 `erik_`，字符集 utf8mb4 |
+| MySQL | 8.0+ | 表前缀 `appointment_`，字符集 utf8mb4 |
 | Redis | 6.0+ | 缓存 / 限流 / Session / 验证码存储 |
 | Composer | 2.x | PHP 依赖管理 |
 | Elasticsearch | 8.x (可选) | 全文检索，不安装不影响核心功能 |
@@ -182,22 +182,22 @@ docker exec -it appointment-svc-mysql mysql -u root -p appointment < /tmp/instal
 
 | 域 | 表数 | 核心表 |
 |----|------|--------|
-| 管理后台 | 8 | `erik_admin_user`, `erik_admin_role`, `erik_admin_permission`, `erik_operation_log` |
-| 用户域 | 4 | `erik_user`, `erik_user_address`, `erik_user_favorite`, `erik_user_device` |
-| 技师域 | 8 | `erik_technician_profile`, `erik_technician_schedule`, `erik_technician_earning`, `erik_technician_withdrawal`, `erik_technician_tier_config` |
-| 服务域 | 4 | `erik_service_category`, `erik_service`, `erik_service_package`, `erik_service_record` |
-| 订单域 | 5 | `erik_order`, `erik_order_item`, `erik_order_payment`, `erik_order_refund`, `erik_order_review` |
-| 营销域 | 8 | `erik_coupon`, `erik_member_card`, `erik_gift_card`, `erik_user_points`, `erik_promotion` |
-| 排队 | 1 | `erik_queue_number` |
-| 内容域 | 5 | `erik_banner`, `erik_announcement`, `erik_faq`, `erik_feedback`, `erik_platform_agreement` |
-| 社区域 | 3 | `erik_post`, `erik_comment`, `erik_moment` |
-| 门店 | 1 | `erik_store` |
-| 培训 | 2 | `erik_training_course`, `erik_training_progress` |
-| 考试 | 3 | `erik_exam`, `erik_exam_question`, `erik_exam_attempt` |
-| 系统 | 3 | `erik_system_config`, `erik_notification`, `erik_signature` |
+| 管理后台 | 8 | `appointment_admin_user`, `appointment_admin_role`, `appointment_admin_permission`, `appointment_operation_log` |
+| 用户域 | 4 | `appointment_user`, `appointment_user_address`, `appointment_user_favorite`, `appointment_user_device` |
+| 技师域 | 8 | `appointment_technician_profile`, `appointment_technician_schedule`, `appointment_technician_earning`, `appointment_technician_withdrawal`, `appointment_technician_tier_config` |
+| 服务域 | 4 | `appointment_service_category`, `appointment_service`, `appointment_service_package`, `appointment_service_record` |
+| 订单域 | 5 | `appointment_order`, `appointment_order_item`, `appointment_order_payment`, `appointment_order_refund`, `appointment_order_review` |
+| 营销域 | 8 | `appointment_coupon`, `appointment_member_card`, `appointment_gift_card`, `appointment_user_points`, `appointment_promotion` |
+| 排队 | 1 | `appointment_queue_number` |
+| 内容域 | 5 | `appointment_banner`, `appointment_announcement`, `appointment_faq`, `appointment_feedback`, `appointment_platform_agreement` |
+| 社区域 | 3 | `appointment_post`, `appointment_comment`, `appointment_moment` |
+| 门店 | 1 | `appointment_store` |
+| 培训 | 2 | `appointment_training_course`, `appointment_training_progress` |
+| 考试 | 3 | `appointment_exam`, `appointment_exam_question`, `appointment_exam_attempt` |
+| 系统 | 3 | `appointment_system_config`, `appointment_notification`, `appointment_signature` |
 | **合计** | **55** | |
 
-所有表使用 `erik_` 前缀，主键 `id` 为 BIGINT 非自增（由 snowflake-php 应用层生成）。
+所有表使用 `appointment_` 前缀，主键 `id` 为 BIGINT 非自增（由 snowflake-php 应用层生成）。
 
 ---
 

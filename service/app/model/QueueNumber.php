@@ -11,14 +11,14 @@ use support\Model;
 /**
  * 门店排队叫号模型
  *
- * 表: erik_queue_number
+ * 表: appointment_queue_number
  *
  * @method static Builder byStore(string $storeId) 按门店筛选
  * @method static Builder byStatus(string $status) 按状态筛选
  */
 class QueueNumber extends Model
 {
-    protected $table = 'erik_queue_number';
+    protected $table = 'appointment_queue_number';
     public $incrementing = false;
     protected $keyType = 'string';
     public $timestamps = true;

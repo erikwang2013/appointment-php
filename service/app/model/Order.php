@@ -16,7 +16,7 @@ use support\Model;
  */
 class Order extends Model
 {
-    protected $table = 'erik_order';
+    protected $table = 'appointment_order';
     public $incrementing = false;
     protected $keyType = 'string';
     public $timestamps = true;

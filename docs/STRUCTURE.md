@@ -295,15 +295,15 @@ service/
 │   │   ├── Security                # 安全检测(security-php)
 │   │   └── TechnicianAuth          # 技师身份校验
 │   └── model/                   # 数据模型(81个)
-│       ├── User.php → erik_user
-│       ├── TechnicianProfile.php → erik_technician_profile
-│       ├── Service.php → erik_service (ES: erik_services)
-│       ├── Product.php → erik_product (ES: erik_products)
-│       ├── Store.php → erik_store
-│       ├── Order.php → erik_order (含退款规则/状态机)
-│       ├── Coupon.php → erik_coupon
-│       ├── MemberCard.php → erik_member_card
-│       ├── Notification.php → erik_notification
+│       ├── User.php → appointment_user
+│       ├── TechnicianProfile.php → appointment_technician_profile
+│       ├── Service.php → appointment_service (ES: appointment_services)
+│       ├── Product.php → appointment_product (ES: appointment_products)
+│       ├── Store.php → appointment_store
+│       ├── Order.php → appointment_order (含退款规则/状态机)
+│       ├── Coupon.php → appointment_coupon
+│       ├── MemberCard.php → appointment_member_card
+│       ├── Notification.php → appointment_notification
 │       └── ... (共81个模型文件；admin 另有 6 个特有模型，合计 87)
 ├── config/                     # 配置文件
 ├── public/                     # 入口
@@ -435,111 +435,111 @@ apps/flutter/
 
 ## 数据库表清单
 
-所有表使用 `erik_` 前缀，BIGINT 非自增主键（Snowflake生成）。
+所有表使用 `appointment_` 前缀，BIGINT 非自增主键（Snowflake生成）。
 
 | 域 | 表名 | 说明 |
 |----|------|------|
-| 用户 | erik_user | 统一用户表 |
-| 用户 | erik_user_address | 收货地址 |
-| 技师 | erik_technician_profile | 技师档案 |
-| 技师 | erik_technician_schedule | 技师排班 |
-| 技师 | erik_technician_service | 技师可服务项目 |
-| 技师 | erik_technician_earnings | 技师收益流水 |
-| 技师 | erik_technician_withdrawal | 技师提现记录 |
-| 技师 | erik_technician_attendance | 技师考勤 |
-| 技师 | erik_technician_member_note | 会员档案 |
-| 服务 | erik_service_category | 服务分类 |
-| 服务 | erik_service | 服务项目 |
-| 服务 | erik_product | 产品 |
-| 服务 | erik_store | 门店 |
-| 订单 | erik_order | 订单主表（秒杀 seckill_id 关联列，第24轮） |
-| 订单 | erik_order_item | 订单明细 |
-| 订单 | erik_order_payment | 支付记录 |
-| 订单 | erik_order_refund | 退款记录 |
-| 订单 | erik_order_review | 服务评价 |
-| 订单 | erik_order_verification | 核销记录 |
-| 订单 | erik_order_reschedule | 预约改期记录（第17轮） |
-| 营销 | erik_coupon | 优惠券定义 |
-| 营销 | erik_user_coupon | 用户优惠券 |
-| 营销 | erik_user_coupon_transfer | 优惠券转赠记录（第17轮） |
-| 营销 | erik_user_points_transfer | 积分转赠记录（第19轮） |
-| 营销 | erik_technician_tier_log | 技师等级变更日志（第17轮） |
-| 营销 | erik_member_card | 会员卡定义 |
-| 营销 | erik_user_member_card | 用户会员卡 |
-| 营销 | erik_member_card_usage | 次卡使用记录 |
-| 营销 | erik_user_points | 积分流水 |
-| 营销 | erik_gift_card | 礼品卡 |
-| 营销 | erik_user_referral | 用户推广 |
-| 营销 | erik_user_favorite | 用户收藏 |
-| 钱包 | erik_user_wallet | 用户钱包余额 |
-| 钱包 | erik_wallet_recharge | 钱包充值记录 |
-| 钱包 | erik_wallet_txn | 钱包交易流水 |
-| 钱包 | erik_wallet_transfer | 用户间转账记录（第19轮） |
-| 用户 | erik_user_notify_setting | 消息偏好设置（第19轮） |
-| 内容 | erik_banner | 轮播图 |
-| 内容 | erik_announcement | 公告 |
-| 内容 | erik_platform_agreement | 平台协议 |
-| 内容 | erik_faq | 常见问题 |
-| 内容 | erik_feedback | 意见反馈 |
-| 内容 | erik_moment | 朋友圈动态 |
-| 内容 | erik_notification | 消息通知 |
-| 财务 | erik_finance_transaction | 收支流水 |
-| 财务 | erik_technician_commission_config | 佣金配置 |
-| 财务 | erik_withdrawal_account | 提现账号 |
-| 财务 | erik_withdrawal_config | 提现限制配置 |
-| 系统 | erik_admin_user | 管理用户（已建） |
-| 系统 | erik_admin_role | 角色（已建） |
-| 系统 | erik_admin_permission | 权限（已建） |
-| 系统 | erik_admin_user_role | 用户角色关联（已建） |
-| 系统 | erik_admin_role_permission | 角色权限关联（已建） |
-| 系统 | erik_system_config | 系统配置（已建） |
-| 系统 | erik_operation_log | 操作日志（已建） |
-| 用户 | erik_user_growth | 成长值流水（第20轮） |
-| 用户 | erik_growth_level | 成长等级档位（第20轮） |
-| 订单 | erik_invoice | 电子发票（第20轮） |
-| 用户 | erik_ticket | 客服工单（第20轮） |
-| 营销 | erik_referral_level2_reward | 二级返佣记录（第20轮） |
-| 用户 | erik_invoice_title | 发票抬头库（第21轮） |
-| 用户 | erik_browse_history | 浏览足迹（第21轮） |
-| 营销 | erik_full_reduction_activity | 满减活动（第22轮） |
-| 技师 | erik_technician_attendance | 技师考勤（第22轮） |
-| 系统 | erik_push_log | APP推送记录（第22轮） |
-| 财务 | erik_profit_sharing | 微信分账记录（第22轮） |
-| 订单 | erik_order_status_log | 订单状态时间线（第23轮） |
-| 用户 | erik_user_health_profile | 用户健康档案（第23轮） |
-| 营销 | erik_lucky_wheel | 转盘奖品定义（第23轮） |
-| 营销 | erik_wheel_record | 转盘抽奖记录（第23轮） |
-| 营销 | erik_seckill_activity | 秒杀活动（第24轮） |
-| 系统 | erik_app_version | APP版本（第24轮） |
+| 用户 | appointment_user | 统一用户表 |
+| 用户 | appointment_user_address | 收货地址 |
+| 技师 | appointment_technician_profile | 技师档案 |
+| 技师 | appointment_technician_schedule | 技师排班 |
+| 技师 | appointment_technician_service | 技师可服务项目 |
+| 技师 | appointment_technician_earnings | 技师收益流水 |
+| 技师 | appointment_technician_withdrawal | 技师提现记录 |
+| 技师 | appointment_technician_attendance | 技师考勤 |
+| 技师 | appointment_technician_member_note | 会员档案 |
+| 服务 | appointment_service_category | 服务分类 |
+| 服务 | appointment_service | 服务项目 |
+| 服务 | appointment_product | 产品 |
+| 服务 | appointment_store | 门店 |
+| 订单 | appointment_order | 订单主表（秒杀 seckill_id 关联列，第24轮） |
+| 订单 | appointment_order_item | 订单明细 |
+| 订单 | appointment_order_payment | 支付记录 |
+| 订单 | appointment_order_refund | 退款记录 |
+| 订单 | appointment_order_review | 服务评价 |
+| 订单 | appointment_order_verification | 核销记录 |
+| 订单 | appointment_order_reschedule | 预约改期记录（第17轮） |
+| 营销 | appointment_coupon | 优惠券定义 |
+| 营销 | appointment_user_coupon | 用户优惠券 |
+| 营销 | appointment_user_coupon_transfer | 优惠券转赠记录（第17轮） |
+| 营销 | appointment_user_points_transfer | 积分转赠记录（第19轮） |
+| 营销 | appointment_technician_tier_log | 技师等级变更日志（第17轮） |
+| 营销 | appointment_member_card | 会员卡定义 |
+| 营销 | appointment_user_member_card | 用户会员卡 |
+| 营销 | appointment_member_card_usage | 次卡使用记录 |
+| 营销 | appointment_user_points | 积分流水 |
+| 营销 | appointment_gift_card | 礼品卡 |
+| 营销 | appointment_user_referral | 用户推广 |
+| 营销 | appointment_user_favorite | 用户收藏 |
+| 钱包 | appointment_user_wallet | 用户钱包余额 |
+| 钱包 | appointment_wallet_recharge | 钱包充值记录 |
+| 钱包 | appointment_wallet_txn | 钱包交易流水 |
+| 钱包 | appointment_wallet_transfer | 用户间转账记录（第19轮） |
+| 用户 | appointment_user_notify_setting | 消息偏好设置（第19轮） |
+| 内容 | appointment_banner | 轮播图 |
+| 内容 | appointment_announcement | 公告 |
+| 内容 | appointment_platform_agreement | 平台协议 |
+| 内容 | appointment_faq | 常见问题 |
+| 内容 | appointment_feedback | 意见反馈 |
+| 内容 | appointment_moment | 朋友圈动态 |
+| 内容 | appointment_notification | 消息通知 |
+| 财务 | appointment_finance_transaction | 收支流水 |
+| 财务 | appointment_technician_commission_config | 佣金配置 |
+| 财务 | appointment_withdrawal_account | 提现账号 |
+| 财务 | appointment_withdrawal_config | 提现限制配置 |
+| 系统 | appointment_admin_user | 管理用户（已建） |
+| 系统 | appointment_admin_role | 角色（已建） |
+| 系统 | appointment_admin_permission | 权限（已建） |
+| 系统 | appointment_admin_user_role | 用户角色关联（已建） |
+| 系统 | appointment_admin_role_permission | 角色权限关联（已建） |
+| 系统 | appointment_system_config | 系统配置（已建） |
+| 系统 | appointment_operation_log | 操作日志（已建） |
+| 用户 | appointment_user_growth | 成长值流水（第20轮） |
+| 用户 | appointment_growth_level | 成长等级档位（第20轮） |
+| 订单 | appointment_invoice | 电子发票（第20轮） |
+| 用户 | appointment_ticket | 客服工单（第20轮） |
+| 营销 | appointment_referral_level2_reward | 二级返佣记录（第20轮） |
+| 用户 | appointment_invoice_title | 发票抬头库（第21轮） |
+| 用户 | appointment_browse_history | 浏览足迹（第21轮） |
+| 营销 | appointment_full_reduction_activity | 满减活动（第22轮） |
+| 技师 | appointment_technician_attendance | 技师考勤（第22轮） |
+| 系统 | appointment_push_log | APP推送记录（第22轮） |
+| 财务 | appointment_profit_sharing | 微信分账记录（第22轮） |
+| 订单 | appointment_order_status_log | 订单状态时间线（第23轮） |
+| 用户 | appointment_user_health_profile | 用户健康档案（第23轮） |
+| 营销 | appointment_lucky_wheel | 转盘奖品定义（第23轮） |
+| 营销 | appointment_wheel_record | 转盘抽奖记录（第23轮） |
+| 营销 | appointment_seckill_activity | 秒杀活动（第24轮） |
+| 系统 | appointment_app_version | APP版本（第24轮） |
 
 ### 补充清单（docs/install.sql 95 表中未在上方列出的部分，完整权威清单以 install.sql 为准）
 
 | 域 | 表名 | 说明 |
 |----|------|------|
-| 营销 | erik_card_transfer | 次卡转赠 |
-| 用户 | erik_check_in | 签到打卡 |
-| 内容 | erik_community_post | 社区动态 |
-| 内容 | erik_community_comment | 社区评论 |
-| 技师 | erik_exam | 考核 |
-| 技师 | erik_exam_question | 考核题目 |
-| 技师 | erik_exam_attempt | 考核答卷 |
-| 系统 | erik_operation_log_detail | 操作日志详情 |
-| 订单 | erik_order_aftersale | 订单售后 |
-| 营销 | erik_points_exchange_goods | 积分兑换商品 |
-| 营销 | erik_promotion | 拼团活动 |
-| 营销 | erik_promotion_participant | 拼团参与者 |
-| 订单 | erik_queue_number | 排队叫号 |
-| 服务 | erik_service_package | 服务套餐 |
-| 技师 | erik_service_record | 服务记录 |
-| 内容 | erik_share | 分享记录 |
-| 订单 | erik_signature | 签名 |
-| 技师 | erik_technician_tier_config | 技师等级配置 |
-| 技师 | erik_training_course | 培训课程 |
-| 技师 | erik_training_progress | 培训进度 |
-| 用户 | erik_user_device | 用户设备 |
-| 营销 | erik_user_points_exchange | 积分兑换记录 |
-| 内容 | erik_video_post | 视频动态 |
-| 订单 | erik_waitlist | 候补名单 |
+| 营销 | appointment_card_transfer | 次卡转赠 |
+| 用户 | appointment_check_in | 签到打卡 |
+| 内容 | appointment_community_post | 社区动态 |
+| 内容 | appointment_community_comment | 社区评论 |
+| 技师 | appointment_exam | 考核 |
+| 技师 | appointment_exam_question | 考核题目 |
+| 技师 | appointment_exam_attempt | 考核答卷 |
+| 系统 | appointment_operation_log_detail | 操作日志详情 |
+| 订单 | appointment_order_aftersale | 订单售后 |
+| 营销 | appointment_points_exchange_goods | 积分兑换商品 |
+| 营销 | appointment_promotion | 拼团活动 |
+| 营销 | appointment_promotion_participant | 拼团参与者 |
+| 订单 | appointment_queue_number | 排队叫号 |
+| 服务 | appointment_service_package | 服务套餐 |
+| 技师 | appointment_service_record | 服务记录 |
+| 内容 | appointment_share | 分享记录 |
+| 订单 | appointment_signature | 签名 |
+| 技师 | appointment_technician_tier_config | 技师等级配置 |
+| 技师 | appointment_training_course | 培训课程 |
+| 技师 | appointment_training_progress | 培训进度 |
+| 用户 | appointment_user_device | 用户设备 |
+| 营销 | appointment_user_points_exchange | 积分兑换记录 |
+| 内容 | appointment_video_post | 视频动态 |
+| 订单 | appointment_waitlist | 候补名单 |
 
 ## 外部服务预留
 

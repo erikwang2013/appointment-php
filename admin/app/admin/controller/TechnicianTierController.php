@@ -119,7 +119,7 @@ class TechnicianTierController extends BaseController
     /**
      * 等级变更日志（分页）
      * GET /admin/technician-tiers/logs
-     * 来源：service 端 TierRatingService 自动评定写 erik_technician_tier_log。
+     * 来源：service 端 TierRatingService 自动评定写 appointment_technician_tier_log。
      */
     public function logs(Request $request): Response
     {
@@ -129,10 +129,10 @@ class TechnicianTierController extends BaseController
             $limit = 15;
         }
 
-        $query = Db::table('erik_technician_tier_log as log')
-            ->leftJoin('erik_technician_profile as p', 'p.id', '=', 'log.technician_id')
-            ->leftJoin('erik_technician_tier_config as old_t', 'old_t.id', '=', 'log.old_tier_id')
-            ->leftJoin('erik_technician_tier_config as new_t', 'new_t.id', '=', 'log.new_tier_id');
+        $query = Db::table('appointment_technician_tier_log as log')
+            ->leftJoin('appointment_technician_profile as p', 'p.id', '=', 'log.technician_id')
+            ->leftJoin('appointment_technician_tier_config as old_t', 'old_t.id', '=', 'log.old_tier_id')
+            ->leftJoin('appointment_technician_tier_config as new_t', 'new_t.id', '=', 'log.new_tier_id');
 
         $total = (clone $query)->count();
 

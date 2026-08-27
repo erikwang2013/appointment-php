@@ -14,7 +14,7 @@ use support\Model;
  */
 class Signature extends Model
 {
-    protected $table = 'erik_signature';
+    protected $table = 'appointment_signature';
     public $incrementing = false;
     protected $keyType = 'string';
     public $timestamps = true;

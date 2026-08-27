@@ -157,7 +157,7 @@
 
 | 项 | 修复内容 |
 |----|---------|
-| 下单防篡改 | OrderController::store() 订单项价格一律以数据库记录为准（service→erik_service、product→erik_product），客户端价格不参与计算；未知 target_type 422；target_id 必须 hashid（raw id 解码为 0 → 422「商品不存在或已下架」）；拼团/秒杀价同以 DB 为准 |
+| 下单防篡改 | OrderController::store() 订单项价格一律以数据库记录为准（service→appointment_service、product→appointment_product），客户端价格不参与计算；未知 target_type 422；target_id 必须 hashid（raw id 解码为 0 → 422「商品不存在或已下架」）；拼团/秒杀价同以 DB 为准 |
 | 秒杀扣库存统一 | 库存统一由 /api/order store() 事务内行锁扣减；SeckillController::buy 不再预扣库存（保留 Redis 活动锁 + client_token 幂等）；直接调 /api/order 带 seckill_id 同样扣库存 |
 | 技师提现 | 申请时余额扣除在途（pending/approved）预留；审批转账前复核 settled−withdrawn−在途 ≥ 提现额；并发审批不会双打款 |
 | 支付回调 | 微信回调 total_fee 与订单应付金额严格比对，不符拒绝；支付宝回调日志脱敏（不含 buyer_id/seller_id 等） |

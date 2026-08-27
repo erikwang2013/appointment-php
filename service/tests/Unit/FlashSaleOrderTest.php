@@ -61,7 +61,7 @@ class FlashSaleOrderTest extends TestCase
             Promotion::where('id', $pid)->delete();
         }
         if ($this->serviceIds) {
-            Db::table('erik_service')->whereIn('id', $this->serviceIds)->delete();
+            Db::table('appointment_service')->whereIn('id', $this->serviceIds)->delete();
         }
         foreach ($this->userIds as $uid) {
             WalletTxn::where('user_id', $uid)->delete();
@@ -110,7 +110,7 @@ class FlashSaleOrderTest extends TestCase
         // Service 模型带 Scout 搜索索引，测试环境索引引擎不可用，直接经 Db::table 落库
         $id = Service::generateId();
         $now = date('Y-m-d H:i:s');
-        Db::table('erik_service')->insert([
+        Db::table('appointment_service')->insert([
             'id'             => $id,
             'category_id'    => 1,
             'name'           => '秒杀测试服务',

@@ -306,7 +306,7 @@ technician으로 전환하려면 approved 상태의 기술자 프로필이 있�
 | GET | `/api/user/referral/referred-users` | 추천한 사용자 목록 |
 | GET | `/api/user/referral/earnings` | 유통 수수료 명세 (페이징: 추천받은 사람 닉네임/프로필/주문번호/금액/지급 시간) |
 
-**유통 수수료**: 추천인의 첫 주문 completed 후 지급, 금액 = paid_amount × reward_rate(erik_system_config referral.reward_rate, 기본 0.05, 비정상 값은 상수로 폴백). 행 잠금 + rewarded_at 빈값 확인 + 첫 주문 재검증 3중 멱등; 입금은 WalletTxn type=referral_reward.
+**유통 수수료**: 추천인의 첫 주문 completed 후 지급, 금액 = paid_amount × reward_rate(appointment_system_config referral.reward_rate, 기본 0.05, 비정상 값은 상수로 폴백). 행 잠금 + rewarded_at 빈값 확인 + 첫 주문 재검증 3중 멱등; 입금은 WalletTxn type=referral_reward.
 
 #### 2.6 포인트 양도(19차 라운드)
 
@@ -324,7 +324,7 @@ technician으로 전환하려면 approved 상태의 기술자 프로필이 있�
 | GET | `/api/user/notify-settings` | 알림 스위치 조회(5종 전체) |
 | PUT | `/api/user/notify-settings` | 스위치 일괄 갱신 (types: {service_reminder: 0/1, ...}) |
 
-**알림 스위치**: erik_user_notify_setting 테이블(user_id+type 복합 고유 키, 기본 행 없음=기본 켜짐). 5종: service_reminder 서비스 알림 / card_expiry 만료 알림(카드+쿠폰 통합 우산)/ points_expiry 포인트 만료 / marketing 마케팅(예약)/ system 시스템(끌 수 없음, PUT 강제 1). 게이트: notifySettingEnabled를 ServiceReminderTimer/ExpiryReminderTimer/PointsExpiryTimer 3개 타이머 프로세스 + 구독 이벤트 시나리오 매핑에 연결(PAY/REFUND/VERIFIED/RESCHEDULE→system 항상 발송, REMINDER→service_reminder, EXPIRY→card_expiry); 유형이 꺼져 있으면 사이트 내 알림과 구독 메시지를 모두 건너뜀.
+**알림 스위치**: appointment_user_notify_setting 테이블(user_id+type 복합 고유 키, 기본 행 없음=기본 켜짐). 5종: service_reminder 서비스 알림 / card_expiry 만료 알림(카드+쿠폰 통합 우산)/ points_expiry 포인트 만료 / marketing 마케팅(예약)/ system 시스템(끌 수 없음, PUT 강제 1). 게이트: notifySettingEnabled를 ServiceReminderTimer/ExpiryReminderTimer/PointsExpiryTimer 3개 타이머 프로세스 + 구독 이벤트 시나리오 매핑에 연결(PAY/REFUND/VERIFIED/RESCHEDULE→system 항상 발송, REMINDER→service_reminder, EXPIRY→card_expiry); 유형이 꺼져 있으면 사이트 내 알림과 구독 메시지를 모두 건너뜀.
 
 ---
 
@@ -403,7 +403,7 @@ technician으로 전환하려면 approved 상태의 기술자 프로필이 있�
 
 **주문 생성 시**: Redis SETNX로 기술자 3분 잠금, 페이지 이탈 또는 시간 초과 시 해제.
 
-**가격 위변조 방지(2026-08-26)**: 주문 항목 금액은 모두 데이터베이스 기록 기준(target_type=service는 erik_service 조회, product는 erik_product 조회), 클라이언트 전달 가격은 계산에 참여하지 않음; 알 수 없는 target_type 422; target_id는 반드시 hashid 인코딩 값 전달(raw id 전달 시 디코딩 0 → 422「상품이 존재하지 않거나 판매 중지됨」); 공동구매/번개세일가도 DB 기준.
+**가격 위변조 방지(2026-08-26)**: 주문 항목 금액은 모두 데이터베이스 기록 기준(target_type=service는 appointment_service 조회, product는 appointment_product 조회), 클라이언트 전달 가격은 계산에 참여하지 않음; 알 수 없는 target_type 422; target_id는 반드시 hashid 인코딩 값 전달(raw id 전달 시 디코딩 0 → 422「상품이 존재하지 않거나 판매 중지됨」); 공동구매/번개세일가도 DB 기준.
 
 **환불 규칙**: 주문 후 15분 내 또는 시작까지 >6h 100% 환불 / ≤6h 90% / 시작 후 80% / 시작 확인 후 환불 불가.
 
@@ -411,7 +411,7 @@ technician으로 전환하려면 approved 상태의 기술자 프로필이 있�
 
 **잔액 결제와 환불**: 결제 요청 본문에 `pay_channel: "balance"` 전달 시 지갑 잔액 사용; 위챗 환불과 잔액 환불 모두 금액을 지갑 잔액으로 환충.
 
-**포인트 현금 전환**: 결제 요청 본문에 `use_points`(정수) 선택 전달. SUM 집계로 포인트 잔액 검증(erik_user_points의 balance 컬럼은 단일 증분 스냅샷이므로 바로 잔액으로 사용 불가), 차감액 = floor(use_points / config('app.points_rate', 100))원, 실결제 금액 = 기존 결제 금액 − 차감액(하한 0.01, 결제 금액 초과 시 결제 금액만큼만 차감해 포인트 낭비 없음). 성공 시 type=consume/source=points_offset 소비 거래 내역 작성(멱등, 재시도 중복 차감 없음). 잔액 부족 422.
+**포인트 현금 전환**: 결제 요청 본문에 `use_points`(정수) 선택 전달. SUM 집계로 포인트 잔액 검증(appointment_user_points의 balance 컬럼은 단일 증분 스냅샷이므로 바로 잔액으로 사용 불가), 차감액 = floor(use_points / config('app.points_rate', 100))원, 실결제 금액 = 기존 결제 금액 − 차감액(하한 0.01, 결제 금액 초과 시 결제 금액만큼만 차감해 포인트 낭비 없음). 성공 시 type=consume/source=points_offset 소비 거래 내역 작성(멱등, 재시도 중복 차감 없음). 잔액 부족 422.
 
 **포인트 회수**: 취소/환불 시 points_offset으로 소비한 포인트 반환(type=earn/source=points_refund): 취소는 전액, 환불은 비율대로, 5개 연결점 멱등(refundOffsetPoints).
 
@@ -419,7 +419,7 @@ technician으로 전환하려면 approved 상태의 기술자 프로필이 있�
 
 **번개세일 주문(18차 라운드, 폐지됨)**: ~~주문 생성 시 `promotion_id`(flash_sale 유형) 전달~~ — 2026-08부터 기존 프로모션 FLASH_SALE 채널 삭제, store() 프로모션 분기는 공동구매 GROUP_BUY만(비공동구매 promotion 422); 번개세일은 통일된 24차 라운드 `/api/seckill` 채널로 처리(seckill_id를 store 트랜잭션 내 행 잠금 재고 차감에 주입), PromotionController::index에서 flash_sale 필터, show/join은 400 반환, `Promotion::TYPE_FLASH_SALE` 상수는 이력 데이터 호환을 위해 유지.
 
-**예약 일정 변경(17차 라운드)**: `POST /api/order/reschedule/{id}`에 new_service_time(필수) + reason(선택) 전달, 같은 기술자 시간 변경. 규칙: 본인 주문만(아님 404), appointment 유형이며 상태 pending/paid/confirmed만 변경 가능(그 외 422), 원래 서비스 시작까지 ≥ 6시간(전액 환불 창과 동일)일 때만 변경 가능. 동시성 방어: B1 order_lock(pay/cancel/refund와 같은 상호 배타 계열) → 새 시간대 기술자 잠금 Redis SETNX EX 180(동시 일정 변경 초과 판매 방지) → 트랜잭션 내 행 잠금 재조회 + B2 스케줄 충돌 DB 검증(본 주문 제외) → service_time 갱신 + erik_order_reschedule 기록 → 원래 시간대 잠금 해제, 새 시간대 잠금은 본 주문이 보유 → SCENE_RESCHEDULE 구독 메시지(미설정 시 사이트 내 알림으로 대체). 실패 경로는 트랜잭션 롤백과 동시에 새 시간대 잠금 해제.
+**예약 일정 변경(17차 라운드)**: `POST /api/order/reschedule/{id}`에 new_service_time(필수) + reason(선택) 전달, 같은 기술자 시간 변경. 규칙: 본인 주문만(아님 404), appointment 유형이며 상태 pending/paid/confirmed만 변경 가능(그 외 422), 원래 서비스 시작까지 ≥ 6시간(전액 환불 창과 동일)일 때만 변경 가능. 동시성 방어: B1 order_lock(pay/cancel/refund와 같은 상호 배타 계열) → 새 시간대 기술자 잠금 Redis SETNX EX 180(동시 일정 변경 초과 판매 방지) → 트랜잭션 내 행 잠금 재조회 + B2 스케줄 충돌 DB 검증(본 주문 제외) → service_time 갱신 + appointment_order_reschedule 기록 → 원래 시간대 잠금 해제, 새 시간대 잠금은 본 주문이 보유 → SCENE_RESCHEDULE 구독 메시지(미설정 시 사이트 내 알림으로 대체). 실패 경로는 트랜잭션 롤백과 동시에 새 시간대 잠금 해제.
 
 **물류 추적(19차 라운드)**: `GET /api/order/logistics/{id}` — 본인 product 주문만 조회 가능(아님/상품 아님/미발송 통일 404). order.remark JSON 파싱(shipping_company/tracking_no/shipped_at, admin MallOrderController::ship() 발송 시 기록), parseShippingInfo/parseReceiver 이중 파싱으로 구 형식 폴백; 수령인 휴대폰 번호 마스킹 138****5678.
 
@@ -476,7 +476,7 @@ technician으로 전환하려면 approved 상태의 기술자 프로필이 있�
 
 **포인트 규칙**: 명세 페이징, type 필터 (earn/use/expire), source 필터 (order/referral/gift_card/check_in/admin). 출석 포인트 적립(CheckIn, type=earn); 소비 포인트 적립 floor(paid_amount×1), 검증 시 지급하며 멱등; 환불 시 비율대로 포인트 회수.
 
-**포인트 만료(17차 라운드)**: erik_user_points.expires_at 컬럼(설정 points.expiry_days, 기본 365일, ≤0이면 만료 없음), 모든 earn은 유효기간 포함 저장; PointsExpiryTimer 타이머 프로세스 60초마다 커서 스캔으로 만료 earn 행을 찾아 type=expire 음수 차감 행 작성(source=expiry + order_id로 원래 거래 내역 추적, 3중 멱등) + 집계 사이트 내 알림「X 포인트 만료됨」; 사용 가능 잔액 SUM 기준에 expire 음수 행 포함, 만료 포인트는 현금 전환/교환 불가.
+**포인트 만료(17차 라운드)**: appointment_user_points.expires_at 컬럼(설정 points.expiry_days, 기본 365일, ≤0이면 만료 없음), 모든 earn은 유효기간 포함 저장; PointsExpiryTimer 타이머 프로세스 60초마다 커서 스캔으로 만료 earn 행을 찾아 type=expire 음수 차감 행 작성(source=expiry + order_id로 원래 거래 내역 추적, 3중 멱등) + 집계 사이트 내 알림「X 포인트 만료됨」; 사용 가능 잔액 SUM 기준에 expire 음수 행 포함, 만료 포인트는 현금 전환/교환 불가.
 
 **쿠폰 양도(17차 라운드)**: transfer는 쿠폰 본인 소유/available/쿠폰 정의 미만료/양도된 적 없음을 검증하고, 8자리 혼동 문자 제거 고유 양도 코드 생성(uk_code 고유 인덱스 폴백), 7일 유효. claim 남용 방지: Redis NX 잠금(coupon_transfer_claim:{code} 30s) + 행 잠금 재검증 이중 사용 방지, uk_user_coupon 고유 인덱스로 같은 쿠폰 1회 양도 제한, 양도받은 쿠폰 재양도 불가(새 쿠폰은 양도 기록이 없어 자연 차단), 자신이 양도한 쿠폰 수령 불가 422, 수령인은 원소유자 아님; 지연 판정 만료 시 expired 처리 + 원래 쿠폰 available 복원. claim 트랜잭션 내 원래 쿠폰 used 처리 + 새 UserCoupon 생성해 수령인 바인딩(coupon_id 동일하므로 유효기간 동일) + 기록 claimed 처리.
 
@@ -522,7 +522,7 @@ technician으로 전환하려면 approved 상태의 기술자 프로필이 있�
 | GET | `/api/store-manager/technicians` | 기술자 목록(오늘 스케줄 포함) |
 | GET | `/api/store-manager/revenue` | 최근 7일 매출 집계 |
 
-**store_id 격리**: requireStoreId()가 현재 사용자의 매장 바인딩을 강제(erik_user.store_id), 매장 없음 403; 모든 조회는 store_id로 필터.
+**store_id 격리**: requireStoreId()가 현재 사용자의 매장 바인딩을 강제(appointment_user.store_id), 매장 없음 403; 모든 조회는 store_id로 필터.
 
 ---
 
@@ -671,7 +671,7 @@ technician으로 전환하려면 approved 상태의 기술자 프로필이 있�
 
 | 메서드 | 경로 | 설명 |
 |------|------|------|
-| GET | `/api/seckill` | 번개세일 활동 목록(status=1이고 시간 창 내; 판매량 = erik_order.seckill_id 주문 수, 잔여 재고 포함) |
+| GET | `/api/seckill` | 번개세일 활동 목록(status=1이고 시간 창 내; 판매량 = appointment_order.seckill_id 주문 수, 잔여 재고 포함) |
 | GET | `/api/seckill/{id}` | 활동 상세(state=not_started/ongoing/ended) |
 | POST | `/api/seckill/{id}/buy` | 번개세일 주문(client_token 멱등 + Redis NX 30s 동시성 방지 + 활동 검증; 재고 선차감 없음) |
 
@@ -759,7 +759,7 @@ technician으로 전환하려면 approved 상태의 기술자 프로필이 있�
 
 권한 ID: 380.
 
-**자동 평가**: TierRatingService::evaluate 실시간 집계(erik_order completed 주문 수 + 평가 평균, 반올림 소수 1자리)로 profile.order_count/rating 기록, erik_technician_tier_config(min_orders/min_rating)에 따라 높은 등급부터 매칭, 매칭 없으면 최저 등급. 승급만 지원(하급은 수수료율과 가격 계수에 영향, 백엔드 수동으로 처리; allowDowngrade=true는 수동 재평가용); 멱등(등급 일치 시 통계만 동기화); 변경 시 erik_technician_tier_log + 사이트 내 알림. 트리거: WorkController::complete / ReviewController 평가 작성 / ProfileController 프로필 조회 지연 판정.
+**자동 평가**: TierRatingService::evaluate 실시간 집계(appointment_order completed 주문 수 + 평가 평균, 반올림 소수 1자리)로 profile.order_count/rating 기록, appointment_technician_tier_config(min_orders/min_rating)에 따라 높은 등급부터 매칭, 매칭 없으면 최저 등급. 승급만 지원(하급은 수수료율과 가격 계수에 영향, 백엔드 수동으로 처리; allowDowngrade=true는 수동 재평가용); 멱등(등급 일치 시 통계만 동기화); 변경 시 appointment_technician_tier_log + 사이트 내 알림. 트리거: WorkController::complete / ReviewController 평가 작성 / ProfileController 프로필 조회 지연 판정.
 
 ### 평가 답글 조회(18차 라운드)
 
@@ -834,7 +834,7 @@ technician으로 전환하려면 approved 상태의 기술자 프로필이 있�
 |------|------|------|
 | GET | `/admin/profit-sharing` | 분배금 기록(leftJoin 주문번호/기술자 닉네임, ?status&order_no&technician_name&page=, hashid 인코딩) |
 
-권한 ID: 394. 서버 로직: erik_system_config group=profit_sharing(enabled/receiver_ratio); 미활성 disabled 대체 로그만; 활성 시 결제 성공 자동 분배금 요청(금액=실결제×receiver_ratio 기본 0.7, 같은 주문 pending/success 멱등 스킵); 자격 증명 없으면 HTTP 미실행, 요청 구조 로그 기록.
+권한 ID: 394. 서버 로직: appointment_system_config group=profit_sharing(enabled/receiver_ratio); 미활성 disabled 대체 로그만; 활성 시 결제 성공 자동 분배금 요청(금액=실결제×receiver_ratio 기본 0.7, 같은 주문 pending/success 멱등 스킵); 자격 증명 없으면 HTTP 미실행, 요청 구조 로그 기록.
 
 ### 포인트 룰렛 관리(23차 라운드)
 
@@ -857,7 +857,7 @@ technician으로 전환하려면 approved 상태의 기술자 프로필이 있�
 | PUT | `/admin/return-customer/config` | 설정 갱신(enabled in:0,1; ratio between:0.01,1) |
 | GET | `/admin/return-customer/rewards` | 보상 기록 목록(?keyword 기술자 이름/주문번호/사용자 닉네임, type=return_customer 페이징) |
 
-권한 ID: 412-414. 보상 규칙: 사용자가 같은 기술자에게 30일 내 2차 소비(주문 완료) 시 보너스 = 실결제 × ratio(기본 0.05), erik_technician_earnings(type=return_customer, status=pending) 기록으로 수수료 정산 체인과 통일 정산; 같은 주문 멱등 중복 지급 없음.
+권한 ID: 412-414. 보상 규칙: 사용자가 같은 기술자에게 30일 내 2차 소비(주문 완료) 시 보너스 = 실결제 × ratio(기본 0.05), appointment_technician_earnings(type=return_customer, status=pending) 기록으로 수수료 정산 체인과 통일 정산; 같은 주문 멱등 중복 지급 없음.
 
 ### 번개세일 활동 관리(24차 라운드)
 
@@ -871,7 +871,7 @@ technician으로 전환하려면 approved 상태의 기술자 프로필이 있�
 | POST | `/admin/seckill/{id}/toggle-status` | 상·하품 |
 | GET | `/admin/seckill/{id}/orders` | 번개세일 주문 목록 |
 
-권한 ID: 407-411, 420. 판매량 = erik_order.seckill_id 주문 수; 재고 행 잠금 차감, 매진 차단.
+권한 ID: 407-411, 420. 판매량 = appointment_order.seckill_id 주문 수; 재고 행 잠금 차감, 매진 차단.
 
 ### APP 버전 관리(24차 라운드)
 

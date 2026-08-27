@@ -60,12 +60,12 @@ class GrowthBenefitTest extends TestCase
             UserGrowth::where('user_id', $id)->delete();
         }
         foreach ($this->userCouponIds as $id) {
-            Db::table('erik_user_coupon')->where('id', $id)->delete();
+            Db::table('appointment_user_coupon')->where('id', $id)->delete();
         }
         foreach ($this->couponIds as $id) {
-            Db::table('erik_coupon')->where('id', $id)->delete();
+            Db::table('appointment_coupon')->where('id', $id)->delete();
         }
-        Db::table('erik_product')->where('id', 1)->delete();
+        Db::table('appointment_product')->where('id', 1)->delete();
         $this->userIds = [];
         $this->orderIds = [];
         $this->couponIds = [];
@@ -146,7 +146,7 @@ class GrowthBenefitTest extends TestCase
             $post['user_coupon_id'] = $userCouponIdHash;
         }
         // 下单校验商品存在且价格以库中记录为准：种 id=1 商品行，价格与用例一致
-        Db::table('erik_product')->updateOrInsert(['id' => 1], [
+        Db::table('appointment_product')->updateOrInsert(['id' => 1], [
             'name'   => '测试商品',
             'price'  => $price,
             'stock'  => 100,

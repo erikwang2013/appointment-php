@@ -138,7 +138,7 @@ class CardController extends BaseController
      * POST /api/marketing/cards/use
      *
      * 幂等：Redis NX 锁 card_use:{user_card_id}:{service_id}（30s TTL）拒绝短时间重复提交；
-     * 并发扣次由 erik_user_member_card 行锁 lockForUpdate 串行化。
+     * 并发扣次由 appointment_user_member_card 行锁 lockForUpdate 串行化。
      */
     public function use(Request $request)
     {
@@ -206,7 +206,7 @@ class CardController extends BaseController
                 $usage->status = 'active';
                 $usage->save();
 
-                // 生成已完成订单（pay_type=card 记录在 erik_order_payment 上）
+                // 生成已完成订单（pay_type=card 记录在 appointment_order_payment 上）
                 $order = new Order();
                 $order->id = Order::generateId();
                 $order->order_no = 'CARD' . date('YmdHis') . random_int(10000, 99999);

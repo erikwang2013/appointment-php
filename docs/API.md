@@ -306,7 +306,7 @@
 | GET | `/api/user/referral/referred-users` | 已推荐用户列表 |
 | GET | `/api/user/referral/earnings` | 分销返佣明细 (分页: 被推荐人昵称/头像/订单号/金额/发放时间) |
 
-**分销返佣**: 被推荐人首单 completed 后发放，金额 = paid_amount × reward_rate（erik_system_config referral.reward_rate，默认 0.05，非法值回落常量）。行锁 + rewarded_at 判空 + 首单复查三重幂等；入账 WalletTxn type=referral_reward。
+**分销返佣**: 被推荐人首单 completed 后发放，金额 = paid_amount × reward_rate（appointment_system_config referral.reward_rate，默认 0.05，非法值回落常量）。行锁 + rewarded_at 判空 + 首单复查三重幂等；入账 WalletTxn type=referral_reward。
 
 #### 2.6 积分转赠（第19轮）
 
@@ -324,7 +324,7 @@
 | GET | `/api/user/notify-settings` | 查询通知开关（5 类全量） |
 | PUT | `/api/user/notify-settings` | 批量更新开关 (types: {service_reminder: 0/1, ...}) |
 
-**通知开关**: erik_user_notify_setting 表（user_id+type 复合唯一键，缺省行=默认开）。5 类：service_reminder 服务提醒 / card_expiry 到期提醒（卡+券统一伞形）/ points_expiry 积分过期 / marketing 营销（预留）/ system 系统（不可关，PUT 强制为 1）。门控：notifySettingEnabled 挂接 ServiceReminderTimer/ExpiryReminderTimer/PointsExpiryTimer 3 个定时器进程 + 订阅事件场景映射（PAY/REFUND/VERIFIED/RESCHEDULE→system 恒发，REMINDER→service_reminder，EXPIRY→card_expiry）；类型关闭时站内通知与订阅消息一并跳过。
+**通知开关**: appointment_user_notify_setting 表（user_id+type 复合唯一键，缺省行=默认开）。5 类：service_reminder 服务提醒 / card_expiry 到期提醒（卡+券统一伞形）/ points_expiry 积分过期 / marketing 营销（预留）/ system 系统（不可关，PUT 强制为 1）。门控：notifySettingEnabled 挂接 ServiceReminderTimer/ExpiryReminderTimer/PointsExpiryTimer 3 个定时器进程 + 订阅事件场景映射（PAY/REFUND/VERIFIED/RESCHEDULE→system 恒发，REMINDER→service_reminder，EXPIRY→card_expiry）；类型关闭时站内通知与订阅消息一并跳过。
 
 ---
 
@@ -403,7 +403,7 @@
 
 **创建订单时**: Redis SETNX 锁定技师3分钟，退出页面或超时释放。
 
-**价格防篡改（2026-08-26）**: 订单项金额一律以数据库记录为准（target_type=service 查 erik_service、product 查 erik_product），客户端传价不参与计算；未知 target_type 422；target_id 必须传 hashid 编码值（传 raw id 解码为 0 → 422「商品不存在或已下架」）；拼团/秒杀价同样以 DB 为准。
+**价格防篡改（2026-08-26）**: 订单项金额一律以数据库记录为准（target_type=service 查 appointment_service、product 查 appointment_product），客户端传价不参与计算；未知 target_type 422；target_id 必须传 hashid 编码值（传 raw id 解码为 0 → 422「商品不存在或已下架」）；拼团/秒杀价同样以 DB 为准。
 
 **退款规则**: 下单15min内或距开始>6h退100% / ≤6h退90% / 已开始退80% / 确认开始后不退。
 
@@ -411,7 +411,7 @@
 
 **余额支付与退款**: 支付请求体传 `pay_channel: "balance"` 使用钱包余额；微信退款与余额退款均将金额回充至钱包余额。
 
-**积分抵现**: 支付请求体可选传 `use_points`（整数）。SUM 聚合校验积分余额（erik_user_points 的 balance 列为单次增量快照，不可直接当余额），抵扣额 = floor(use_points / config('app.points_rate', 100)) 元，实付金额 = 原应付 - 抵扣额（下限 0.01，超出应付按应付满减不浪费积分）。成功时写 type=consume/source=points_offset 消费流水（幂等，重试不重复扣）。余额不足 422。
+**积分抵现**: 支付请求体可选传 `use_points`（整数）。SUM 聚合校验积分余额（appointment_user_points 的 balance 列为单次增量快照，不可直接当余额），抵扣额 = floor(use_points / config('app.points_rate', 100)) 元，实付金额 = 原应付 - 抵扣额（下限 0.01，超出应付按应付满减不浪费积分）。成功时写 type=consume/source=points_offset 消费流水（幂等，重试不重复扣）。余额不足 422。
 
 **积分回补**: 取消/退款时归还 points_offset 消耗的积分（type=earn/source=points_refund）：取消全额、退款按比例，5 挂接点幂等（refundOffsetPoints）。
 
@@ -419,7 +419,7 @@
 
 **秒杀下单（第18轮，已下线）**: ~~创建订单传 `promotion_id`（flash_sale 类型）~~ —— 2026-08 起旧促销 FLASH_SALE 通道删除，store() 促销分支仅剩拼团 GROUP_BUY（非拼团 promotion 422）；秒杀统一走第24轮 `/api/seckill` 通道（seckill_id 注入 store 事务内行锁扣库存），PromotionController::index 过滤 flash_sale、show/join 对其返回 400，`Promotion::TYPE_FLASH_SALE` 常量保留兼容历史数据。
 
-**预约改期（第17轮）**: `POST /api/order/reschedule/{id}` 传 new_service_time（必填）+ reason（可选），同技师换时间。规则：仅本人订单（非本人 404）、仅 appointment 类型且状态 pending/paid/confirmed 可改（其余 422）、距原服务开始 ≥ 6 小时（与全额退款窗口一致）方可改期。并发防护：B1 order_lock（与 pay/cancel/refund 同一互斥族）→ 新时段技师锁 Redis SETNX EX 180（并发改期防超卖）→ 事务内行锁重读 + B2 排班冲突 DB 校验（排除本单）→ 更新 service_time + 落 erik_order_reschedule 记录 → 释放原时段锁、新时段锁由本单持有 → SCENE_RESCHEDULE 订阅消息（未配置降级站内通知）。失败路径事务回滚同时释放新时段锁。
+**预约改期（第17轮）**: `POST /api/order/reschedule/{id}` 传 new_service_time（必填）+ reason（可选），同技师换时间。规则：仅本人订单（非本人 404）、仅 appointment 类型且状态 pending/paid/confirmed 可改（其余 422）、距原服务开始 ≥ 6 小时（与全额退款窗口一致）方可改期。并发防护：B1 order_lock（与 pay/cancel/refund 同一互斥族）→ 新时段技师锁 Redis SETNX EX 180（并发改期防超卖）→ 事务内行锁重读 + B2 排班冲突 DB 校验（排除本单）→ 更新 service_time + 落 appointment_order_reschedule 记录 → 释放原时段锁、新时段锁由本单持有 → SCENE_RESCHEDULE 订阅消息（未配置降级站内通知）。失败路径事务回滚同时释放新时段锁。
 
 **物流跟踪（第19轮）**: `GET /api/order/logistics/{id}` — 仅本人 product 订单可查（非本人/非商品/未发货统一 404）。读取 order.remark JSON（shipping_company/tracking_no/shipped_at，admin MallOrderController::ship() 发货时写入），parseShippingInfo/parseReceiver 双解析兜底旧格式；收货人手机号脱敏 138****5678。
 
@@ -476,7 +476,7 @@
 
 **积分规则**: 明细分页，type 过滤 (earn/use/expire)，source 过滤 (order/referral/gift_card/check_in/admin)。签到返积分 (CheckIn, type=earn)；消费返积分 floor(paid_amount×1)，核销时发放且幂等；退款按比例回扣积分。
 
-**积分过期（第17轮）**: erik_user_points.expires_at 列（配置 points.expiry_days，默认 365 天，≤0 永不过期），所有 earn 落库填有效期；PointsExpiryTimer 定时进程每 60s 游标扫描过期 earn 行，写 type=expire 负值扣减行（source=expiry + order_id 溯源原流水，三层幂等）+ 聚合站内通知「您有 X 积分已过期」；可用余额 SUM 口径含 expire 负值行，过期积分不可再抵现/兑换。
+**积分过期（第17轮）**: appointment_user_points.expires_at 列（配置 points.expiry_days，默认 365 天，≤0 永不过期），所有 earn 落库填有效期；PointsExpiryTimer 定时进程每 60s 游标扫描过期 earn 行，写 type=expire 负值扣减行（source=expiry + order_id 溯源原流水，三层幂等）+ 聚合站内通知「您有 X 积分已过期」；可用余额 SUM 口径含 expire 负值行，过期积分不可再抵现/兑换。
 
 **优惠券转赠（第17轮）**: transfer 校验券属于本人/available/券定义未过期/未被转赠过，生成 8 位去混淆字符唯一转赠码（uk_code 唯一索引兜底），7 天有效。claim 防滥用：Redis NX 锁（coupon_transfer_claim:{code} 30s）+ 行锁复验防双花、uk_user_coupon 唯一索引限同一券仅可转赠一次、被转赠券不可再转（新券无转赠记录自然拦截）、不可领取自己转赠的券 422、接收人非原持有人；懒判定过期置 expired 并恢复原券 available。claim 事务内原券置 used + 生成新 UserCoupon 绑定接收人（coupon_id 不变即有效期不变）+ 记录置 claimed。
 
@@ -522,7 +522,7 @@
 | GET | `/api/store-manager/technicians` | 技师列表（含今日排班） |
 | GET | `/api/store-manager/revenue` | 近 7 天营收聚合 |
 
-**store_id 隔离**: requireStoreId() 强制当前用户绑定门店（erik_user.store_id），无门店 403；所有查询按 store_id 过滤。
+**store_id 隔离**: requireStoreId() 强制当前用户绑定门店（appointment_user.store_id），无门店 403；所有查询按 store_id 过滤。
 
 ---
 
@@ -671,7 +671,7 @@
 
 | 方法 | 路径 | 说明 |
 |------|------|------|
-| GET | `/api/seckill` | 秒杀活动列表（status=1 且在时间窗内；含已售量 = erik_order.seckill_id 订单数、剩余库存） |
+| GET | `/api/seckill` | 秒杀活动列表（status=1 且在时间窗内；含已售量 = appointment_order.seckill_id 订单数、剩余库存） |
 | GET | `/api/seckill/{id}` | 活动详情（state=not_started/ongoing/ended） |
 | POST | `/api/seckill/{id}/buy` | 秒杀下单（client_token 幂等 + Redis NX 30s 防并发 + 活动校验；不再预扣库存） |
 
@@ -759,7 +759,7 @@
 
 权限ID: 380。
 
-**自动评定**: TierRatingService::evaluate 实时统计（erik_order completed 订单数 + 评价均分，四舍五入 1 位小数）回写 profile.order_count/rating，按 erik_technician_tier_config（min_orders/min_rating）从高到低匹配，无匹配归最低等级。仅升级不降级（降级影响佣金率与价格系数，由后台人工兜底；allowDowngrade=true 供人工重评）；幂等（等级一致只同步统计）；变更落 erik_technician_tier_log + 站内通知。触发点：WorkController::complete / ReviewController 评价写入 / ProfileController 查看资料懒判定。
+**自动评定**: TierRatingService::evaluate 实时统计（appointment_order completed 订单数 + 评价均分，四舍五入 1 位小数）回写 profile.order_count/rating，按 appointment_technician_tier_config（min_orders/min_rating）从高到低匹配，无匹配归最低等级。仅升级不降级（降级影响佣金率与价格系数，由后台人工兜底；allowDowngrade=true 供人工重评）；幂等（等级一致只同步统计）；变更落 appointment_technician_tier_log + 站内通知。触发点：WorkController::complete / ReviewController 评价写入 / ProfileController 查看资料懒判定。
 
 ### 评价回复查看（第18轮）
 
@@ -834,7 +834,7 @@
 |------|------|------|
 | GET | `/admin/profit-sharing` | 分账记录（leftJoin 订单号/技师昵称，?status&order_no&technician_name&page=，hashid 编码） |
 
-权限ID: 394。服务端逻辑：erik_system_config group=profit_sharing（enabled/receiver_ratio）；未启用 disabled 降级仅日志；启用后支付成功自动请求分账（金额=实付×receiver_ratio 默认 0.7，同单 pending/success 幂等跳过）；无凭据不执行 HTTP，请求结构记日志。
+权限ID: 394。服务端逻辑：appointment_system_config group=profit_sharing（enabled/receiver_ratio）；未启用 disabled 降级仅日志；启用后支付成功自动请求分账（金额=实付×receiver_ratio 默认 0.7，同单 pending/success 幂等跳过）；无凭据不执行 HTTP，请求结构记日志。
 
 ### 积分转盘管理（第23轮）
 
@@ -857,7 +857,7 @@
 | PUT | `/admin/return-customer/config` | 配置更新（enabled in:0,1；ratio between:0.01,1） |
 | GET | `/admin/return-customer/rewards` | 奖励记录列表（?keyword 技师姓名/订单号/用户昵称，type=return_customer 分页） |
 
-权限ID: 412-414。奖励规则：用户对同一技师 30 天内第 2 次消费（订单完成）发放奖金 = 实付 × ratio（默认 0.05），落 erik_technician_earnings（type=return_customer，status=pending）随佣金结算链统一结算；同订单幂等不重复发放。
+权限ID: 412-414。奖励规则：用户对同一技师 30 天内第 2 次消费（订单完成）发放奖金 = 实付 × ratio（默认 0.05），落 appointment_technician_earnings（type=return_customer，status=pending）随佣金结算链统一结算；同订单幂等不重复发放。
 
 ### 秒杀活动管理（第24轮）
 
@@ -871,7 +871,7 @@
 | POST | `/admin/seckill/{id}/toggle-status` | 上下架 |
 | GET | `/admin/seckill/{id}/orders` | 秒杀订单列表 |
 
-权限ID: 407-411、420。已售量 = erik_order.seckill_id 订单数；库存行锁扣减、售罄拦截。
+权限ID: 407-411、420。已售量 = appointment_order.seckill_id 订单数；库存行锁扣减、售罄拦截。
 
 ### APP 版本管理（第24轮）
 

@@ -100,7 +100,7 @@
 |------|------|
 | 个人信息 | 头像/昵称/手机号 |
 | 身份切换 | 客户 ↔ 技师 |
-| 消息通知 | 站内通知（erik_notification）；消息中心页：分页/下拉刷新/已读高亮/标记已读/全部已读 |
+| 消息通知 | 站内通知（appointment_notification）；消息中心页：分页/下拉刷新/已读高亮/标记已读/全部已读 |
 | 我的会员卡 | 月卡/VIP年卡/次卡（到期/次数/已用/剩余） |
 | 我的积分 | 获取记录/可用积分/使用记录（1:100兑换礼品卡）；签到/消费返积分，退款按比例回扣，明细分页+type/source过滤 |
 | 我的礼品卡 | 现金卡/实物礼品；cash 类型兑换直接充值到钱包 |
@@ -193,7 +193,7 @@
 
 | 功能 | 说明 |
 |------|------|
-| 订阅授权 | utils/subscribe.js 集中管理模板 ID（键名与服务端 erik_system_config.wechat_app.template_ids 对齐） |
+| 订阅授权 | utils/subscribe.js 集中管理模板 ID（键名与服务端 appointment_system_config.wechat_app.template_ids 对齐） |
 | 触发场景 | 预约成功/支付成功后手势回调内 wx.requestSubscribeMessage，未配置模板 ID 或用户拒绝均静默 |
 | 服务端链路 | WechatTemplateMessageService 发送 + NotificationReminderService 预约前 2h~1h 提醒 + AutoCancelTimer 进程扫描 |
 
@@ -222,16 +222,16 @@
 |------|------|
 | 拼团价 | join 响应返回 discount_percent/original_price/group_price |
 | 拼团下单 | POST /api/order 传 promotion_id：校验仅 group_buy/活动有效/调用者是参与者/未满员/服务匹配；拼团价=原价×discount_percent/100，禁用优惠券/次卡/积分叠加（422） |
-| 订单标记 | erik_order 新增 promotion_id/participant_id 列 + 索引 |
+| 订单标记 | appointment_order 新增 promotion_id/participant_id 列 + 索引 |
 | 未成团处理 | 到期未满员→活动关闭+批量取消该活动 pending 订单（幂等）；pay() 懒判定已关闭则自动取消订单并释放技师锁 |
 
 ### 22. 分销返佣（第16轮）
 
 | 功能 | 说明 |
 |------|------|
-| 发放规则 | 被推荐人首单 completed 后发放：金额=paid_amount×reward_rate（erik_system_config referral.reward_rate 默认 0.05，非法回落常量），>0 才发 |
+| 发放规则 | 被推荐人首单 completed 后发放：金额=paid_amount×reward_rate（appointment_system_config referral.reward_rate 默认 0.05，非法回落常量），>0 才发 |
 | 挂接点 | ReferralRewardService::handleOrderCompleted 挂接 WorkController::complete 事务内（serving→completed 唯一入口，核销 verify 只到 serving 不触发），失败整体回滚可重试 |
-| 幂等 | erik_user_referral 行锁 lockForUpdate + rewarded_at 判空 + 锁内首单复查（并发/重复调用只发一次） |
+| 幂等 | appointment_user_referral 行锁 lockForUpdate + rewarded_at 判空 + 锁内首单复查（并发/重复调用只发一次） |
 | 入账 | 钱包行锁累加 + WalletTxn type='referral_reward'（balance_after + 订单号 remark）；推荐记录写 reward_type/reward_amount/rewarded_at/first_order_at |
 | 明细 | GET /api/user/referral/earnings 分页（被推荐人昵称/头像/订单号/金额/时间） |
 
@@ -239,10 +239,10 @@
 
 | 功能 | 说明 |
 |------|------|
-| 兑换商品 | erik_points_exchange_goods：type=coupon/gift_card/wallet，points_cost/value（DECIMAL(25,2) 防雪崩 ID 精度丢失）/stock/status |
+| 兑换商品 | appointment_points_exchange_goods：type=coupon/gift_card/wallet，points_cost/value（DECIMAL(25,2) 防雪崩 ID 精度丢失）/stock/status |
 | 商品列表 | GET /api/marketing/points-exchange：上架商品 + 实时剩余库存 + 已兑数 |
 | 兑换 | POST /api/marketing/points-exchange/{id}：Redis NX 锁 + 商品行锁防超兑；积分 SUM 校验（不足 422）+ UserPoints type='consume' source='exchange' 扣减；coupon 发券 / wallet 余额入账（WalletTxn points_exchange）/ gift_card 卡密返回 |
-| 幂等 | uk_user_goods 唯一索引同用户同商品限一次 + 锁内复验 + 1062 兜底；兑换记录快照 erik_user_points_exchange |
+| 幂等 | uk_user_goods 唯一索引同用户同商品限一次 + 锁内复验 + 1062 兜底；兑换记录快照 appointment_user_points_exchange |
 
 ### 24. 预约改期（第17轮）
 
@@ -251,7 +251,7 @@
 | 接口 | POST /api/order/reschedule/{id}：new_service_time（必填）+ reason（可选），同技师换时间 |
 | 规则 | 仅本人订单（非本人 404）；仅 appointment 类型且状态 pending/paid/confirmed（其余 422）；距原服务开始 ≥ 6 小时（与全额退款窗口一致） |
 | 并发防护 | B1 order_lock（与 pay/cancel/refund 同互斥族）→ 新时段技师锁 Redis SETNX EX 180（并发改期防超卖）→ 事务内行锁重读 + B2 排班冲突 DB 校验（排除本单） |
-| 收尾 | 更新 service_time + 落 erik_order_reschedule（含 reason）+ 释放原时段锁/新时段锁本单持有；失败事务回滚同时释放新时段锁 |
+| 收尾 | 更新 service_time + 落 appointment_order_reschedule（含 reason）+ 释放原时段锁/新时段锁本单持有；失败事务回滚同时释放新时段锁 |
 | 通知 | SCENE_RESCHEDULE 订阅消息（未配置模板降级站内通知「预约改期成功」）+ pushOrderUpdate |
 
 ### 25. 优惠券转赠（第17轮）
@@ -267,7 +267,7 @@
 
 | 功能 | 说明 |
 |------|------|
-| 有效期 | erik_user_points.expires_at 列；所有 earn（签到/消费返/回补）落库填 expires_at = now + points.expiry_days（默认 365，≤0 永不过期）；consume/use 行为空 |
+| 有效期 | appointment_user_points.expires_at 列；所有 earn（签到/消费返/回补）落库填 expires_at = now + points.expiry_days（默认 365，≤0 永不过期）；consume/use 行为空 |
 | 过期执行 | PointsExpiryTimer 定时进程每 60s 游标扫描（100/批）expires_at < now 的 earn 行 → 写 type=expire 负值扣减行（source=expiry + order_id 溯源原流水）→ 按用户聚合站内通知「您有 X 积分已过期」 |
 | 幂等 | ① expire 行 order_id 指向原 earn 流水，事务内对原行 lockForUpdate + exists 复验（并发进程在行锁上串行）② id 游标分页 ③ 通知仅在实际扣减轮次产生 |
 | 口径 | 可用余额 SUM 聚合含 expire 负值行；过期积分不可再抵现/兑换 |
@@ -297,7 +297,7 @@
 |------|------|
 | 接口 | POST /api/technician/review/reply/{order_id}（技师身份中间件）：评价不存在/非本人统一 404；已有回复 422（幂等拒绝不覆盖）；空回复 422 |
 | 回复后 | 站内通知用户（type='review_reply'，非阻塞 try/catch + Log） |
-| 数据 | erik_order_review 幂等补 replied_at 列（reply 列建表已有）；管理端评价 list/show 经 decorate()->toArray() 透出 reply/replied_at |
+| 数据 | appointment_order_review 幂等补 replied_at 列（reply 列建表已有）；管理端评价 list/show 经 decorate()->toArray() 透出 reply/replied_at |
 
 ### 30. 充值到账通知（第18轮）
 
@@ -331,7 +331,7 @@
 |------|------|
 | 追评 | POST /api/order/review/{order_id}/append：评价不存在/非本人统一 404、非 completed 422、重复追评 422（append_content/append_at 任一非空即拒）、空内容 422；成功写 append_content/append_images(JSON)/append_at + 技师站内通知 type='review_append' |
 | 提交评价 | 补注册 POST /api/order/review/{order_id}（ReviewController::store 原无路由不可达）；顺带修复潜伏 TypeError：findByOrderId 收到 int 违反 string 签名（对照 append 的 (string) 转换），补注册即暴露调用即 500 |
-| 数据 | erik_order_review 增 append_content TEXT/append_images JSON/append_at DATETIME 三列（幂等迁移）；响应透出 append 字段 |
+| 数据 | appointment_order_review 增 append_content TEXT/append_images JSON/append_at DATETIME 三列（幂等迁移）；响应透出 append 字段 |
 
 ### 34. 用户端物流跟踪（第19轮）
 
@@ -345,9 +345,9 @@
 
 | 功能 | 说明 |
 |------|------|
-| 数据 | erik_user_notify_setting 表（user_id+type 复合唯一键 uk_user_type，缺省行=默认开）；5 类：service_reminder 服务提醒 / card_expiry 到期提醒（卡+券统一伞形）/ points_expiry 积分过期 / marketing 营销（预留）/ system 系统（不可关，PUT 强制为 1） |
+| 数据 | appointment_user_notify_setting 表（user_id+type 复合唯一键 uk_user_type，缺省行=默认开）；5 类：service_reminder 服务提醒 / card_expiry 到期提醒（卡+券统一伞形）/ points_expiry 积分过期 / marketing 营销（预留）/ system 系统（不可关，PUT 强制为 1） |
 | 接口 | GET /api/user/notify-settings 返回 5 类全量开关；PUT 批量 upsert 不产生重复行 |
-| 门控 | NotificationReminderService::notifySettingEnabled 挂接 3 定时器进程（ServiceReminderTimer/ExpiryReminderTimer 卡+券/PointsExpiryTimer，定时器直插 erik_notification 表不走服务写入路径故各自加同款门控）+ 订阅事件（sendSubscribeForOrderEvent/Notification 场景映射 PAY/REFUND/VERIFIED/RESCHEDULE→system 恒发，REMINDER→service_reminder，EXPIRY→card_expiry）；类型关闭时站内通知与订阅消息一并跳过 |
+| 门控 | NotificationReminderService::notifySettingEnabled 挂接 3 定时器进程（ServiceReminderTimer/ExpiryReminderTimer 卡+券/PointsExpiryTimer，定时器直插 appointment_notification 表不走服务写入路径故各自加同款门控）+ 订阅事件（sendSubscribeForOrderEvent/Notification 场景映射 PAY/REFUND/VERIFIED/RESCHEDULE→system 恒发，REMINDER→service_reminder，EXPIRY→card_expiry）；类型关闭时站内通知与订阅消息一并跳过 |
 
 ---
 
@@ -456,13 +456,13 @@ Flutter Web 单页应用，共 21 个页面：dashboard/用户/角色/配置/日
 
 ### 14. 会员卡管理（第10轮）
 
-- erik_user.member_level 会员等级列（迁移 000008）
+- appointment_user.member_level 会员等级列（迁移 000008）
 - MemberCardController 完整 CRUD（权限 365-369）：GET/POST/PUT/DELETE /admin/member-cards
 - Flutter 会员卡定义管理页
 
 ### 15. 售后管理（第14轮）
 
-- erik_order_aftersale 表（迁移 000009）：type=refund/exchange，status=pending/approved/rejected/completed
+- appointment_order_aftersale 表（迁移 000009）：type=refund/exchange，status=pending/approved/rejected/completed
 - AftersaleController：GET /admin/aftersales（分页+status/uid/order_no 筛选）+ POST /admin/aftersales/{id}/review（approve/reject+remark）
 - Flutter 售后管理页（列表+审核对话框，权限 370/371），布局已注册
 
@@ -483,10 +483,10 @@ Flutter Web 单页应用，共 21 个页面：dashboard/用户/角色/配置/日
 
 ### 19. 技师等级自动评定（第17轮）
 
-- TierRatingService::evaluate(technicianId, allowDowngrade=false)：实时统计 erik_order completed 订单数 + erik_order_review 均分（四舍五入 1 位小数）回写 profile.order_count/rating，按 erik_technician_tier_config（min_orders/min_rating）从高到低匹配，无匹配归最低等级
+- TierRatingService::evaluate(technicianId, allowDowngrade=false)：实时统计 appointment_order completed 订单数 + appointment_order_review 均分（四舍五入 1 位小数）回写 profile.order_count/rating，按 appointment_technician_tier_config（min_orders/min_rating）从高到低匹配，无匹配归最低等级
 - 升降级规则：仅升级不降级（等级绑定佣金率与价格系数，自动降级影响技师收入易引发纠纷，下滑由 admin 手动兜底）；allowDowngrade=true（后台人工重评场景）才执行降级，降级同样落日志 + 通知
 - 幂等：应得等级与 profile.tier_id 一致时只同步统计、不写日志不发通知
-- 日志：变更写 erik_technician_tier_log（id/technician_id/old_tier_id/new_tier_id/reason/created_at）+ 站内通知（type='tier'）
+- 日志：变更写 appointment_technician_tier_log（id/technician_id/old_tier_id/new_tier_id/reason/created_at）+ 站内通知（type='tier'）
 - 触发点：WorkController::complete / ReviewController 评价写入 / ProfileController 查看资料懒判定
 - 管理端：TechnicianTierController 保持手动配置能力；GET /admin/technician-tiers/logs 分页查看变更日志（join 技师姓名与新旧等级名，ID hashid 编码，权限 380）
 
@@ -499,26 +499,26 @@ Flutter Web 单页应用，共 21 个页面：dashboard/用户/角色/配置/日
 ### 21. 预约月历（第20轮）
 
 - CalendarController 月/日视图：GET /api/calendar/technician/{id}（月视图）+ /day（日视图）
-- 数据源：technician_schedule.time_slots JSON 按星期展开小时槽，erik_order 该日已约时段排除（status ∈ pending/paid/confirmed/serving），剩余可约槽位输出
+- 数据源：technician_schedule.time_slots JSON 按星期展开小时槽，appointment_order 该日已约时段排除（status ∈ pending/paid/confirmed/serving），剩余可约槽位输出
 - 用途：门店排班可视化选时，前端按天横向滚动 + 时间格点选
 
 ### 22. 用户成长等级（第20轮）
 
-- erik_user_growth（流水）+ erik_growth_level（档位种子 5 级：青铜0/白银100/黄金500/铂金2000/钻石5000）
+- appointment_user_growth（流水）+ appointment_growth_level（档位种子 5 级：青铜0/白银100/黄金500/铂金2000/钻石5000）
 - 成长值入账点：签到 +10（CheckInController）；提交评价 +20（ReviewController::store，追评不入账）；消费 floor(paid) 每 1 元 1 点（WechatPayService::markOrderPaid，复用既有支付状态复验天然幂等，重复回调不重复入账）
 - 接口：GET /api/growth（当前等级概览：balance/level/下一档差额）；GET /api/growth/records（流水分页）；GET /api/growth/levels（公开档位列表，无需登录）
 - 失败策略：任一入账点 try/catch 记日志，不影响主流程
 
 ### 23. 电子发票（第20轮）
 
-- erik_invoice：uk_order_type(order_id,order_type) 防同一订单重复申请（重复申请 422，含 MySQL 1062 捕获兜底）；idx_user_created/idx_status
+- appointment_invoice：uk_order_type(order_id,order_type) 防同一订单重复申请（重复申请 422，含 MySQL 1062 捕获兜底）；idx_user_created/idx_status
 - 用户端：POST /api/invoices（申请，金额/标题服务端从订单带出，不可篡改）；GET /api/invoices（列表）；GET /api/invoices/{id}（详情）
 - 管理端：InvoiceController issue（开票：写 invoice_no + status=issued + issued_at）/ reject（驳回：status=rejected + reject_reason），权限 382 列表/383 开票/384 驳回
 - 状态机：pending → issued / rejected
 
 ### 24. 客服工单（第20轮）
 
-- erik_ticket：用户提交工单（title/content），后台回复追加（reply_content/replied_at），用户可关闭（closed_at）
+- appointment_ticket：用户提交工单（title/content），后台回复追加（reply_content/replied_at），用户可关闭（closed_at）
 - 用户端：POST /api/tickets（提交）；GET /api/tickets（列表）；GET /api/tickets/{id}（详情，仅本人）；POST /api/tickets/{id}/close（关闭）
 - 管理端：TicketController index（列表）/ reply（回复），静态路由先于 resource 定义避免 {id} shadow；权限 385 工单回复/387 工单列表查看
 - 状态机：open → replied（回复后回 open 可再回）/ closed
@@ -539,14 +539,14 @@ Flutter Web 单页应用，共 21 个页面：dashboard/用户/角色/配置/日
 
 ### 27. 发票抬头管理（第21轮）
 
-- erik_invoice_title（uk_user_title(user_id, title_type, invoice_title) 防重复 + idx_user_default）
+- appointment_invoice_title（uk_user_title(user_id, title_type, invoice_title) 防重复 + idx_user_default）
 - 接口：POST /api/invoice-titles（保存，company 必须 tax_no，重复 422）；GET（列表，默认置顶）；PUT /{id}（编辑，仅本人）；DELETE /{id}（删除，仅本人）；POST /{id}/default（设默认，事务清零同用户其他行）
 - 默认规则：首条保存自动为默认；删除默认后自动指定最早一条
 - 申请联动：InvoiceController::store 可选 title_id 解析抬头带入 invoice_title/tax_no/title_type，无 title_id 时保留原手填路径；uk_order_type 防重逻辑未动
 
 ### 28. 工单满意度（第21轮）
 
-- erik_ticket 加 rating TINYINT NULL + rated_at DATETIME NULL（迁移 000303）
+- appointment_ticket 加 rating TINYINT NULL + rated_at DATETIME NULL（迁移 000303）
 - 关闭打分：TicketController::close() 支持可选 rating 1-5（filter_var 整数校验，越界/非整数 422；提供则写 rating+rated_at，未提供保持 NULL 兼容旧客户端；只关 open 工单规则保留）
 - 后台统计：GET /admin/tickets/satisfaction（静态路由先于 resource 避免 {id} shadow）返回 total/rated_count/unrated_count/average（1 位小数）/distribution（1-5 星各数量，缺星补 0）；权限 388
 
@@ -559,13 +559,13 @@ Flutter Web 单页应用，共 21 个页面：dashboard/用户/角色/配置/日
 
 ### 30. 用户浏览足迹（第21轮）
 
-- erik_browse_history（uk_user_item(user_id, item_id) 唯一，重复浏览只刷 viewed_at 不重复插入；idx_user_viewed 排序）
+- appointment_browse_history（uk_user_item(user_id, item_id) 唯一，重复浏览只刷 viewed_at 不重复插入；idx_user_viewed 排序）
 - 记录挂接：ServiceController::detail() 成功后记录（try/catch + Log::warning 不影响主流程；公开路由无 JWT，user_id 判空跳过匿名）
-- 接口：GET /api/browse-history（join erik_service 名称/封面/价格/原价，viewed_at 倒序，per_page 默认 15 上限 50，item_id hashid）；DELETE /{item_id}（仅本人，非法/他人 404）；DELETE /（清空仅本人）
+- 接口：GET /api/browse-history（join appointment_service 名称/封面/价格/原价，viewed_at 倒序，per_page 默认 15 上限 50，item_id hashid）；DELETE /{item_id}（仅本人，非法/他人 404）；DELETE /（清空仅本人）
 
 ### 31. 满减营销（第22轮）
 
-- erik_full_reduction_activity（threshold/reduction/title/status/start_at/end_at + idx_status_status_time）
+- appointment_full_reduction_activity（threshold/reduction/title/status/start_at/end_at + idx_status_status_time）
 - 下单叠加：仅标准订单（拼团/秒杀跳过），以券/次卡抵扣后应付金额判门槛，顺序 **券/次卡 → 满减 → 等级折扣**；取减免额最大活动；优惠额并入 discount_amount + 备注「满减：满X减Y」；满减后实付下限 0.01 元（分制）
 - 用户端 GET /api/full-reduction-activities（公开，生效中按减免额降序）
 - admin FullReductionController：CRUD + toggle-status 上下架（destroy 带 confirmPassword）
@@ -579,29 +579,29 @@ Flutter Web 单页应用，共 21 个页面：dashboard/用户/角色/配置/日
 
 ### 33. 技师考勤（第22轮）
 
-- erik_technician_attendance（date/check_in_at/check_out_at/status + uk_technician_date 唯一索引防并发重复打卡）
+- appointment_technician_attendance（date/check_in_at/check_out_at/status + uk_technician_date 唯一索引防并发重复打卡）
 - 技师端（TechnicianAuth）：check-in 当日重复 422；check-out 未上班/已下班 422 + 行锁；>10:00 标记迟到；GET 当月列表 + 出勤天数/总工时/平均工时（?month=YYYY-MM 非法 422）
 - admin：GET /admin/attendance（date+技师名筛选、join real_name、hashid）+ /stats（按技师分组统计）
 - 权限：392 列表 / 393 统计
 
 ### 34. APP 推送服务（第22轮）
 
-- AppPushService（config group=push：enabled 默认 0 / provider jpush/getui/placeholder）：未启用静默降级仅日志；启用构造平台/标题/内容/payload 结构记 Log + 写 erik_push_log（status=sent）；厂商 SDK 对接留 TODO（无凭据不实际发送）
+- AppPushService（config group=push：enabled 默认 0 / provider jpush/getui/placeholder）：未启用静默降级仅日志；启用构造平台/标题/内容/payload 结构记 Log + 写 appointment_push_log（status=sent）；厂商 SDK 对接留 TODO（无凭据不实际发送）
 - 接入 5 处事件：支付成功（WechatPayService::markOrderPaid）、自动退款（autoRefundCancelledOrder）、手动退款（doRefund/refundToBalance）、退款补偿（completeOneRefundCompensation）、服务开始提醒（ServiceReminderTimer）；全部 try/catch 不阻断主流程
-- erik_push_log（user_id/title/content/payload JSON/status/provider + idx_user）
+- appointment_push_log（user_id/title/content/payload JSON/status/provider + idx_user）
 
 ### 35. 微信官方分账（第22轮）
 
 - WechatProfitSharingService（config group=profit_sharing：enabled/receiver_ratio，凭据复用 wechat_pay）：未启用 disabled 降级仅日志不落库；启用→金额校验（>0 且 ≤paid，实付×0.7 默认）+ 幂等（同单 pending/success 跳过）→ 落 pending 记录 → 构造「请求单次分账」结构（无凭据不执行 HTTP，请求内容记日志，记录保持 pending）；HTTP 隔离私有 doRequest 可测试
 - WechatPayService::markOrderPaid 提交后挂接 requestSharing（try/catch 失败仅日志）
-- erik_profit_sharing（uk_sharing_no 唯一 + idx_order）；admin GET /admin/profit-sharing 列表（join 订单号/技师昵称，状态/订单号/技师名筛选）
+- appointment_profit_sharing（uk_sharing_no 唯一 + idx_order）；admin GET /admin/profit-sharing 列表（join 订单号/技师昵称，状态/订单号/技师名筛选）
 - 权限：394
 
 ### 36. 隐私合规（第22轮）
 
 - GET /api/privacy/data：数据导出（personal/orders/points/wallet_txns/reviews/addresses/invoices 分组；日志只记脱敏手机号+条数）
 - 注销闭环：close-request（余额非 0 / 未完成订单 / 进行中工单 422 → close_status=1）→ close-cancel（1→0）→ close-confirm（满 72h → close_status=2 + close_at + phone/nickname 匿名化 user{id} + status=0）
-- erik_user 加 close_status/close_requested_at/close_at（幂等 ALTER 迁移）；AuthController login/loginByCode 对 close_status=2 返回 403「账号已注销」
+- appointment_user 加 close_status/close_requested_at/close_at（幂等 ALTER 迁移）；AuthController login/loginByCode 对 close_status=2 返回 403「账号已注销」
 
 ### 37. 用户健康档案（第23轮）
 
@@ -633,7 +633,7 @@ Flutter Web 单页应用，共 21 个页面：dashboard/用户/角色/配置/日
 - GET /api/wheel/prizes（隐藏 weight/stock）；POST /api/wheel/spin：Redis NX + 行锁防并发，random_int 权重抽取，client_token 幂等
 - 奖品落账：积分→earn 流水（含过期时间，可被 PointsExpiryTimer 正常过期）、余额→lockForUpdate、优惠券→pending 人工发放、无奖→lose
 - GET /api/wheel/records 我的记录分页；admin /admin/lucky-wheel CRUD + 上下架 + 记录（权限 401-406）
-- 迁移 000503（erik_lucky_wheel + erik_wheel_record + w60/w40 演示种子）+ 000505（权限种子）；LuckyWheelTest admin 3 + service 6 tests
+- 迁移 000503（appointment_lucky_wheel + appointment_wheel_record + w60/w40 演示种子）+ 000505（权限种子）；LuckyWheelTest admin 3 + service 6 tests
 
 ### 42. 游客模式（第24轮）
 
@@ -643,21 +643,21 @@ Flutter Web 单页应用，共 21 个页面：dashboard/用户/角色/配置/日
 
 ### 43. 秒杀（第24轮）
 
-- erik_seckill_activity（name/service_id/seckill_price/original_price/stock/start_at/end_at/status）；已售量 = erik_order.seckill_id 订单数
+- appointment_seckill_activity（name/service_id/seckill_price/original_price/stock/start_at/end_at/status）；已售量 = appointment_order.seckill_id 订单数
 - GET /api/seckill（status=1 + 时间窗）、/{id}（state=not_started/ongoing/ended）、POST /{id}/buy：client_token（8-64 字符，SETNX 24h）幂等 + Redis NX 30s 防并发 + 活动校验（2026-08-26 起不再预扣库存）
 - 下单注入 seckill_id 复用 OrderController::store；库存统一在 store() 事务内行锁扣减（直接调 /api/order 带 seckill_id 同样扣库存），秒杀价 = seckill_price（以 DB 为准），不叠加优惠券/积分/会员卡；订单取消不回补库存；旧促销 FLASH_SALE 通道已删除（store() 促销分支仅剩拼团，PromotionController index 过滤 flash_sale、show/join 400），秒杀只走本通道
 - admin /admin/seckill CRUD + 上下架 + 订单列表（权限 407-411、420）；迁移 000606 权限种子；SeckillTest service + admin
 
 ### 44. APP 版本管理与检测更新（第24轮）
 
-- erik_app_version（platform/version_code/version_name/force_update/changelog/download_url/status）
+- appointment_app_version（platform/version_code/version_name/force_update/changelog/download_url/status）
 - GET /api/app/version?platform=android|ios 公开检测更新（platform 非法 422；status=1 中取最新；无则空对象）
 - admin /admin/versions CRUD（权限 416-419）；迁移 000609 权限种子；VersionTest service + admin
 
 ### 45. 回头客奖励（第24轮）
 
 - ReturnCustomerRewardService：用户对同一技师 30 天内第 2 次消费（订单完成）给技师发放奖金 = 实付 paid_amount × ratio（system_config group=return_customer，ratio 默认 0.05、enabled 开关，非法值回落默认）
-- 落 erik_technician_earnings（type=return_customer，status=pending）复用佣金结算链，技师端 earnings 汇总自动包含；同 order_id+type 幂等；WorkController::complete 行锁事务内调用
+- 落 appointment_technician_earnings（type=return_customer，status=pending）复用佣金结算链，技师端 earnings 汇总自动包含；同 order_id+type 幂等；WorkController::complete 行锁事务内调用
 - admin /admin/return-customer/config（GET/PUT）+ /rewards（?keyword 技师名/订单号/用户昵称）（权限 412-414）；迁移 000607 权限种子；ReturnCustomerRewardServiceTest
 
 ### 46. 排班导出（第24轮）

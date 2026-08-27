@@ -57,75 +57,75 @@ Sistema de servicios de reservas de tres extremos: extremo de usuario (miniprogr
 
 ## Tablas principales de la base de datos
 
-Todas las tablas usan el prefijo `erik_` y claves primarias BIGINT no autoincrementales (generadas por Snowflake). Los campos sensibles se cifran/descifran con el trait encryptable.
+Todas las tablas usan el prefijo `appointment_` y claves primarias BIGINT no autoincrementales (generadas por Snowflake). Los campos sensibles se cifran/descifran con el trait encryptable.
 
 ### Dominio de usuario e identidad
 
 | Nombre de tabla | Descripción | Campos principales |
 |------|------|----------|
-| `erik_user` | Tabla de usuario unificada | phone, password, wx_openid, wx_unionid, avatar, nickname, user_type(customer/technician), status. Los usuarios técnicos también tienen funcionalidad de cliente y pueden conmutar libremente la identidad activa |
-| `erik_user_address` | Direcciones del usuario | user_id, contact_name, contact_phone, province, city, district, detail, is_default |
-| `erik_technician_profile` | Expediente del técnico | user_id, real_name, gender, id_card, id_card_front, id_card_back, avatar, rating, order_count, status(pending/approved/rejected), intro |
-| `erik_technician_schedule` | Horarios del técnico | technician_id, date, time_slots(JSON), status |
-| `erik_technician_service` | Servicios que puede prestar el técnico | technician_id, service_id |
-| `erik_technician_earnings` | Historial de ingresos del técnico | technician_id, order_id, type(commission/bonus/penalty), amount, status |
-| `erik_technician_withdrawal` | Registros de retiro del técnico | technician_id, amount, actual_amount, commission_fee, account_info, status, reviewed_at |
-| `erik_technician_attendance` | Asistencia del técnico | technician_id, date, check_in_at, check_out_at, clean_photo |
-| `erik_technician_member_note` | Expediente de miembros | technician_id, user_id, content, written_at |
+| `appointment_user` | Tabla de usuario unificada | phone, password, wx_openid, wx_unionid, avatar, nickname, user_type(customer/technician), status. Los usuarios técnicos también tienen funcionalidad de cliente y pueden conmutar libremente la identidad activa |
+| `appointment_user_address` | Direcciones del usuario | user_id, contact_name, contact_phone, province, city, district, detail, is_default |
+| `appointment_technician_profile` | Expediente del técnico | user_id, real_name, gender, id_card, id_card_front, id_card_back, avatar, rating, order_count, status(pending/approved/rejected), intro |
+| `appointment_technician_schedule` | Horarios del técnico | technician_id, date, time_slots(JSON), status |
+| `appointment_technician_service` | Servicios que puede prestar el técnico | technician_id, service_id |
+| `appointment_technician_earnings` | Historial de ingresos del técnico | technician_id, order_id, type(commission/bonus/penalty), amount, status |
+| `appointment_technician_withdrawal` | Registros de retiro del técnico | technician_id, amount, actual_amount, commission_fee, account_info, status, reviewed_at |
+| `appointment_technician_attendance` | Asistencia del técnico | technician_id, date, check_in_at, check_out_at, clean_photo |
+| `appointment_technician_member_note` | Expediente de miembros | technician_id, user_id, content, written_at |
 
 ### Dominio de servicios y productos
 
 | Nombre de tabla | Descripción | Campos principales |
 |------|------|----------|
-| `erik_service_category` | Categorías de servicio | name, icon, parent_id, sort, status |
-| `erik_service` | Servicios | category_id, name, description, cover_image, images(JSON), price, duration, sales_volume, specs(JSON), status |
-| `erik_product` | Productos | category_id, name, cover_image, price, stock, sales_volume, type, status |
-| `erik_store` | Tiendas | name, address, lat, lng, phone, business_hours(JSON), images, status |
+| `appointment_service_category` | Categorías de servicio | name, icon, parent_id, sort, status |
+| `appointment_service` | Servicios | category_id, name, description, cover_image, images(JSON), price, duration, sales_volume, specs(JSON), status |
+| `appointment_product` | Productos | category_id, name, cover_image, price, stock, sales_volume, type, status |
+| `appointment_store` | Tiendas | name, address, lat, lng, phone, business_hours(JSON), images, status |
 
 ### Dominio de pedidos
 
 | Nombre de tabla | Descripción | Campos principales |
 |------|------|----------|
-| `erik_order` | Tabla principal de pedidos | order_no, user_id, technician_id, store_id, total_amount, discount_amount, paid_amount, status, service_time, cancel_reason, remark |
-| `erik_order_item` | Detalles del pedido | order_id, service_id, product_id, type, name, price, quantity, spec_info |
-| `erik_order_payment` | Registros de pago | order_id, pay_type(wechat), transaction_id, amount, status, paid_at |
-| `erik_order_refund` | Registros de reembolso | order_id, payment_id, refund_no, amount, ratio, reason, status |
-| `erik_order_review` | Evaluaciones del servicio | order_id, user_id, technician_id, rating, content, images |
-| `erik_order_verification` | Registros de verificación | order_id, code, verified_at, verified_by, location |
+| `appointment_order` | Tabla principal de pedidos | order_no, user_id, technician_id, store_id, total_amount, discount_amount, paid_amount, status, service_time, cancel_reason, remark |
+| `appointment_order_item` | Detalles del pedido | order_id, service_id, product_id, type, name, price, quantity, spec_info |
+| `appointment_order_payment` | Registros de pago | order_id, pay_type(wechat), transaction_id, amount, status, paid_at |
+| `appointment_order_refund` | Registros de reembolso | order_id, payment_id, refund_no, amount, ratio, reason, status |
+| `appointment_order_review` | Evaluaciones del servicio | order_id, user_id, technician_id, rating, content, images |
+| `appointment_order_verification` | Registros de verificación | order_id, code, verified_at, verified_by, location |
 
 ### Dominio de marketing
 
 | Nombre de tabla | Descripción | Campos principales |
 |------|------|----------|
-| `erik_coupon` | Definición de cupones | name, type, amount, min_amount, total_qty, remain_qty, start_at, end_at, status |
-| `erik_user_coupon` | Cupones del usuario | user_id, coupon_id, status(available/used/expired), used_at |
-| `erik_member_card` | Definición de tarjetas de membresía | name, type(month/vip/times), price, duration_days, total_times, services(JSON) |
-| `erik_user_member_card` | Tarjetas de membresía del usuario | user_id, card_id, start_at, end_at, total_times, used_times, status |
-| `erik_member_card_usage` | Registros de uso de tarjetas por uso | user_card_id, order_id, service_id, used_at |
-| `erik_user_points` | Historial de puntos | user_id, type(earn/use), points, source, order_id |
-| `erik_gift_card` | Tarjetas regalo | code, type, amount_or_gift, status, used_by, used_at |
-| `erik_user_referral` | Promoción de usuarios | referrer_id, referred_user_id, reward_type, reward_amount, registered_at, first_order_at |
+| `appointment_coupon` | Definición de cupones | name, type, amount, min_amount, total_qty, remain_qty, start_at, end_at, status |
+| `appointment_user_coupon` | Cupones del usuario | user_id, coupon_id, status(available/used/expired), used_at |
+| `appointment_member_card` | Definición de tarjetas de membresía | name, type(month/vip/times), price, duration_days, total_times, services(JSON) |
+| `appointment_user_member_card` | Tarjetas de membresía del usuario | user_id, card_id, start_at, end_at, total_times, used_times, status |
+| `appointment_member_card_usage` | Registros de uso de tarjetas por uso | user_card_id, order_id, service_id, used_at |
+| `appointment_user_points` | Historial de puntos | user_id, type(earn/use), points, source, order_id |
+| `appointment_gift_card` | Tarjetas regalo | code, type, amount_or_gift, status, used_by, used_at |
+| `appointment_user_referral` | Promoción de usuarios | referrer_id, referred_user_id, reward_type, reward_amount, registered_at, first_order_at |
 
 ### Dominio de contenido y notificaciones
 
 | Nombre de tabla | Descripción | Campos principales |
 |------|------|----------|
-| `erik_banner` | Banners | position, image, jump_type(url/detail/none), jump_value, sort, status |
-| `erik_announcement` | Avisos | content, status, published_at |
-| `erik_platform_agreement` | Acuerdos de plataforma | type(user_agreement/privacy_policy/service_agreement), title, content, version |
-| `erik_faq` | Preguntas frecuentes | title, content, sort |
-| `erik_feedback` | Comentarios y sugerencias | user_id, content, images, handler_reply, status(pending/handled) |
-| `erik_moment` | Momentos | content, images, published_at |
-| `erik_notification` | Notificaciones de mensajes | user_id, type(order/system), title, content, is_read, created_at |
+| `appointment_banner` | Banners | position, image, jump_type(url/detail/none), jump_value, sort, status |
+| `appointment_announcement` | Avisos | content, status, published_at |
+| `appointment_platform_agreement` | Acuerdos de plataforma | type(user_agreement/privacy_policy/service_agreement), title, content, version |
+| `appointment_faq` | Preguntas frecuentes | title, content, sort |
+| `appointment_feedback` | Comentarios y sugerencias | user_id, content, images, handler_reply, status(pending/handled) |
+| `appointment_moment` | Momentos | content, images, published_at |
+| `appointment_notification` | Notificaciones de mensajes | user_id, type(order/system), title, content, is_read, created_at |
 
 ### Dominio financiero (lado admin)
 
 | Nombre de tabla | Descripción | Campos principales |
 |------|------|----------|
-| `erik_finance_transaction` | Historial de ingresos y gastos | user_id, order_id, type, direction(income/expense), amount, actual_amount, commission, status |
-| `erik_technician_commission_config` | Configuración de comisiones | technician_id, commission_rate, settlement_cycle |
-| `erik_withdrawal_account` | Cuentas de retiro | user_id, type(wechat), account_name, account_no |
-| `erik_withdrawal_config` | Configuración de límites de retiro | min_amount, reserve_amount, round_to_hundred |
+| `appointment_finance_transaction` | Historial de ingresos y gastos | user_id, order_id, type, direction(income/expense), amount, actual_amount, commission, status |
+| `appointment_technician_commission_config` | Configuración de comisiones | technician_id, commission_rate, settlement_cycle |
+| `appointment_withdrawal_account` | Cuentas de retiro | user_id, type(wechat), account_name, account_no |
+| `appointment_withdrawal_config` | Configuración de límites de retiro | min_amount, reserve_amount, round_to_hundred |
 
 ## Módulos de API de Service
 

@@ -102,7 +102,7 @@ Die Funktionalität von Miniprogramm und APP ist vollständig identisch. Ein ein
 |------|------|
 | Persönliche Daten | Avatar/Nickname/Telefonnummer |
 | Identitätswechsel | Kunde ↔ Techniker |
-| Nachrichtenbenachrichtigungen | In-App-Benachrichtigungen (erik_notification); Nachrichtenzentrum-Seite: Paginierung/Pull-to-Refresh/gelesen hervorgehoben/als gelesen markieren/alles gelesen |
+| Nachrichtenbenachrichtigungen | In-App-Benachrichtigungen (appointment_notification); Nachrichtenzentrum-Seite: Paginierung/Pull-to-Refresh/gelesen hervorgehoben/als gelesen markieren/alles gelesen |
 | Meine Mitgliederkarten | Monatskarte/VIP-Jahreskarte/Stempelkarte (Ablauf/Anzahl/verbraucht/verbleibend) |
 | Meine Punkte | Erwerbsprotokoll/verfügbare Punkte/Verwendungsprotokoll (1:100 für Geschenkkarten); Punkte durch Check-in/Kauf, anteilige Rückbuchung bei Rückerstattung, Details mit Paginierung + type/source-Filter |
 | Meine Geschenkkarten | Bargeldkarten/Produktgeschenke; cash-Typ wird direkt auf das Wallet aufgeladen |
@@ -195,7 +195,7 @@ Die Funktionalität von Miniprogramm und APP ist vollständig identisch. Ein ein
 
 | Funktion | Beschreibung |
 |------|------|
-| Abo-Autorisierung | utils/subscribe.js verwaltet Vorlagen-IDs zentral (Schlüsselnamen abgestimmt mit erik_system_config.wechat_app.template_ids des Servers) |
+| Abo-Autorisierung | utils/subscribe.js verwaltet Vorlagen-IDs zentral (Schlüsselnamen abgestimmt mit appointment_system_config.wechat_app.template_ids des Servers) |
 | Auslöseszenarien | wx.requestSubscribeMessage im Geste-Rückruf nach Buchungserfolg/Zahlungserfolg, still bei nicht konfigurierten Vorlagen-IDs oder Benutzerablehnung |
 | Serverkette | WechatTemplateMessageService sendet + NotificationReminderService erinnert 2h–1h vor Buchung + AutoCancelTimer-Prozess scannt |
 
@@ -224,16 +224,16 @@ Die Funktionalität von Miniprogramm und APP ist vollständig identisch. Ein ein
 |------|------|
 | Gruppenpreis | join-Antwort liefert discount_percent/original_price/group_price |
 | Gruppenbestellung | POST /api/order mit promotion_id: prüft nur group_buy/Aktivität aktiv/Aufrufer ist Teilnehmer/nicht voll/Service passt; Gruppenpreis = Originalpreis×discount_percent/100, Gutscheine/Stempelkarten/Punkte nicht kombinierbar (422) |
-| Bestellmarkierung | erik_order neue Spalten promotion_id/participant_id + Index |
+| Bestellmarkierung | appointment_order neue Spalten promotion_id/participant_id + Index |
 | Nicht gebildete Gruppe | Bei Ablauf ohne Vollbelegung → Aktivität schließen + batchweises Stornieren der pending-Bestellungen dieser Aktivität (idempotent); pay() prüft träge, ob geschlossen, storniert dann automatisch und gibt die Technikersperre frei |
 
 ### 22. Vertriebs-Provisionen (Runde 16)
 
 | Funktion | Beschreibung |
 |------|------|
-| Vergaberegeln | Nach der ersten abgeschlossenen Bestellung des Geworbenen: Betrag = paid_amount×reward_rate (erik_system_config referral.reward_rate, Standard 0,05, ungültige Werte fallen auf Konstante zurück), nur bei >0 |
+| Vergaberegeln | Nach der ersten abgeschlossenen Bestellung des Geworbenen: Betrag = paid_amount×reward_rate (appointment_system_config referral.reward_rate, Standard 0,05, ungültige Werte fallen auf Konstante zurück), nur bei >0 |
 | Anbindungspunkt | ReferralRewardService::handleOrderCompleted innerhalb der Transaktion von WorkController::complete (serving→completed ist der einzige Einstieg, Verifizierung verify führt nur bis serving und löst nicht aus), bei Fehler Gesamtrollback, wiederholbar |
-| Idempotenz | erik_user_referral-Zeilensperre lockForUpdate + rewarded_at-Nullprüfung + Erstbestellungs-Nachprüfung in der Sperre (parallele/wiederholte Aufrufe zahlen nur einmal) |
+| Idempotenz | appointment_user_referral-Zeilensperre lockForUpdate + rewarded_at-Nullprüfung + Erstbestellungs-Nachprüfung in der Sperre (parallele/wiederholte Aufrufe zahlen nur einmal) |
 | Verbuchung | Wallet-Zeilensperre kumuliert + WalletTxn type='referral_reward' (balance_after + Bestellnummer remark); Empfehlungsdatensatz schreibt reward_type/reward_amount/rewarded_at/first_order_at |
 | Details | GET /api/user/referral/earnings Paginierung (Nickname/Avatar des Geworbenen/Bestellnummer/Betrag/Zeit) |
 
@@ -241,10 +241,10 @@ Die Funktionalität von Miniprogramm und APP ist vollständig identisch. Ein ein
 
 | Funktion | Beschreibung |
 |------|------|
-| Einlöseartikel | erik_points_exchange_goods: type=coupon/gift_card/wallet, points_cost/value (DECIMAL(25,2) gegen Snowflake-ID-Präzisionsverlust)/stock/status |
+| Einlöseartikel | appointment_points_exchange_goods: type=coupon/gift_card/wallet, points_cost/value (DECIMAL(25,2) gegen Snowflake-ID-Präzisionsverlust)/stock/status |
 | Artikelliste | GET /api/marketing/points-exchange: veröffentlichte Artikel + verbleibender Bestand in Echtzeit + bereits eingelöst |
 | Einlösen | POST /api/marketing/points-exchange/{id}: Redis NX-Sperre + Artikel-Zeilensperre gegen Über-Einlösung; Punkte-SUM-Prüfung (422 bei unzureichend) + UserPoints type='consume' source='exchange' Abzug; coupon vergibt Gutschein / wallet verbucht Guthaben (WalletTxn points_exchange) / gift_card liefert Kartencode zurück |
-| Idempotenz | uk_user_goods-Index begrenzt gleichen Benutzer auf einmal pro Artikel + Nachprüfung in der Sperre + 1062-Absicherung; Einlöseprotokoll-Snapshot erik_user_points_exchange |
+| Idempotenz | uk_user_goods-Index begrenzt gleichen Benutzer auf einmal pro Artikel + Nachprüfung in der Sperre + 1062-Absicherung; Einlöseprotokoll-Snapshot appointment_user_points_exchange |
 
 ### 24. Buchungsumänderung (Runde 17)
 
@@ -253,7 +253,7 @@ Die Funktionalität von Miniprogramm und APP ist vollständig identisch. Ein ein
 | Schnittstelle | POST /api/order/reschedule/{id}: new_service_time (Pflicht) + reason (optional), gleicher Techniker, andere Zeit |
 | Regeln | Nur eigene Bestellungen (404 bei fremder); nur appointment-Typ und Status pending/paid/confirmed (sonst 422); ≥6 Stunden vor ursprünglichem Dienstbeginn (entspricht dem Vollrückerstattungsfenster) |
 | Parallelitätsschutz | B1 order_lock (gleiche Mutex-Familie wie pay/cancel/refund) → Technikersperre für neuen Zeitraum Redis SETNX EX 180 (gegen Überverkauf bei paralleler Umänderung) → Zeilensperre-Nachlesen in Transaktion + B2 Schichtplanungskonflikt-DB-Prüfung (eigene Bestellung ausgenommen) |
-| Abschluss | service_time aktualisieren + erik_order_reschedule schreiben (inkl. reason) + Sperren des alten Zeitraums freigeben/neuen Zeitraum für diese Bestellung behalten; bei Transaktionsfehler Rollback + Freigabe der neuen Zeitraumsperre |
+| Abschluss | service_time aktualisieren + appointment_order_reschedule schreiben (inkl. reason) + Sperren des alten Zeitraums freigeben/neuen Zeitraum für diese Bestellung behalten; bei Transaktionsfehler Rollback + Freigabe der neuen Zeitraumsperre |
 | Benachrichtigung | SCENE_RESCHEDULE-Abo-Nachricht (ohne Vorlage Fallback auf In-App-Benachrichtigung „Buchung erfolgreich umgeändert") + pushOrderUpdate |
 
 ### 25. Gutschein-Weitergabe (Runde 17)
@@ -269,7 +269,7 @@ Die Funktionalität von Miniprogramm und APP ist vollständig identisch. Ein ein
 
 | Funktion | Beschreibung |
 |------|------|
-| Gültigkeit | Spalte erik_user_points.expires_at; alle earn (Check-in/Kauf-Punkte/Rückbuchung) schreiben expires_at = now + points.expiry_days (Standard 365, ≤0 nie ablaufend); consume/use lassen leer |
+| Gültigkeit | Spalte appointment_user_points.expires_at; alle earn (Check-in/Kauf-Punkte/Rückbuchung) schreiben expires_at = now + points.expiry_days (Standard 365, ≤0 nie ablaufend); consume/use lassen leer |
 | Ablaufausführung | PointsExpiryTimer-Timerprozess scannt alle 60 s mit Cursor (100/Stapel) earn-Zeilen mit expires_at < now → schreibt type=expire als negativen Abzug (source=expiry + order_id verweist auf ursprüngliche Buchung) → pro Benutzer aggregierte In-App-Benachrichtigung „Ihre X Punkte sind abgelaufen" |
 | Idempotenz | ① expire-Zeile order_id zeigt auf ursprüngliche earn-Buchung, in Transaktion lockForUpdate der Originalzeile + exists-Nachprüfung (parallele Prozesse serialisieren an der Zeilensperre) ② id-Cursor-Paginierung ③ Benachrichtigung nur in tatsächlichen Abzugsrunden |
 | Berechnung | Verfügbarer Saldo SUM-Aggregation inklusive expire-Negativzeilen; abgelaufene Punkte nicht mehr gegen Geld/Produkte einlösbar |
@@ -299,7 +299,7 @@ Die Funktionalität von Miniprogramm und APP ist vollständig identisch. Ein ein
 |------|------|
 | Schnittstelle | POST /api/technician/review/reply/{order_id} (Techniker-Identitätsmiddleware): Bewertung nicht vorhanden/fremd einheitlich 404; bereits vorhandene Antwort 422 (idempotente Ablehnung ohne Überschreiben); leere Antwort 422 |
 | Nach der Antwort | In-App-Benachrichtigung an Benutzer (type='review_reply', nicht blockierend try/catch + Log) |
-| Daten | erik_order_review idempotent um Spalte replied_at ergänzt (reply-Spalte existierte bereits bei Tabellenanlage); Verwaltungs-Bewertungsliste/show gibt über decorate()->toArray() reply/replied_at aus |
+| Daten | appointment_order_review idempotent um Spalte replied_at ergänzt (reply-Spalte existierte bereits bei Tabellenanlage); Verwaltungs-Bewertungsliste/show gibt über decorate()->toArray() reply/replied_at aus |
 
 ### 30. Auflade-Benachrichtigung (Runde 18)
 
@@ -333,7 +333,7 @@ Die Funktionalität von Miniprogramm und APP ist vollständig identisch. Ein ein
 |------|------|
 | Nachtrag | POST /api/order/review/{order_id}/append: Bewertung nicht vorhanden/fremd einheitlich 404, nicht completed 422, doppelter Nachtrag 422 (append_content/append_at nicht leer wird abgelehnt), leerer Inhalt 422; bei Erfolg append_content/append_images(JSON)/append_at schreiben + In-App-Benachrichtigung an Techniker type='review_append' |
 | Bewertung abgeben | POST /api/order/review/{order_id} registriert (ReviewController::store hatte keine Route, unerreichbar); nebenbei latente TypeError behoben: findByOrderId erhielt int und verletzte die string-Signatur (vgl. (string)-Konvertierung bei append), die Registrierung legte den 500 bei jedem Aufruf offen |
-| Daten | erik_order_review um drei Spalten ergänzt: append_content TEXT/append_images JSON/append_at DATETIME (idempotente Migration); Antwort gibt append-Felder aus |
+| Daten | appointment_order_review um drei Spalten ergänzt: append_content TEXT/append_images JSON/append_at DATETIME (idempotente Migration); Antwort gibt append-Felder aus |
 
 ### 34. Sendungsverfolgung für Kunden (Runde 19)
 
@@ -347,9 +347,9 @@ Die Funktionalität von Miniprogramm und APP ist vollständig identisch. Ein ein
 
 | Funktion | Beschreibung |
 |------|------|
-| Daten | Tabelle erik_user_notify_setting (zusammengesetzter Unique-Key user_id+type uk_user_type, fehlende Zeile = Standard an); 5 Typen: service_reminder Service-Erinnerung / card_expiry Ablauf-Erinnerung (Karte + Gutschein einheitlicher Schirm) / points_expiry Punkteablauf / marketing Marketing (reserviert) / system System (nicht abschaltbar, PUT erzwingt 1) |
+| Daten | Tabelle appointment_user_notify_setting (zusammengesetzter Unique-Key user_id+type uk_user_type, fehlende Zeile = Standard an); 5 Typen: service_reminder Service-Erinnerung / card_expiry Ablauf-Erinnerung (Karte + Gutschein einheitlicher Schirm) / points_expiry Punkteablauf / marketing Marketing (reserviert) / system System (nicht abschaltbar, PUT erzwingt 1) |
 | Schnittstellen | GET /api/user/notify-settings liefert alle 5 Schalter; PUT batch-upsert ohne doppelte Zeilen |
-| Steuerung | NotificationReminderService::notifySettingEnabled an 3 Timerprozessen (ServiceReminderTimer/ExpiryReminderTimer Karte+Gutschein/PointsExpiryTimer, Timer schreiben direkt in erik_notification und laufen nicht über den Dienst-Schreibpfad, daher gleiche Steuerung eingebaut) + Abo-Events (sendSubscribeForOrderEvent/Notification Szenario-Mapping PAY/REFUND/VERIFIED/RESCHEDULE→system immer gesendet, REMINDER→service_reminder, EXPIRY→card_expiry); bei deaktiviertem Typ werden In-App-Benachrichtigung und Abo-Nachrichten übersprungen |
+| Steuerung | NotificationReminderService::notifySettingEnabled an 3 Timerprozessen (ServiceReminderTimer/ExpiryReminderTimer Karte+Gutschein/PointsExpiryTimer, Timer schreiben direkt in appointment_notification und laufen nicht über den Dienst-Schreibpfad, daher gleiche Steuerung eingebaut) + Abo-Events (sendSubscribeForOrderEvent/Notification Szenario-Mapping PAY/REFUND/VERIFIED/RESCHEDULE→system immer gesendet, REMINDER→service_reminder, EXPIRY→card_expiry); bei deaktiviertem Typ werden In-App-Benachrichtigung und Abo-Nachrichten übersprungen |
 
 ---
 
@@ -458,13 +458,13 @@ Flutter-Web-Single-Page-App mit insgesamt 21 Seiten: Dashboard/Benutzer/Rollen/K
 
 ### 14. Mitgliederkartenverwaltung (Runde 10)
 
-- erik_user.member_level Mitgliedsstufenspalte (Migration 000008)
+- appointment_user.member_level Mitgliedsstufenspalte (Migration 000008)
 - MemberCardController vollständiges CRUD (Berechtigungen 365–369): GET/POST/PUT/DELETE /admin/member-cards
 - Flutter-Seite zur Verwaltung der Mitgliederkartendefinitionen
 
 ### 15. Kundendienst-Verwaltung (Runde 14)
 
-- Tabelle erik_order_aftersale (Migration 000009): type=refund/exchange, status=pending/approved/rejected/completed
+- Tabelle appointment_order_aftersale (Migration 000009): type=refund/exchange, status=pending/approved/rejected/completed
 - AftersaleController: GET /admin/aftersales (Paginierung + status/uid/order_no-Filter) + POST /admin/aftersales/{id}/review (approve/reject+remark)
 - Flutter-Kundendienst-Seite (Liste + Prüfdialog, Berechtigungen 370/371), Layout registriert
 
@@ -485,10 +485,10 @@ Flutter-Web-Single-Page-App mit insgesamt 21 Seiten: Dashboard/Benutzer/Rollen/K
 
 ### 19. Automatische Techniker-Einstufung (Runde 17)
 
-- TierRatingService::evaluate(technicianId, allowDowngrade=false): Echtzeit-Statistik der erik_order completed-Bestellungen + erik_order_review-Durchschnitt (gerundet auf 1 Nachkommastelle) zurück ins profile.order_count/rating, Abgleich mit erik_technician_tier_config (min_orders/min_rating) von hoch nach niedrig, ohne Treffer niedrigste Stufe
+- TierRatingService::evaluate(technicianId, allowDowngrade=false): Echtzeit-Statistik der appointment_order completed-Bestellungen + appointment_order_review-Durchschnitt (gerundet auf 1 Nachkommastelle) zurück ins profile.order_count/rating, Abgleich mit appointment_technician_tier_config (min_orders/min_rating) von hoch nach niedrig, ohne Treffer niedrigste Stufe
 - Auf-/Abstufungsregeln: nur Aufwertung ohne Abwertung (Stufe ist an Provisionssatz und Preiskoeffizient gebunden, automatische Abwertung beeinflusst das Technikereinkommen und führt leicht zu Streit, Rückgang wird manuell vom admin aufgefangen); nur mit allowDowngrade=true (Szenario manuelle Neubewertung im Backend) wird abgestuft, Abwertung protokolliert + benachrichtigt ebenfalls
 - Idempotenz: Wenn die Soll-Stufe mit profile.tier_id übereinstimmt, werden nur Statistiken synchronisiert, kein Log und keine Benachrichtigung
-- Log: Änderungen schreiben erik_technician_tier_log (id/technician_id/old_tier_id/new_tier_id/reason/created_at) + In-App-Benachrichtigung (type='tier')
+- Log: Änderungen schreiben appointment_technician_tier_log (id/technician_id/old_tier_id/new_tier_id/reason/created_at) + In-App-Benachrichtigung (type='tier')
 - Auslösepunkte: WorkController::complete / Bewertungsschreiben in ReviewController / Profilabruf in ProfileController träge Prüfung
 - Verwaltung: TechnicianTierController behält manuelle Konfiguration; GET /admin/technician-tiers/logs Paginierung der Änderungsprotokolle (join Technikername und alte/neue Stufennamen, ID hashid-codiert, Berechtigung 380)
 
@@ -501,26 +501,26 @@ Flutter-Web-Single-Page-App mit insgesamt 21 Seiten: Dashboard/Benutzer/Rollen/K
 ### 21. Buchungskalender (Runde 20)
 
 - CalendarController Monats-/Tagesansicht: GET /api/calendar/technician/{id} (Monatsansicht) + /day (Tagesansicht)
-- Datenquelle: technician_schedule.time_slots JSON pro Wochentag zu Stunden-Slots expandiert, bereits gebuchte Zeiträume in erik_order an diesem Tag ausgeschlossen (status ∈ pending/paid/confirmed/serving), verbleibende buchbare Slots ausgegeben
+- Datenquelle: technician_schedule.time_slots JSON pro Wochentag zu Stunden-Slots expandiert, bereits gebuchte Zeiträume in appointment_order an diesem Tag ausgeschlossen (status ∈ pending/paid/confirmed/serving), verbleibende buchbare Slots ausgegeben
 - Zweck: visuelle Zeitwahl für Filial-Schichtplanung, Frontend horizontaler Tages-Scroll + Zeitpunktauswahl
 
 ### 22. Kunden-Wachstumsstufen (Runde 20)
 
-- erik_user_growth (Buchungen) + erik_growth_level (Stufenseeds 5 Stufen: Bronze 0/Silber 100/Gold 500/Platin 2000/Diamant 5000)
+- appointment_user_growth (Buchungen) + appointment_growth_level (Stufenseeds 5 Stufen: Bronze 0/Silber 100/Gold 500/Platin 2000/Diamant 5000)
 - Wachstumswert-Gutschriften: Check-in +10 (CheckInController); Bewertung abgeben +20 (ReviewController::store, Nachtrag ohne Gutschrift); Kauf floor(paid) 1 Punkt pro 1 Yuan (WechatPayService::markOrderPaid, nutzt vorhandene Zahlungsstatus-Nachprüfung, natürlich idempotent, wiederholte Rückmeldung ohne doppelte Gutschrift)
 - Schnittstellen: GET /api/growth (aktuelle Stufenübersicht: balance/level/Differenz zur nächsten Stufe); GET /api/growth/records (Buchungen mit Paginierung); GET /api/growth/levels (öffentliche Stufenliste, kein Login nötig)
 - Fehlerstrategie: Jeder Gutschriftspunkt try/catch mit Log, Hauptablauf unbeeinflusst
 
 ### 23. Elektronische Rechnungen (Runde 20)
 
-- erik_invoice: uk_order_type(order_id,order_type) gegen doppelte Anträge pro Bestellung (422 bei Wiederholung, inkl. MySQL-1062-Fang als Absicherung); idx_user_created/idx_status
+- appointment_invoice: uk_order_type(order_id,order_type) gegen doppelte Anträge pro Bestellung (422 bei Wiederholung, inkl. MySQL-1062-Fang als Absicherung); idx_user_created/idx_status
 - Kundenseite: POST /api/invoices (Antrag, Betrag/Titel serverseitig aus der Bestellung, nicht manipulierbar); GET /api/invoices (Liste); GET /api/invoices/{id} (Details)
 - Verwaltung: InvoiceController issue (Ausstellung: schreibt invoice_no + status=issued + issued_at) / reject (Ablehnung: status=rejected + reject_reason), Berechtigungen 382 Liste/383 Ausstellung/384 Ablehnung
 - Statusmaschine: pending → issued / rejected
 
 ### 24. Kundenservice-Tickets (Runde 20)
 
-- erik_ticket: Benutzer reicht Ticket ein (title/content), Backend-Antwort wird angehängt (reply_content/replied_at), Benutzer kann schließen (closed_at)
+- appointment_ticket: Benutzer reicht Ticket ein (title/content), Backend-Antwort wird angehängt (reply_content/replied_at), Benutzer kann schließen (closed_at)
 - Kundenseite: POST /api/tickets (einreichen); GET /api/tickets (Liste); GET /api/tickets/{id} (Details, nur eigene); POST /api/tickets/{id}/close (schließen)
 - Verwaltung: TicketController index (Liste) / reply (Antwort), statische Routen vor der resource-Definition gegen {id}-Shadowing; Berechtigungen 385 Ticket-Antwort/387 Ticket-Liste
 - Statusmaschine: open → replied (nach Antwort zurück zu open, erneut beantwortbar) / closed
@@ -541,14 +541,14 @@ Flutter-Web-Single-Page-App mit insgesamt 21 Seiten: Dashboard/Benutzer/Rollen/K
 
 ### 27. Rechnungsanschrift-Verwaltung (Runde 21)
 
-- erik_invoice_title (uk_user_title(user_id, title_type, invoice_title) gegen Duplikate + idx_user_default)
+- appointment_invoice_title (uk_user_title(user_id, title_type, invoice_title) gegen Duplikate + idx_user_default)
 - Schnittstellen: POST /api/invoice-titles (speichern, company muss tax_no haben, 422 bei Duplikat); GET (Liste, Standard oben); PUT /{id} (bearbeiten, nur eigene); DELETE /{id} (löschen, nur eigene); POST /{id}/default (als Standard setzen, Transaktion löscht andere Zeilen des Benutzers)
 - Standardregeln: erste gespeicherte Anschrift automatisch Standard; nach Löschen der Standardanschrift wird die älteste automatisch Standard
 - Antragsverknüpfung: InvoiceController::store optional title_id, löst Anschrift zu invoice_title/tax_no/title_type auf, ohne title_id bleibt der manuelle Pfad erhalten; uk_order_type-Deduplizierung unverändert
 
 ### 28. Ticket-Zufriedenheit (Runde 21)
 
-- erik_ticket um rating TINYINT NULL + rated_at DATETIME NULL ergänzt (Migration 000303)
+- appointment_ticket um rating TINYINT NULL + rated_at DATETIME NULL ergänzt (Migration 000303)
 - Bewertung beim Schließen: TicketController::close() unterstützt optionales rating 1–5 (filter_var-Integerprüfung, außerhalb/kein Integer 422; bei Angabe rating+rated_at geschrieben, sonst NULL für alte Clients; Regel „nur open-Tickets schließen" bleibt)
 - Backend-Statistik: GET /admin/tickets/satisfaction (statische Route vor resource gegen {id}-Shadowing) liefert total/rated_count/unrated_count/average (1 Nachkommastelle)/distribution (Anzahl pro 1–5 Sterne, fehlende Sterne mit 0 aufgefüllt); Berechtigung 388
 
@@ -561,13 +561,13 @@ Flutter-Web-Single-Page-App mit insgesamt 21 Seiten: Dashboard/Benutzer/Rollen/K
 
 ### 30. Benutzer-Browserverlauf (Runde 21)
 
-- erik_browse_history (uk_user_item(user_id, item_id) Unique, wiederholtes Ansehen aktualisiert nur viewed_at ohne Doppelinsert; idx_user_viewed Sortierung)
+- appointment_browse_history (uk_user_item(user_id, item_id) Unique, wiederholtes Ansehen aktualisiert nur viewed_at ohne Doppelinsert; idx_user_viewed Sortierung)
 - Protokollierung: ServiceController::detail() nach Erfolg (try/catch + Log::warning ohne Hauptablauf-Beeinflussung; öffentliche Route ohne JWT, user_id-Nullprüfung überspringt anonyme)
-- Schnittstellen: GET /api/browse-history (join erik_service Name/Cover/Preis/Originalpreis, viewed_at absteigend, per_page Standard 15 Maximum 50, item_id hashid); DELETE /{item_id} (nur eigene, ungültig/fremd 404); DELETE / (leeren, nur eigene)
+- Schnittstellen: GET /api/browse-history (join appointment_service Name/Cover/Preis/Originalpreis, viewed_at absteigend, per_page Standard 15 Maximum 50, item_id hashid); DELETE /{item_id} (nur eigene, ungültig/fremd 404); DELETE / (leeren, nur eigene)
 
 ### 31. Rabatt ab Mindestbetrag (Runde 22)
 
-- erik_full_reduction_activity (threshold/reduction/title/status/start_at/end_at + idx_status_status_time)
+- appointment_full_reduction_activity (threshold/reduction/title/status/start_at/end_at + idx_status_status_time)
 - Bestell-Kombination: nur Standardbestellungen (Gruppeneinkauf/Blitzangebot übersprungen), Schwelle nach Gutschein/Stempelkarten-Abzug, Reihenfolge **Gutschein/Stempelkarte → Rabatt ab Mindestbetrag → Stufenrabatt**; Aktivität mit größtem Abzug; Rabattbetrag in discount_amount + Notiz „Rabatt ab Mindestbetrag: ab X reduziert um Y"; Mindestzahlung nach Rabatt 0,01 Yuan (auf Cent-Basis)
 - Kundenseite GET /api/full-reduction-activities (öffentlich, aktive absteigend nach Abzugsbetrag)
 - admin FullReductionController: CRUD + toggle-status Veröffentlichen/Zurückziehen (destroy mit confirmPassword)
@@ -581,29 +581,29 @@ Flutter-Web-Single-Page-App mit insgesamt 21 Seiten: Dashboard/Benutzer/Rollen/K
 
 ### 33. Techniker-Anwesenheit (Runde 22)
 
-- erik_technician_attendance (date/check_in_at/check_out_at/status + uk_technician_date Unique-Index gegen paralleles Doppelstempeln)
+- appointment_technician_attendance (date/check_in_at/check_out_at/status + uk_technician_date Unique-Index gegen paralleles Doppelstempeln)
 - Technikerseite (TechnicianAuth): check-in 422 bei Wiederholung am selben Tag; check-out 422 ohne Arbeit/bereits ausgestempelt + Zeilensperre; >10:00 Verspätung markiert; GET Monatsliste + Anwesenheitstage/Gesamtstunden/Durchschnittsstunden (?month=YYYY-MM ungültig 422)
 - admin: GET /admin/attendance (date+Technikername-Filter, join real_name, hashid) + /stats (gruppierte Statistik pro Techniker)
 - Berechtigungen: 392 Liste / 393 Statistik
 
 ### 34. APP-Push-Dienst (Runde 22)
 
-- AppPushService (config group=push: enabled Standard 0 / provider jpush/getui/placeholder): nicht aktiviert stiller Fallback nur Log; aktiviert strukturierter Aufbau Plattform/Titel/Inhalt/payload + Log + erik_push_log schreiben (status=sent); Hersteller-SDK-Anbindung als TODO (ohne Anmeldedaten kein tatsächliches Senden)
+- AppPushService (config group=push: enabled Standard 0 / provider jpush/getui/placeholder): nicht aktiviert stiller Fallback nur Log; aktiviert strukturierter Aufbau Plattform/Titel/Inhalt/payload + Log + appointment_push_log schreiben (status=sent); Hersteller-SDK-Anbindung als TODO (ohne Anmeldedaten kein tatsächliches Senden)
 - 5 Event-Anbindungen: Zahlungserfolg (WechatPayService::markOrderPaid), automatische Rückerstattung (autoRefundCancelledOrder), manuelle Rückerstattung (doRefund/refundToBalance), Rückerstattungskompensation (completeOneRefundCompensation), Servicebeginn-Erinnerung (ServiceReminderTimer); alle try/catch ohne Hauptablauf-Blockade
-- erik_push_log (user_id/title/content/payload JSON/status/provider + idx_user)
+- appointment_push_log (user_id/title/content/payload JSON/status/provider + idx_user)
 
 ### 35. Offizielles WeChat-Profit-Sharing (Runde 22)
 
 - WechatProfitSharingService (config group=profit_sharing: enabled/receiver_ratio, Anmeldedaten teilen wechat_pay): nicht aktiviert disabled-Degradation nur Log ohne DB-Schreiben; aktiviert → Betragsprüfung (>0 und ≤paid, real paid×0,7 Standard) + Idempotenz (gleiche Bestellung pending/success übersprungen) → pending-Datensatz schreiben → Struktur „einmalige Profit-Sharing-Anfrage" aufbauen (ohne Anmeldedaten kein HTTP, Anfrageinhalt im Log, Datensatz bleibt pending); HTTP-isolierter privater doRequest testbar
 - WechatPayService::markOrderPaid bindet nach dem Senden requestSharing an (try/catch-Fehler nur Log)
-- erik_profit_sharing (uk_sharing_no Unique + idx_order); admin GET /admin/profit-sharing Liste (join Bestellnummer/Technikernickname, Filter Status/Bestellnummer/Technikername)
+- appointment_profit_sharing (uk_sharing_no Unique + idx_order); admin GET /admin/profit-sharing Liste (join Bestellnummer/Technikernickname, Filter Status/Bestellnummer/Technikername)
 - Berechtigung: 394
 
 ### 36. Datenschutz-Compliance (Runde 22)
 
 - GET /api/privacy/data: Datenexport (Gruppen personal/orders/points/wallet_txns/reviews/addresses/invoices; Log nur maskierte Telefonnummer + Anzahl)
 - Lösch-Kreislauf: close-request (Guthaben ≠ 0 / unfertige Bestellungen / laufende Tickets 422 → close_status=1) → close-cancel (1→0) → close-confirm (nach 72 h → close_status=2 + close_at + phone/nickname anonymisiert zu user{id} + status=0)
-- erik_user um close_status/close_requested_at/close_at ergänzt (idempotente ALTER-Migration); AuthController login/loginByCode gibt bei close_status=2 403 „Konto wurde gelöscht"
+- appointment_user um close_status/close_requested_at/close_at ergänzt (idempotente ALTER-Migration); AuthController login/loginByCode gibt bei close_status=2 403 „Konto wurde gelöscht"
 
 ### 37. Benutzer-Gesundheitsprofil (Runde 23)
 
@@ -635,7 +635,7 @@ Flutter-Web-Single-Page-App mit insgesamt 21 Seiten: Dashboard/Benutzer/Rollen/K
 - GET /api/wheel/prizes (weight/stock verborgen); POST /api/wheel/spin: Redis NX + Zeilensperre gegen Parallelität, random_int gewichtete Ziehung, client_token Idempotenz
 - Preise verbucht: Punkte → earn-Buchung (inkl. Ablaufzeit, von PointsExpiryTimer normal ablaufend), Guthaben → lockForUpdate, Gutschein → pending manuelle Ausgabe, kein Preis → lose
 - GET /api/wheel/records meine Protokolle mit Paginierung; admin /admin/lucky-wheel CRUD + Veröffentlichen/Zurückziehen + Protokolle (Berechtigungen 401–406)
-- Migrationen 000503 (erik_lucky_wheel + erik_wheel_record + w60/w40-Demoseeds) + 000505 (Berechtigungsseeds); LuckyWheelTest admin 3 + service 6 Tests
+- Migrationen 000503 (appointment_lucky_wheel + appointment_wheel_record + w60/w40-Demoseeds) + 000505 (Berechtigungsseeds); LuckyWheelTest admin 3 + service 6 Tests
 
 ### 42. Gastmodus (Runde 24)
 
@@ -645,21 +645,21 @@ Flutter-Web-Single-Page-App mit insgesamt 21 Seiten: Dashboard/Benutzer/Rollen/K
 
 ### 43. Blitzangebot (Runde 24)
 
-- erik_seckill_activity (name/service_id/seckill_price/original_price/stock/start_at/end_at/status); verkaufte Menge = Anzahl der erik_order mit seckill_id
+- appointment_seckill_activity (name/service_id/seckill_price/original_price/stock/start_at/end_at/status); verkaufte Menge = Anzahl der appointment_order mit seckill_id
 - GET /api/seckill (status=1 + Zeitfenster), /{id} (state=not_started/ongoing/ended), POST /{id}/buy: client_token (8–64 Zeichen, SETNX 24 h) Idempotenz + Redis NX 30 s gegen Parallelität + Aktivitätsprüfung (ab 2026-08-26 keine Vorreservierung des Lagerbestands mehr)
 - Bestellung injiziert seckill_id und nutzt OrderController::store; Lagerbestand einheitlich in der store()-Transaktion per Zeilensperre abgezogen (direkter /api/order-Aufruf mit seckill_id zieht ebenfalls ab), Blitzpreis = seckill_price (DB maßgeblich), keine Kombination mit Gutscheinen/Punkten/Mitgliederkarten; Stornierung gibt Lagerbestand nicht zurück; alter Promotionskanal FLASH_SALE entfernt (store()-Promotionszweig enthält nur noch Gruppeneinkauf, PromotionController index filtert flash_sale, show/join 400), Blitzangebote laufen nur über diesen Kanal
 - admin /admin/seckill CRUD + Veröffentlichen/Zurückziehen + Bestellliste (Berechtigungen 407–411, 420); Migration 000606 Berechtigungsseeds; SeckillTest service + admin
 
 ### 44. APP-Versionsverwaltung und Update-Prüfung (Runde 24)
 
-- erik_app_version (platform/version_code/version_name/force_update/changelog/download_url/status)
+- appointment_app_version (platform/version_code/version_name/force_update/changelog/download_url/status)
 - GET /api/app/version?platform=android|ios öffentliche Update-Prüfung (platform ungültig 422; aus status=1 die neueste; ohne Treffer leeres Objekt)
 - admin /admin/versions CRUD (Berechtigungen 416–419); Migration 000609 Berechtigungsseeds; VersionTest service + admin
 
 ### 45. Stammkunden-Belohnung (Runde 24)
 
 - ReturnCustomerRewardService: bei zweitem Kauf des Benutzers beim selben Techniker innerhalb von 30 Tagen (Bestellabschluss) erhält der Techniker einen Bonus = real bezahlt paid_amount × ratio (system_config group=return_customer, ratio Standard 0,05, enabled-Schalter, ungültige Werte fallen auf Standard zurück)
-- Schreibt erik_technician_earnings (type=return_customer, status=pending), nutzt die Provisionsabrechnungskette, Technikerseiten-Einnahmenaggregation enthält automatisch; idempotent per order_id+type; in der WorkController::complete-Zeilensperrentransaktion aufgerufen
+- Schreibt appointment_technician_earnings (type=return_customer, status=pending), nutzt die Provisionsabrechnungskette, Technikerseiten-Einnahmenaggregation enthält automatisch; idempotent per order_id+type; in der WorkController::complete-Zeilensperrentransaktion aufgerufen
 - admin /admin/return-customer/config (GET/PUT) + /rewards (?keyword Technikername/Bestellnummer/Benutzernickname) (Berechtigungen 412–414); Migration 000607 Berechtigungsseeds; ReturnCustomerRewardServiceTest
 
 ### 46. Schichtplan-Export (Runde 24)

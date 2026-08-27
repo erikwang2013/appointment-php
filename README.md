@@ -101,7 +101,7 @@ cd ../service/ && cp .env.docker .env && docker-compose up -d
 | 层级 | 技术 | 说明 |
 |------|------|------|
 | 后端框架 | webman v2 (PHP 8.3+) | 高性能常驻内存HTTP服务 |
-| 数据库 | MySQL 8.0 | 表前缀 `erik_` |
+| 数据库 | MySQL 8.0 | 表前缀 `appointment_` |
 | 缓存 | Redis | 缓存/限流/Session/队列 |
 | 搜索 | Elasticsearch | 全文检索（via webman-scout） |
 | 管理后台前端 | Flutter Web | PC管理后台风格 |
@@ -156,60 +156,60 @@ cd ../service/ && cp .env.docker .env && docker-compose up -d
 | 优惠券抵扣 | PriceCalculator：applyCoupon 只读算额 / consume 支付置 used / restoreCouponAndCard 退款幂等归还；fixed/percent + min_amount 门槛 |
 | 礼品卡 | redeem 时 cash 类型充值到钱包（行锁防双入账，WalletTxn type='gift_card'），gift 类型仅标记 |
 | 积分体系 | 签到返积分；核销消费返积分 floor(paid×1)（order_id 幂等，balance 快照）；退款按比例回扣；明细分页 + type/source 过滤 |
-| 会员管理 | erik_user.member_level 列（迁移 000008）；管理端会员卡完整 CRUD（权限 365-369） |
+| 会员管理 | appointment_user.member_level 列（迁移 000008）；管理端会员卡完整 CRUD（权限 365-369） |
 | 小程序下单链路 | 服务详情 → 确认订单（选券/门槛置灰/客户端预估金额）→ POST /order → 微信/余额支付；小程序共 20 个页面 |
 | 拼团闭环 | join 重复参与 422 + 满员锁定 + 到期惰性关闭；成团下单 store 传 promotion_id 以拼团价（discount_percent）下单，禁用优惠券/次卡/积分叠加，未成团自动取消订单并释放技师锁（旧 FLASH_SALE 促销通道已下线，秒杀走独立通道） |
 | 店长工作台 | service /api/store-manager 4 接口（overview/orders/technicians/revenue）store_id 强制隔离（无门店 403）；admin 门店工作台概览 + 订单 store_id 筛选 + Flutter 页面 + 权限 372 |
 | 分销返佣 | 被推荐人首单 completed 后按 paid_amount × reward_rate（系统配置，默认 0.05）给推荐人返佣入钱包（WalletTxn referral_reward）；行锁+判空+首单复查三重幂等；earnings 明细 + admin 记录查看（权限 379） |
 | 积分兑换商城 | 兑换商品/兑换记录两表；兑换接口 Redis NX + 行锁防超兑 + uk_user_goods 同用户限一次；coupon 发券 / wallet 入账 / gift_card 卡密三结果；admin CRUD + 上下架 + 记录（权限 373-378） |
-| 预约改期 | POST /api/order/reschedule/{id} 同技师换时间；仅 pending/paid/confirmed 且距原服务开始 ≥6h 可改；order_lock + 新时段技师锁 SETNX(180s) 并发防超卖 + B2 排班冲突校验；落 erik_order_reschedule + SCENE_RESCHEDULE 订阅消息 |
+| 预约改期 | POST /api/order/reschedule/{id} 同技师换时间；仅 pending/paid/confirmed 且距原服务开始 ≥6h 可改；order_lock + 新时段技师锁 SETNX(180s) 并发防超卖 + B2 排班冲突校验；落 appointment_order_reschedule + SCENE_RESCHEDULE 订阅消息 |
 | 优惠券转赠 | 8 位唯一转赠码（uk_code 兜底，7 天有效）；claim 防滥用：Redis NX 锁 + 行锁复验防双花、uk_user_coupon 限转赠一次、被转赠券不可再转、不可自领；懒过期恢复原券 |
 | 积分过期 | expires_at（默认 365 天，配置 points.expiry_days）；PointsExpiryTimer 60s 游标扫描写 type=expire 负值扣减（三层幂等）+ 聚合站内通知；过期积分不可抵现/兑换 |
-| 技师等级自动评定 | TierRatingService 实时统计订单量+均分回写 profile，按 tier_config 从高到低匹配；仅升级不降级（allowDowngrade 供人工重评）；变更落 erik_technician_tier_log + 站内通知；admin 日志查看（权限 380） |
+| 技师等级自动评定 | TierRatingService 实时统计订单量+均分回写 profile，按 tier_config 从高到低匹配；仅升级不降级（allowDowngrade 供人工重评）；变更落 appointment_technician_tier_log + 站内通知；admin 日志查看（权限 380） |
 | 秒杀下单闭环 | /api/seckill 活动 + buy 幂等/防并发，下单注入 seckill_id 复用 store()，库存统一在事务内行锁扣减（秒杀价 = seckill_price 以 DB 为准），售罄 422「已抢光」，取消不回补库存；旧 promotion flash_sale 通道已下线 |
 | 服务开始前提醒 | ServiceReminderTimer 60s 扫描 1h 内开始的 confirmed/serving 订单 → SCENE_REMINDER 订阅消息+站内通知（order_id+type 防重，三层幂等）；模板未配置自动降级站内通知 |
 | 到期提醒 | ExpiryReminderTimer 6h 扫描 3 天内到期的会员卡/优惠券 → type=card_expiry/coupon_expiry + SCENE_EXPIRY 订阅消息（order_id 记来源防重） |
-| 技师回复评价 | POST /api/technician/review/reply/{order_id}：非本人 404、重复回复 422、回复成功站内通知用户；erik_order_review 补 replied_at；admin 回复详情（权限 381） |
+| 技师回复评价 | POST /api/technician/review/reply/{order_id}：非本人 404、重复回复 422、回复成功站内通知用户；appointment_order_review 补 replied_at；admin 回复详情（权限 381） |
 | 充值到账通知 | 微信充值回调事务内写站内通知 type='wallet_recharge'（复用回调幂等，同事务原子提交，失败不阻塞主流程） |
 | 余额转账 | POST /api/wallet/transfer 用户间转账：金额 0.01-1000/笔 + 单日 5000 限额；Redis NX 锁 + 双方钱包行锁（user_id 升序防死锁）+ client_token 24h 幂等；WalletTxn transfer_out/transfer_in 双流水含 balance_after 快照；接收方站内通知 type='balance_received' |
 | 积分转赠 | POST /api/user/points/transfer 用户间转赠：1-10000 积分 + 单日累计 10000 限额；Redis NX 锁 + 双方最后一条流水 lockForUpdate（升序防死锁）+ 锁内复验；发送方 consume/接收方 earn 双流水（接收含 expires_at 可正常过期）；接收方站内通知 type='points_received' |
-| 评价追评 | POST /api/order/review/{order_id}/append：非本人 404/重复 422/空内容 422/非 completed 422，成功写技师站内通知 type='review_append'；erik_order_review 增 append_content/append_images(JSON)/append_at；顺带补注册用户提交评价路由（原 store 无路由不可达）并修复其潜伏 TypeError |
+| 评价追评 | POST /api/order/review/{order_id}/append：非本人 404/重复 422/空内容 422/非 completed 422，成功写技师站内通知 type='review_append'；appointment_order_review 增 append_content/append_images(JSON)/append_at；顺带补注册用户提交评价路由（原 store 无路由不可达）并修复其潜伏 TypeError |
 | 用户端物流跟踪 | GET /api/order/logistics/{id}：仅本人 product 订单（404 非本人/非商品/未发货）；读取 order.remark JSON（shipping_company/tracking_no/shipped_at，admin 发货写入）；收货人手机号脱敏 138****5678 |
-| 消息偏好设置 | erik_user_notify_setting 表（uk_user_type 唯一键，缺省行=默认开）；GET/PUT /api/user/notify-settings；5 类开关 service_reminder/card_expiry/points_expiry/marketing/system（system 恒开不可关）；notifySettingEnabled 门控 3 定时器 + 订阅事件，关闭则站内通知与订阅消息一并跳过 |
-| 预约月历 | GET /api/calendar/technician/{id}（月视图）+ /day（日视图）：time_slots JSON 展开小时槽、erik_order 已约时段排除；门店排班可视化选时 |
-| 用户成长等级 | erik_user_growth + erik_growth_level（青铜0/白银100/黄金500/铂金2000/钻石5000）；签到+10、评价+20、消费每1元1点（复用既有状态复验天然幂等）；GET /api/growth（概览/records/levels 公开档位） |
+| 消息偏好设置 | appointment_user_notify_setting 表（uk_user_type 唯一键，缺省行=默认开）；GET/PUT /api/user/notify-settings；5 类开关 service_reminder/card_expiry/points_expiry/marketing/system（system 恒开不可关）；notifySettingEnabled 门控 3 定时器 + 订阅事件，关闭则站内通知与订阅消息一并跳过 |
+| 预约月历 | GET /api/calendar/technician/{id}（月视图）+ /day（日视图）：time_slots JSON 展开小时槽、appointment_order 已约时段排除；门店排班可视化选时 |
+| 用户成长等级 | appointment_user_growth + appointment_growth_level（青铜0/白银100/黄金500/铂金2000/钻石5000）；签到+10、评价+20、消费每1元1点（复用既有状态复验天然幂等）；GET /api/growth（概览/records/levels 公开档位） |
 | 电子发票 | POST/GET /api/invoices（申请/列表/详情）：uk_order_type(order_id,order_type) 防重复申请、金额服务端带出；admin 开票/驳回（权限 382-384） |
 | 客服工单 | POST/GET /api/tickets + /{id}/close：用户提交/列表/详情/关闭；admin 回复（权限 385/387） |
 | 多级分销-二级返佣 | 订单支付后给一级推荐人的推荐人发 paid×level2_rate（配置 0.02）：事务行锁 + uk_order_referred 幂等防重复发放；WalletTxn TYPE_REFERRAL_LEVEL2；admin 记录查看（权限 386） |
 | 成长等级权益 | GrowthLevel.benefits 空壳落地：下单按等级 discount_rate 折扣（仅标准订单，券/次卡→等级折扣叠加，折扣额入 discount_amount + 备注可追溯，下限保护截断为 0）；支付回调成长值 floor(paid×points_multiplier) 倍率入账（支付时点取档，不抬级） |
-| 发票抬头管理 | erik_invoice_title 常用抬头库：保存/编辑/删除/默认（首条自动默认、删默认自动转移、设默认事务清零）；申请发票可选 title_id 带入，手填兼容保留 |
+| 发票抬头管理 | appointment_invoice_title 常用抬头库：保存/编辑/删除/默认（首条自动默认、删默认自动转移、设默认事务清零）；申请发票可选 title_id 带入，手填兼容保留 |
 | 工单满意度 | 关闭工单可打分 1-5（越界 422，未提供兼容 NULL）；admin 满意度汇总：平均分/1-5 星分布/已评未评计数（权限 388） |
 | 评价图片审核 | admin ReviewAuditController：带图评价列表（JSON_LENGTH 过滤 + join 用户/技师名）、隐藏/恢复（hide 仅 visible、restore 仅 hidden，422 双向校验）；隐藏后技师评价列表自动不可见（权限 389-391） |
-| 浏览足迹 | erik_browse_history（uk_user_item 重复浏览只刷 viewed_at）：服务详情挂接记录（try/catch 不阻塞主流程、未登录跳过）；列表 join 服务信息 + hashid；删单条/清空仅本人 |
+| 浏览足迹 | appointment_browse_history（uk_user_item 重复浏览只刷 viewed_at）：服务详情挂接记录（try/catch 不阻塞主流程、未登录跳过）；列表 join 服务信息 + hashid；删单条/清空仅本人 |
 
 > 第 8 轮运维性修复：移除 12 处 Poster::verify 潜伏 fatal；DashboardController 统计改用 Capsule Manager 查询。
 >
 > Round-15 补充：积分回补（取消/退款归还 points_offset 积分，refundOffsetPoints 5 挂接点幂等）；PromotionParticipant 状态改整型常量（修复严格模式下 join 1366 损坏）。
 >
-> Round-16 补充：积分兑换（PointsExchangeController，类型 consume/source=exchange）；拼团下单（erik_order 新增 promotion_id/participant_id 列）；分销返佣（ReferralRewardService 挂接 WorkController::complete）。
+> Round-16 补充：积分兑换（PointsExchangeController，类型 consume/source=exchange）；拼团下单（appointment_order 新增 promotion_id/participant_id 列）；分销返佣（ReferralRewardService 挂接 WorkController::complete）。
 >
-> Round-17 补充：预约改期（erik_order_reschedule + reschedule 接口）；优惠券转赠（erik_user_coupon_transfer + transfer/claim/transfers）；积分过期（expires_at + PointsExpiryTimer 进程）；技师等级自动评定（TierRatingService + erik_technician_tier_log，权限 380）。
+> Round-17 补充：预约改期（appointment_order_reschedule + reschedule 接口）；优惠券转赠（appointment_user_coupon_transfer + transfer/claim/transfers）；积分过期（expires_at + PointsExpiryTimer 进程）；技师等级自动评定（TierRatingService + appointment_technician_tier_log，权限 380）。
 >
 > Round-17 修复：AutoCancelTimer 通知插入改用 \support\Model::generateId()（原调用不存在的 Snowflake::generate()，自动取消通知静默失败）。
 >
 > Round-18 补充：秒杀下单（store() 支持 flash_sale 秒杀价）；服务开始前提醒（ServiceReminderTimer + SCENE_REMINDER）；会员卡/优惠券到期提醒（ExpiryReminderTimer + SCENE_EXPIRY）；技师回复评价（review reply 接口 + replied_at 列 + 权限 381）；充值到账通知（回调事务内 type='wallet_recharge'）。
 >
-> Round-19 补充：余额转账（erik_wallet_transfer + WalletTransferController，权限内双行锁 + client_token 幂等）；积分转赠（erik_user_points_transfer + PointsTransferController，单日限额 + 双向流水）；评价追评（erik_order_review append 三列 + append 接口 + 补注册 store 路由）；用户端物流跟踪（logistics 接口 + remark JSON 解析 + 手机号脱敏）；消息偏好设置（erik_user_notify_setting + NotifySettingController + 3 定时器门控）。
+> Round-19 补充：余额转账（appointment_wallet_transfer + WalletTransferController，权限内双行锁 + client_token 幂等）；积分转赠（appointment_user_points_transfer + PointsTransferController，单日限额 + 双向流水）；评价追评（appointment_order_review append 三列 + append 接口 + 补注册 store 路由）；用户端物流跟踪（logistics 接口 + remark JSON 解析 + 手机号脱敏）；消息偏好设置（appointment_user_notify_setting + NotifySettingController + 3 定时器门控）。
 >
-> Round-20 补充：预约月历（CalendarController 月/日视图 + 已约排除）；用户成长等级（erik_user_growth + erik_growth_level 5 档 + 签到/评价/消费挂接）；电子发票（erik_invoice + uk_order_type 防重复 + 后台开票/驳回，权限 382-384）；客服工单（erik_ticket 提交/列表/详情/关闭 + 后台回复，权限 385/387）；多级分销-二级返佣（payLevel2Reward 事务行锁 + uk_order_referred 幂等，权限 386）。
+> Round-20 补充：预约月历（CalendarController 月/日视图 + 已约排除）；用户成长等级（appointment_user_growth + appointment_growth_level 5 档 + 签到/评价/消费挂接）；电子发票（appointment_invoice + uk_order_type 防重复 + 后台开票/驳回，权限 382-384）；客服工单（appointment_ticket 提交/列表/详情/关闭 + 后台回复，权限 385/387）；多级分销-二级返佣（payLevel2Reward 事务行锁 + uk_order_referred 幂等，权限 386）。
 >
-> Round-21 补充：成长等级权益落地（下单 discount_rate 折扣 + 支付 points_multiplier 积分倍率，迁移种子 5 档 benefits）；发票抬头管理（erik_invoice_title 抬头库 + 申请 title_id 联动）；工单满意度（关闭打分 rating/rated_at + admin 汇总统计，权限 388）；评价图片审核（ReviewAuditController 隐藏/恢复，权限 389-391）；用户浏览足迹（erik_browse_history + 详情挂接 + 列表/删除/清空）。
+> Round-21 补充：成长等级权益落地（下单 discount_rate 折扣 + 支付 points_multiplier 积分倍率，迁移种子 5 档 benefits）；发票抬头管理（appointment_invoice_title 抬头库 + 申请 title_id 联动）；工单满意度（关闭打分 rating/rated_at + admin 汇总统计，权限 388）；评价图片审核（ReviewAuditController 隐藏/恢复，权限 389-391）；用户浏览足迹（appointment_browse_history + 详情挂接 + 列表/删除/清空）。
 >
-> Round-22 补充：满减活动（erik_full_reduction 自动减免 + 门槛校验，权限 396-400）；ICS 日历导出（RFC5545 我的预约）；技师打卡考勤（erik_technician_attendance 上下班打卡 + 迟到标记 + admin 统计，权限 392-393）；APP 推送服务（配置驱动抽象 + 5 处事件接入，erik_push_log）；微信官方分账（erik_profit_sharing_log 配置驱动 + 降级，权限 394）；隐私合规（数据导出 + 账号注销 72h 状态机 close_status）。
+> Round-22 补充：满减活动（appointment_full_reduction 自动减免 + 门槛校验，权限 396-400）；ICS 日历导出（RFC5545 我的预约）；技师打卡考勤（appointment_technician_attendance 上下班打卡 + 迟到标记 + admin 统计，权限 392-393）；APP 推送服务（配置驱动抽象 + 5 处事件接入，appointment_push_log）；微信官方分账（appointment_profit_sharing_log 配置驱动 + 降级，权限 394）；隐私合规（数据导出 + 账号注销 72h 状态机 close_status）。
 >
-> Round-23 补充：用户健康档案（erik_user_health_profile）；钱包支付密码（erik_user_wallet pay_password 设置/校验）；技师批量排班（batch 导入 + 重叠冲突检测）；订单状态时间线（erik_order_status_log 8 状态埋点 + 用户端/后台展示）；积分幸运转盘（erik_lucky_wheel + erik_wheel_record 权重抽奖，权限 401-406）；积分有效期（points.expiry_days 配置 + 新 earn 流水带 expires_at）。
+> Round-23 补充：用户健康档案（appointment_user_health_profile）；钱包支付密码（appointment_user_wallet pay_password 设置/校验）；技师批量排班（batch 导入 + 重叠冲突检测）；订单状态时间线（appointment_order_status_log 8 状态埋点 + 用户端/后台展示）；积分幸运转盘（appointment_lucky_wheel + appointment_wheel_record 权重抽奖，权限 401-406）；积分有效期（points.expiry_days 配置 + 新 earn 流水带 expires_at）。
 >
-> Round-24 补充：游客模式（/api/guest/* 未登录只读浏览 + Redis 缓存）；秒杀（erik_seckill_activity + Redis NX 行锁抢购 + erik_order.seckill_id 注入下单，权限 407-411/420）；APP 版本管理与检测更新（erik_app_version + /api/app/version，权限 416-419）；回头客奖励（30 天二次消费奖金 type=return_customer，权限 412-414）；排班 CSV 导出（UTF-8 BOM + 时间槽明细，权限 415）。
+> Round-24 补充：游客模式（/api/guest/* 未登录只读浏览 + Redis 缓存）；秒杀（appointment_seckill_activity + Redis NX 行锁抢购 + appointment_order.seckill_id 注入下单，权限 407-411/420）；APP 版本管理与检测更新（appointment_app_version + /api/app/version，权限 416-419）；回头客奖励（30 天二次消费奖金 type=return_customer，权限 412-414）；排班 CSV 导出（UTF-8 BOM + 时间槽明细，权限 415）。
 >
 > 2026-08-26 安全加固：下单接口订单项价格一律以数据库记录为准（客户端价格不可信，未知 target_type 422，target_id 必须 hashid），拼团/秒杀价同以 DB 为准；秒杀库存统一由 /api/order store() 事务内行锁扣减（SeckillController::buy 不再预扣，保留 Redis 活动锁 + client_token 幂等）；技师提现申请时在途预留、审批转账前复核、并发审批防双打款；微信支付回调 total_fee 与订单应付严格比对、支付宝回调日志脱敏；/install 安装成功写 .install.lock 双重校验防重装；依赖版本收敛（webman-scout 2.0.5 / opensearch-php ^2.6 / dompdf、security-php、webman-database 精确锁定）；两应用 phpstan.neon 修复可运行（php -d memory_limit=2G）。
 

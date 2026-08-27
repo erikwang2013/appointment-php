@@ -34,7 +34,7 @@ graph TB
     end
 
     subgraph 数据层["データ層"]
-        MySQL[("MySQL 8.0<br/>55+ テーブル · erik_ プレフィックス<br/>BIGINT Snowflake 主キー")]
+        MySQL[("MySQL 8.0<br/>55+ テーブル · appointment_ プレフィックス<br/>BIGINT Snowflake 主キー")]
         Redis[("Redis<br/>キャッシュ/レート制限/Session<br/>キュー/スタッフロック<br/>svc:* リストキャッシュ")]
         ES[("Elasticsearch<br/>全文検索<br/>webman-scout 自動同期")]
     end

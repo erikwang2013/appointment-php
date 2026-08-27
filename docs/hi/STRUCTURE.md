@@ -295,15 +295,15 @@ service/
 │   │   ├── Security                # सुरक्षा जाँच (security-php)
 │   │   └── TechnicianAuth          # तकनीशियन पहचान जाँच
 │   └── model/                   # डेटा मॉडल (81)
-│       ├── User.php → erik_user
-│       ├── TechnicianProfile.php → erik_technician_profile
-│       ├── Service.php → erik_service (ES: erik_services)
-│       ├── Product.php → erik_product (ES: erik_products)
-│       ├── Store.php → erik_store
-│       ├── Order.php → erik_order (रिफंड नियम/स्टेट मशीन सहित)
-│       ├── Coupon.php → erik_coupon
-│       ├── MemberCard.php → erik_member_card
-│       ├── Notification.php → erik_notification
+│       ├── User.php → appointment_user
+│       ├── TechnicianProfile.php → appointment_technician_profile
+│       ├── Service.php → appointment_service (ES: appointment_services)
+│       ├── Product.php → appointment_product (ES: appointment_products)
+│       ├── Store.php → appointment_store
+│       ├── Order.php → appointment_order (रिफंड नियम/स्टेट मशीन सहित)
+│       ├── Coupon.php → appointment_coupon
+│       ├── MemberCard.php → appointment_member_card
+│       ├── Notification.php → appointment_notification
 │       └── ... (कुल 81 मॉडल फ़ाइलें; admin में 6 विशिष्ट मॉडल अतिरिक्त, कुल 87)
 ├── config/                     # कॉन्फ़िगरेशन फ़ाइलें
 ├── public/                     # एंट्री
@@ -435,111 +435,111 @@ apps/flutter/
 
 ## डेटाबेस टेबल सूची
 
-सभी टेबल `erik_` उपसर्ग उपयोग करती हैं, प्राथमिक कुंजी BIGINT गैर-ऑटो-इंक्रीमेंट (Snowflake द्वारा उत्पन्न)।
+सभी टेबल `appointment_` उपसर्ग उपयोग करती हैं, प्राथमिक कुंजी BIGINT गैर-ऑटो-इंक्रीमेंट (Snowflake द्वारा उत्पन्न)।
 
 | डोमेन | टेबल नाम | विवरण |
 |----|------|------|
-| उपयोगकर्ता | erik_user | एकीकृत उपयोगकर्ता टेबल |
-| उपयोगकर्ता | erik_user_address | डिलीवरी पता |
-| तकनीशियन | erik_technician_profile | तकनीशियन प्रोफ़ाइल |
-| तकनीशियन | erik_technician_schedule | तकनीशियन शेड्यूल |
-| तकनीशियन | erik_technician_service | तकनीशियन की सेवा आइटम |
-| तकनीशियन | erik_technician_earnings | तकनीशियन आय लेन-देन |
-| तकनीशियन | erik_technician_withdrawal | तकनीशियन विड्रॉल रिकॉर्ड |
-| तकनीशियन | erik_technician_attendance | तकनीशियन उपस्थिति |
-| तकनीशियन | erik_technician_member_note | सदस्य प्रोफ़ाइल |
-| सेवा | erik_service_category | सेवा श्रेणी |
-| सेवा | erik_service | सेवा आइटम |
-| सेवा | erik_product | उत्पाद |
-| सेवा | erik_store | स्टोर |
-| ऑर्डर | erik_order | ऑर्डर मुख्य टेबल (सेकिल seckill_id संबंधित कॉलम, राउंड 24) |
-| ऑर्डर | erik_order_item | ऑर्डर विवरण |
-| ऑर्डर | erik_order_payment | भुगतान रिकॉर्ड |
-| ऑर्डर | erik_order_refund | रिफंड रिकॉर्ड |
-| ऑर्डर | erik_order_review | सेवा समीक्षा |
-| ऑर्डर | erik_order_verification | वेरिफिकेशन रिकॉर्ड |
-| ऑर्डर | erik_order_reschedule | अपॉइंटमेंट रीशेड्यूल रिकॉर्ड (राउंड 17) |
-| मार्केटिंग | erik_coupon | कूपन परिभाषा |
-| मार्केटिंग | erik_user_coupon | उपयोगकर्ता कूपन |
-| मार्केटिंग | erik_user_coupon_transfer | कूपन ट्रांसफर रिकॉर्ड (राउंड 17) |
-| मार्केटिंग | erik_user_points_transfer | पॉइंट्स ट्रांसफर रिकॉर्ड (राउंड 19) |
-| मार्केटिंग | erik_technician_tier_log | तकनीशियन स्तर परिवर्तन लॉग (राउंड 17) |
-| मार्केटिंग | erik_member_card | सदस्यता कार्ड परिभाषा |
-| मार्केटिंग | erik_user_member_card | उपयोगकर्ता सदस्यता कार्ड |
-| मार्केटिंग | erik_member_card_usage | सेशन कार्ड उपयोग रिकॉर्ड |
-| मार्केटिंग | erik_user_points | पॉइंट्स लेन-देन |
-| मार्केटिंग | erik_gift_card | गिफ्ट कार्ड |
-| मार्केटिंग | erik_user_referral | उपयोगकर्ता प्रमोशन |
-| मार्केटिंग | erik_user_favorite | उपयोगकर्ता पसंदीदा |
-| वॉलेट | erik_user_wallet | उपयोगकर्ता वॉलेट बैलेंस |
-| वॉलेट | erik_wallet_recharge | वॉलेट रिचार्ज रिकॉर्ड |
-| वॉलेट | erik_wallet_txn | वॉलेट लेन-देन लॉग |
-| वॉलेट | erik_wallet_transfer | उपयोगकर्ताओं के बीच ट्रांसफर रिकॉर्ड (राउंड 19) |
-| उपयोगकर्ता | erik_user_notify_setting | मैसेज प्रेफरेंस सेटिंग (राउंड 19) |
-| सामग्री | erik_banner | कैरोसेल |
-| सामग्री | erik_announcement | घोषणा |
-| सामग्री | erik_platform_agreement | प्लेटफ़ॉर्म समझौता |
-| सामग्री | erik_faq | सामान्य प्रश्न |
-| सामग्री | erik_feedback | फ़ीडबैक |
-| सामग्री | erik_moment | मोमेंट्स फ़ीड |
-| सामग्री | erik_notification | मैसेज नोटिफिकेशन |
-| वित्त | erik_finance_transaction | आय-व्यय लेन-देन |
-| वित्त | erik_technician_commission_config | कमीशन कॉन्फ़िगरेशन |
-| वित्त | erik_withdrawal_account | विड्रॉल खाता |
-| वित्त | erik_withdrawal_config | विड्रॉल सीमा कॉन्फ़िगरेशन |
-| सिस्टम | erik_admin_user | प्रबंधन उपयोगकर्ता (बन चुका) |
-| सिस्टम | erik_admin_role | भूमिका (बन चुका) |
-| सिस्टम | erik_admin_permission | अनुमति (बन चुका) |
-| सिस्टम | erik_admin_user_role | उपयोगकर्ता-भूमिका संबंध (बन चुका) |
-| सिस्टम | erik_admin_role_permission | भूमिका-अनुमति संबंध (बन चुका) |
-| सिस्टम | erik_system_config | सिस्टम कॉन्फ़िगरेशन (बन चुका) |
-| सिस्टम | erik_operation_log | संचालन लॉग (बन चुका) |
-| उपयोगकर्ता | erik_user_growth | ग्रोथ वैल्यू लेन-देन (राउंड 20) |
-| उपयोगकर्ता | erik_growth_level | ग्रोथ लेवल स्लॉट (राउंड 20) |
-| ऑर्डर | erik_invoice | ई-इनवॉइस (राउंड 20) |
-| उपयोगकर्ता | erik_ticket | ग्राहक सेवा टिकट (राउंड 20) |
-| मार्केटिंग | erik_referral_level2_reward | दूसरे-स्तर रेफरल कमीशन रिकॉर्ड (राउंड 20) |
-| उपयोगकर्ता | erik_invoice_title | इनवॉइस शीर्षक लाइब्रेरी (राउंड 21) |
-| उपयोगकर्ता | erik_browse_history | ब्राउज़िंग हिस्ट्री (राउंड 21) |
-| मार्केटिंग | erik_full_reduction_activity | फुल-रिडक्शन गतिविधि (राउंड 22) |
-| तकनीशियन | erik_technician_attendance | तकनीशियन उपस्थिति (राउंड 22) |
-| सिस्टम | erik_push_log | APP पुश रिकॉर्ड (राउंड 22) |
-| वित्त | erik_profit_sharing | वीचैट प्रॉफिट शेयरिंग रिकॉर्ड (राउंड 22) |
-| ऑर्डर | erik_order_status_log | ऑर्डर स्टेटस टाइमलाइन (राउंड 23) |
-| उपयोगकर्ता | erik_user_health_profile | उपयोगकर्ता स्वास्थ्य प्रोफ़ाइल (राउंड 23) |
-| मार्केटिंग | erik_lucky_wheel | व्हील पुरस्कार परिभाषा (राउंड 23) |
-| मार्केटिंग | erik_wheel_record | व्हील ड्रॉ रिकॉर्ड (राउंड 23) |
-| मार्केटिंग | erik_seckill_activity | सेकिल गतिविधि (राउंड 24) |
-| सिस्टम | erik_app_version | APP संस्करण (राउंड 24) |
+| उपयोगकर्ता | appointment_user | एकीकृत उपयोगकर्ता टेबल |
+| उपयोगकर्ता | appointment_user_address | डिलीवरी पता |
+| तकनीशियन | appointment_technician_profile | तकनीशियन प्रोफ़ाइल |
+| तकनीशियन | appointment_technician_schedule | तकनीशियन शेड्यूल |
+| तकनीशियन | appointment_technician_service | तकनीशियन की सेवा आइटम |
+| तकनीशियन | appointment_technician_earnings | तकनीशियन आय लेन-देन |
+| तकनीशियन | appointment_technician_withdrawal | तकनीशियन विड्रॉल रिकॉर्ड |
+| तकनीशियन | appointment_technician_attendance | तकनीशियन उपस्थिति |
+| तकनीशियन | appointment_technician_member_note | सदस्य प्रोफ़ाइल |
+| सेवा | appointment_service_category | सेवा श्रेणी |
+| सेवा | appointment_service | सेवा आइटम |
+| सेवा | appointment_product | उत्पाद |
+| सेवा | appointment_store | स्टोर |
+| ऑर्डर | appointment_order | ऑर्डर मुख्य टेबल (सेकिल seckill_id संबंधित कॉलम, राउंड 24) |
+| ऑर्डर | appointment_order_item | ऑर्डर विवरण |
+| ऑर्डर | appointment_order_payment | भुगतान रिकॉर्ड |
+| ऑर्डर | appointment_order_refund | रिफंड रिकॉर्ड |
+| ऑर्डर | appointment_order_review | सेवा समीक्षा |
+| ऑर्डर | appointment_order_verification | वेरिफिकेशन रिकॉर्ड |
+| ऑर्डर | appointment_order_reschedule | अपॉइंटमेंट रीशेड्यूल रिकॉर्ड (राउंड 17) |
+| मार्केटिंग | appointment_coupon | कूपन परिभाषा |
+| मार्केटिंग | appointment_user_coupon | उपयोगकर्ता कूपन |
+| मार्केटिंग | appointment_user_coupon_transfer | कूपन ट्रांसफर रिकॉर्ड (राउंड 17) |
+| मार्केटिंग | appointment_user_points_transfer | पॉइंट्स ट्रांसफर रिकॉर्ड (राउंड 19) |
+| मार्केटिंग | appointment_technician_tier_log | तकनीशियन स्तर परिवर्तन लॉग (राउंड 17) |
+| मार्केटिंग | appointment_member_card | सदस्यता कार्ड परिभाषा |
+| मार्केटिंग | appointment_user_member_card | उपयोगकर्ता सदस्यता कार्ड |
+| मार्केटिंग | appointment_member_card_usage | सेशन कार्ड उपयोग रिकॉर्ड |
+| मार्केटिंग | appointment_user_points | पॉइंट्स लेन-देन |
+| मार्केटिंग | appointment_gift_card | गिफ्ट कार्ड |
+| मार्केटिंग | appointment_user_referral | उपयोगकर्ता प्रमोशन |
+| मार्केटिंग | appointment_user_favorite | उपयोगकर्ता पसंदीदा |
+| वॉलेट | appointment_user_wallet | उपयोगकर्ता वॉलेट बैलेंस |
+| वॉलेट | appointment_wallet_recharge | वॉलेट रिचार्ज रिकॉर्ड |
+| वॉलेट | appointment_wallet_txn | वॉलेट लेन-देन लॉग |
+| वॉलेट | appointment_wallet_transfer | उपयोगकर्ताओं के बीच ट्रांसफर रिकॉर्ड (राउंड 19) |
+| उपयोगकर्ता | appointment_user_notify_setting | मैसेज प्रेफरेंस सेटिंग (राउंड 19) |
+| सामग्री | appointment_banner | कैरोसेल |
+| सामग्री | appointment_announcement | घोषणा |
+| सामग्री | appointment_platform_agreement | प्लेटफ़ॉर्म समझौता |
+| सामग्री | appointment_faq | सामान्य प्रश्न |
+| सामग्री | appointment_feedback | फ़ीडबैक |
+| सामग्री | appointment_moment | मोमेंट्स फ़ीड |
+| सामग्री | appointment_notification | मैसेज नोटिफिकेशन |
+| वित्त | appointment_finance_transaction | आय-व्यय लेन-देन |
+| वित्त | appointment_technician_commission_config | कमीशन कॉन्फ़िगरेशन |
+| वित्त | appointment_withdrawal_account | विड्रॉल खाता |
+| वित्त | appointment_withdrawal_config | विड्रॉल सीमा कॉन्फ़िगरेशन |
+| सिस्टम | appointment_admin_user | प्रबंधन उपयोगकर्ता (बन चुका) |
+| सिस्टम | appointment_admin_role | भूमिका (बन चुका) |
+| सिस्टम | appointment_admin_permission | अनुमति (बन चुका) |
+| सिस्टम | appointment_admin_user_role | उपयोगकर्ता-भूमिका संबंध (बन चुका) |
+| सिस्टम | appointment_admin_role_permission | भूमिका-अनुमति संबंध (बन चुका) |
+| सिस्टम | appointment_system_config | सिस्टम कॉन्फ़िगरेशन (बन चुका) |
+| सिस्टम | appointment_operation_log | संचालन लॉग (बन चुका) |
+| उपयोगकर्ता | appointment_user_growth | ग्रोथ वैल्यू लेन-देन (राउंड 20) |
+| उपयोगकर्ता | appointment_growth_level | ग्रोथ लेवल स्लॉट (राउंड 20) |
+| ऑर्डर | appointment_invoice | ई-इनवॉइस (राउंड 20) |
+| उपयोगकर्ता | appointment_ticket | ग्राहक सेवा टिकट (राउंड 20) |
+| मार्केटिंग | appointment_referral_level2_reward | दूसरे-स्तर रेफरल कमीशन रिकॉर्ड (राउंड 20) |
+| उपयोगकर्ता | appointment_invoice_title | इनवॉइस शीर्षक लाइब्रेरी (राउंड 21) |
+| उपयोगकर्ता | appointment_browse_history | ब्राउज़िंग हिस्ट्री (राउंड 21) |
+| मार्केटिंग | appointment_full_reduction_activity | फुल-रिडक्शन गतिविधि (राउंड 22) |
+| तकनीशियन | appointment_technician_attendance | तकनीशियन उपस्थिति (राउंड 22) |
+| सिस्टम | appointment_push_log | APP पुश रिकॉर्ड (राउंड 22) |
+| वित्त | appointment_profit_sharing | वीचैट प्रॉफिट शेयरिंग रिकॉर्ड (राउंड 22) |
+| ऑर्डर | appointment_order_status_log | ऑर्डर स्टेटस टाइमलाइन (राउंड 23) |
+| उपयोगकर्ता | appointment_user_health_profile | उपयोगकर्ता स्वास्थ्य प्रोफ़ाइल (राउंड 23) |
+| मार्केटिंग | appointment_lucky_wheel | व्हील पुरस्कार परिभाषा (राउंड 23) |
+| मार्केटिंग | appointment_wheel_record | व्हील ड्रॉ रिकॉर्ड (राउंड 23) |
+| मार्केटिंग | appointment_seckill_activity | सेकिल गतिविधि (राउंड 24) |
+| सिस्टम | appointment_app_version | APP संस्करण (राउंड 24) |
 
 ### पूरक सूची (docs/install.sql 95 टेबल में ऊपर सूचीबद्ध नहीं किए गए भाग; पूर्ण आधिकारिक सूची install.sql अनुसार)
 
 | डोमेन | टेबल नाम | विवरण |
 |----|------|------|
-| मार्केटिंग | erik_card_transfer | सेशन कार्ड ट्रांसफर |
-| उपयोगकर्ता | erik_check_in | चेक-इन |
-| सामग्री | erik_community_post | कम्युनिटी फ़ीड |
-| सामग्री | erik_community_comment | कम्युनिटी टिप्पणियाँ |
-| तकनीशियन | erik_exam | परीक्षा |
-| तकनीशियन | erik_exam_question | परीक्षा प्रश्न |
-| तकनीशियन | erik_exam_attempt | परीक्षा उत्तर पत्रक |
-| सिस्टम | erik_operation_log_detail | संचालन लॉग विवरण |
-| ऑर्डर | erik_order_aftersale | ऑर्डर आफ्टर-सेल |
-| मार्केटिंग | erik_points_exchange_goods | पॉइंट्स एक्सचेंज उत्पाद |
-| मार्केटिंग | erik_promotion | ग्रुप बाय गतिविधि |
-| मार्केटिंग | erik_promotion_participant | ग्रुप बाय भागीदार |
-| ऑर्डर | erik_queue_number | कतार/कॉलिंग |
-| सेवा | erik_service_package | सेवा पैकेज |
-| तकनीशियन | erik_service_record | सेवा रिकॉर्ड |
-| सामग्री | erik_share | शेयर रिकॉर्ड |
-| ऑर्डर | erik_signature | सिग्नेचर |
-| तकनीशियन | erik_technician_tier_config | तकनीशियन स्तर कॉन्फ़िगरेशन |
-| तकनीशियन | erik_training_course | प्रशिक्षण पाठ्यक्रम |
-| तकनीशियन | erik_training_progress | प्रशिक्षण प्रगति |
-| उपयोगकर्ता | erik_user_device | उपयोगकर्ता डिवाइस |
-| मार्केटिंग | erik_user_points_exchange | पॉइंट्स एक्सचेंज रिकॉर्ड |
-| सामग्री | erik_video_post | वीडियो फ़ीड |
-| ऑर्डर | erik_waitlist | वेटलिस्ट |
+| मार्केटिंग | appointment_card_transfer | सेशन कार्ड ट्रांसफर |
+| उपयोगकर्ता | appointment_check_in | चेक-इन |
+| सामग्री | appointment_community_post | कम्युनिटी फ़ीड |
+| सामग्री | appointment_community_comment | कम्युनिटी टिप्पणियाँ |
+| तकनीशियन | appointment_exam | परीक्षा |
+| तकनीशियन | appointment_exam_question | परीक्षा प्रश्न |
+| तकनीशियन | appointment_exam_attempt | परीक्षा उत्तर पत्रक |
+| सिस्टम | appointment_operation_log_detail | संचालन लॉग विवरण |
+| ऑर्डर | appointment_order_aftersale | ऑर्डर आफ्टर-सेल |
+| मार्केटिंग | appointment_points_exchange_goods | पॉइंट्स एक्सचेंज उत्पाद |
+| मार्केटिंग | appointment_promotion | ग्रुप बाय गतिविधि |
+| मार्केटिंग | appointment_promotion_participant | ग्रुप बाय भागीदार |
+| ऑर्डर | appointment_queue_number | कतार/कॉलिंग |
+| सेवा | appointment_service_package | सेवा पैकेज |
+| तकनीशियन | appointment_service_record | सेवा रिकॉर्ड |
+| सामग्री | appointment_share | शेयर रिकॉर्ड |
+| ऑर्डर | appointment_signature | सिग्नेचर |
+| तकनीशियन | appointment_technician_tier_config | तकनीशियन स्तर कॉन्फ़िगरेशन |
+| तकनीशियन | appointment_training_course | प्रशिक्षण पाठ्यक्रम |
+| तकनीशियन | appointment_training_progress | प्रशिक्षण प्रगति |
+| उपयोगकर्ता | appointment_user_device | उपयोगकर्ता डिवाइस |
+| मार्केटिंग | appointment_user_points_exchange | पॉइंट्स एक्सचेंज रिकॉर्ड |
+| सामग्री | appointment_video_post | वीडियो फ़ीड |
+| ऑर्डर | appointment_waitlist | वेटलिस्ट |
 
 ## बाहरी सेवा रिज़र्वेशन
 

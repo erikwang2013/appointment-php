@@ -13,7 +13,7 @@ use support\Model;
  */
 class CheckIn extends Model
 {
-    protected $table = 'erik_check_in';
+    protected $table = 'appointment_check_in';
     public $incrementing = false;
     protected $keyType = 'string';
     public $timestamps = true;

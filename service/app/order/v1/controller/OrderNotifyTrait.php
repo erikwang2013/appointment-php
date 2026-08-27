@@ -26,7 +26,7 @@ trait OrderNotifyTrait
      *
      * 委托 NotificationReminderService::sendSubscribeForOrderEvent：与预约提醒同一
      * 发送链路（WechatTemplateMessageService::sendSubscribeMessage，独立小程序
-     * access_token），幂等基于 erik_notification.push_sent_at（同订单同场景只推
+     * access_token），幂等基于 appointment_notification.push_sent_at（同订单同场景只推
      * 一次；微信失败不写标记，不影响主流程）。
      *
      * @param Order  $order 订单

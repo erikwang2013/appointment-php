@@ -9,7 +9,7 @@ use support\Model;
 
 class Coupon extends Model
 {
-    protected $table = 'erik_coupon';
+    protected $table = 'appointment_coupon';
     public $incrementing = false;
     protected $keyType = 'string';
     public $timestamps = true;

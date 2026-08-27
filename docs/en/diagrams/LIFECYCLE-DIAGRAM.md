@@ -351,7 +351,7 @@ stateDiagram-v2
 
     checked --> pending: second purchase<br/>(bonus = paid × ratio<br/>same order_id+type idempotent)
 
-    pending --> settled: settled via commission chain<br/>(erik_technician_earnings<br/>type=return_customer)
+    pending --> settled: settled via commission chain<br/>(appointment_technician_earnings<br/>type=return_customer)
 
     settled --> [*]
     none --> [*]

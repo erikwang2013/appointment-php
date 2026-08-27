@@ -6,7 +6,7 @@ declare(strict_types=1);
 /**
  * 数据库连接配置
  * 使用 illuminate/database (Laravel Eloquent)
- * 表前缀统一为 erik_
+ * 表前缀统一为 appointment_
  */
 return [
     // 默认连接
@@ -30,8 +30,8 @@ return [
             'charset' => 'utf8mb4',
             // 排序规则，utf8mb4_unicode_ci 兼容性最好
             'collation' => 'utf8mb4_unicode_ci',
-            // 表前缀已内嵌在模型 $table（如 erik_user），此处不再配置 prefix，
-            // 否则表名被二次拼接为 erik_erik_user
+            // 表前缀已内嵌在模型 $table（如 appointment_user），此处不再配置 prefix，
+            // 否则表名被二次拼接为 appointment_appointment_user
             // 严格模式，杜绝非法数据写入
             'strict' => true,
             // 存储引擎

@@ -9,7 +9,7 @@ use support\Model;
 
 class UserCoupon extends Model
 {
-    protected $table = 'erik_user_coupon';
+    protected $table = 'appointment_user_coupon';
     public $incrementing = false;
     protected $keyType = 'string';
     // 双库兼容：appointment 库该表有 created_at/updated_at（DB 默认值自动填充），

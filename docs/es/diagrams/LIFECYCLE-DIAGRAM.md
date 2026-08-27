@@ -351,7 +351,7 @@ stateDiagram-v2
 
     checked --> pending: Segunda compra<br/>(bono = pago efectivo × ratio<br/>idempotente por order_id+type)
 
-    pending --> settled: Liquidación unificada en la cadena de liquidación de comisiones<br/>(erik_technician_earnings<br/>type=return_customer)
+    pending --> settled: Liquidación unificada en la cadena de liquidación de comisiones<br/>(appointment_technician_earnings<br/>type=return_customer)
 
     settled --> [*]
     none --> [*]

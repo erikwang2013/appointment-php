@@ -157,7 +157,7 @@
 
 | 항목 | 수정 내용 |
 |----|---------|
-| 주문 위변조 방지 | OrderController::store() 주문 항목 가격은 항상 DB 레코드 기준（service→erik_service, product→erik_product)，클라이언트 가격은 계산에 미참여；미지의 target_type 422；target_id 반드시 hashid（raw id 디코딩 0 → 422「상품이 없거나 하품됨」)；공동구매/번개세일 가격도 DB 기준 |
+| 주문 위변조 방지 | OrderController::store() 주문 항목 가격은 항상 DB 레코드 기준（service→appointment_service, product→appointment_product)，클라이언트 가격은 계산에 미참여；미지의 target_type 422；target_id 반드시 hashid（raw id 디코딩 0 → 422「상품이 없거나 하품됨」)；공동구매/번개세일 가격도 DB 기준 |
 | 번개세일 재고 차감 통일 | 재고는 /api/order store() 트랜잭션 내 행 잠금으로 일괄 차감；SeckillController::buy는 더 이상 선차감하지 않음（Redis 활동 잠금 + client_token 멱등 유지)；/api/order를 seckill_id와 함께 직접 호출해도 재고 차감 |
 | 기술자 출금 | 신청 시 잔액에서 재경비(pending/approved) 예약 차감；승인 송금 전 재검증 settled−withdrawn−재경비 ≥ 출금액；동시 승인 시 이중 지급 없음 |
 | 결제 콜백 | 위챗 콜백 total_fee를 주문 결제 금액과 엄격 비교, 불일치 시 거부；알리페이 콜백 로그 마스킹（buyer_id/seller_id 등 제외) |

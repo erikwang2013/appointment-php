@@ -17,8 +17,8 @@ use Workerman\Timer;
  * 会员卡/优惠券到期提醒定时器
  *
  * 每 6 小时扫描一次到期前 3 天窗口内（end_at ∈ [now+3d, now+3d+6h)）的
- * 有效会员卡（erik_user_member_card status=active）与可用优惠券
- * （erik_user_coupon status=available，有效期以 erik_coupon.end_at 为准），
+ * 有效会员卡（appointment_user_member_card status=active）与可用优惠券
+ * （appointment_user_coupon status=available，有效期以 appointment_coupon.end_at 为准），
  * 为用户写站内通知（type=card_expiry / coupon_expiry），并挂接可配置降级的
  * 微信订阅消息（SCENE_EXPIRY，未配置 WECHAT_SUBSCRIBE_TEMPLATE_EXPIRY 时仅站内通知）。
  *
@@ -147,7 +147,7 @@ class ExpiryReminderTimer
             $time = $card->end_at ? date('Y-m-d', strtotime((string) $card->end_at)) : '';
 
             $id = Notification::generateId();
-            Db::table('erik_notification')->insert([
+            Db::table('appointment_notification')->insert([
                 'id'         => $id,
                 'user_id'    => $card->user_id,
                 'type'       => self::NOTIFY_TYPE_CARD,
@@ -250,7 +250,7 @@ class ExpiryReminderTimer
                 : '';
 
             $id = Notification::generateId();
-            Db::table('erik_notification')->insert([
+            Db::table('appointment_notification')->insert([
                 'id'         => $id,
                 'user_id'    => $userCoupon->user_id,
                 'type'       => self::NOTIFY_TYPE_COUPON,

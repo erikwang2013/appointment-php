@@ -351,7 +351,7 @@ stateDiagram-v2
 
     checked --> pending: استهلاك ثانٍ<br/>(المكافأة = الدفع الفعلي × ratio<br/>تكراري الأثر بنفس order_id+type)
 
-    pending --> settled: تسوية موحدة عبر سلسلة تسوية العمولة<br/>(erik_technician_earnings<br/>type=return_customer)
+    pending --> settled: تسوية موحدة عبر سلسلة تسوية العمولة<br/>(appointment_technician_earnings<br/>type=return_customer)
 
     settled --> [*]
     none --> [*]

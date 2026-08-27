@@ -61,7 +61,7 @@ class CaptchaTest extends TestCase
         $hard = captcha_create('click', ['difficulty' => 'hard']);
 
         $this->assertCount(2, $easy['extra']['texts'], 'easy 应为 2 个目标字');
-        $this->assertCount(5, $medium['extra']['texts'], 'medium（默认）应为 5 个目标字');
+        $this->assertCount(3, $medium['extra']['texts'], 'medium（默认）应为 3 个目标字');
         $this->assertCount(4, $hard['extra']['texts'], 'hard 应为 4 个目标字');
     }
 

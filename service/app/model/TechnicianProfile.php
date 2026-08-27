@@ -13,7 +13,7 @@ class TechnicianProfile extends Model
 {
     use SoftDeletes;
 
-    protected $table = 'erik_technician_profile';
+    protected $table = 'appointment_technician_profile';
     public $incrementing = false;
     protected $keyType = 'string';
     public $timestamps = true;

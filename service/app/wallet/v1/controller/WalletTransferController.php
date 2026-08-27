@@ -28,7 +28,7 @@ use Webman\Http\Request;
  *   的并发转账；锁内重读余额与单日限额。
  * - 事务内按双方 user_id 升序 lockForUpdate 钱包行（固定顺序防死锁），
  *   余额校验为行锁读，杜绝超扣。
- * - 可选 client_token：成功后 SETNX wallet_transfer_token:{token}（24h），
+ * - 可选 client_token：成功后 SETNX appointment:wallet_transfer_token:{token}（24h），
  *   同 token 重复提交直接拒绝，失败请求不落 token 可重试。
  */
 class WalletTransferController extends BaseController
@@ -87,12 +87,12 @@ class WalletTransferController extends BaseController
 
         try {
             // 幂等：同 client_token 已成功过则拒绝（失败请求不落 token，可重试）
-            if ($clientToken !== '' && (string) (Redis::connection()->get('wallet_transfer_token:' . $clientToken) ?? '') !== '') {
+            if ($clientToken !== '' && (string) (Redis::connection()->get('appointment:wallet_transfer_token:' . $clientToken) ?? '') !== '') {
                 return $this->error('请勿重复提交', 422);
             }
 
             // 单日累计限额（锁内统计，防并发绕过）
-            $todayCents = (int) Db::table('erik_wallet_transfer')
+            $todayCents = (int) Db::table('appointment_wallet_transfer')
                 ->where('from_user_id', $senderId)
                 ->where('status', WalletTransfer::STATUS_COMPLETED)
                 ->where('created_at', '>=', date('Y-m-d 00:00:00'))
@@ -107,7 +107,7 @@ class WalletTransferController extends BaseController
             }
 
             if ($clientToken !== '') {
-                Redis::connection()->set('wallet_transfer_token:' . $clientToken, (string) $transfer->id, 'EX', self::TOKEN_TTL, 'NX');
+                Redis::connection()->set('appointment:wallet_transfer_token:' . $clientToken, (string) $transfer->id, 'EX', self::TOKEN_TTL, 'NX');
             }
 
             $wallet = UserWallet::where('user_id', $senderId)->first();

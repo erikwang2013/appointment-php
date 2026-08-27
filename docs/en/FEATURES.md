@@ -100,7 +100,7 @@ The Mini Program and APP have identical features. A unified account supports cus
 |------|------|
 | Personal info | Avatar/nickname/phone |
 | Identity switching | Customer ↔ technician |
-| Notifications | In-app notifications (erik_notification); message center page: paging/pull-to-refresh/unread highlight/mark read/mark all read |
+| Notifications | In-app notifications (appointment_notification); message center page: paging/pull-to-refresh/unread highlight/mark read/mark all read |
 | My member cards | Monthly/VIP yearly/session cards (expiry/times/used/remaining) |
 | My points | Earned records/available points/usage records (1:100 exchange for gift cards); check-in/consumption returns points, refunds claw back proportionally, paged details + type/source filters |
 | My gift cards | Cash cards/physical gifts; cash type redemption tops up the wallet directly |
@@ -193,7 +193,7 @@ The Mini Program and APP have identical features. A unified account supports cus
 
 | Feature | Description |
 |------|------|
-| Subscribe authorization | utils/subscribe.js centrally manages template IDs (keys aligned with server erik_system_config.wechat_app.template_ids) |
+| Subscribe authorization | utils/subscribe.js centrally manages template IDs (keys aligned with server appointment_system_config.wechat_app.template_ids) |
 | Trigger scenarios | wx.requestSubscribeMessage inside gesture callbacks after booking/payment success; silent when template ID not configured or user rejects |
 | Server chain | WechatTemplateMessageService sends + NotificationReminderService 2h~1h pre-appointment reminder + AutoCancelTimer process scan |
 
@@ -222,16 +222,16 @@ The Mini Program and APP have identical features. A unified account supports cus
 |------|------|
 | Group price | join response returns discount_percent/original_price/group_price |
 | Group order | POST /api/order passes promotion_id: validates only group_buy/activity valid/caller is participant/not full/service match; group price = original × discount_percent/100, disables coupon/session-card/points stacking (422) |
-| Order marking | erik_order new promotion_id/participant_id columns + index |
+| Order marking | appointment_order new promotion_id/participant_id columns + index |
 | Failed group handling | Expiry without full team → activity closed + batch cancel of that activity's pending orders (idempotent); pay() lazy-checks closure and auto-cancels the order, releasing the technician lock |
 
 ### 22. Referral Commission (Round 16)
 
 | Feature | Description |
 |------|------|
-| Payout rule | Paid after referred user's first order completes: amount = paid_amount×reward_rate (erik_system_config referral.reward_rate default 0.05, invalid values fall back to constant), only paid when >0 |
+| Payout rule | Paid after referred user's first order completes: amount = paid_amount×reward_rate (appointment_system_config referral.reward_rate default 0.05, invalid values fall back to constant), only paid when >0 |
 | Hook point | ReferralRewardService::handleOrderCompleted hooked into WorkController::complete transaction (serving→completed sole entry; verify only reaches serving and does not trigger); failure rolls back entirely and can retry |
-| Idempotency | erik_user_referral row lock lockForUpdate + rewarded_at null check + in-lock first-order recheck (concurrent/duplicate calls pay once) |
+| Idempotency | appointment_user_referral row lock lockForUpdate + rewarded_at null check + in-lock first-order recheck (concurrent/duplicate calls pay once) |
 | Crediting | Wallet row lock accumulation + WalletTxn type='referral_reward' (balance_after + order number remark); referral record writes reward_type/reward_amount/rewarded_at/first_order_at |
 | Details | GET /api/user/referral/earnings paged (referred user nickname/avatar/order number/amount/time) |
 
@@ -239,10 +239,10 @@ The Mini Program and APP have identical features. A unified account supports cus
 
 | Feature | Description |
 |------|------|
-| Exchange goods | erik_points_exchange_goods: type=coupon/gift_card/wallet, points_cost/value (DECIMAL(25,2) prevents avalanche ID precision loss)/stock/status |
+| Exchange goods | appointment_points_exchange_goods: type=coupon/gift_card/wallet, points_cost/value (DECIMAL(25,2) prevents avalanche ID precision loss)/stock/status |
 | Goods list | GET /api/marketing/points-exchange: on-shelf goods + real-time remaining stock + redeemed count |
 | Exchange | POST /api/marketing/points-exchange/{id}: Redis NX lock + goods row lock prevents over-redemption; points SUM check (insufficient 422) + UserPoints type='consume' source='exchange' deduction; coupon issue / wallet credit (WalletTxn points_exchange) / gift_card card-key returned |
-| Idempotency | uk_user_goods unique index limits once per user per goods + in-lock recheck + 1062 fallback; exchange record snapshot erik_user_points_exchange |
+| Idempotency | uk_user_goods unique index limits once per user per goods + in-lock recheck + 1062 fallback; exchange record snapshot appointment_user_points_exchange |
 
 ### 24. Appointment Rescheduling (Round 17)
 
@@ -251,7 +251,7 @@ The Mini Program and APP have identical features. A unified account supports cus
 | Endpoint | POST /api/order/reschedule/{id}: new_service_time (required) + reason (optional), same-technician time change |
 | Rules | Own orders only (not owner 404); appointment type only with status pending/paid/confirmed (else 422); ≥ 6 hours before original start (aligned with the full-refund window) |
 | Concurrency protection | B1 order_lock (same mutex family as pay/cancel/refund) → new-slot technician lock Redis SETNX EX 180 (concurrent reschedules prevent oversell) → in-transaction row-lock re-read + B2 schedule conflict DB check (excluding this order) |
-| Wrap-up | Update service_time + record erik_order_reschedule (with reason) + release original/new slot locks held by this order; on failure the transaction rolls back and the new-slot lock is also released |
+| Wrap-up | Update service_time + record appointment_order_reschedule (with reason) + release original/new slot locks held by this order; on failure the transaction rolls back and the new-slot lock is also released |
 | Notification | SCENE_RESCHEDULE subscribe message (fallback to in-app notification "预约改期成功" when template not configured) + pushOrderUpdate |
 
 ### 25. Coupon Gifting (Round 17)
@@ -267,7 +267,7 @@ The Mini Program and APP have identical features. A unified account supports cus
 
 | Feature | Description |
 |------|------|
-| Validity | erik_user_points.expires_at column; all earns (check-in/consumption/restitution) store expires_at = now + points.expiry_days (default 365, ≤0 never expires); consume/use records leave it null |
+| Validity | appointment_user_points.expires_at column; all earns (check-in/consumption/restitution) store expires_at = now + points.expiry_days (default 365, ≤0 never expires); consume/use records leave it null |
 | Expiry execution | PointsExpiryTimer scheduled process scans every 60s with cursor (100/batch) earn rows where expires_at < now → writes type=expire negative deduction rows (source=expiry + order_id tracing original record) → aggregated per-user in-app notification "You have X points expired" |
 | Idempotency | ① expire row order_id points to the original earn record, lockForUpdate + exists recheck on the original row inside the transaction (concurrent processes serialize on the row lock) ② id cursor paging ③ notifications only produced in actual deduction rounds |
 | Accounting | Available balance SUM aggregate includes expire negative rows; expired points cannot be used for cash offset/exchange |
@@ -297,7 +297,7 @@ The Mini Program and APP have identical features. A unified account supports cus
 |------|------|
 | Endpoint | POST /api/technician/review/reply/{order_id} (technician-identity middleware): review missing/not own unified 404; existing reply 422 (idempotent reject, no overwrite); empty reply 422 |
 | After reply | In-app notification to user (type='review_reply', non-blocking try/catch + Log) |
-| Data | erik_order_review idempotently gains replied_at column (reply column existed at table creation); admin review list/show exposes reply/replied_at via decorate()->toArray() |
+| Data | appointment_order_review idempotently gains replied_at column (reply column existed at table creation); admin review list/show exposes reply/replied_at via decorate()->toArray() |
 
 ### 30. Recharge Arrival Notification (Round 18)
 
@@ -331,7 +331,7 @@ The Mini Program and APP have identical features. A unified account supports cus
 |------|------|
 | Follow-up | POST /api/order/review/{order_id}/append: review missing/not own unified 404, non-completed 422, duplicate follow-up 422 (rejected if either append_content/append_at is non-null), empty content 422; on success writes append_content/append_images(JSON)/append_at + technician in-app notification type='review_append' |
 | Submit review | Registered the missing POST /api/order/review/{order_id} (ReviewController::store previously had no route, unreachable); also fixed the latent TypeError: findByOrderId received int violating the string signature (aligned with the (string) cast in append), which would 500 the moment the route was registered |
-| Data | erik_order_review gains append_content TEXT/append_images JSON/append_at DATETIME columns (idempotent migration); response exposes append fields |
+| Data | appointment_order_review gains append_content TEXT/append_images JSON/append_at DATETIME columns (idempotent migration); response exposes append fields |
 
 ### 34. User-Side Logistics Tracking (Round 19)
 
@@ -345,9 +345,9 @@ The Mini Program and APP have identical features. A unified account supports cus
 
 | Feature | Description |
 |------|------|
-| Data | erik_user_notify_setting table (user_id+type composite unique key uk_user_type, missing row = default on); 5 types: service_reminder / card_expiry (unified umbrella for cards+coupons) / points_expiry / marketing (reserved) / system (cannot be turned off, PUT forces 1) |
+| Data | appointment_user_notify_setting table (user_id+type composite unique key uk_user_type, missing row = default on); 5 types: service_reminder / card_expiry (unified umbrella for cards+coupons) / points_expiry / marketing (reserved) / system (cannot be turned off, PUT forces 1) |
 | Endpoints | GET /api/user/notify-settings returns all 5 switches; PUT batch upsert produces no duplicate rows |
-| Gating | NotificationReminderService::notifySettingEnabled hooks into 3 timer processes (ServiceReminderTimer/ExpiryReminderTimer cards+coupons/PointsExpiryTimer — timers insert directly into erik_notification, bypassing the service write path, so each adds the same gate) + subscribe events (sendSubscribeForOrderEvent/Notification scenario mapping PAY/REFUND/VERIFIED/RESCHEDULE→system always sent, REMINDER→service_reminder, EXPIRY→card_expiry); when a type is off, both in-app notifications and subscribe messages are skipped |
+| Gating | NotificationReminderService::notifySettingEnabled hooks into 3 timer processes (ServiceReminderTimer/ExpiryReminderTimer cards+coupons/PointsExpiryTimer — timers insert directly into appointment_notification, bypassing the service write path, so each adds the same gate) + subscribe events (sendSubscribeForOrderEvent/Notification scenario mapping PAY/REFUND/VERIFIED/RESCHEDULE→system always sent, REMINDER→service_reminder, EXPIRY→card_expiry); when a type is off, both in-app notifications and subscribe messages are skipped |
 
 ---
 
@@ -456,13 +456,13 @@ Flutter Web single-page app with 21 pages: dashboard/users/roles/config/logs/ver
 
 ### 14. Member Card Management (Round 10)
 
-- erik_user.member_level member-level column (migration 000008)
+- appointment_user.member_level member-level column (migration 000008)
 - MemberCardController full CRUD (permissions 365-369): GET/POST/PUT/DELETE /admin/member-cards
 - Flutter member card definition management page
 
 ### 15. After-Sales Management (Round 14)
 
-- erik_order_aftersale table (migration 000009): type=refund/exchange, status=pending/approved/rejected/completed
+- appointment_order_aftersale table (migration 000009): type=refund/exchange, status=pending/approved/rejected/completed
 - AftersaleController: GET /admin/aftersales (paged + status/uid/order_no filters) + POST /admin/aftersales/{id}/review (approve/reject+remark)
 - Flutter after-sales management page (list + review dialog, permissions 370/371), layout registered
 
@@ -483,10 +483,10 @@ Flutter Web single-page app with 21 pages: dashboard/users/roles/config/logs/ver
 
 ### 19. Technician Tier Auto-Rating (Round 17)
 
-- TierRatingService::evaluate(technicianId, allowDowngrade=false): real-time stats of erik_order completed count + erik_order_review average rating (rounded to 1 decimal) written back to profile.order_count/rating, matched high-to-low by erik_technician_tier_config (min_orders/min_rating), no match falls to the lowest tier
+- TierRatingService::evaluate(technicianId, allowDowngrade=false): real-time stats of appointment_order completed count + appointment_order_review average rating (rounded to 1 decimal) written back to profile.order_count/rating, matched high-to-low by appointment_technician_tier_config (min_orders/min_rating), no match falls to the lowest tier
 - Upgrade/downgrade rules: upgrade-only (tier binds commission rate and price coefficient; auto-downgrade affects technician income and easily causes disputes, decline handled manually by admin); downgrade only when allowDowngrade=true (manual re-evaluation scenario), downgrade also logs + notifies
 - Idempotency: when the tier matches profile.tier_id, only stats are synced, no log or notification
-- Logging: changes write erik_technician_tier_log (id/technician_id/old_tier_id/new_tier_id/reason/created_at) + in-app notification (type='tier')
+- Logging: changes write appointment_technician_tier_log (id/technician_id/old_tier_id/new_tier_id/reason/created_at) + in-app notification (type='tier')
 - Trigger points: WorkController::complete / ReviewController review writes / ProfileController profile view lazy check
 - Admin: TechnicianTierController keeps manual config; GET /admin/technician-tiers/logs paged change log (join technician name and old/new tier names, ID hashid encoded, permission 380)
 
@@ -499,26 +499,26 @@ Flutter Web single-page app with 21 pages: dashboard/users/roles/config/logs/ver
 ### 21. Appointment Calendar (Round 20)
 
 - CalendarController month/day views: GET /api/calendar/technician/{id} (month view) + /day (day view)
-- Data source: technician_schedule.time_slots JSON expanded per weekday into hour slots, erik_order booked slots for that day excluded (status ∈ pending/paid/confirmed/serving), remaining bookable slots output
+- Data source: technician_schedule.time_slots JSON expanded per weekday into hour slots, appointment_order booked slots for that day excluded (status ∈ pending/paid/confirmed/serving), remaining bookable slots output
 - Purpose: visual time selection for store scheduling, frontend horizontal scroll by day + tap to select time slots
 
 ### 22. User Growth Levels (Round 20)
 
-- erik_user_growth (records) + erik_growth_level (tier seeds 5 levels: Bronze 0/Silver 100/Gold 500/Platinum 2000/Diamond 5000)
+- appointment_user_growth (records) + appointment_growth_level (tier seeds 5 levels: Bronze 0/Silver 100/Gold 500/Platinum 2000/Diamond 5000)
 - Growth point accrual: check-in +10 (CheckInController); submit review +20 (ReviewController::store, follow-ups don't accrue); consumption floor(paid) 1 point per 1 CNY (WechatPayService::markOrderPaid, reuses existing payment-state recheck, naturally idempotent, duplicate callbacks don't double-accrue)
 - Endpoints: GET /api/growth (current tier overview: balance/level/next-tier gap); GET /api/growth/records (paged records); GET /api/growth/levels (public tier list, no login required)
 - Failure policy: each accrual point try/catch logs, does not affect the main flow
 
 ### 23. E-Invoices (Round 20)
 
-- erik_invoice: uk_order_type(order_id,order_type) prevents duplicate applications for the same order (duplicate 422, incl. MySQL 1062 catch fallback); idx_user_created/idx_status
+- appointment_invoice: uk_order_type(order_id,order_type) prevents duplicate applications for the same order (duplicate 422, incl. MySQL 1062 catch fallback); idx_user_created/idx_status
 - User side: POST /api/invoices (apply, amount/title carried server-side from the order, non-tamperable); GET /api/invoices (list); GET /api/invoices/{id} (detail)
 - Admin: InvoiceController issue (invoice: writes invoice_no + status=issued + issued_at) / reject (reject: status=rejected + reject_reason), permission 382 list/383 issue/384 reject
 - State machine: pending → issued / rejected
 
 ### 24. Support Tickets (Round 20)
 
-- erik_ticket: user submits ticket (title/content), admin replies appended (reply_content/replied_at), user can close (closed_at)
+- appointment_ticket: user submits ticket (title/content), admin replies appended (reply_content/replied_at), user can close (closed_at)
 - User side: POST /api/tickets (submit); GET /api/tickets (list); GET /api/tickets/{id} (detail, own only); POST /api/tickets/{id}/close (close)
 - Admin: TicketController index (list)/reply (reply), static routes defined before resource to avoid {id} shadow; permission 385 ticket reply/387 ticket list view
 - State machine: open → replied (returns to open after reply, can reply again) / closed
@@ -539,14 +539,14 @@ Flutter Web single-page app with 21 pages: dashboard/users/roles/config/logs/ver
 
 ### 27. Invoice Title Management (Round 21)
 
-- erik_invoice_title (uk_user_title(user_id, title_type, invoice_title) prevents duplicates + idx_user_default)
+- appointment_invoice_title (uk_user_title(user_id, title_type, invoice_title) prevents duplicates + idx_user_default)
 - Endpoints: POST /api/invoice-titles (save, company requires tax_no, duplicate 422); GET (list, default first); PUT /{id} (edit, own only); DELETE /{id} (delete, own only); POST /{id}/default (set default, transaction zeroes other rows of the same user)
 - Default rules: first saved auto-default; deleting the default auto-assigns the earliest one
 - Application link: InvoiceController::store optionally accepts title_id — resolves the title into invoice_title/tax_no/title_type, original manual path retained when no title_id; uk_order_type dedup logic unchanged
 
 ### 28. Ticket Satisfaction (Round 21)
 
-- erik_ticket gains rating TINYINT NULL + rated_at DATETIME NULL (migration 000303)
+- appointment_ticket gains rating TINYINT NULL + rated_at DATETIME NULL (migration 000303)
 - Close rating: TicketController::close() supports optional rating 1-5 (filter_var integer validation, out-of-range/non-integer 422; provided → writes rating+rated_at, absent → stays NULL for old clients; open-only close rule retained)
 - Admin stats: GET /admin/tickets/satisfaction (static route before resource to avoid {id} shadow) returns total/rated_count/unrated_count/average (1 decimal)/distribution (1-5 star counts, missing stars filled with 0); permission 388
 
@@ -559,13 +559,13 @@ Flutter Web single-page app with 21 pages: dashboard/users/roles/config/logs/ver
 
 ### 30. User Browse History (Round 21)
 
-- erik_browse_history (uk_user_item(user_id, item_id) unique, re-browse only refreshes viewed_at, no duplicate insert; idx_user_viewed ordering)
+- appointment_browse_history (uk_user_item(user_id, item_id) unique, re-browse only refreshes viewed_at, no duplicate insert; idx_user_viewed ordering)
 - Recording hook: ServiceController::detail() records on success (try/catch + Log::warning doesn't affect the main flow; public route has no JWT, user_id null check skips anonymous)
-- Endpoints: GET /api/browse-history (join erik_service name/cover/price/original price, viewed_at descending, per_page default 15 max 50, item_id hashid); DELETE /{item_id} (own only, invalid/other's 404); DELETE / (clear own only)
+- Endpoints: GET /api/browse-history (join appointment_service name/cover/price/original price, viewed_at descending, per_page default 15 max 50, item_id hashid); DELETE /{item_id} (own only, invalid/other's 404); DELETE / (clear own only)
 
 ### 31. Full-Reduction Promotions (Round 22)
 
-- erik_full_reduction_activity (threshold/reduction/title/status/start_at/end_at + idx_status_status_time)
+- appointment_full_reduction_activity (threshold/reduction/title/status/start_at/end_at + idx_status_status_time)
 - Order stacking: standard orders only (group-buy/flash skip), threshold judged on the amount after coupon/session-card deduction, order **coupon/session card → full reduction → tier discount**; picks the activity with the largest reduction; discount merged into discount_amount + remark "满减：满X减Y"; post-reduction actual pay floor 0.01 CNY (in cents)
 - User side GET /api/full-reduction-activities (public, active ones sorted by reduction descending)
 - admin FullReductionController: CRUD + toggle-status on/off shelf (destroy with confirmPassword)
@@ -579,29 +579,29 @@ Flutter Web single-page app with 21 pages: dashboard/users/roles/config/logs/ver
 
 ### 33. Technician Attendance (Round 22)
 
-- erik_technician_attendance (date/check_in_at/check_out_at/status + uk_technician_date unique index prevents concurrent duplicate check-ins)
+- appointment_technician_attendance (date/check_in_at/check_out_at/status + uk_technician_date unique index prevents concurrent duplicate check-ins)
 - Technician side (TechnicianAuth): check-in duplicate same day 422; check-out without check-in/already checked out 422 + row lock; >10:00 marks late; GET current month list + attendance days/total hours/average hours (?month=YYYY-MM invalid 422)
 - admin: GET /admin/attendance (date+technician name filter, join real_name, hashid) + /stats (grouped per-technician statistics)
 - Permissions: 392 list / 393 stats
 
 ### 34. APP Push Service (Round 22)
 
-- AppPushService (config group=push: enabled default 0 / provider jpush/getui/placeholder): when disabled silently degrades to logging only; when enabled builds platform/title/content/payload structure, logs + writes erik_push_log (status=sent); vendor SDK integration left as TODO (no credentials, nothing actually sent)
+- AppPushService (config group=push: enabled default 0 / provider jpush/getui/placeholder): when disabled silently degrades to logging only; when enabled builds platform/title/content/payload structure, logs + writes appointment_push_log (status=sent); vendor SDK integration left as TODO (no credentials, nothing actually sent)
 - 5 event hooks: payment success (WechatPayService::markOrderPaid), auto refund (autoRefundCancelledOrder), manual refund (doRefund/refundToBalance), refund compensation (completeOneRefundCompensation), pre-service reminder (ServiceReminderTimer); all try/catch, never blocking the main flow
-- erik_push_log (user_id/title/content/payload JSON/status/provider + idx_user)
+- appointment_push_log (user_id/title/content/payload JSON/status/provider + idx_user)
 
 ### 35. WeChat Official Profit Sharing (Round 22)
 
 - WechatProfitSharingService (config group=profit_sharing: enabled/receiver_ratio, credentials reuse wechat_pay): disabled → degraded to logging only, no DB writes; enabled → amount validation (>0 and ≤paid, actual paid×0.7 default) + idempotency (same order pending/success skipped) → writes pending record → builds "request single profit sharing" structure (no credentials, no HTTP executed, request content logged, record stays pending); private HTTP-isolated doRequest is testable
 - WechatPayService::markOrderPaid hooks requestSharing after submission (try/catch, failure only logged)
-- erik_profit_sharing (uk_sharing_no unique + idx_order); admin GET /admin/profit-sharing list (join order number/technician nickname, status/order number/technician name filters)
+- appointment_profit_sharing (uk_sharing_no unique + idx_order); admin GET /admin/profit-sharing list (join order number/technician nickname, status/order number/technician name filters)
 - Permission: 394
 
 ### 36. Privacy Compliance (Round 22)
 
 - GET /api/privacy/data: data export (personal/orders/points/wallet_txns/reviews/addresses/invoices grouped; logs only record masked phone + counts)
 - Deletion loop: close-request (balance non-zero / unfinished orders / in-progress tickets 422 → close_status=1) → close-cancel (1→0) → close-confirm (after 72h → close_status=2 + close_at + phone/nickname anonymized to user{id} + status=0)
-- erik_user gains close_status/close_requested_at/close_at (idempotent ALTER migration); AuthController login/loginByCode return 403 "账号已注销" for close_status=2
+- appointment_user gains close_status/close_requested_at/close_at (idempotent ALTER migration); AuthController login/loginByCode return 403 "账号已注销" for close_status=2
 
 ### 37. User Health Profile (Round 23)
 
@@ -633,7 +633,7 @@ Flutter Web single-page app with 21 pages: dashboard/users/roles/config/logs/ver
 - GET /api/wheel/prizes (hides weight/stock); POST /api/wheel/spin: Redis NX + row lock prevents concurrency, random_int weighted draw, client_token idempotent
 - Prize crediting: points→earn record (with expiry time, can be expired normally by PointsExpiryTimer), balance→lockForUpdate, coupon→pending manual issue, no-prize→lose
 - GET /api/wheel/records my records paged; admin /admin/lucky-wheel CRUD + on/off shelf + records (permissions 401-406)
-- Migrations 000503 (erik_lucky_wheel + erik_wheel_record + w60/w40 demo seeds) + 000505 (permission seeds); LuckyWheelTest admin 3 + service 6 tests
+- Migrations 000503 (appointment_lucky_wheel + appointment_wheel_record + w60/w40 demo seeds) + 000505 (permission seeds); LuckyWheelTest admin 3 + service 6 tests
 
 ### 42. Guest Mode (Round 24)
 
@@ -643,21 +643,21 @@ Flutter Web single-page app with 21 pages: dashboard/users/roles/config/logs/ver
 
 ### 43. Flash Sale (Round 24)
 
-- erik_seckill_activity (name/service_id/seckill_price/original_price/stock/start_at/end_at/status); sold count = erik_order.seckill_id order count
+- appointment_seckill_activity (name/service_id/seckill_price/original_price/stock/start_at/end_at/status); sold count = appointment_order.seckill_id order count
 - GET /api/seckill (status=1 + time window), /{id} (state=not_started/ongoing/ended), POST /{id}/buy: client_token (8-64 chars, SETNX 24h) idempotency + Redis NX 30s concurrency prevention + activity validation (no stock pre-deduction since 2026-08-26)
 - Order injection: seckill_id reuses OrderController::store; stock uniformly deducted by row lock inside store() transaction (calling /api/order directly with seckill_id also deducts stock), flash price = seckill_price (DB authoritative), no coupon/points/member-card stacking; order cancellation does not restore stock; old FLASH_SALE promotion channel removed (store() promo branch now only handles group buying, PromotionController index filters flash_sale, show/join 400), flash sales only go through this channel
 - admin /admin/seckill CRUD + on/off shelf + order list (permissions 407-411, 420); migration 000606 permission seeds; SeckillTest service + admin
 
 ### 44. APP Version Management & Update Check (Round 24)
 
-- erik_app_version (platform/version_code/version_name/force_update/changelog/download_url/status)
+- appointment_app_version (platform/version_code/version_name/force_update/changelog/download_url/status)
 - GET /api/app/version?platform=android|ios public update check (invalid platform 422; latest among status=1; empty object when none)
 - admin /admin/versions CRUD (permissions 416-419); migration 000609 permission seeds; VersionTest service + admin
 
 ### 45. Return-Customer Rewards (Round 24)
 
 - ReturnCustomerRewardService: when a user's 2nd consumption with the same technician within 30 days completes (order complete), pays the technician a bonus = actual paid_amount × ratio (system_config group=return_customer, ratio default 0.05, enabled switch, invalid values fall back to defaults)
-- Written to erik_technician_earnings (type=return_customer, status=pending) reusing the commission settlement chain, automatically included in technician earnings summaries; idempotent by order_id+type; called inside WorkController::complete row-lock transaction
+- Written to appointment_technician_earnings (type=return_customer, status=pending) reusing the commission settlement chain, automatically included in technician earnings summaries; idempotent by order_id+type; called inside WorkController::complete row-lock transaction
 - admin /admin/return-customer/config (GET/PUT) + /rewards (?keyword technician name/order number/user nickname) (permissions 412-414); migration 000607 permission seeds; ReturnCustomerRewardServiceTest
 
 ### 46. Schedule Export (Round 24)

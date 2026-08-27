@@ -71,7 +71,7 @@ Cors → Security(31种攻击检测) → RateLimit → Auth(JWT+用户状态)
 
 ### بادئة الجداول
 
-بادئة موحدة `erik_`، تُكوَّن في `config/database.php`. يكتب Model اسم الجدول الأصلي ويضيف ORM البادئة تلقائيًا.
+بادئة موحدة `appointment_`، تُكوَّن في `config/database.php`. يكتب Model اسم الجدول الأصلي ويضيف ORM البادئة تلقائيًا.
 
 ### تشفير الحقول الحساسة
 
@@ -147,7 +147,7 @@ use Erikwang2013\WebmanScout\Searchable;
 class Service extends Model
 {
     use Searchable;
-    public function searchableAs(): string { return 'erik_services'; }
+    public function searchableAs(): string { return 'appointment_services'; }
 }
 ```
 

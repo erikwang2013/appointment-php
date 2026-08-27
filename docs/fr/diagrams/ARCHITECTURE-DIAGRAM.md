@@ -34,7 +34,7 @@ graph TB
     end
 
     subgraph DATA_LAYER["Couche de données"]
-        MySQL[("MySQL 8.0<br/>55+ tables · préfixe erik_<br/>clés primaires BIGINT Snowflake")]
+        MySQL[("MySQL 8.0<br/>55+ tables · préfixe appointment_<br/>clés primaires BIGINT Snowflake")]
         Redis[("Redis<br/>cache/limitation/session<br/>file d'attente/verrous techniciens<br/>cache de listes svc:*")]
         ES[("Elasticsearch<br/>recherche plein texte<br/>synchronisation automatique webman-scout")]
     end

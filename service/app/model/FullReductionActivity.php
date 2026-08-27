@@ -15,7 +15,7 @@ use support\Model;
  */
 class FullReductionActivity extends Model
 {
-    protected $table = 'erik_full_reduction_activity';
+    protected $table = 'appointment_full_reduction_activity';
 
     public $timestamps = true;
 

@@ -99,7 +99,7 @@ class StoreController extends BaseController
 
         $verificationCount = OrderVerification::where('verified_at', '>=', $todayStart)
             ->whereIn('order_id', function ($q) use ($storeId) {
-                $q->select('id')->from('erik_order')->where('store_id', $storeId);
+                $q->select('id')->from('appointment_order')->where('store_id', $storeId);
             })
             ->count();
 

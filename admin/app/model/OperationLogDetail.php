@@ -11,7 +11,7 @@ use support\Model;
 
 class OperationLogDetail extends Model
 {
-    protected $table = 'erik_operation_log_detail';
+    protected $table = 'appointment_operation_log_detail';
     protected $primaryKey = 'id';
     public $incrementing = false;
     public $timestamps = false;

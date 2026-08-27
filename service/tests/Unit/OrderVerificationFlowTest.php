@@ -20,7 +20,7 @@ use Webman\Http\Response;
  * 扫码核销闭环集成测试（技师端 verify-by-code）
  *
  * 覆盖：
- * - 正常核销：paid → serving 状态推进 + 写 erik_order_verification + 站内通知用户
+ * - 正常核销：paid → serving 状态推进 + 写 appointment_order_verification + 站内通知用户
  * - 水平越权：非订单所属技师核销被拒（M1）
  * - 幂等：同 code 重复核销返回已核销（不报错）
  * - 状态机：未支付（pending）订单拒绝核销

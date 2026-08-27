@@ -139,7 +139,7 @@ class ServiceReminderTimer
             }
 
             $id = Notification::generateId();
-            Db::table('erik_notification')->insert([
+            Db::table('appointment_notification')->insert([
                 'id'         => $id,
                 'user_id'    => $order->user_id,
                 'type'       => self::NOTIFY_TYPE,

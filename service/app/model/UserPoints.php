@@ -10,7 +10,7 @@ use support\Model;
 
 class UserPoints extends Model
 {
-    protected $table = 'erik_user_points';
+    protected $table = 'appointment_user_points';
     public $incrementing = false;
     protected $keyType = 'string';
     public $timestamps = true;
@@ -21,12 +21,12 @@ class UserPoints extends Model
     ];
 
     /**
-     * 积分有效期（天）：erik_system_config (group=points, key=expiry_days)，缺省 365
+     * 积分有效期（天）：appointment_system_config (group=points, key=expiry_days)，缺省 365
      */
     public static function expiryDays(): int
     {
         try {
-            $value = Db::table('erik_system_config')
+            $value = Db::table('appointment_system_config')
                 ->where('group', 'points')
                 ->where('key', 'expiry_days')
                 ->value('value');

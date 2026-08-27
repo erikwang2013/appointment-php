@@ -34,7 +34,7 @@ graph TB
     end
 
     subgraph data_layer["डेटा परत"]
-        MySQL[("MySQL 8.0<br/>55+ टेबल · erik_ प्रीफ़िक्स<br/>BIGINT Snowflake प्राइमरी की")]
+        MySQL[("MySQL 8.0<br/>55+ टेबल · appointment_ प्रीफ़िक्स<br/>BIGINT Snowflake प्राइमरी की")]
         Redis[("Redis<br/>कैश/रेट-लिमिट/Session<br/>क्यू/तकनीशियन लॉक<br/>svc:* लिस्ट कैश")]
         ES[("Elasticsearch<br/>फुल-टेक्स्ट खोज<br/>webman-scout ऑटो सिंक")]
     end

@@ -9,7 +9,7 @@ use support\Model;
 
 class Announcement extends Model
 {
-    protected $table = 'erik_announcement';
+    protected $table = 'appointment_announcement';
     public $incrementing = false;
     protected $keyType = 'string';
     public $timestamps = true;

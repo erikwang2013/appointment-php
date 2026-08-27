@@ -71,7 +71,7 @@ Cors → Security(31種の攻撃検知) → RateLimit → Auth(JWT+ユーザー�
 
 ### テーブルプレフィックス
 
-統一 `erik_` プレフィックス、`config/database.php` で設定。Modelは元のテーブル名を書き、ORMが自動的にプレフィックスを付与します。
+統一 `appointment_` プレフィックス、`config/database.php` で設定。Modelは元のテーブル名を書き、ORMが自動的にプレフィックスを付与します。
 
 ### 機密フィールドの暗号化
 
@@ -147,7 +147,7 @@ use Erikwang2013\WebmanScout\Searchable;
 class Service extends Model
 {
     use Searchable;
-    public function searchableAs(): string { return 'erik_services'; }
+    public function searchableAs(): string { return 'appointment_services'; }
 }
 ```
 

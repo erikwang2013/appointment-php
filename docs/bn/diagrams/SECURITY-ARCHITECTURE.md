@@ -191,10 +191,10 @@ flowchart LR
     end
 
     subgraph DB存储["DB স্তর স্টোরেজ"]
-        D1["erik_user.phone<br/>প্লেইনটেক্সট সংরক্ষণ<br/>লগইন/ডুপ্লিকেট চেক প্লেইনটেক্সট কোয়েরিতে নির্ভর"]
-        D2["erik_technician_profile<br/>.id_card VARCHAR(500)<br/>encryptable এনক্রিপ্টেড"]
-        D3["erik_user.wx_openid<br/>প্লেইনটেক্সট সংরক্ষণ"]
-        D4["erik_user.real_name<br/>encryptable এনক্রিপ্টেড"]
+        D1["appointment_user.phone<br/>প্লেইনটেক্সট সংরক্ষণ<br/>লগইন/ডুপ্লিকেট চেক প্লেইনটেক্সট কোয়েরিতে নির্ভর"]
+        D2["appointment_technician_profile<br/>.id_card VARCHAR(500)<br/>encryptable এনক্রিপ্টেড"]
+        D3["appointment_user.wx_openid<br/>প্লেইনটেক্সট সংরক্ষণ"]
+        D4["appointment_user.real_name<br/>encryptable এনক্রিপ্টেড"]
     end
 
     subgraph ID处理["ID প্রসেসিং (hashids + snowflake)"]

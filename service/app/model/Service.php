@@ -13,7 +13,7 @@ class Service extends Model
 {
     use Searchable, SoftDeletes;
 
-    protected $table = 'erik_service';
+    protected $table = 'appointment_service';
     public $incrementing = false;
     protected $keyType = 'string';
     public $timestamps = true;
@@ -42,7 +42,7 @@ class Service extends Model
      */
     public function searchableAs(): string
     {
-        return 'erik_services';
+        return 'appointment_services';
     }
 
     /**

@@ -295,15 +295,15 @@ service/
 │   │   ├── Security                # 보안 탐지(security-php)
 │   │   └── TechnicianAuth          # 기술자 신원 검증
 │   └── model/                   # 데이터 모델(81개)
-│       ├── User.php → erik_user
-│       ├── TechnicianProfile.php → erik_technician_profile
-│       ├── Service.php → erik_service (ES: erik_services)
-│       ├── Product.php → erik_product (ES: erik_products)
-│       ├── Store.php → erik_store
-│       ├── Order.php → erik_order (환불 규칙/상태 머신 포함)
-│       ├── Coupon.php → erik_coupon
-│       ├── MemberCard.php → erik_member_card
-│       ├── Notification.php → erik_notification
+│       ├── User.php → appointment_user
+│       ├── TechnicianProfile.php → appointment_technician_profile
+│       ├── Service.php → appointment_service (ES: appointment_services)
+│       ├── Product.php → appointment_product (ES: appointment_products)
+│       ├── Store.php → appointment_store
+│       ├── Order.php → appointment_order (환불 규칙/상태 머신 포함)
+│       ├── Coupon.php → appointment_coupon
+│       ├── MemberCard.php → appointment_member_card
+│       ├── Notification.php → appointment_notification
 │       └── ... (모델 파일 총 81개; admin에 특유 모델 6개 추가, 합계 87)
 ├── config/                     # 설정 파일
 ├── public/                     # 진입점
@@ -435,111 +435,111 @@ apps/flutter/
 
 ## 데이터베이스 테이블 목록
 
-모든 테이블은 `erik_` 접두사, BIGINT 비자동증가 기본 키(Snowflake 생성).
+모든 테이블은 `appointment_` 접두사, BIGINT 비자동증가 기본 키(Snowflake 생성).
 
 | 도메인 | 테이블명 | 설명 |
 |----|------|------|
-| 사용자 | erik_user | 통일 사용자 테이블 |
-| 사용자 | erik_user_address | 배송 주소 |
-| 기술자 | erik_technician_profile | 기술자 프로필 |
-| 기술자 | erik_technician_schedule | 기술자 스케줄 |
-| 기술자 | erik_technician_service | 기술자 제공 가능 서비스 항목 |
-| 기술자 | erik_technician_earnings | 기술자 수익 거래 내역 |
-| 기술자 | erik_technician_withdrawal | 기술자 출금 기록 |
-| 기술자 | erik_technician_attendance | 기술자 근태 |
-| 기술자 | erik_technician_member_note | 회원 프로필 |
-| 서비스 | erik_service_category | 서비스 분류 |
-| 서비스 | erik_service | 서비스 항목 |
-| 서비스 | erik_product | 상품 |
-| 서비스 | erik_store | 매장 |
-| 주문 | erik_order | 주문 메인 테이블(번개세일 seckill_id 연관 컬럼, 24차 라운드) |
-| 주문 | erik_order_item | 주문 명세 |
-| 주문 | erik_order_payment | 결제 기록 |
-| 주문 | erik_order_refund | 환불 기록 |
-| 주문 | erik_order_review | 서비스 평가 |
-| 주문 | erik_order_verification | 검증 기록 |
-| 주문 | erik_order_reschedule | 예약 일정 변경 기록(17차 라운드) |
-| 마케팅 | erik_coupon | 쿠폰 정의 |
-| 마케팅 | erik_user_coupon | 사용자 쿠폰 |
-| 마케팅 | erik_user_coupon_transfer | 쿠폰 양도 기록(17차 라운드) |
-| 마케팅 | erik_user_points_transfer | 포인트 양도 기록(19차 라운드) |
-| 마케팅 | erik_technician_tier_log | 기술자 등급 변경 로그(17차 라운드) |
-| 마케팅 | erik_member_card | 멤버십 카드 정의 |
-| 마케팅 | erik_user_member_card | 사용자 멤버십 카드 |
-| 마케팅 | erik_member_card_usage | 횟수권 사용 기록 |
-| 마케팅 | erik_user_points | 포인트 거래 내역 |
-| 마케팅 | erik_gift_card | 선물 카드 |
-| 마케팅 | erik_user_referral | 사용자 홍보 |
-| 마케팅 | erik_user_favorite | 사용자 즐겨찾기 |
-| 지갑 | erik_user_wallet | 사용자 지갑 잔액 |
-| 지갑 | erik_wallet_recharge | 지갑 충전 기록 |
-| 지갑 | erik_wallet_txn | 지갑 거래 내역 |
-| 지갑 | erik_wallet_transfer | 사용자 간 이체 기록(19차 라운드) |
-| 사용자 | erik_user_notify_setting | 알림 수신 설정(19차 라운드) |
-| 콘텐츠 | erik_banner | 배너 |
-| 콘텐츠 | erik_announcement | 공지 |
-| 콘텐츠 | erik_platform_agreement | 플랫폼 약관 |
-| 콘텐츠 | erik_faq | FAQ |
-| 콘텐츠 | erik_feedback | 의견 피드백 |
-| 콘텐츠 | erik_moment | SNS 동향 |
-| 콘텐츠 | erik_notification | 메시지 알림 |
-| 재무 | erik_finance_transaction | 수입 지출 거래 내역 |
-| 재무 | erik_technician_commission_config | 수수료 설정 |
-| 재무 | erik_withdrawal_account | 출금 계좌 |
-| 재무 | erik_withdrawal_config | 출금 제한 설정 |
-| 시스템 | erik_admin_user | 관리 사용자(생성됨) |
-| 시스템 | erik_admin_role | 역할(생성됨) |
-| 시스템 | erik_admin_permission | 권한(생성됨) |
-| 시스템 | erik_admin_user_role | 사용자 역할 연관(생성됨) |
-| 시스템 | erik_admin_role_permission | 역할 권한 연관(생성됨) |
-| 시스템 | erik_system_config | 시스템 설정(생성됨) |
-| 시스템 | erik_operation_log | 조작 로그(생성됨) |
-| 사용자 | erik_user_growth | 성장값 거래 내역(20차 라운드) |
-| 사용자 | erik_growth_level | 성장 등급 단계(20차 라운드) |
-| 주문 | erik_invoice | 전자 세금계산서(20차 라운드) |
-| 사용자 | erik_ticket | 고객센터 티켓(20차 라운드) |
-| 마케팅 | erik_referral_level2_reward | 2단계 수수료 기록(20차 라운드) |
-| 사용자 | erik_invoice_title | 세금계산서 발행자 라이브러리(21차 라운드) |
-| 사용자 | erik_browse_history | 조회 이력(21차 라운드) |
-| 마케팅 | erik_full_reduction_activity | 만 N 원 할인 활동(22차 라운드) |
-| 기술자 | erik_technician_attendance | 기술자 근태(22차 라운드) |
-| 시스템 | erik_push_log | APP 푸시 기록(22차 라운드) |
-| 재무 | erik_profit_sharing | 위챗 분배금 기록(22차 라운드) |
-| 주문 | erik_order_status_log | 주문 상태 타임라인(23차 라운드) |
-| 사용자 | erik_user_health_profile | 사용자 건강 프로필(23차 라운드) |
-| 마케팅 | erik_lucky_wheel | 룰렛 상품 정의(23차 라운드) |
-| 마케팅 | erik_wheel_record | 룰렛 추첨 기록(23차 라운드) |
-| 마케팅 | erik_seckill_activity | 번개세일 활동(24차 라운드) |
-| 시스템 | erik_app_version | APP 버전(24차 라운드) |
+| 사용자 | appointment_user | 통일 사용자 테이블 |
+| 사용자 | appointment_user_address | 배송 주소 |
+| 기술자 | appointment_technician_profile | 기술자 프로필 |
+| 기술자 | appointment_technician_schedule | 기술자 스케줄 |
+| 기술자 | appointment_technician_service | 기술자 제공 가능 서비스 항목 |
+| 기술자 | appointment_technician_earnings | 기술자 수익 거래 내역 |
+| 기술자 | appointment_technician_withdrawal | 기술자 출금 기록 |
+| 기술자 | appointment_technician_attendance | 기술자 근태 |
+| 기술자 | appointment_technician_member_note | 회원 프로필 |
+| 서비스 | appointment_service_category | 서비스 분류 |
+| 서비스 | appointment_service | 서비스 항목 |
+| 서비스 | appointment_product | 상품 |
+| 서비스 | appointment_store | 매장 |
+| 주문 | appointment_order | 주문 메인 테이블(번개세일 seckill_id 연관 컬럼, 24차 라운드) |
+| 주문 | appointment_order_item | 주문 명세 |
+| 주문 | appointment_order_payment | 결제 기록 |
+| 주문 | appointment_order_refund | 환불 기록 |
+| 주문 | appointment_order_review | 서비스 평가 |
+| 주문 | appointment_order_verification | 검증 기록 |
+| 주문 | appointment_order_reschedule | 예약 일정 변경 기록(17차 라운드) |
+| 마케팅 | appointment_coupon | 쿠폰 정의 |
+| 마케팅 | appointment_user_coupon | 사용자 쿠폰 |
+| 마케팅 | appointment_user_coupon_transfer | 쿠폰 양도 기록(17차 라운드) |
+| 마케팅 | appointment_user_points_transfer | 포인트 양도 기록(19차 라운드) |
+| 마케팅 | appointment_technician_tier_log | 기술자 등급 변경 로그(17차 라운드) |
+| 마케팅 | appointment_member_card | 멤버십 카드 정의 |
+| 마케팅 | appointment_user_member_card | 사용자 멤버십 카드 |
+| 마케팅 | appointment_member_card_usage | 횟수권 사용 기록 |
+| 마케팅 | appointment_user_points | 포인트 거래 내역 |
+| 마케팅 | appointment_gift_card | 선물 카드 |
+| 마케팅 | appointment_user_referral | 사용자 홍보 |
+| 마케팅 | appointment_user_favorite | 사용자 즐겨찾기 |
+| 지갑 | appointment_user_wallet | 사용자 지갑 잔액 |
+| 지갑 | appointment_wallet_recharge | 지갑 충전 기록 |
+| 지갑 | appointment_wallet_txn | 지갑 거래 내역 |
+| 지갑 | appointment_wallet_transfer | 사용자 간 이체 기록(19차 라운드) |
+| 사용자 | appointment_user_notify_setting | 알림 수신 설정(19차 라운드) |
+| 콘텐츠 | appointment_banner | 배너 |
+| 콘텐츠 | appointment_announcement | 공지 |
+| 콘텐츠 | appointment_platform_agreement | 플랫폼 약관 |
+| 콘텐츠 | appointment_faq | FAQ |
+| 콘텐츠 | appointment_feedback | 의견 피드백 |
+| 콘텐츠 | appointment_moment | SNS 동향 |
+| 콘텐츠 | appointment_notification | 메시지 알림 |
+| 재무 | appointment_finance_transaction | 수입 지출 거래 내역 |
+| 재무 | appointment_technician_commission_config | 수수료 설정 |
+| 재무 | appointment_withdrawal_account | 출금 계좌 |
+| 재무 | appointment_withdrawal_config | 출금 제한 설정 |
+| 시스템 | appointment_admin_user | 관리 사용자(생성됨) |
+| 시스템 | appointment_admin_role | 역할(생성됨) |
+| 시스템 | appointment_admin_permission | 권한(생성됨) |
+| 시스템 | appointment_admin_user_role | 사용자 역할 연관(생성됨) |
+| 시스템 | appointment_admin_role_permission | 역할 권한 연관(생성됨) |
+| 시스템 | appointment_system_config | 시스템 설정(생성됨) |
+| 시스템 | appointment_operation_log | 조작 로그(생성됨) |
+| 사용자 | appointment_user_growth | 성장값 거래 내역(20차 라운드) |
+| 사용자 | appointment_growth_level | 성장 등급 단계(20차 라운드) |
+| 주문 | appointment_invoice | 전자 세금계산서(20차 라운드) |
+| 사용자 | appointment_ticket | 고객센터 티켓(20차 라운드) |
+| 마케팅 | appointment_referral_level2_reward | 2단계 수수료 기록(20차 라운드) |
+| 사용자 | appointment_invoice_title | 세금계산서 발행자 라이브러리(21차 라운드) |
+| 사용자 | appointment_browse_history | 조회 이력(21차 라운드) |
+| 마케팅 | appointment_full_reduction_activity | 만 N 원 할인 활동(22차 라운드) |
+| 기술자 | appointment_technician_attendance | 기술자 근태(22차 라운드) |
+| 시스템 | appointment_push_log | APP 푸시 기록(22차 라운드) |
+| 재무 | appointment_profit_sharing | 위챗 분배금 기록(22차 라운드) |
+| 주문 | appointment_order_status_log | 주문 상태 타임라인(23차 라운드) |
+| 사용자 | appointment_user_health_profile | 사용자 건강 프로필(23차 라운드) |
+| 마케팅 | appointment_lucky_wheel | 룰렛 상품 정의(23차 라운드) |
+| 마케팅 | appointment_wheel_record | 룰렛 추첨 기록(23차 라운드) |
+| 마케팅 | appointment_seckill_activity | 번개세일 활동(24차 라운드) |
+| 시스템 | appointment_app_version | APP 버전(24차 라운드) |
 
 ### 보충 목록(docs/install.sql 95개 테이블 중 위에 나열되지 않은 부분, 완전한 권위 목록은 install.sql 기준)
 
 | 도메인 | 테이블명 | 설명 |
 |----|------|------|
-| 마케팅 | erik_card_transfer | 횟수권 양도 |
-| 사용자 | erik_check_in | 출석 체크인 |
-| 콘텐츠 | erik_community_post | 커뮤니티 동향 |
-| 콘텐츠 | erik_community_comment | 커뮤니티 댓글 |
-| 기술자 | erik_exam | 평가 |
-| 기술자 | erik_exam_question | 평가 문제 |
-| 기술자 | erik_exam_attempt | 평가 답안 |
-| 시스템 | erik_operation_log_detail | 조작 로그 상세 |
-| 주문 | erik_order_aftersale | 주문 애프터서비스 |
-| 마케팅 | erik_points_exchange_goods | 포인트 교환 상품 |
-| 마케팅 | erik_promotion | 공동구매 활동 |
-| 마케팅 | erik_promotion_participant | 공동구매 참여자 |
-| 주문 | erik_queue_number | 대기 순번 호출 |
-| 서비스 | erik_service_package | 서비스 패키지 |
-| 기술자 | erik_service_record | 서비스 기록 |
-| 콘텐츠 | erik_share | 공유 기록 |
-| 주문 | erik_signature | 서명 |
-| 기술자 | erik_technician_tier_config | 기술자 등급 설정 |
-| 기술자 | erik_training_course | 교육 강좌 |
-| 기술자 | erik_training_progress | 교육 진행도 |
-| 사용자 | erik_user_device | 사용자 기기 |
-| 마케팅 | erik_user_points_exchange | 포인트 교환 기록 |
-| 콘텐츠 | erik_video_post | 영상 동향 |
-| 주문 | erik_waitlist | 대기 명단 |
+| 마케팅 | appointment_card_transfer | 횟수권 양도 |
+| 사용자 | appointment_check_in | 출석 체크인 |
+| 콘텐츠 | appointment_community_post | 커뮤니티 동향 |
+| 콘텐츠 | appointment_community_comment | 커뮤니티 댓글 |
+| 기술자 | appointment_exam | 평가 |
+| 기술자 | appointment_exam_question | 평가 문제 |
+| 기술자 | appointment_exam_attempt | 평가 답안 |
+| 시스템 | appointment_operation_log_detail | 조작 로그 상세 |
+| 주문 | appointment_order_aftersale | 주문 애프터서비스 |
+| 마케팅 | appointment_points_exchange_goods | 포인트 교환 상품 |
+| 마케팅 | appointment_promotion | 공동구매 활동 |
+| 마케팅 | appointment_promotion_participant | 공동구매 참여자 |
+| 주문 | appointment_queue_number | 대기 순번 호출 |
+| 서비스 | appointment_service_package | 서비스 패키지 |
+| 기술자 | appointment_service_record | 서비스 기록 |
+| 콘텐츠 | appointment_share | 공유 기록 |
+| 주문 | appointment_signature | 서명 |
+| 기술자 | appointment_technician_tier_config | 기술자 등급 설정 |
+| 기술자 | appointment_training_course | 교육 강좌 |
+| 기술자 | appointment_training_progress | 교육 진행도 |
+| 사용자 | appointment_user_device | 사용자 기기 |
+| 마케팅 | appointment_user_points_exchange | 포인트 교환 기록 |
+| 콘텐츠 | appointment_video_post | 영상 동향 |
+| 주문 | appointment_waitlist | 대기 명단 |
 
 ## 외부 서비스 예약
 

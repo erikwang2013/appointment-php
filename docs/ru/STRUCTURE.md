@@ -295,15 +295,15 @@ service/
 │   │   ├── Security                # Проверка безопасности (security-php)
 │   │   └── TechnicianAuth          # Проверка роли мастера
 │   └── model/                   # Модели данных (81)
-│       ├── User.php → erik_user
-│       ├── TechnicianProfile.php → erik_technician_profile
-│       ├── Service.php → erik_service (ES: erik_services)
-│       ├── Product.php → erik_product (ES: erik_products)
-│       ├── Store.php → erik_store
-│       ├── Order.php → erik_order (включая правила возврата/конечный автомат)
-│       ├── Coupon.php → erik_coupon
-│       ├── MemberCard.php → erik_member_card
-│       ├── Notification.php → erik_notification
+│       ├── User.php → appointment_user
+│       ├── TechnicianProfile.php → appointment_technician_profile
+│       ├── Service.php → appointment_service (ES: appointment_services)
+│       ├── Product.php → appointment_product (ES: appointment_products)
+│       ├── Store.php → appointment_store
+│       ├── Order.php → appointment_order (включая правила возврата/конечный автомат)
+│       ├── Coupon.php → appointment_coupon
+│       ├── MemberCard.php → appointment_member_card
+│       ├── Notification.php → appointment_notification
 │       └── ... (всего 81 файл моделей; в admin ещё 6 собственных, итого 87)
 ├── config/                     # Файлы конфигурации
 ├── public/                     # Точки входа
@@ -435,111 +435,111 @@ API мастера:  Cors → Security → RateLimit → Auth → TechnicianAuth
 
 ## Список таблиц БД
 
-Все таблицы используют префикс `erik_`, первичный ключ BIGINT без автоинкремента (генерируется Snowflake).
+Все таблицы используют префикс `appointment_`, первичный ключ BIGINT без автоинкремента (генерируется Snowflake).
 
 | Домен | Таблица | Описание |
 |----|------|------|
-| Пользователи | erik_user | Единая таблица пользователей |
-| Пользователи | erik_user_address | Адреса доставки |
-| Мастера | erik_technician_profile | Анкета мастера |
-| Мастера | erik_technician_schedule | Расписание мастера |
-| Мастера | erik_technician_service | Услуги, которые может оказывать мастер |
-| Мастера | erik_technician_earnings | Записи дохода мастера |
-| Мастера | erik_technician_withdrawal | Записи вывода средств мастера |
-| Мастера | erik_technician_attendance | Учёт рабочего времени мастера |
-| Мастера | erik_technician_member_note | Анкеты участников |
-| Услуги | erik_service_category | Категории услуг |
-| Услуги | erik_service | Позиции услуг |
-| Услуги | erik_product | Товары |
-| Услуги | erik_store | Филиалы |
-| Заказы | erik_order | Главная таблица заказов (колонка связи seckill_id, раунд 24) |
-| Заказы | erik_order_item | Позиции заказа |
-| Заказы | erik_order_payment | Записи об оплате |
-| Заказы | erik_order_refund | Записи о возврате |
-| Заказы | erik_order_review | Отзывы об услугах |
-| Заказы | erik_order_verification | Записи подтверждений |
-| Заказы | erik_order_reschedule | Записи о переносе записи (раунд 17) |
-| Маркетинг | erik_coupon | Определения купонов |
-| Маркетинг | erik_user_coupon | Купоны пользователей |
-| Маркетинг | erik_user_coupon_transfer | Записи о передаче купонов (раунд 17) |
-| Маркетинг | erik_user_points_transfer | Записи о передаче бонусов (раунд 19) |
-| Маркетинг | erik_technician_tier_log | Журнал смены уровня мастера (раунд 17) |
-| Маркетинг | erik_member_card | Определения карт участника |
-| Маркетинг | erik_user_member_card | Карты участника пользователей |
-| Маркетинг | erik_member_card_usage | Записи использования карт посещений |
-| Маркетинг | erik_user_points | Записи бонусов |
-| Маркетинг | erik_gift_card | Подарочные карты |
-| Маркетинг | erik_user_referral | Продвижение пользователя |
-| Маркетинг | erik_user_favorite | Избранное пользователя |
-| Кошелёк | erik_user_wallet | Баланс кошелька пользователя |
-| Кошелёк | erik_wallet_recharge | Записи пополнения кошелька |
-| Кошелёк | erik_wallet_txn | Операции кошелька |
-| Кошелёк | erik_wallet_transfer | Записи переводов между пользователями (раунд 19) |
-| Пользователи | erik_user_notify_setting | Настройки уведомлений (раунд 19) |
-| Контент | erik_banner | Карусель |
-| Контент | erik_announcement | Объявления |
-| Контент | erik_platform_agreement | Соглашения платформы |
-| Контент | erik_faq | FAQ |
-| Контент | erik_feedback | Обратная связь |
-| Контент | erik_moment | Публикации |
-| Контент | erik_notification | Уведомления |
-| Финансы | erik_finance_transaction | Доходы и расходы |
-| Финансы | erik_technician_commission_config | Конфигурация комиссии |
-| Финансы | erik_withdrawal_account | Счета вывода |
-| Финансы | erik_withdrawal_config | Конфигурация лимитов вывода |
-| Система | erik_admin_user | Администраторы (создано) |
-| Система | erik_admin_role | Роли (создано) |
-| Система | erik_admin_permission | Права (создано) |
-| Система | erik_admin_user_role | Связь пользователь-роль (создано) |
-| Система | erik_admin_role_permission | Связь роль-право (создано) |
-| Система | erik_system_config | Системная конфигурация (создано) |
-| Система | erik_operation_log | Журнал операций (создано) |
-| Пользователи | erik_user_growth | Записи роста (раунд 20) |
-| Пользователи | erik_growth_level | Уровни роста (раунд 20) |
-| Заказы | erik_invoice | Электронные счета (раунд 20) |
-| Пользователи | erik_ticket | Тикеты поддержки (раунд 20) |
-| Маркетинг | erik_referral_level2_reward | Записи комиссии 2-го уровня (раунд 20) |
-| Пользователи | erik_invoice_title | Библиотека реквизитов счёта (раунд 21) |
-| Пользователи | erik_browse_history | История просмотров (раунд 21) |
-| Маркетинг | erik_full_reduction_activity | Акция «скидка при достижении суммы» (раунд 22) |
-| Мастера | erik_technician_attendance | Учёт рабочего времени мастера (раунд 22) |
-| Система | erik_push_log | Записи APP-пуша (раунд 22) |
-| Финансы | erik_profit_sharing | Записи разделения средств WeChat (раунд 22) |
-| Заказы | erik_order_status_log | Таймлайн статусов заказа (раунд 23) |
-| Пользователи | erik_user_health_profile | Медицинский профиль пользователя (раунд 23) |
-| Маркетинг | erik_lucky_wheel | Определения призов колеса (раунд 23) |
-| Маркетинг | erik_wheel_record | Записи розыгрышей колеса (раунд 23) |
-| Маркетинг | erik_seckill_activity | Акции распродажи (раунд 24) |
-| Система | erik_app_version | Версии APP (раунд 24) |
+| Пользователи | appointment_user | Единая таблица пользователей |
+| Пользователи | appointment_user_address | Адреса доставки |
+| Мастера | appointment_technician_profile | Анкета мастера |
+| Мастера | appointment_technician_schedule | Расписание мастера |
+| Мастера | appointment_technician_service | Услуги, которые может оказывать мастер |
+| Мастера | appointment_technician_earnings | Записи дохода мастера |
+| Мастера | appointment_technician_withdrawal | Записи вывода средств мастера |
+| Мастера | appointment_technician_attendance | Учёт рабочего времени мастера |
+| Мастера | appointment_technician_member_note | Анкеты участников |
+| Услуги | appointment_service_category | Категории услуг |
+| Услуги | appointment_service | Позиции услуг |
+| Услуги | appointment_product | Товары |
+| Услуги | appointment_store | Филиалы |
+| Заказы | appointment_order | Главная таблица заказов (колонка связи seckill_id, раунд 24) |
+| Заказы | appointment_order_item | Позиции заказа |
+| Заказы | appointment_order_payment | Записи об оплате |
+| Заказы | appointment_order_refund | Записи о возврате |
+| Заказы | appointment_order_review | Отзывы об услугах |
+| Заказы | appointment_order_verification | Записи подтверждений |
+| Заказы | appointment_order_reschedule | Записи о переносе записи (раунд 17) |
+| Маркетинг | appointment_coupon | Определения купонов |
+| Маркетинг | appointment_user_coupon | Купоны пользователей |
+| Маркетинг | appointment_user_coupon_transfer | Записи о передаче купонов (раунд 17) |
+| Маркетинг | appointment_user_points_transfer | Записи о передаче бонусов (раунд 19) |
+| Маркетинг | appointment_technician_tier_log | Журнал смены уровня мастера (раунд 17) |
+| Маркетинг | appointment_member_card | Определения карт участника |
+| Маркетинг | appointment_user_member_card | Карты участника пользователей |
+| Маркетинг | appointment_member_card_usage | Записи использования карт посещений |
+| Маркетинг | appointment_user_points | Записи бонусов |
+| Маркетинг | appointment_gift_card | Подарочные карты |
+| Маркетинг | appointment_user_referral | Продвижение пользователя |
+| Маркетинг | appointment_user_favorite | Избранное пользователя |
+| Кошелёк | appointment_user_wallet | Баланс кошелька пользователя |
+| Кошелёк | appointment_wallet_recharge | Записи пополнения кошелька |
+| Кошелёк | appointment_wallet_txn | Операции кошелька |
+| Кошелёк | appointment_wallet_transfer | Записи переводов между пользователями (раунд 19) |
+| Пользователи | appointment_user_notify_setting | Настройки уведомлений (раунд 19) |
+| Контент | appointment_banner | Карусель |
+| Контент | appointment_announcement | Объявления |
+| Контент | appointment_platform_agreement | Соглашения платформы |
+| Контент | appointment_faq | FAQ |
+| Контент | appointment_feedback | Обратная связь |
+| Контент | appointment_moment | Публикации |
+| Контент | appointment_notification | Уведомления |
+| Финансы | appointment_finance_transaction | Доходы и расходы |
+| Финансы | appointment_technician_commission_config | Конфигурация комиссии |
+| Финансы | appointment_withdrawal_account | Счета вывода |
+| Финансы | appointment_withdrawal_config | Конфигурация лимитов вывода |
+| Система | appointment_admin_user | Администраторы (создано) |
+| Система | appointment_admin_role | Роли (создано) |
+| Система | appointment_admin_permission | Права (создано) |
+| Система | appointment_admin_user_role | Связь пользователь-роль (создано) |
+| Система | appointment_admin_role_permission | Связь роль-право (создано) |
+| Система | appointment_system_config | Системная конфигурация (создано) |
+| Система | appointment_operation_log | Журнал операций (создано) |
+| Пользователи | appointment_user_growth | Записи роста (раунд 20) |
+| Пользователи | appointment_growth_level | Уровни роста (раунд 20) |
+| Заказы | appointment_invoice | Электронные счета (раунд 20) |
+| Пользователи | appointment_ticket | Тикеты поддержки (раунд 20) |
+| Маркетинг | appointment_referral_level2_reward | Записи комиссии 2-го уровня (раунд 20) |
+| Пользователи | appointment_invoice_title | Библиотека реквизитов счёта (раунд 21) |
+| Пользователи | appointment_browse_history | История просмотров (раунд 21) |
+| Маркетинг | appointment_full_reduction_activity | Акция «скидка при достижении суммы» (раунд 22) |
+| Мастера | appointment_technician_attendance | Учёт рабочего времени мастера (раунд 22) |
+| Система | appointment_push_log | Записи APP-пуша (раунд 22) |
+| Финансы | appointment_profit_sharing | Записи разделения средств WeChat (раунд 22) |
+| Заказы | appointment_order_status_log | Таймлайн статусов заказа (раунд 23) |
+| Пользователи | appointment_user_health_profile | Медицинский профиль пользователя (раунд 23) |
+| Маркетинг | appointment_lucky_wheel | Определения призов колеса (раунд 23) |
+| Маркетинг | appointment_wheel_record | Записи розыгрышей колеса (раунд 23) |
+| Маркетинг | appointment_seckill_activity | Акции распродажи (раунд 24) |
+| Система | appointment_app_version | Версии APP (раунд 24) |
 
 ### Дополнительный список (часть из 95 таблиц docs/install.sql, не вошедшая в список выше; полный авторитетный список — в install.sql)
 
 | Домен | Таблица | Описание |
 |----|------|------|
-| Маркетинг | erik_card_transfer | Передача карт посещений |
-| Пользователи | erik_check_in | Ежедневная отметка |
-| Контент | erik_community_post | Публикации сообщества |
-| Контент | erik_community_comment | Комментарии сообщества |
-| Мастера | erik_exam | Аттестация |
-| Мастера | erik_exam_question | Вопросы аттестации |
-| Мастера | erik_exam_attempt | Ответы на аттестацию |
-| Система | erik_operation_log_detail | Детали журнала операций |
-| Заказы | erik_order_aftersale | Послепродажное обслуживание заказа |
-| Маркетинг | erik_points_exchange_goods | Товары обмена бонусов |
-| Маркетинг | erik_promotion | Акции групповых покупок |
-| Маркетинг | erik_promotion_participant | Участники групповых покупок |
-| Заказы | erik_queue_number | Электронная очередь |
-| Услуги | erik_service_package | Пакеты услуг |
-| Мастера | erik_service_record | Записи услуг |
-| Контент | erik_share | Записи о перепостах |
-| Заказы | erik_signature | Подпись |
-| Мастера | erik_technician_tier_config | Конфигурация уровней мастера |
-| Мастера | erik_training_course | Обучающие курсы |
-| Мастера | erik_training_progress | Прогресс обучения |
-| Пользователи | erik_user_device | Устройства пользователя |
-| Маркетинг | erik_user_points_exchange | Записи обмена бонусов |
-| Контент | erik_video_post | Видеопубликации |
-| Заказы | erik_waitlist | Лист ожидания |
+| Маркетинг | appointment_card_transfer | Передача карт посещений |
+| Пользователи | appointment_check_in | Ежедневная отметка |
+| Контент | appointment_community_post | Публикации сообщества |
+| Контент | appointment_community_comment | Комментарии сообщества |
+| Мастера | appointment_exam | Аттестация |
+| Мастера | appointment_exam_question | Вопросы аттестации |
+| Мастера | appointment_exam_attempt | Ответы на аттестацию |
+| Система | appointment_operation_log_detail | Детали журнала операций |
+| Заказы | appointment_order_aftersale | Послепродажное обслуживание заказа |
+| Маркетинг | appointment_points_exchange_goods | Товары обмена бонусов |
+| Маркетинг | appointment_promotion | Акции групповых покупок |
+| Маркетинг | appointment_promotion_participant | Участники групповых покупок |
+| Заказы | appointment_queue_number | Электронная очередь |
+| Услуги | appointment_service_package | Пакеты услуг |
+| Мастера | appointment_service_record | Записи услуг |
+| Контент | appointment_share | Записи о перепостах |
+| Заказы | appointment_signature | Подпись |
+| Мастера | appointment_technician_tier_config | Конфигурация уровней мастера |
+| Мастера | appointment_training_course | Обучающие курсы |
+| Мастера | appointment_training_progress | Прогресс обучения |
+| Пользователи | appointment_user_device | Устройства пользователя |
+| Маркетинг | appointment_user_points_exchange | Записи обмена бонусов |
+| Контент | appointment_video_post | Видеопубликации |
+| Заказы | appointment_waitlist | Лист ожидания |
 
 ## Задел под внешние сервисы
 

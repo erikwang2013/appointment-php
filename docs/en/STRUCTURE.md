@@ -295,15 +295,15 @@ service/
 │   │   ├── Security                # 安全检测(security-php)
 │   │   └── TechnicianAuth          # 技师身份校验
 │   └── model/                   # 数据模型(81个)
-│       ├── User.php → erik_user
-│       ├── TechnicianProfile.php → erik_technician_profile
-│       ├── Service.php → erik_service (ES: erik_services)
-│       ├── Product.php → erik_product (ES: erik_products)
-│       ├── Store.php → erik_store
-│       ├── Order.php → erik_order (含退款规则/状态机)
-│       ├── Coupon.php → erik_coupon
-│       ├── MemberCard.php → erik_member_card
-│       ├── Notification.php → erik_notification
+│       ├── User.php → appointment_user
+│       ├── TechnicianProfile.php → appointment_technician_profile
+│       ├── Service.php → appointment_service (ES: appointment_services)
+│       ├── Product.php → appointment_product (ES: appointment_products)
+│       ├── Store.php → appointment_store
+│       ├── Order.php → appointment_order (含退款规则/状态机)
+│       ├── Coupon.php → appointment_coupon
+│       ├── MemberCard.php → appointment_member_card
+│       ├── Notification.php → appointment_notification
 │       └── ... (共81个模型文件；admin 另有 6 个特有模型，合计 87)
 ├── config/                     # 配置文件
 ├── public/                     # 入口
@@ -435,111 +435,111 @@ apps/flutter/
 
 ## Database Table List
 
-All tables use the `erik_` prefix, BIGINT non-auto-increment primary keys (Snowflake-generated).
+All tables use the `appointment_` prefix, BIGINT non-auto-increment primary keys (Snowflake-generated).
 
 | Domain | Table | Description |
 |--------|-------|-------------|
-| User | erik_user | Unified user table |
-| User | erik_user_address | Shipping addresses |
-| Technician | erik_technician_profile | Technician profiles |
-| Technician | erik_technician_schedule | Technician schedules |
-| Technician | erik_technician_service | Services a technician can provide |
-| Technician | erik_technician_earnings | Technician earnings transactions |
-| Technician | erik_technician_withdrawal | Technician withdrawal records |
-| Technician | erik_technician_attendance | Technician attendance |
-| Technician | erik_technician_member_note | Member profiles |
-| Service | erik_service_category | Service categories |
-| Service | erik_service | Service items |
-| Service | erik_product | Products |
-| Service | erik_store | Stores |
-| Order | erik_order | Order master table (seckill_id link column, Round 24) |
-| Order | erik_order_item | Order items |
-| Order | erik_order_payment | Payment records |
-| Order | erik_order_refund | Refund records |
-| Order | erik_order_review | Service reviews |
-| Order | erik_order_verification | Verification records |
-| Order | erik_order_reschedule | Rescheduling records (Round 17) |
-| Marketing | erik_coupon | Coupon definitions |
-| Marketing | erik_user_coupon | User coupons |
-| Marketing | erik_user_coupon_transfer | Coupon transfer records (Round 17) |
-| Marketing | erik_user_points_transfer | Points transfer records (Round 19) |
-| Marketing | erik_technician_tier_log | Technician tier change log (Round 17) |
-| Marketing | erik_member_card | Member card definitions |
-| Marketing | erik_user_member_card | User member cards |
-| Marketing | erik_member_card_usage | Session card usage records |
-| Marketing | erik_user_points | Points transactions |
-| Marketing | erik_gift_card | Gift cards |
-| Marketing | erik_user_referral | User referrals |
-| Marketing | erik_user_favorite | User favorites |
-| Wallet | erik_user_wallet | User wallet balance |
-| Wallet | erik_wallet_recharge | Wallet top-up records |
-| Wallet | erik_wallet_txn | Wallet transactions |
-| Wallet | erik_wallet_transfer | User-to-user transfer records (Round 19) |
-| User | erik_user_notify_setting | Notification preferences (Round 19) |
-| Content | erik_banner | Banners |
-| Content | erik_announcement | Announcements |
-| Content | erik_platform_agreement | Platform agreements |
-| Content | erik_faq | FAQs |
-| Content | erik_feedback | Feedback |
-| Content | erik_moment | Moments (posts) |
-| Content | erik_notification | Notifications |
-| Finance | erik_finance_transaction | Income/expense transactions |
-| Finance | erik_technician_commission_config | Commission config |
-| Finance | erik_withdrawal_account | Withdrawal accounts |
-| Finance | erik_withdrawal_config | Withdrawal limit config |
-| System | erik_admin_user | Admin users (created) |
-| System | erik_admin_role | Roles (created) |
-| System | erik_admin_permission | Permissions (created) |
-| System | erik_admin_user_role | User-role relations (created) |
-| System | erik_admin_role_permission | Role-permission relations (created) |
-| System | erik_system_config | System config (created) |
-| System | erik_operation_log | Operation logs (created) |
-| User | erik_user_growth | Growth value transactions (Round 20) |
-| User | erik_growth_level | Growth level tiers (Round 20) |
-| Order | erik_invoice | E-invoices (Round 20) |
-| User | erik_ticket | Customer service tickets (Round 20) |
-| Marketing | erik_referral_level2_reward | Level-2 referral commission records (Round 20) |
-| User | erik_invoice_title | Invoice title library (Round 21) |
-| User | erik_browse_history | Browse history (Round 21) |
-| Marketing | erik_full_reduction_activity | Full-reduction activities (Round 22) |
-| Technician | erik_technician_attendance | Technician attendance (Round 22) |
-| System | erik_push_log | APP push records (Round 22) |
-| Finance | erik_profit_sharing | WeChat profit-sharing records (Round 22) |
-| Order | erik_order_status_log | Order status timeline (Round 23) |
-| User | erik_user_health_profile | User health profiles (Round 23) |
-| Marketing | erik_lucky_wheel | Wheel prize definitions (Round 23) |
-| Marketing | erik_wheel_record | Wheel draw records (Round 23) |
-| Marketing | erik_seckill_activity | Seckill activities (Round 24) |
-| System | erik_app_version | APP versions (Round 24) |
+| User | appointment_user | Unified user table |
+| User | appointment_user_address | Shipping addresses |
+| Technician | appointment_technician_profile | Technician profiles |
+| Technician | appointment_technician_schedule | Technician schedules |
+| Technician | appointment_technician_service | Services a technician can provide |
+| Technician | appointment_technician_earnings | Technician earnings transactions |
+| Technician | appointment_technician_withdrawal | Technician withdrawal records |
+| Technician | appointment_technician_attendance | Technician attendance |
+| Technician | appointment_technician_member_note | Member profiles |
+| Service | appointment_service_category | Service categories |
+| Service | appointment_service | Service items |
+| Service | appointment_product | Products |
+| Service | appointment_store | Stores |
+| Order | appointment_order | Order master table (seckill_id link column, Round 24) |
+| Order | appointment_order_item | Order items |
+| Order | appointment_order_payment | Payment records |
+| Order | appointment_order_refund | Refund records |
+| Order | appointment_order_review | Service reviews |
+| Order | appointment_order_verification | Verification records |
+| Order | appointment_order_reschedule | Rescheduling records (Round 17) |
+| Marketing | appointment_coupon | Coupon definitions |
+| Marketing | appointment_user_coupon | User coupons |
+| Marketing | appointment_user_coupon_transfer | Coupon transfer records (Round 17) |
+| Marketing | appointment_user_points_transfer | Points transfer records (Round 19) |
+| Marketing | appointment_technician_tier_log | Technician tier change log (Round 17) |
+| Marketing | appointment_member_card | Member card definitions |
+| Marketing | appointment_user_member_card | User member cards |
+| Marketing | appointment_member_card_usage | Session card usage records |
+| Marketing | appointment_user_points | Points transactions |
+| Marketing | appointment_gift_card | Gift cards |
+| Marketing | appointment_user_referral | User referrals |
+| Marketing | appointment_user_favorite | User favorites |
+| Wallet | appointment_user_wallet | User wallet balance |
+| Wallet | appointment_wallet_recharge | Wallet top-up records |
+| Wallet | appointment_wallet_txn | Wallet transactions |
+| Wallet | appointment_wallet_transfer | User-to-user transfer records (Round 19) |
+| User | appointment_user_notify_setting | Notification preferences (Round 19) |
+| Content | appointment_banner | Banners |
+| Content | appointment_announcement | Announcements |
+| Content | appointment_platform_agreement | Platform agreements |
+| Content | appointment_faq | FAQs |
+| Content | appointment_feedback | Feedback |
+| Content | appointment_moment | Moments (posts) |
+| Content | appointment_notification | Notifications |
+| Finance | appointment_finance_transaction | Income/expense transactions |
+| Finance | appointment_technician_commission_config | Commission config |
+| Finance | appointment_withdrawal_account | Withdrawal accounts |
+| Finance | appointment_withdrawal_config | Withdrawal limit config |
+| System | appointment_admin_user | Admin users (created) |
+| System | appointment_admin_role | Roles (created) |
+| System | appointment_admin_permission | Permissions (created) |
+| System | appointment_admin_user_role | User-role relations (created) |
+| System | appointment_admin_role_permission | Role-permission relations (created) |
+| System | appointment_system_config | System config (created) |
+| System | appointment_operation_log | Operation logs (created) |
+| User | appointment_user_growth | Growth value transactions (Round 20) |
+| User | appointment_growth_level | Growth level tiers (Round 20) |
+| Order | appointment_invoice | E-invoices (Round 20) |
+| User | appointment_ticket | Customer service tickets (Round 20) |
+| Marketing | appointment_referral_level2_reward | Level-2 referral commission records (Round 20) |
+| User | appointment_invoice_title | Invoice title library (Round 21) |
+| User | appointment_browse_history | Browse history (Round 21) |
+| Marketing | appointment_full_reduction_activity | Full-reduction activities (Round 22) |
+| Technician | appointment_technician_attendance | Technician attendance (Round 22) |
+| System | appointment_push_log | APP push records (Round 22) |
+| Finance | appointment_profit_sharing | WeChat profit-sharing records (Round 22) |
+| Order | appointment_order_status_log | Order status timeline (Round 23) |
+| User | appointment_user_health_profile | User health profiles (Round 23) |
+| Marketing | appointment_lucky_wheel | Wheel prize definitions (Round 23) |
+| Marketing | appointment_wheel_record | Wheel draw records (Round 23) |
+| Marketing | appointment_seckill_activity | Seckill activities (Round 24) |
+| System | appointment_app_version | APP versions (Round 24) |
 
 ### Supplementary List (tables among the 95 in docs/install.sql not listed above; the authoritative full list is install.sql)
 
 | Domain | Table | Description |
 |--------|-------|-------------|
-| Marketing | erik_card_transfer | Session card transfers |
-| User | erik_check_in | Check-in |
-| Content | erik_community_post | Community posts |
-| Content | erik_community_comment | Community comments |
-| Technician | erik_exam | Assessments |
-| Technician | erik_exam_question | Assessment questions |
-| Technician | erik_exam_attempt | Assessment attempts |
-| System | erik_operation_log_detail | Operation log details |
-| Order | erik_order_aftersale | Order after-sales |
-| Marketing | erik_points_exchange_goods | Points exchange goods |
-| Marketing | erik_promotion | Group-buy activities |
-| Marketing | erik_promotion_participant | Group-buy participants |
-| Order | erik_queue_number | Queue numbers |
-| Service | erik_service_package | Service packages |
-| Technician | erik_service_record | Service records |
-| Content | erik_share | Share records |
-| Order | erik_signature | Signatures |
-| Technician | erik_technician_tier_config | Technician tier config |
-| Technician | erik_training_course | Training courses |
-| Technician | erik_training_progress | Training progress |
-| User | erik_user_device | User devices |
-| Marketing | erik_user_points_exchange | Points exchange records |
-| Content | erik_video_post | Video posts |
-| Order | erik_waitlist | Waitlists |
+| Marketing | appointment_card_transfer | Session card transfers |
+| User | appointment_check_in | Check-in |
+| Content | appointment_community_post | Community posts |
+| Content | appointment_community_comment | Community comments |
+| Technician | appointment_exam | Assessments |
+| Technician | appointment_exam_question | Assessment questions |
+| Technician | appointment_exam_attempt | Assessment attempts |
+| System | appointment_operation_log_detail | Operation log details |
+| Order | appointment_order_aftersale | Order after-sales |
+| Marketing | appointment_points_exchange_goods | Points exchange goods |
+| Marketing | appointment_promotion | Group-buy activities |
+| Marketing | appointment_promotion_participant | Group-buy participants |
+| Order | appointment_queue_number | Queue numbers |
+| Service | appointment_service_package | Service packages |
+| Technician | appointment_service_record | Service records |
+| Content | appointment_share | Share records |
+| Order | appointment_signature | Signatures |
+| Technician | appointment_technician_tier_config | Technician tier config |
+| Technician | appointment_training_course | Training courses |
+| Technician | appointment_training_progress | Training progress |
+| User | appointment_user_device | User devices |
+| Marketing | appointment_user_points_exchange | Points exchange records |
+| Content | appointment_video_post | Video posts |
+| Order | appointment_waitlist | Waitlists |
 
 ## External Service Reservations
 

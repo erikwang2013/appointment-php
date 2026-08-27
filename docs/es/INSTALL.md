@@ -10,7 +10,7 @@ Copyright (c) 2026 erik <erik@erik.xyz> — https://erik.xyz
 | Componente | Versión mínima | Descripción |
 |------|----------|------|
 | PHP | 8.3+ | Extensiones: bcmath, curl, gd, mbstring, pdo, pdo_mysql, pcntl, redis |
-| MySQL | 8.0+ | Prefijo de tablas `erik_`, juego de caracteres utf8mb4 |
+| MySQL | 8.0+ | Prefijo de tablas `appointment_`, juego de caracteres utf8mb4 |
 | Redis | 6.0+ | Caché / límite de tráfico / sesión / almacenamiento de códigos de verificación |
 | Composer | 2.x | Gestión de dependencias PHP |
 | Elasticsearch | 8.x (opcional) | Búsqueda de texto completo, no afecta a las funciones principales si no se instala |
@@ -182,22 +182,22 @@ docker exec -it appointment-svc-mysql mysql -u root -p appointment < /tmp/instal
 
 | Dominio | Nº de tablas | Tablas principales |
 |----|------|--------|
-| Panel de administración | 8 | `erik_admin_user`, `erik_admin_role`, `erik_admin_permission`, `erik_operation_log` |
-| Dominio de usuario | 4 | `erik_user`, `erik_user_address`, `erik_user_favorite`, `erik_user_device` |
-| Dominio de técnico | 8 | `erik_technician_profile`, `erik_technician_schedule`, `erik_technician_earning`, `erik_technician_withdrawal`, `erik_technician_tier_config` |
-| Dominio de servicios | 4 | `erik_service_category`, `erik_service`, `erik_service_package`, `erik_service_record` |
-| Dominio de pedidos | 5 | `erik_order`, `erik_order_item`, `erik_order_payment`, `erik_order_refund`, `erik_order_review` |
-| Dominio de marketing | 8 | `erik_coupon`, `erik_member_card`, `erik_gift_card`, `erik_user_points`, `erik_promotion` |
-| Colas | 1 | `erik_queue_number` |
-| Dominio de contenido | 5 | `erik_banner`, `erik_announcement`, `erik_faq`, `erik_feedback`, `erik_platform_agreement` |
-| Dominio de comunidad | 3 | `erik_post`, `erik_comment`, `erik_moment` |
-| Tiendas | 1 | `erik_store` |
-| Formación | 2 | `erik_training_course`, `erik_training_progress` |
-| Exámenes | 3 | `erik_exam`, `erik_exam_question`, `erik_exam_attempt` |
-| Sistema | 3 | `erik_system_config`, `erik_notification`, `erik_signature` |
+| Panel de administración | 8 | `appointment_admin_user`, `appointment_admin_role`, `appointment_admin_permission`, `appointment_operation_log` |
+| Dominio de usuario | 4 | `appointment_user`, `appointment_user_address`, `appointment_user_favorite`, `appointment_user_device` |
+| Dominio de técnico | 8 | `appointment_technician_profile`, `appointment_technician_schedule`, `appointment_technician_earning`, `appointment_technician_withdrawal`, `appointment_technician_tier_config` |
+| Dominio de servicios | 4 | `appointment_service_category`, `appointment_service`, `appointment_service_package`, `appointment_service_record` |
+| Dominio de pedidos | 5 | `appointment_order`, `appointment_order_item`, `appointment_order_payment`, `appointment_order_refund`, `appointment_order_review` |
+| Dominio de marketing | 8 | `appointment_coupon`, `appointment_member_card`, `appointment_gift_card`, `appointment_user_points`, `appointment_promotion` |
+| Colas | 1 | `appointment_queue_number` |
+| Dominio de contenido | 5 | `appointment_banner`, `appointment_announcement`, `appointment_faq`, `appointment_feedback`, `appointment_platform_agreement` |
+| Dominio de comunidad | 3 | `appointment_post`, `appointment_comment`, `appointment_moment` |
+| Tiendas | 1 | `appointment_store` |
+| Formación | 2 | `appointment_training_course`, `appointment_training_progress` |
+| Exámenes | 3 | `appointment_exam`, `appointment_exam_question`, `appointment_exam_attempt` |
+| Sistema | 3 | `appointment_system_config`, `appointment_notification`, `appointment_signature` |
 | **Total** | **55** | |
 
-Todas las tablas usan el prefijo `erik_`, la clave primaria `id` es BIGINT no autoincremental (generada en la capa de aplicación por snowflake-php).
+Todas las tablas usan el prefijo `appointment_`, la clave primaria `id` es BIGINT no autoincremental (generada en la capa de aplicación por snowflake-php).
 
 ---
 

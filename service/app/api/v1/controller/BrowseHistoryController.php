@@ -27,8 +27,8 @@ class BrowseHistoryController extends BaseController
         $perPage = max(1, min($perPage, 50));
         $page = (int)$request->input('page', 1);
 
-        $paginator = Db::table('erik_browse_history as bh')
-            ->join('erik_service as s', 's.id', '=', 'bh.item_id')
+        $paginator = Db::table('appointment_browse_history as bh')
+            ->join('appointment_service as s', 's.id', '=', 'bh.item_id')
             ->where('bh.user_id', $userId)
             ->orderBy('bh.viewed_at', 'desc')
             ->orderBy('bh.id', 'desc')

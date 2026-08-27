@@ -10,12 +10,12 @@ use support\Model;
 /**
  * 用户设备模型
  *
- * 表: erik_user_device
+ * 表: appointment_user_device
  * 存储用户推送设备 token，支持 iOS 和 Android
  */
 class UserDevice extends Model
 {
-    protected $table = 'erik_user_device';
+    protected $table = 'appointment_user_device';
     public $incrementing = false;
     protected $keyType = 'string';
     public $timestamps = true;

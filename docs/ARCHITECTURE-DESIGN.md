@@ -71,7 +71,7 @@ Cors → Security(31种攻击检测) → RateLimit → Auth(JWT+用户状态)
 
 ### 表前缀
 
-统一 `erik_` 前缀，`config/database.php` 配置。Model写原始表名，ORM自动添加前缀。
+统一 `appointment_` 前缀，`config/database.php` 配置。Model写原始表名，ORM自动添加前缀。
 
 ### 敏感字段加密
 
@@ -147,7 +147,7 @@ use Erikwang2013\WebmanScout\Searchable;
 class Service extends Model
 {
     use Searchable;
-    public function searchableAs(): string { return 'erik_services'; }
+    public function searchableAs(): string { return 'appointment_services'; }
 }
 ```
 

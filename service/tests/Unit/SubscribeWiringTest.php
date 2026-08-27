@@ -70,7 +70,7 @@ class SubscribeWiringTest extends TestCase
     {
         $this->clearSubscribeEnv();
         foreach ($this->orderIds as $id) {
-            Db::table('erik_notification')->where('order_id', $id)->delete();
+            Db::table('appointment_notification')->where('order_id', $id)->delete();
             OrderItem::where('order_id', $id)->delete();
             OrderVerification::where('order_id', $id)->delete();
             OrderPayment::where('order_id', $id)->delete();
@@ -444,7 +444,7 @@ class SubscribeWiringTest extends TestCase
         self::invokePrivate($ctl, 'notifyPaySubscribe', [$order->id]); // 重复回调
 
         // 站内通知行只建一条；模板未配置 → 降级仅站内通知
-        $this->assertSame(1, Db::table('erik_notification')
+        $this->assertSame(1, Db::table('appointment_notification')
             ->where('order_id', $order->id)
             ->where('title', '订单支付成功')
             ->count());

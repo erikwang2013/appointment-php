@@ -9,7 +9,7 @@ use support\Model;
 
 class UserReferral extends Model
 {
-    protected $table = 'erik_user_referral';
+    protected $table = 'appointment_user_referral';
     public $incrementing = false;
     protected $keyType = 'string';
     public $timestamps = true;

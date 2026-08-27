@@ -95,9 +95,9 @@ class InstallController
 
     /**
      * 判断系统是否已完成安装
-     * 标记写入 erik_system_config（group=system, key=installed, value=1）；
+     * 标记写入 appointment_system_config（group=system, key=installed, value=1）；
      * 兼容历史安装（无标记但已存在管理员账号）视为已安装。
-     * 注意: 不能以 erik_system_config 表是否存在或 app_name 配置判定 ——
+     * 注意: 不能以 appointment_system_config 表是否存在或 app_name 配置判定 ——
      * install.sql 会种子化 app_name，仅导入 SQL 未建管理员的全新库仍应允许安装。
      */
     private function isInstalled(): bool
@@ -109,12 +109,12 @@ class InstallController
             return false;
         }
         try {
-            $stmt = $pdo->query("SELECT COUNT(*) FROM `erik_system_config` WHERE `key`='installed' AND `value`='1'");
+            $stmt = $pdo->query("SELECT COUNT(*) FROM `appointment_system_config` WHERE `key`='installed' AND `value`='1'");
             if ((int)$stmt->fetchColumn() > 0) {
                 return true;
             }
             // 管理员账号仅由安装向导创建（install.sql 不种子 admin_user），存在即视为已安装
-            $stmt = $pdo->query("SELECT COUNT(*) FROM `erik_admin_user`");
+            $stmt = $pdo->query("SELECT COUNT(*) FROM `appointment_admin_user`");
             return (int)$stmt->fetchColumn() > 0;
         } catch (\Throwable $e) {
             // 表不存在（全新库）视为未安装
@@ -160,7 +160,7 @@ class InstallController
             ]);
             $pdo->exec("CREATE DATABASE IF NOT EXISTS `{$db['database']}` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
             $pdo->exec("USE `{$db['database']}`");
-            $stmt = $pdo->query("SHOW TABLES LIKE 'erik_%'");
+            $stmt = $pdo->query("SHOW TABLES LIKE 'appointment_%'");
             $cnt = count($stmt->fetchAll(\PDO::FETCH_NUM));
         } catch (\PDOException $e) {
             session()->set('install_db', $db);
@@ -253,15 +253,15 @@ class InstallController
             $hash = password_hash($adm['password'], PASSWORD_BCRYPT);
             $uid = $this->snowflake();
             $pdo->prepare(
-                "INSERT INTO `erik_admin_user` (`id`,`username`,`password`,`real_name`,`status`,`created_at`,`updated_at`)
+                "INSERT INTO `appointment_admin_user` (`id`,`username`,`password`,`real_name`,`status`,`created_at`,`updated_at`)
                  VALUES (:id,:u,:p,'系统管理员',1,NOW(),NOW())
                  ON DUPLICATE KEY UPDATE `password`=VALUES(`password`),`updated_at`=NOW()"
             )->execute(['id' => $uid, 'u' => $adm['username'], 'p' => $hash]);
             $logs[] = ['name' => "创建管理员: {$adm['username']}", 'ok' => true];
 
-            $role = $pdo->query("SELECT id FROM `erik_admin_role` WHERE slug='super_admin' LIMIT 1")->fetch(\PDO::FETCH_ASSOC);
+            $role = $pdo->query("SELECT id FROM `appointment_admin_role` WHERE slug='super_admin' LIMIT 1")->fetch(\PDO::FETCH_ASSOC);
             if ($role) {
-                $pdo->exec("INSERT IGNORE INTO `erik_admin_user_role` (`user_id`,`role_id`) VALUES ({$uid},{$role['id']})");
+                $pdo->exec("INSERT IGNORE INTO `appointment_admin_user_role` (`user_id`,`role_id`) VALUES ({$uid},{$role['id']})");
                 $logs[] = ['name' => '分配超级管理员角色', 'ok' => true];
             }
         } catch (\PDOException $e) {
@@ -272,7 +272,7 @@ class InstallController
         try {
             $aid = $this->snowflake();
             $pdo->prepare(
-                "INSERT INTO `erik_system_config` (`id`,`group`,`key`,`value`,`type`,`description`)
+                "INSERT INTO `appointment_system_config` (`id`,`group`,`key`,`value`,`type`,`description`)
                  VALUES (:id,'app','app_name',:n,'string','应用名称')
                  ON DUPLICATE KEY UPDATE `value`=VALUES(`value`)"
             )->execute(['id' => $aid, 'n' => $adm['app_name']]);
@@ -285,7 +285,7 @@ class InstallController
         try {
             $markId = $this->snowflake();
             $pdo->prepare(
-                "INSERT INTO `erik_system_config` (`id`,`group`,`key`,`value`,`type`,`description`)
+                "INSERT INTO `appointment_system_config` (`id`,`group`,`key`,`value`,`type`,`description`)
                  VALUES (:id,'system','installed','1','string','系统安装状态（1=已安装，安装向导自动禁用）')
                  ON DUPLICATE KEY UPDATE `value`=VALUES(`value`)"
             )->execute(['id' => $markId]);
@@ -391,7 +391,7 @@ class InstallController
             '# ── ES ──',
             'SCOUT_DRIVER=elasticsearch',
             'SCOUT_HOSTS=http://localhost:9200',
-            'SCOUT_PREFIX=erik_',
+            'SCOUT_PREFIX=appointment_',
             '',
             '# ── 验证码 ──',
             'POSTER_CAPTCHA_STORAGE=file',
@@ -506,7 +506,7 @@ HTML;
     {
         $s = $this->steps(3);
         $e = $err ? "<div class=\"alert alert-e\">{$err}</div>" : '';
-        $w = $exist > 0 ? "<div class=\"alert alert-w\">检测到已有 {$exist} 个 erik_ 表，已存在数据不会被覆盖。</div>" : '';
+        $w = $exist > 0 ? "<div class=\"alert alert-w\">检测到已有 {$exist} 个 appointment_ 表，已存在数据不会被覆盖。</div>" : '';
         return <<<HTML
 {$s}
 <div class="card"><h2>管理员账号</h2>{$e}{$w}

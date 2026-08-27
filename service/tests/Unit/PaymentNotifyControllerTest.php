@@ -32,7 +32,7 @@ class PaymentNotifyControllerTest extends TestCase
     protected function tearDown(): void
     {
         foreach ($this->orderIds as $id) {
-            Db::table('erik_notification')->where('order_id', $id)->delete();
+            Db::table('appointment_notification')->where('order_id', $id)->delete();
             OrderRefund::where('order_id', $id)->delete();
             OrderPayment::where('order_id', $id)->delete();
             Order::where('id', $id)->delete();
@@ -122,7 +122,7 @@ class PaymentNotifyControllerTest extends TestCase
     /** 构造带签名的微信回调 XML（用测试环境 DB 中的微信 apiKey 签名） */
     private function buildSignedNotifyXml(string $outTradeNo): string
     {
-        $configs = Db::table('erik_system_config')
+        $configs = Db::table('appointment_system_config')
             ->where('group', 'wechat_pay')
             ->pluck('value', 'key')
             ->toArray();
@@ -200,7 +200,7 @@ class PaymentNotifyControllerTest extends TestCase
         $this->assertNull(Redis::get($lockKey));
 
         // 环境配置了微信 apiKey 时验签通过，完整走 markOrderPaid：订单置 PAID
-        $apiKey = (string) Db::table('erik_system_config')
+        $apiKey = (string) Db::table('appointment_system_config')
             ->where('group', 'wechat_pay')
             ->where('key', 'api_key')
             ->value('value');

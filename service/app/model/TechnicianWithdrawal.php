@@ -10,7 +10,7 @@ use support\Model;
 
 class TechnicianWithdrawal extends Model
 {
-    protected $table = 'erik_technician_withdrawal';
+    protected $table = 'appointment_technician_withdrawal';
     public $incrementing = false;
     protected $keyType = 'string';
     public $timestamps = true;

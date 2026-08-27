@@ -15,7 +15,7 @@ use support\Model;
  */
 class Post extends Model
 {
-    protected $table = 'erik_community_post';
+    protected $table = 'appointment_community_post';
     public $incrementing = false;
     protected $keyType = 'string';
     public $timestamps = true;

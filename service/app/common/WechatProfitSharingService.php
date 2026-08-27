@@ -15,7 +15,7 @@ use support\Log;
  * 微信官方分账服务（请求单次分账 API）
  *
  * 配置驱动 + 降级 + 记录：
- * - 配置：erik_system_config group=profit_sharing（enabled 默认 '0'、receiver_ratio 默认 0.7），
+ * - 配置：appointment_system_config group=profit_sharing（enabled 默认 '0'、receiver_ratio 默认 0.7），
  *   商户凭据（appid/mch_id/证书路径）复用 group=wechat_pay 或 config/wechat（.env 键，可空）。
  * - 未启用/未配置 → 返回 disabled 降级结果并记日志，不抛异常、不影响主流程。
  * - 启用时构造微信「请求单次分账」请求结构；无商户凭据时不执行真实 HTTP，
@@ -39,7 +39,7 @@ class WechatProfitSharingService
 
     public function __construct(?array $wechat = null)
     {
-        $configs = Db::table('erik_system_config')
+        $configs = Db::table('appointment_system_config')
             ->where('group', 'profit_sharing')
             ->pluck('value', 'key')
             ->toArray();
@@ -49,7 +49,7 @@ class WechatProfitSharingService
 
         // 商户凭据：系统配置优先，回落 config/wechat.php（.env WECHAT_* 键），可空占位
         $wechat  = $wechat ?? (array) config('wechat', []);
-        $payCfgs = Db::table('erik_system_config')
+        $payCfgs = Db::table('appointment_system_config')
             ->where('group', 'wechat_pay')
             ->pluck('value', 'key')
             ->toArray();

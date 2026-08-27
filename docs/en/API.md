@@ -306,7 +306,7 @@ Setting one as default automatically un-defaults the others.
 | GET | `/api/user/referral/referred-users` | Referred user list |
 | GET | `/api/user/referral/earnings` | Distribution commission details (paginated: referee nickname/avatar/order no/amount/disbursement time) |
 
-**Distribution commission**: paid out after the referee's first order reaches completed; amount = paid_amount × reward_rate (erik_system_config referral.reward_rate, default 0.05, falls back to constant on invalid value). Triple idempotency: row lock + rewarded_at null check + first-order re-check; credited as WalletTxn type=referral_reward.
+**Distribution commission**: paid out after the referee's first order reaches completed; amount = paid_amount × reward_rate (appointment_system_config referral.reward_rate, default 0.05, falls back to constant on invalid value). Triple idempotency: row lock + rewarded_at null check + first-order re-check; credited as WalletTxn type=referral_reward.
 
 #### 2.6 Points Transfer (Round 19)
 
@@ -324,7 +324,7 @@ Setting one as default automatically un-defaults the others.
 | GET | `/api/user/notify-settings` | Query notification toggles (all 5 types) |
 | PUT | `/api/user/notify-settings` | Batch update toggles (types: {service_reminder: 0/1, ...}) |
 
-**Notification toggles**: erik_user_notify_setting table (user_id+type composite unique key; missing row = default on). 5 types: service_reminder service reminders / card_expiry expiry reminders (umbrella for cards + coupons) / points_expiry points expiry / marketing (reserved) / system (cannot be off; PUT forces it to 1). Gating: notifySettingEnabled wired into the 3 timer processes ServiceReminderTimer/ExpiryReminderTimer/PointsExpiryTimer + subscribe event scenario mapping (PAY/REFUND/VERIFIED/RESCHEDULE→system always sent, REMINDER→service_reminder, EXPIRY→card_expiry); when a type is off, both in-app notifications and subscribe messages are skipped.
+**Notification toggles**: appointment_user_notify_setting table (user_id+type composite unique key; missing row = default on). 5 types: service_reminder service reminders / card_expiry expiry reminders (umbrella for cards + coupons) / points_expiry points expiry / marketing (reserved) / system (cannot be off; PUT forces it to 1). Gating: notifySettingEnabled wired into the 3 timer processes ServiceReminderTimer/ExpiryReminderTimer/PointsExpiryTimer + subscribe event scenario mapping (PAY/REFUND/VERIFIED/RESCHEDULE→system always sent, REMINDER→service_reminder, EXPIRY→card_expiry); when a type is off, both in-app notifications and subscribe messages are skipped.
 
 ---
 
@@ -403,7 +403,7 @@ Rules: withdrawable on the 20th of each month, T+1 arrival, minimum amount/whole
 
 **On order creation**: Redis SETNX locks the technician for 3 minutes, released on page exit or timeout.
 
-**Price tamper prevention (2026-08-26)**: order item amounts always come from database records (target_type=service → erik_service, product → erik_product); client-sent prices never participate in calculation; unknown target_type 422; target_id must be a hashid-encoded value (raw id decodes to 0 → 422 "商品不存在或已下架"); group-buy/seckill prices likewise DB-based.
+**Price tamper prevention (2026-08-26)**: order item amounts always come from database records (target_type=service → appointment_service, product → appointment_product); client-sent prices never participate in calculation; unknown target_type 422; target_id must be a hashid-encoded value (raw id decodes to 0 → 422 "商品不存在或已下架"); group-buy/seckill prices likewise DB-based.
 
 **Refund rules**: within 15 min of ordering or > 6h before start → 100% / ≤ 6h → 90% / started → 80% / after confirmed start → no refund.
 
@@ -411,7 +411,7 @@ Rules: withdrawable on the 20th of each month, T+1 arrival, minimum amount/whole
 
 **Balance payment and refund**: pass `pay_channel: "balance"` in the pay request body to use wallet balance; both WeChat refunds and balance refunds credit the amount back to the wallet balance.
 
-**Points cash-off**: optionally pass `use_points` (integer) in the pay request body. SUM aggregate validates the points balance (the balance column of erik_user_points is a per-transaction delta snapshot, not usable directly as balance); deduction = floor(use_points / config('app.points_rate', 100)) yuan, actual payable = original payable − deduction (floor 0.01; if exceeding payable, capped at payable to avoid wasting points). On success writes a type=consume/source=points_offset consumption record (idempotent, retries don't double-deduct). Insufficient balance 422.
+**Points cash-off**: optionally pass `use_points` (integer) in the pay request body. SUM aggregate validates the points balance (the balance column of appointment_user_points is a per-transaction delta snapshot, not usable directly as balance); deduction = floor(use_points / config('app.points_rate', 100)) yuan, actual payable = original payable − deduction (floor 0.01; if exceeding payable, capped at payable to avoid wasting points). On success writes a type=consume/source=points_offset consumption record (idempotent, retries don't double-deduct). Insufficient balance 422.
 
 **Points refund**: on cancel/refund, points consumed via points_offset are returned (type=earn/source=points_refund): full on cancel, pro-rata on refund, idempotent at 5 hook points (refundOffsetPoints).
 
@@ -419,7 +419,7 @@ Rules: withdrawable on the 20th of each month, T+1 arrival, minimum amount/whole
 
 **Seckill order (Round 18, retired)**: ~~create order with `promotion_id` (flash_sale type)~~ — since 2026-08 the legacy FLASH_SALE channel has been removed; the store() promotion branch only handles group-buy GROUP_BUY (non-group-buy promotion 422); seckill uniformly uses the Round-24 `/api/seckill` channel (seckill_id injects stock deduction with row locks inside the store transaction), PromotionController::index filters out flash_sale, show/join return 400 for it, and the `Promotion::TYPE_FLASH_SALE` constant is kept for historical data compatibility.
 
-**Reschedule (Round 17)**: `POST /api/order/reschedule/{id}` with new_service_time (required) + reason (optional), changing time with the same technician. Rules: own order only (not own 404), appointment type only with status pending/paid/confirmed (others 422), ≥ 6 hours before original start (aligned with the full-refund window). Concurrency protection: B1 order_lock (same mutual-exclusion family as pay/cancel/refund) → new slot technician lock Redis SETNX EX 180 (prevents overselling on concurrent reschedules) → row-lock re-read inside transaction + B2 schedule-conflict DB check (excluding this order) → update service_time + write erik_order_reschedule record → release original slot lock, new slot lock held by this order → SCENE_RESCHEDULE subscribe message (falls back to in-app notification when unconfigured). Failed paths roll back the transaction and release the new slot lock.
+**Reschedule (Round 17)**: `POST /api/order/reschedule/{id}` with new_service_time (required) + reason (optional), changing time with the same technician. Rules: own order only (not own 404), appointment type only with status pending/paid/confirmed (others 422), ≥ 6 hours before original start (aligned with the full-refund window). Concurrency protection: B1 order_lock (same mutual-exclusion family as pay/cancel/refund) → new slot technician lock Redis SETNX EX 180 (prevents overselling on concurrent reschedules) → row-lock re-read inside transaction + B2 schedule-conflict DB check (excluding this order) → update service_time + write appointment_order_reschedule record → release original slot lock, new slot lock held by this order → SCENE_RESCHEDULE subscribe message (falls back to in-app notification when unconfigured). Failed paths roll back the transaction and release the new slot lock.
 
 **Logistics tracking (Round 19)**: `GET /api/order/logistics/{id}` — only the owner can query product orders (not own/not product/not shipped → unified 404). Reads order.remark JSON (shipping_company/tracking_no/shipped_at, written by admin MallOrderController::ship() on shipment), parseShippingInfo/parseReceiver dual parsing to fall back on old formats; recipient phone masked 138****5678.
 
@@ -476,7 +476,7 @@ Rules: withdrawable on the 20th of each month, T+1 arrival, minimum amount/whole
 
 **Points rules**: paginated transactions, type filter (earn/use/expire), source filter (order/referral/gift_card/check_in/admin). Check-in rewards points (CheckIn, type=earn); purchases reward floor(paid_amount×1) points, issued at verification and idempotent; refunds claw back points pro-rata.
 
-**Points expiry (Round 17)**: erik_user_points.expires_at column (config points.expiry_days, default 365 days, ≤0 never expires); every earn row gets an expiry written. PointsExpiryTimer timer process cursor-scans expired earn rows every 60s, writes type=expire negative deduction rows (source=expiry + order_id tracing to the original transaction, three-layer idempotency) + aggregated in-app notification "您有 X 积分已过期"; the available balance SUM includes expire negative rows; expired points cannot be used for cash-off/exchange.
+**Points expiry (Round 17)**: appointment_user_points.expires_at column (config points.expiry_days, default 365 days, ≤0 never expires); every earn row gets an expiry written. PointsExpiryTimer timer process cursor-scans expired earn rows every 60s, writes type=expire negative deduction rows (source=expiry + order_id tracing to the original transaction, three-layer idempotency) + aggregated in-app notification "您有 X 积分已过期"; the available balance SUM includes expire negative rows; expired points cannot be used for cash-off/exchange.
 
 **Coupon transfer (Round 17)**: transfer validates the coupon belongs to self/available/definition not expired/not previously transferred, generates an 8-char de-ambiguous unique transfer code (uk_code unique index as fallback), 7-day validity. claim anti-abuse: Redis NX lock (coupon_transfer_claim:{code} 30s) + row-lock re-verification against double-spend, uk_user_coupon unique index limiting one transfer per coupon, transferred coupons cannot be re-transferred (new coupons have no transfer record so naturally blocked), cannot claim your own transferred coupon 422, recipient must not be the original holder; lazy expiry sets expired and restores the original coupon to available. Inside the claim transaction: original coupon set used + new UserCoupon generated bound to the recipient (coupon_id unchanged so validity unchanged) + record set claimed.
 
@@ -522,7 +522,7 @@ Rules: withdrawable on the 20th of each month, T+1 arrival, minimum amount/whole
 | GET | `/api/store-manager/technicians` | Technician list (incl. today's schedule) |
 | GET | `/api/store-manager/revenue` | Revenue aggregation for the last 7 days |
 
-**store_id isolation**: requireStoreId() forces the current user to be bound to a store (erik_user.store_id), no store → 403; all queries filter by store_id.
+**store_id isolation**: requireStoreId() forces the current user to be bound to a store (appointment_user.store_id), no store → 403; all queries filter by store_id.
 
 ---
 
@@ -671,7 +671,7 @@ Not-logged-in browsing entry requiring no authentication (ApiVersion middleware 
 
 | Method | Path | Description |
 |--------|------|-------------|
-| GET | `/api/seckill` | Seckill activity list (status=1 and within time window; includes sold count = erik_order.seckill_id order count, remaining stock) |
+| GET | `/api/seckill` | Seckill activity list (status=1 and within time window; includes sold count = appointment_order.seckill_id order count, remaining stock) |
 | GET | `/api/seckill/{id}` | Activity details (state=not_started/ongoing/ended) |
 | POST | `/api/seckill/{id}/buy` | Seckill order (client_token idempotent + Redis NX 30s against concurrency + activity validation; no longer pre-deducts stock) |
 
@@ -759,7 +759,7 @@ Permission IDs: 379.
 
 Permission IDs: 380.
 
-**Auto assessment**: TierRatingService::evaluate computes real-time stats (erik_order completed order count + average review rating, rounded to 1 decimal) and writes back profile.order_count/rating, matching erik_technician_tier_config (min_orders/min_rating) from high to low; no match → lowest tier. Upgrade-only, no downgrades (downgrades affect commission rates and price coefficients, handled manually by admin as fallback; allowDowngrade=true for manual re-assessment); idempotent (same tier only syncs stats); changes write erik_technician_tier_log + in-app notification. Trigger points: WorkController::complete / ReviewController review writes / ProfileController profile view lazy evaluation.
+**Auto assessment**: TierRatingService::evaluate computes real-time stats (appointment_order completed order count + average review rating, rounded to 1 decimal) and writes back profile.order_count/rating, matching appointment_technician_tier_config (min_orders/min_rating) from high to low; no match → lowest tier. Upgrade-only, no downgrades (downgrades affect commission rates and price coefficients, handled manually by admin as fallback; allowDowngrade=true for manual re-assessment); idempotent (same tier only syncs stats); changes write appointment_technician_tier_log + in-app notification. Trigger points: WorkController::complete / ReviewController review writes / ProfileController profile view lazy evaluation.
 
 ### Review Reply Viewing (Round 18)
 
@@ -834,7 +834,7 @@ Permission IDs: 396 list / 397 add / 398 edit / 399 on-off shelf / 400 delete (o
 |--------|------|-------------|
 | GET | `/admin/profit-sharing` | Profit-sharing records (leftJoin order no/technician nickname, ?status&order_no&technician_name&page=, hashid-encoded) |
 
-Permission IDs: 394. Server logic: erik_system_config group=profit_sharing (enabled/receiver_ratio); disabled degrades to log-only; when enabled, payment success auto-requests profit sharing (amount=actual paid×receiver_ratio default 0.7, same-order pending/success idempotent skip); no HTTP execution without credentials, request structure logged.
+Permission IDs: 394. Server logic: appointment_system_config group=profit_sharing (enabled/receiver_ratio); disabled degrades to log-only; when enabled, payment success auto-requests profit sharing (amount=actual paid×receiver_ratio default 0.7, same-order pending/success idempotent skip); no HTTP execution without credentials, request structure logged.
 
 ### Points Lucky Wheel Management (Round 23)
 
@@ -857,7 +857,7 @@ Permission IDs: 401-406. Static routes `/lucky-wheel/records` and `/lucky-wheel/
 | PUT | `/admin/return-customer/config` | Config update (enabled in:0,1; ratio between:0.01,1) |
 | GET | `/admin/return-customer/rewards` | Reward records list (?keyword technician name/order no/user nickname, type=return_customer paginated) |
 
-Permission IDs: 412-414. Reward rule: a user's 2nd purchase with the same technician within 30 days (order completed) pays a bonus = actual paid × ratio (default 0.05), recorded in erik_technician_earnings (type=return_customer, status=pending) settling together with the commission settlement chain; same-order idempotent, no duplicates.
+Permission IDs: 412-414. Reward rule: a user's 2nd purchase with the same technician within 30 days (order completed) pays a bonus = actual paid × ratio (default 0.05), recorded in appointment_technician_earnings (type=return_customer, status=pending) settling together with the commission settlement chain; same-order idempotent, no duplicates.
 
 ### Seckill Activity Management (Round 24)
 
@@ -871,7 +871,7 @@ Permission IDs: 412-414. Reward rule: a user's 2nd purchase with the same techni
 | POST | `/admin/seckill/{id}/toggle-status` | On-off shelf |
 | GET | `/admin/seckill/{id}/orders` | Seckill order list |
 
-Permission IDs: 407-411, 420. Sold count = erik_order.seckill_id order count; stock deducted with row locks, sold-out interception.
+Permission IDs: 407-411, 420. Sold count = appointment_order.seckill_id order count; stock deducted with row locks, sold-out interception.
 
 ### APP Version Management (Round 24)
 

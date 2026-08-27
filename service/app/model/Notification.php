@@ -9,7 +9,7 @@ use support\Model;
 
 class Notification extends Model
 {
-    protected $table = 'erik_notification';
+    protected $table = 'appointment_notification';
     public $incrementing = false;
     protected $keyType = 'string';
     public $timestamps = true;

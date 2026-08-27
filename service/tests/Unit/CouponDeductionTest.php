@@ -42,7 +42,7 @@ class CouponDeductionTest extends TestCase
 
     protected function tearDown(): void
     {
-        Db::table('erik_product')->where('id', 1)->delete();
+        Db::table('appointment_product')->where('id', 1)->delete();
         foreach ($this->orderIds as $id) {
             OrderVerification::where('order_id', $id)->delete();
             OrderItem::where('order_id', $id)->delete();
@@ -50,10 +50,10 @@ class CouponDeductionTest extends TestCase
             Order::where('id', $id)->delete();
         }
         foreach ($this->userCouponIds as $id) {
-            Db::table('erik_user_coupon')->where('id', $id)->delete();
+            Db::table('appointment_user_coupon')->where('id', $id)->delete();
         }
         foreach ($this->couponIds as $id) {
-            Db::table('erik_coupon')->where('id', $id)->delete();
+            Db::table('appointment_coupon')->where('id', $id)->delete();
         }
         $this->orderIds = [];
         $this->couponIds = [];
@@ -120,7 +120,7 @@ class CouponDeductionTest extends TestCase
     {
         $post = [
             'order_type'   => Order::ORDER_TYPE_PRODUCT,
-            // erik_order.technician_id/store_id 为 NOT NULL，product 单也须给（store 会 decodeId）
+            // appointment_order.technician_id/store_id 为 NOT NULL，product 单也须给（store 会 decodeId）
             'technician_id' => $this->hash((int) (9900000000000000 + random_int(1, 999999))),
             'store_id'      => $this->hash((int) (9900000000000000 + random_int(1, 999999))),
             'items'        => [[
@@ -131,7 +131,7 @@ class CouponDeductionTest extends TestCase
                 'name'        => '测试商品',
                 'price'       => $price,
                 'quantity'    => 1,
-                // erik_order_item.spec_info 为 NOT NULL
+                // appointment_order_item.spec_info 为 NOT NULL
                 'spec_info'   => ['default' => true],
             ]],
         ];
@@ -139,7 +139,7 @@ class CouponDeductionTest extends TestCase
             $post['user_coupon_id'] = $userCouponIdHash;
         }
         // 下单校验商品存在且价格以库中记录为准：种 id=1 商品行，价格与用例一致
-        Db::table('erik_product')->updateOrInsert(['id' => 1], [
+        Db::table('appointment_product')->updateOrInsert(['id' => 1], [
             'name'   => '测试商品',
             'price'  => $price,
             'stock'  => 100,

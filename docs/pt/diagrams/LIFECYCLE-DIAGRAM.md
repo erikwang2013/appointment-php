@@ -353,7 +353,7 @@ stateDiagram-v2
 
     checked --> pending: 二次消费<br/>(奖金=实付×ratio<br/>同 order_id+type 幂等)
 
-    pending --> settled: 佣金结算链统一结算<br/>(erik_technician_earnings<br/>type=return_customer)
+    pending --> settled: 佣金结算链统一结算<br/>(appointment_technician_earnings<br/>type=return_customer)
 
     settled --> [*]
     none --> [*]

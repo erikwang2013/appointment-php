@@ -46,7 +46,7 @@ class TechnicianController extends BaseController
         $query = TechnicianProfile::where('status', 'approved')
             ->with('user');
 
-        // 按服务筛选：通过 erik_technician_service 关联
+        // 按服务筛选：通过 appointment_technician_service 关联
         if ($serviceId) {
             $technicianIds = TechnicianService::where('service_id', $serviceId)
                 ->pluck('technician_id')
@@ -65,10 +65,10 @@ class TechnicianController extends BaseController
             $lat = (float)$lat;
             $lng = (float)$lng;
             $query->selectRaw(
-                "erik_technician_profile.*, "
-                . "(6371 * acos(cos(radians(?)) * cos(radians(COALESCE(erik_technician_profile.lat, 0))) "
-                . "* cos(radians(COALESCE(erik_technician_profile.lng, 0)) - radians(?)) "
-                . "+ sin(radians(?)) * sin(radians(COALESCE(erik_technician_profile.lat, 0))))) AS distance",
+                "appointment_technician_profile.*, "
+                . "(6371 * acos(cos(radians(?)) * cos(radians(COALESCE(appointment_technician_profile.lat, 0))) "
+                . "* cos(radians(COALESCE(appointment_technician_profile.lng, 0)) - radians(?)) "
+                . "+ sin(radians(?)) * sin(radians(COALESCE(appointment_technician_profile.lat, 0))))) AS distance",
                 [$lat, $lng, $lat]
             )
             ->orderBy('distance');
@@ -77,7 +77,7 @@ class TechnicianController extends BaseController
                   ->orderBy('order_count', 'desc');
         }
 
-        $paginator = $query->paginate($perPage, ['erik_technician_profile.*'], 'page', $page);
+        $paginator = $query->paginate($perPage, ['appointment_technician_profile.*'], 'page', $page);
 
         // P3: 一次 whereIn 预取本页技师的近7天排班并内存组装最早时段，
         // 替代原先 map() 内每项 getEarliestSlot() 一次查询（每页15人 = 16 次查询 → 2 次）

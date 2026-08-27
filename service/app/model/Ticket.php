@@ -9,7 +9,7 @@ use support\Model;
 
 class Ticket extends Model
 {
-    protected $table = 'erik_ticket';
+    protected $table = 'appointment_ticket';
     public $incrementing = false;
     protected $keyType = 'string';
     public $timestamps = true;

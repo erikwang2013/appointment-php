@@ -295,15 +295,15 @@ service/
 │   │   ├── Security                # セキュリティ検知(security-php)
 │   │   └── TechnicianAuth          # スタッフ身分検証
 │   └── model/                   # データモデル(81個)
-│       ├── User.php → erik_user
-│       ├── TechnicianProfile.php → erik_technician_profile
-│       ├── Service.php → erik_service (ES: erik_services)
-│       ├── Product.php → erik_product (ES: erik_products)
-│       ├── Store.php → erik_store
-│       ├── Order.php → erik_order (返金ルール/ステートマシン含む)
-│       ├── Coupon.php → erik_coupon
-│       ├── MemberCard.php → erik_member_card
-│       ├── Notification.php → erik_notification
+│       ├── User.php → appointment_user
+│       ├── TechnicianProfile.php → appointment_technician_profile
+│       ├── Service.php → appointment_service (ES: appointment_services)
+│       ├── Product.php → appointment_product (ES: appointment_products)
+│       ├── Store.php → appointment_store
+│       ├── Order.php → appointment_order (返金ルール/ステートマシン含む)
+│       ├── Coupon.php → appointment_coupon
+│       ├── MemberCard.php → appointment_member_card
+│       ├── Notification.php → appointment_notification
 │       └── ... (全81個のモデルファイル；admin に特有モデル 6 個を加え、合計 87)
 ├── config/                     # 設定ファイル
 ├── public/                     # エントリ
@@ -435,111 +435,111 @@ apps/flutter/
 
 ## データベーステーブル一覧
 
-全テーブルは `erik_` プレフィックスを使用、BIGINT 非自動採番主キー（Snowflake生成）。
+全テーブルは `appointment_` プレフィックスを使用、BIGINT 非自動採番主キー（Snowflake生成）。
 
 | ドメイン | テーブル名 | 説明 |
 |----|------|------|
-| ユーザー | erik_user | 統一ユーザーテーブル |
-| ユーザー | erik_user_address | 配送先住所 |
-| スタッフ | erik_technician_profile | スタッフカルテ |
-| スタッフ | erik_technician_schedule | スタッフ排班 |
-| スタッフ | erik_technician_service | スタッフ提供可能なサービス項目 |
-| スタッフ | erik_technician_earnings | スタッフ収益流水 |
-| スタッフ | erik_technician_withdrawal | スタッフ出金記録 |
-| スタッフ | erik_technician_attendance | スタッフ勤怠 |
-| スタッフ | erik_technician_member_note | 会員カルテ |
-| サービス | erik_service_category | サービス分類 |
-| サービス | erik_service | サービス項目 |
-| サービス | erik_product | 商品 |
-| サービス | erik_store | 店舗 |
-| 注文 | erik_order | 注文マスターテーブル（秒殺 seckill_id 関連列、第24ラウンド） |
-| 注文 | erik_order_item | 注文明細 |
-| 注文 | erik_order_payment | 支払い記録 |
-| 注文 | erik_order_refund | 返金記録 |
-| 注文 | erik_order_review | サービス評価 |
-| 注文 | erik_order_verification | 核销記録 |
-| 注文 | erik_order_reschedule | 予約改期記録（第17ラウンド） |
-| マーケティング | erik_coupon | クーポン定義 |
-| マーケティング | erik_user_coupon | ユーザークーポン |
-| マーケティング | erik_user_coupon_transfer | クーポン転贈記録（第17ラウンド） |
-| マーケティング | erik_user_points_transfer | ポイント転贈記録（第19ラウンド） |
-| マーケティング | erik_technician_tier_log | スタッフレベル変更ログ（第17ラウンド） |
-| マーケティング | erik_member_card | 会員カード定義 |
-| マーケティング | erik_user_member_card | ユーザー会員カード |
-| マーケティング | erik_member_card_usage | 回数券使用記録 |
-| マーケティング | erik_user_points | ポイント流水 |
-| マーケティング | erik_gift_card | ギフトカード |
-| マーケティング | erik_user_referral | ユーザー紹介 |
-| マーケティング | erik_user_favorite | ユーザーお気に入り |
-| ウォレット | erik_user_wallet | ユーザーウォレット残高 |
-| ウォレット | erik_wallet_recharge | ウォレットチャージ記録 |
-| ウォレット | erik_wallet_txn | ウォレット取引流水 |
-| ウォレット | erik_wallet_transfer | ユーザー間振込記録（第19ラウンド） |
-| ユーザー | erik_user_notify_setting | メッセージ通知設定（第19ラウンド） |
-| コンテンツ | erik_banner | カルーセル画像 |
-| コンテンツ | erik_announcement | お知らせ |
-| コンテンツ | erik_platform_agreement | プラットフォーム規約 |
-| コンテンツ | erik_faq | よくある質問 |
-| コンテンツ | erik_feedback | 意見フィードバック |
-| コンテンツ | erik_moment | モーメンツ動態 |
-| コンテンツ | erik_notification | メッセージ通知 |
-| 財務 | erik_finance_transaction | 収支流水 |
-| 財務 | erik_technician_commission_config | 歩合設定 |
-| 財務 | erik_withdrawal_account | 出金アカウント |
-| 財務 | erik_withdrawal_config | 出金制限設定 |
-| システム | erik_admin_user | 管理ユーザー（構築済み） |
-| システム | erik_admin_role | ロール（構築済み） |
-| システム | erik_admin_permission | 権限（構築済み） |
-| システム | erik_admin_user_role | ユーザーロール関連（構築済み） |
-| システム | erik_admin_role_permission | ロール権限関連（構築済み） |
-| システム | erik_system_config | システム設定（構築済み） |
-| システム | erik_operation_log | 操作ログ（構築済み） |
-| ユーザー | erik_user_growth | 成長値流水（第20ラウンド） |
-| ユーザー | erik_growth_level | 成長レベル段階（第20ラウンド） |
-| 注文 | erik_invoice | 電子インボイス（第20ラウンド） |
-| ユーザー | erik_ticket | カスタマーサポートチケット（第20ラウンド） |
-| マーケティング | erik_referral_level2_reward | 2級返金記録（第20ラウンド） |
-| ユーザー | erik_invoice_title | インボイス宛名ライブラリ（第21ラウンド） |
-| ユーザー | erik_browse_history | 閲覧履歴（第21ラウンド） |
-| マーケティング | erik_full_reduction_activity | 満減キャンペーン（第22ラウンド） |
-| スタッフ | erik_technician_attendance | スタッフ勤怠（第22ラウンド） |
-| システム | erik_push_log | APPプッシュ記録（第22ラウンド） |
-| 財務 | erik_profit_sharing | 微信分账記録（第22ラウンド） |
-| 注文 | erik_order_status_log | 注文状態タイムライン（第23ラウンド） |
-| ユーザー | erik_user_health_profile | ユーザー健康カルテ（第23ラウンド） |
-| マーケティング | erik_lucky_wheel | ルーレット賞品定義（第23ラウンド） |
-| マーケティング | erik_wheel_record | ルーレット抽選記録（第23ラウンド） |
-| マーケティング | erik_seckill_activity | 秒殺キャンペーン（第24ラウンド） |
-| システム | erik_app_version | APPバージョン（第24ラウンド） |
+| ユーザー | appointment_user | 統一ユーザーテーブル |
+| ユーザー | appointment_user_address | 配送先住所 |
+| スタッフ | appointment_technician_profile | スタッフカルテ |
+| スタッフ | appointment_technician_schedule | スタッフ排班 |
+| スタッフ | appointment_technician_service | スタッフ提供可能なサービス項目 |
+| スタッフ | appointment_technician_earnings | スタッフ収益流水 |
+| スタッフ | appointment_technician_withdrawal | スタッフ出金記録 |
+| スタッフ | appointment_technician_attendance | スタッフ勤怠 |
+| スタッフ | appointment_technician_member_note | 会員カルテ |
+| サービス | appointment_service_category | サービス分類 |
+| サービス | appointment_service | サービス項目 |
+| サービス | appointment_product | 商品 |
+| サービス | appointment_store | 店舗 |
+| 注文 | appointment_order | 注文マスターテーブル（秒殺 seckill_id 関連列、第24ラウンド） |
+| 注文 | appointment_order_item | 注文明細 |
+| 注文 | appointment_order_payment | 支払い記録 |
+| 注文 | appointment_order_refund | 返金記録 |
+| 注文 | appointment_order_review | サービス評価 |
+| 注文 | appointment_order_verification | 核销記録 |
+| 注文 | appointment_order_reschedule | 予約改期記録（第17ラウンド） |
+| マーケティング | appointment_coupon | クーポン定義 |
+| マーケティング | appointment_user_coupon | ユーザークーポン |
+| マーケティング | appointment_user_coupon_transfer | クーポン転贈記録（第17ラウンド） |
+| マーケティング | appointment_user_points_transfer | ポイント転贈記録（第19ラウンド） |
+| マーケティング | appointment_technician_tier_log | スタッフレベル変更ログ（第17ラウンド） |
+| マーケティング | appointment_member_card | 会員カード定義 |
+| マーケティング | appointment_user_member_card | ユーザー会員カード |
+| マーケティング | appointment_member_card_usage | 回数券使用記録 |
+| マーケティング | appointment_user_points | ポイント流水 |
+| マーケティング | appointment_gift_card | ギフトカード |
+| マーケティング | appointment_user_referral | ユーザー紹介 |
+| マーケティング | appointment_user_favorite | ユーザーお気に入り |
+| ウォレット | appointment_user_wallet | ユーザーウォレット残高 |
+| ウォレット | appointment_wallet_recharge | ウォレットチャージ記録 |
+| ウォレット | appointment_wallet_txn | ウォレット取引流水 |
+| ウォレット | appointment_wallet_transfer | ユーザー間振込記録（第19ラウンド） |
+| ユーザー | appointment_user_notify_setting | メッセージ通知設定（第19ラウンド） |
+| コンテンツ | appointment_banner | カルーセル画像 |
+| コンテンツ | appointment_announcement | お知らせ |
+| コンテンツ | appointment_platform_agreement | プラットフォーム規約 |
+| コンテンツ | appointment_faq | よくある質問 |
+| コンテンツ | appointment_feedback | 意見フィードバック |
+| コンテンツ | appointment_moment | モーメンツ動態 |
+| コンテンツ | appointment_notification | メッセージ通知 |
+| 財務 | appointment_finance_transaction | 収支流水 |
+| 財務 | appointment_technician_commission_config | 歩合設定 |
+| 財務 | appointment_withdrawal_account | 出金アカウント |
+| 財務 | appointment_withdrawal_config | 出金制限設定 |
+| システム | appointment_admin_user | 管理ユーザー（構築済み） |
+| システム | appointment_admin_role | ロール（構築済み） |
+| システム | appointment_admin_permission | 権限（構築済み） |
+| システム | appointment_admin_user_role | ユーザーロール関連（構築済み） |
+| システム | appointment_admin_role_permission | ロール権限関連（構築済み） |
+| システム | appointment_system_config | システム設定（構築済み） |
+| システム | appointment_operation_log | 操作ログ（構築済み） |
+| ユーザー | appointment_user_growth | 成長値流水（第20ラウンド） |
+| ユーザー | appointment_growth_level | 成長レベル段階（第20ラウンド） |
+| 注文 | appointment_invoice | 電子インボイス（第20ラウンド） |
+| ユーザー | appointment_ticket | カスタマーサポートチケット（第20ラウンド） |
+| マーケティング | appointment_referral_level2_reward | 2級返金記録（第20ラウンド） |
+| ユーザー | appointment_invoice_title | インボイス宛名ライブラリ（第21ラウンド） |
+| ユーザー | appointment_browse_history | 閲覧履歴（第21ラウンド） |
+| マーケティング | appointment_full_reduction_activity | 満減キャンペーン（第22ラウンド） |
+| スタッフ | appointment_technician_attendance | スタッフ勤怠（第22ラウンド） |
+| システム | appointment_push_log | APPプッシュ記録（第22ラウンド） |
+| 財務 | appointment_profit_sharing | 微信分账記録（第22ラウンド） |
+| 注文 | appointment_order_status_log | 注文状態タイムライン（第23ラウンド） |
+| ユーザー | appointment_user_health_profile | ユーザー健康カルテ（第23ラウンド） |
+| マーケティング | appointment_lucky_wheel | ルーレット賞品定義（第23ラウンド） |
+| マーケティング | appointment_wheel_record | ルーレット抽選記録（第23ラウンド） |
+| マーケティング | appointment_seckill_activity | 秒殺キャンペーン（第24ラウンド） |
+| システム | appointment_app_version | APPバージョン（第24ラウンド） |
 
 ### 補足リスト（docs/install.sql の 95 テーブルのうち上記に含まれないもの。完全かつ権威ある一覧は install.sql を参照）
 
 | ドメイン | テーブル名 | 説明 |
 |----|------|------|
-| マーケティング | erik_card_transfer | 回数券転贈 |
-| ユーザー | erik_check_in | チェックイン |
-| コンテンツ | erik_community_post | コミュニティ動態 |
-| コンテンツ | erik_community_comment | コミュニティコメント |
-| スタッフ | erik_exam | 試験 |
-| スタッフ | erik_exam_question | 試験問題 |
-| スタッフ | erik_exam_attempt | 試験答案 |
-| システム | erik_operation_log_detail | 操作ログ詳細 |
-| 注文 | erik_order_aftersale | 注文アフターサービス |
-| マーケティング | erik_points_exchange_goods | ポイント交換商品 |
-| マーケティング | erik_promotion | 拼团キャンペーン |
-| マーケティング | erik_promotion_participant | 拼团参加者 |
-| 注文 | erik_queue_number | 待ち番号呼び出し |
-| サービス | erik_service_package | サービスパッケージ |
-| スタッフ | erik_service_record | サービス記録 |
-| コンテンツ | erik_share | シェア記録 |
-| 注文 | erik_signature | 署名 |
-| スタッフ | erik_technician_tier_config | スタッフレベル設定 |
-| スタッフ | erik_training_course | 研修コース |
-| スタッフ | erik_training_progress | 研修進捗 |
-| ユーザー | erik_user_device | ユーザーデバイス |
-| マーケティング | erik_user_points_exchange | ポイント交換記録 |
-| コンテンツ | erik_video_post | 動画動態 |
-| 注文 | erik_waitlist | ウェイティングリスト |
+| マーケティング | appointment_card_transfer | 回数券転贈 |
+| ユーザー | appointment_check_in | チェックイン |
+| コンテンツ | appointment_community_post | コミュニティ動態 |
+| コンテンツ | appointment_community_comment | コミュニティコメント |
+| スタッフ | appointment_exam | 試験 |
+| スタッフ | appointment_exam_question | 試験問題 |
+| スタッフ | appointment_exam_attempt | 試験答案 |
+| システム | appointment_operation_log_detail | 操作ログ詳細 |
+| 注文 | appointment_order_aftersale | 注文アフターサービス |
+| マーケティング | appointment_points_exchange_goods | ポイント交換商品 |
+| マーケティング | appointment_promotion | 拼团キャンペーン |
+| マーケティング | appointment_promotion_participant | 拼团参加者 |
+| 注文 | appointment_queue_number | 待ち番号呼び出し |
+| サービス | appointment_service_package | サービスパッケージ |
+| スタッフ | appointment_service_record | サービス記録 |
+| コンテンツ | appointment_share | シェア記録 |
+| 注文 | appointment_signature | 署名 |
+| スタッフ | appointment_technician_tier_config | スタッフレベル設定 |
+| スタッフ | appointment_training_course | 研修コース |
+| スタッフ | appointment_training_progress | 研修進捗 |
+| ユーザー | appointment_user_device | ユーザーデバイス |
+| マーケティング | appointment_user_points_exchange | ポイント交換記録 |
+| コンテンツ | appointment_video_post | 動画動態 |
+| 注文 | appointment_waitlist | ウェイティングリスト |
 
 ## 外部サービス予約
 

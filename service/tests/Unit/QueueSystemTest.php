@@ -28,7 +28,7 @@ class QueueSystemTest extends TestCase
     #[Test] public function model_table_name_correct(): void
     {
         $q = new QueueNumber();
-        $this->assertEquals('erik_queue_number', $q->getTable());
+        $this->assertEquals('appointment_queue_number', $q->getTable());
     }
 
     #[Test] public function model_uses_snowflake(): void

@@ -296,15 +296,15 @@ service/
 │   │   ├── Security                # Détection de sécurité (security-php)
 │   │   └── TechnicianAuth          # Validation de l'identité technicien
 │   └── model/                   # Modèles de données (81)
-│       ├── User.php → erik_user
-│       ├── TechnicianProfile.php → erik_technician_profile
-│       ├── Service.php → erik_service (ES: erik_services)
-│       ├── Product.php → erik_product (ES: erik_products)
-│       ├── Store.php → erik_store
-│       ├── Order.php → erik_order (contient les règles de remboursement/machine à états)
-│       ├── Coupon.php → erik_coupon
-│       ├── MemberCard.php → erik_member_card
-│       ├── Notification.php → erik_notification
+│       ├── User.php → appointment_user
+│       ├── TechnicianProfile.php → appointment_technician_profile
+│       ├── Service.php → appointment_service (ES: appointment_services)
+│       ├── Product.php → appointment_product (ES: appointment_products)
+│       ├── Store.php → appointment_store
+│       ├── Order.php → appointment_order (contient les règles de remboursement/machine à états)
+│       ├── Coupon.php → appointment_coupon
+│       ├── MemberCard.php → appointment_member_card
+│       ├── Notification.php → appointment_notification
 │       └── ... (81 fichiers de modèles au total ; admin en compte 6 autres spécifiques, soit 87 au total)
 ├── config/                     # Fichiers de configuration
 ├── public/                     # Entrée
@@ -436,111 +436,111 @@ Vérification de santé :  Cors → Security → RateLimit → Controller
 
 ## Liste des tables de la base de données
 
-Toutes les tables utilisent le préfixe `erik_`, clés primaires BIGINT non auto-incrémentées (générées par Snowflake).
+Toutes les tables utilisent le préfixe `appointment_`, clés primaires BIGINT non auto-incrémentées (générées par Snowflake).
 
 | Domaine | Nom de la table | Description |
 |----|------|------|
-| Utilisateurs | erik_user | Table utilisateur unifiée |
-| Utilisateurs | erik_user_address | Adresses de livraison |
-| Techniciens | erik_technician_profile | Dossier du technicien |
-| Techniciens | erik_technician_schedule | Planning du technicien |
-| Techniciens | erik_technician_service | Prestations proposées par le technicien |
-| Techniciens | erik_technician_earnings | Flux de revenus du technicien |
-| Techniciens | erik_technician_withdrawal | Enregistrements de retrait du technicien |
-| Techniciens | erik_technician_attendance | Pointage du technicien |
-| Techniciens | erik_technician_member_note | Dossier client |
-| Services | erik_service_category | Catégories de prestations |
-| Services | erik_service | Prestations |
-| Services | erik_product | Produits |
-| Services | erik_store | Boutiques |
-| Commandes | erik_order | Table principale des commandes (colonne de liaison seckill_id pour le flash, tour 24) |
-| Commandes | erik_order_item | Détails de commande |
-| Commandes | erik_order_payment | Enregistrements de paiement |
-| Commandes | erik_order_refund | Enregistrements de remboursement |
-| Commandes | erik_order_review | Évaluations de service |
-| Commandes | erik_order_verification | Enregistrements de vérification |
-| Commandes | erik_order_reschedule | Enregistrements de report de réservation (tour 17) |
-| Marketing | erik_coupon | Définition des bons |
-| Marketing | erik_user_coupon | Bons de l'utilisateur |
-| Marketing | erik_user_coupon_transfer | Enregistrements de transfert de bons (tour 17) |
-| Marketing | erik_user_points_transfer | Enregistrements de transfert de points (tour 19) |
-| Marketing | erik_technician_tier_log | Journal de changement de niveau de technicien (tour 17) |
-| Marketing | erik_member_card | Définition des cartes de membre |
-| Marketing | erik_user_member_card | Cartes de membre de l'utilisateur |
-| Marketing | erik_member_card_usage | Enregistrements d'utilisation des cartes à forfait |
-| Marketing | erik_user_points | Flux de points |
-| Marketing | erik_gift_card | Cartes cadeaux |
-| Marketing | erik_user_referral | Parrainage utilisateur |
-| Marketing | erik_user_favorite | Favoris utilisateur |
-| Portefeuille | erik_user_wallet | Solde du portefeuille utilisateur |
-| Portefeuille | erik_wallet_recharge | Enregistrements de recharge du portefeuille |
-| Portefeuille | erik_wallet_txn | Flux de transactions du portefeuille |
-| Portefeuille | erik_wallet_transfer | Enregistrements de transfert entre utilisateurs (tour 19) |
-| Utilisateurs | erik_user_notify_setting | Préférences de notification (tour 19) |
-| Contenu | erik_banner | Bannières |
-| Contenu | erik_announcement | Annonces |
-| Contenu | erik_platform_agreement | Accords de plateforme |
-| Contenu | erik_faq | Questions fréquentes |
-| Contenu | erik_feedback | Retours d'expérience |
-| Contenu | erik_moment | Fil d'actualités |
-| Contenu | erik_notification | Notifications |
-| Finances | erik_finance_transaction | Flux de revenus et dépenses |
-| Finances | erik_technician_commission_config | Configuration des commissions |
-| Finances | erik_withdrawal_account | Comptes de retrait |
-| Finances | erik_withdrawal_config | Configuration des limites de retrait |
-| Système | erik_admin_user | Utilisateurs d'administration (déjà créés) |
-| Système | erik_admin_role | Rôles (déjà créés) |
-| Système | erik_admin_permission | Permissions (déjà créées) |
-| Système | erik_admin_user_role | Liaison utilisateur-rôle (déjà créée) |
-| Système | erik_admin_role_permission | Liaison rôle-permission (déjà créée) |
-| Système | erik_system_config | Configuration système (déjà créée) |
-| Système | erik_operation_log | Journaux d'opérations (déjà créés) |
-| Utilisateurs | erik_user_growth | Flux de croissance (tour 20) |
-| Utilisateurs | erik_growth_level | Niveaux de croissance (tour 20) |
-| Commandes | erik_invoice | Factures électroniques (tour 20) |
-| Utilisateurs | erik_ticket | Tickets du service client (tour 20) |
-| Marketing | erik_referral_level2_reward | Enregistrements de commission niveau 2 (tour 20) |
-| Utilisateurs | erik_invoice_title | Bibliothèque d'intitulés de facture (tour 21) |
-| Utilisateurs | erik_browse_history | Historique de navigation (tour 21) |
-| Marketing | erik_full_reduction_activity | Opérations de remise (tour 22) |
-| Techniciens | erik_technician_attendance | Pointage des techniciens (tour 22) |
-| Système | erik_push_log | Enregistrements de push APP (tour 22) |
-| Finances | erik_profit_sharing | Enregistrements de partage des profits WeChat (tour 22) |
-| Commandes | erik_order_status_log | Chronologie des statuts de commande (tour 23) |
-| Utilisateurs | erik_user_health_profile | Dossier de santé utilisateur (tour 23) |
-| Marketing | erik_lucky_wheel | Définition des prix de la roue (tour 23) |
-| Marketing | erik_wheel_record | Enregistrements de tirage de la roue (tour 23) |
-| Marketing | erik_seckill_activity | Opérations flash (tour 24) |
-| Système | erik_app_version | Versions APP (tour 24) |
+| Utilisateurs | appointment_user | Table utilisateur unifiée |
+| Utilisateurs | appointment_user_address | Adresses de livraison |
+| Techniciens | appointment_technician_profile | Dossier du technicien |
+| Techniciens | appointment_technician_schedule | Planning du technicien |
+| Techniciens | appointment_technician_service | Prestations proposées par le technicien |
+| Techniciens | appointment_technician_earnings | Flux de revenus du technicien |
+| Techniciens | appointment_technician_withdrawal | Enregistrements de retrait du technicien |
+| Techniciens | appointment_technician_attendance | Pointage du technicien |
+| Techniciens | appointment_technician_member_note | Dossier client |
+| Services | appointment_service_category | Catégories de prestations |
+| Services | appointment_service | Prestations |
+| Services | appointment_product | Produits |
+| Services | appointment_store | Boutiques |
+| Commandes | appointment_order | Table principale des commandes (colonne de liaison seckill_id pour le flash, tour 24) |
+| Commandes | appointment_order_item | Détails de commande |
+| Commandes | appointment_order_payment | Enregistrements de paiement |
+| Commandes | appointment_order_refund | Enregistrements de remboursement |
+| Commandes | appointment_order_review | Évaluations de service |
+| Commandes | appointment_order_verification | Enregistrements de vérification |
+| Commandes | appointment_order_reschedule | Enregistrements de report de réservation (tour 17) |
+| Marketing | appointment_coupon | Définition des bons |
+| Marketing | appointment_user_coupon | Bons de l'utilisateur |
+| Marketing | appointment_user_coupon_transfer | Enregistrements de transfert de bons (tour 17) |
+| Marketing | appointment_user_points_transfer | Enregistrements de transfert de points (tour 19) |
+| Marketing | appointment_technician_tier_log | Journal de changement de niveau de technicien (tour 17) |
+| Marketing | appointment_member_card | Définition des cartes de membre |
+| Marketing | appointment_user_member_card | Cartes de membre de l'utilisateur |
+| Marketing | appointment_member_card_usage | Enregistrements d'utilisation des cartes à forfait |
+| Marketing | appointment_user_points | Flux de points |
+| Marketing | appointment_gift_card | Cartes cadeaux |
+| Marketing | appointment_user_referral | Parrainage utilisateur |
+| Marketing | appointment_user_favorite | Favoris utilisateur |
+| Portefeuille | appointment_user_wallet | Solde du portefeuille utilisateur |
+| Portefeuille | appointment_wallet_recharge | Enregistrements de recharge du portefeuille |
+| Portefeuille | appointment_wallet_txn | Flux de transactions du portefeuille |
+| Portefeuille | appointment_wallet_transfer | Enregistrements de transfert entre utilisateurs (tour 19) |
+| Utilisateurs | appointment_user_notify_setting | Préférences de notification (tour 19) |
+| Contenu | appointment_banner | Bannières |
+| Contenu | appointment_announcement | Annonces |
+| Contenu | appointment_platform_agreement | Accords de plateforme |
+| Contenu | appointment_faq | Questions fréquentes |
+| Contenu | appointment_feedback | Retours d'expérience |
+| Contenu | appointment_moment | Fil d'actualités |
+| Contenu | appointment_notification | Notifications |
+| Finances | appointment_finance_transaction | Flux de revenus et dépenses |
+| Finances | appointment_technician_commission_config | Configuration des commissions |
+| Finances | appointment_withdrawal_account | Comptes de retrait |
+| Finances | appointment_withdrawal_config | Configuration des limites de retrait |
+| Système | appointment_admin_user | Utilisateurs d'administration (déjà créés) |
+| Système | appointment_admin_role | Rôles (déjà créés) |
+| Système | appointment_admin_permission | Permissions (déjà créées) |
+| Système | appointment_admin_user_role | Liaison utilisateur-rôle (déjà créée) |
+| Système | appointment_admin_role_permission | Liaison rôle-permission (déjà créée) |
+| Système | appointment_system_config | Configuration système (déjà créée) |
+| Système | appointment_operation_log | Journaux d'opérations (déjà créés) |
+| Utilisateurs | appointment_user_growth | Flux de croissance (tour 20) |
+| Utilisateurs | appointment_growth_level | Niveaux de croissance (tour 20) |
+| Commandes | appointment_invoice | Factures électroniques (tour 20) |
+| Utilisateurs | appointment_ticket | Tickets du service client (tour 20) |
+| Marketing | appointment_referral_level2_reward | Enregistrements de commission niveau 2 (tour 20) |
+| Utilisateurs | appointment_invoice_title | Bibliothèque d'intitulés de facture (tour 21) |
+| Utilisateurs | appointment_browse_history | Historique de navigation (tour 21) |
+| Marketing | appointment_full_reduction_activity | Opérations de remise (tour 22) |
+| Techniciens | appointment_technician_attendance | Pointage des techniciens (tour 22) |
+| Système | appointment_push_log | Enregistrements de push APP (tour 22) |
+| Finances | appointment_profit_sharing | Enregistrements de partage des profits WeChat (tour 22) |
+| Commandes | appointment_order_status_log | Chronologie des statuts de commande (tour 23) |
+| Utilisateurs | appointment_user_health_profile | Dossier de santé utilisateur (tour 23) |
+| Marketing | appointment_lucky_wheel | Définition des prix de la roue (tour 23) |
+| Marketing | appointment_wheel_record | Enregistrements de tirage de la roue (tour 23) |
+| Marketing | appointment_seckill_activity | Opérations flash (tour 24) |
+| Système | appointment_app_version | Versions APP (tour 24) |
 
 ### Liste complémentaire (parties des 95 tables de ../install.sql non listées ci-dessus ; la liste complète faisant autorité est install.sql)
 
 | Domaine | Nom de la table | Description |
 |----|------|------|
-| Marketing | erik_card_transfer | Transfert de carte à forfait |
-| Utilisateurs | erik_check_in | Pointage de présence |
-| Contenu | erik_community_post | Activités communautaires |
-| Contenu | erik_community_comment | Commentaires communautaires |
-| Techniciens | erik_exam | Évaluation |
-| Techniciens | erik_exam_question | Questions d'évaluation |
-| Techniciens | erik_exam_attempt | Copies d'évaluation |
-| Système | erik_operation_log_detail | Détails des journaux d'opérations |
-| Commandes | erik_order_aftersale | S.A.V. des commandes |
-| Marketing | erik_points_exchange_goods | Produits d'échange à points |
-| Marketing | erik_promotion | Opérations d'achat groupé |
-| Marketing | erik_promotion_participant | Participants à l'achat groupé |
-| Commandes | erik_queue_number | File d'attente et appel |
-| Services | erik_service_package | Forfaits de prestations |
-| Techniciens | erik_service_record | Enregistrements de service |
-| Contenu | erik_share | Enregistrements de partage |
-| Commandes | erik_signature | Signatures |
-| Techniciens | erik_technician_tier_config | Configuration des niveaux de technicien |
-| Techniciens | erik_training_course | Cours de formation |
-| Techniciens | erik_training_progress | Progression de la formation |
-| Utilisateurs | erik_user_device | Appareils utilisateur |
-| Marketing | erik_user_points_exchange | Enregistrements d'échange de points |
-| Contenu | erik_video_post | Vidéos dynamiques |
-| Commandes | erik_waitlist | Liste d'attente |
+| Marketing | appointment_card_transfer | Transfert de carte à forfait |
+| Utilisateurs | appointment_check_in | Pointage de présence |
+| Contenu | appointment_community_post | Activités communautaires |
+| Contenu | appointment_community_comment | Commentaires communautaires |
+| Techniciens | appointment_exam | Évaluation |
+| Techniciens | appointment_exam_question | Questions d'évaluation |
+| Techniciens | appointment_exam_attempt | Copies d'évaluation |
+| Système | appointment_operation_log_detail | Détails des journaux d'opérations |
+| Commandes | appointment_order_aftersale | S.A.V. des commandes |
+| Marketing | appointment_points_exchange_goods | Produits d'échange à points |
+| Marketing | appointment_promotion | Opérations d'achat groupé |
+| Marketing | appointment_promotion_participant | Participants à l'achat groupé |
+| Commandes | appointment_queue_number | File d'attente et appel |
+| Services | appointment_service_package | Forfaits de prestations |
+| Techniciens | appointment_service_record | Enregistrements de service |
+| Contenu | appointment_share | Enregistrements de partage |
+| Commandes | appointment_signature | Signatures |
+| Techniciens | appointment_technician_tier_config | Configuration des niveaux de technicien |
+| Techniciens | appointment_training_course | Cours de formation |
+| Techniciens | appointment_training_progress | Progression de la formation |
+| Utilisateurs | appointment_user_device | Appareils utilisateur |
+| Marketing | appointment_user_points_exchange | Enregistrements d'échange de points |
+| Contenu | appointment_video_post | Vidéos dynamiques |
+| Commandes | appointment_waitlist | Liste d'attente |
 
 ## Services externes réservés
 

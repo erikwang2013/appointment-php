@@ -308,7 +308,7 @@ Beim Setzen als Standardadresse werden andere Standardadressen automatisch aufge
 | GET | `/api/user/referral/referred-users` | Liste der empfohlenen Benutzer |
 | GET | `/api/user/referral/earnings` | Provisionsdetails der Distribution (paginiert: Nickname/Avatar des Empfohlenen/Bestellnummer/Betrag/Auszahlungszeit) |
 
-**Distributionsprovision**: Wird nach der ersten completed-Bestellung des Empfohlenen ausgezahlt, Betrag = paid_amount × reward_rate (erik_system_config referral.reward_rate, Standard 0.05, ungültige Werte fallen auf die Konstante zurück). Dreifache Idempotenz durch Zeilensperre + rewarded_at-Leerprüfung + Erstbestell-Recheck; Verbuchung in WalletTxn type=referral_reward.
+**Distributionsprovision**: Wird nach der ersten completed-Bestellung des Empfohlenen ausgezahlt, Betrag = paid_amount × reward_rate (appointment_system_config referral.reward_rate, Standard 0.05, ungültige Werte fallen auf die Konstante zurück). Dreifache Idempotenz durch Zeilensperre + rewarded_at-Leerprüfung + Erstbestell-Recheck; Verbuchung in WalletTxn type=referral_reward.
 
 #### 2.6 Punkte-Übertragung (Runde 19)
 
@@ -326,7 +326,7 @@ Beim Setzen als Standardadresse werden andere Standardadressen automatisch aufge
 | GET | `/api/user/notify-settings` | Benachrichtigungsschalter abfragen (alle 5 Kategorien) |
 | PUT | `/api/user/notify-settings` | Schalter batch-weise aktualisieren (types: {service_reminder: 0/1, ...}) |
 
-**Benachrichtigungsschalter**: Tabelle erik_user_notify_setting (user_id+type zusammengesetzter eindeutiger Schlüssel, fehlende Zeile = standardmäßig an). 5 Kategorien: service_reminder Service-Erinnerung / card_expiry Ablauf-Erinnerung (einheitlicher Dachschirm für Karten + Gutscheine) / points_expiry Punkte-Ablauf / marketing Marketing (reserviert) / system System (kann nicht ausgeschaltet werden, PUT erzwingt 1). Gating: notifySettingEnabled hängt an den 3 Timer-Prozessen ServiceReminderTimer/ExpiryReminderTimer/PointsExpiryTimer + Szenario-Zuordnung von Abonnement-Events (PAY/REFUND/VERIFIED/RESCHEDULE→system immer gesendet, REMINDER→service_reminder, EXPIRY→card_expiry); bei deaktiviertem Typ werden In-App-Benachrichtigungen und Abonnementnachrichten gleichermaßen übersprungen.
+**Benachrichtigungsschalter**: Tabelle appointment_user_notify_setting (user_id+type zusammengesetzter eindeutiger Schlüssel, fehlende Zeile = standardmäßig an). 5 Kategorien: service_reminder Service-Erinnerung / card_expiry Ablauf-Erinnerung (einheitlicher Dachschirm für Karten + Gutscheine) / points_expiry Punkte-Ablauf / marketing Marketing (reserviert) / system System (kann nicht ausgeschaltet werden, PUT erzwingt 1). Gating: notifySettingEnabled hängt an den 3 Timer-Prozessen ServiceReminderTimer/ExpiryReminderTimer/PointsExpiryTimer + Szenario-Zuordnung von Abonnement-Events (PAY/REFUND/VERIFIED/RESCHEDULE→system immer gesendet, REMINDER→service_reminder, EXPIRY→card_expiry); bei deaktiviertem Typ werden In-App-Benachrichtigungen und Abonnementnachrichten gleichermaßen übersprungen.
 
 ---
 
@@ -405,7 +405,7 @@ Regeln: Auszahlung am 20. jedes Monats möglich, T+1 auf dem Konto, Mindestbetra
 
 **Beim Erstellen der Bestellung**: Redis SETNX sperrt den Techniker 3 Minuten lang, Freigabe beim Verlassen der Seite oder bei Timeout.
 
-**Preis-Manipulationsschutz (2026-08-26)**: Bestellpositionsbeträge ausschließlich aus der Datenbank (target_type=service fragt erik_service ab, product fragt erik_product ab), vom Client übermittelte Preise fließen nicht in die Berechnung ein; unbekannter target_type 422; target_id muss als hashid-codierter Wert übergeben werden (raw id wird zu 0 dekodiert → 422 „商品不存在或已下架"); Gruppen-/Blitzpreise ebenfalls auf DB-Basis.
+**Preis-Manipulationsschutz (2026-08-26)**: Bestellpositionsbeträge ausschließlich aus der Datenbank (target_type=service fragt appointment_service ab, product fragt appointment_product ab), vom Client übermittelte Preise fließen nicht in die Berechnung ein; unbekannter target_type 422; target_id muss als hashid-codierter Wert übergeben werden (raw id wird zu 0 dekodiert → 422 „商品不存在或已下架"); Gruppen-/Blitzpreise ebenfalls auf DB-Basis.
 
 **Rückerstattungsregeln**: Innerhalb 15 min nach Bestellung oder >6 h vor Beginn 100 % / ≤6 h vor Beginn 90 % / bereits begonnen 80 % / nach bestätigtem Beginn keine Rückerstattung.
 
@@ -413,7 +413,7 @@ Regeln: Auszahlung am 20. jedes Monats möglich, T+1 auf dem Konto, Mindestbetra
 
 **Guthabenzahlung und -rückerstattung**: Mit `pay_channel: "balance"` im Zahlungs-Body wird das Wallet-Guthaben verwendet; sowohl WeChat-Rückerstattungen als auch Guthabenrückerstattungen schreiben den Betrag ins Wallet-Guthaben zurück.
 
-**Punkte-Anrechnung**: Im Zahlungs-Body optional `use_points` (Ganzzahl) übergeben. SUM-Aggregationsprüfung des Punkteguthabens (die balance-Spalte von erik_user_points ist ein inkrementeller Schnappschuss pro Eintrag und nicht direkt als Guthaben nutzbar), Anrechnungsbetrag = floor(use_points / config('app.points_rate', 100)) Yuan, tatsächlicher Zahlbetrag = ursprünglich fällig − Anrechnungsbetrag (Untergrenze 0.01, bei Überschreiten des fälligen Betrags volle Anrechnung ohne Punktverschwendung). Bei Erfolg wird type=consume/source=points_offset geschrieben (idempotent, Wiederholungen ziehen nicht doppelt ab). Unzureichendes Guthaben 422.
+**Punkte-Anrechnung**: Im Zahlungs-Body optional `use_points` (Ganzzahl) übergeben. SUM-Aggregationsprüfung des Punkteguthabens (die balance-Spalte von appointment_user_points ist ein inkrementeller Schnappschuss pro Eintrag und nicht direkt als Guthaben nutzbar), Anrechnungsbetrag = floor(use_points / config('app.points_rate', 100)) Yuan, tatsächlicher Zahlbetrag = ursprünglich fällig − Anrechnungsbetrag (Untergrenze 0.01, bei Überschreiten des fälligen Betrags volle Anrechnung ohne Punktverschwendung). Bei Erfolg wird type=consume/source=points_offset geschrieben (idempotent, Wiederholungen ziehen nicht doppelt ab). Unzureichendes Guthaben 422.
 
 **Punkte-Rückerstattung**: Bei Stornierung/Rückerstattung werden die durch points_offset verbrauchten Punkte zurückgegeben (type=earn/source=points_refund): Stornierung in voller Höhe, Rückerstattung anteilig, 5 idempotente Anbindungspunkte (refundOffsetPoints).
 
@@ -421,7 +421,7 @@ Regeln: Auszahlung am 20. jedes Monats möglich, T+1 auf dem Konto, Mindestbetra
 
 **Blitzangebots-Bestellung (Runde 18, eingestellt)**: ~~Beim Erstellen der Bestellung `promotion_id` (Typ flash_sale) übergeben~~ — ab 2026-08 wurde der alte Promotionskanal FLASH_SALE entfernt, der store()-Promotionszweig kennt nur noch Gruppenkauf GROUP_BUY (nicht Gruppenkauf-Promotion 422); Blitzangebote laufen einheitlich über den /api/seckill-Kanal aus Runde 24 (seckill_id wird in der store-Transaktion per Zeilensperre in den Lagerbestand eingerechnet), PromotionController::index filtert flash_sale heraus, show/join geben dafür 400 zurück, die Konstante `Promotion::TYPE_FLASH_SALE` bleibt für die Kompatibilität historischer Daten erhalten.
 
-**Terminverschiebung (Runde 17)**: `POST /api/order/reschedule/{id}` mit new_service_time (Pflichtfeld) + reason (optional), Terminwechsel beim selben Techniker. Regeln: nur eigene Bestellungen (fremde 404), nur Typ appointment mit Status pending/paid/confirmed änderbar (sonst 422), mindestens 6 Stunden vor dem ursprünglichen Servicebeginn (identisch mit dem Vollrückerstattungsfenster). Konkurrenzschutz: B1 order_lock (gleiche Mutex-Familie wie pay/cancel/refund) → Technikersperre für den neuen Zeitraum per Redis SETNX EX 180 (verhindert Überbuchung bei parallelen Umbuchungen) → innerhalb der Transaktion Zeilensperre + erneutes Lesen + B2 Schichtkonflikt-DB-Prüfung (eigene Bestellung ausgeschlossen) → service_time aktualisieren + Datensatz in erik_order_reschedule schreiben → Sperre des alten Zeitraums freigeben, Sperre des neuen Zeitraums wird von dieser Bestellung gehalten → SCENE_RESCHEDULE-Abonnementnachricht (ohne Konfiguration Degradation auf In-App-Benachrichtigung). Bei Fehlerpfad wird die Transaktion zurückgerollt und gleichzeitig die Sperre des neuen Zeitraums freigegeben.
+**Terminverschiebung (Runde 17)**: `POST /api/order/reschedule/{id}` mit new_service_time (Pflichtfeld) + reason (optional), Terminwechsel beim selben Techniker. Regeln: nur eigene Bestellungen (fremde 404), nur Typ appointment mit Status pending/paid/confirmed änderbar (sonst 422), mindestens 6 Stunden vor dem ursprünglichen Servicebeginn (identisch mit dem Vollrückerstattungsfenster). Konkurrenzschutz: B1 order_lock (gleiche Mutex-Familie wie pay/cancel/refund) → Technikersperre für den neuen Zeitraum per Redis SETNX EX 180 (verhindert Überbuchung bei parallelen Umbuchungen) → innerhalb der Transaktion Zeilensperre + erneutes Lesen + B2 Schichtkonflikt-DB-Prüfung (eigene Bestellung ausgeschlossen) → service_time aktualisieren + Datensatz in appointment_order_reschedule schreiben → Sperre des alten Zeitraums freigeben, Sperre des neuen Zeitraums wird von dieser Bestellung gehalten → SCENE_RESCHEDULE-Abonnementnachricht (ohne Konfiguration Degradation auf In-App-Benachrichtigung). Bei Fehlerpfad wird die Transaktion zurückgerollt und gleichzeitig die Sperre des neuen Zeitraums freigegeben.
 
 **Logistikverfolgung (Runde 19)**: `GET /api/order/logistics/{id}` — nur eigene product-Bestellungen abrufbar (fremde/keine Produktbestellung/nicht versendet einheitlich 404). Liest order.remark JSON (shipping_company/tracking_no/shipped_at, wird von der Admin-Methode MallOrderController::ship() beim Versand geschrieben), parseShippingInfo/parseReceiver doppelte Parsing-Absicherung für das alte Format; Telefonnummer des Empfängers maskiert 138****5678.
 
@@ -478,7 +478,7 @@ Regeln: Auszahlung am 20. jedes Monats möglich, T+1 auf dem Konto, Mindestbetra
 
 **Punkteregeln**: Transaktionen paginiert, type-Filter (earn/use/expire), source-Filter (order/referral/gift_card/check_in/admin). Check-in gibt Punkte zurück (CheckIn, type=earn); Konsum gibt floor(paid_amount×1) Punkte, Ausgabe bei Verifizierung und idempotent; Rückerstattung zieht Punkte anteilig zurück.
 
-**Punkte-Ablauf (Runde 17)**: Spalte erik_user_points.expires_at (Konfiguration points.expiry_days, Standard 365 Tage, ≤0 nie ablaufend), alle earn-Einträge speichern die Gültigkeit; der Timer-Prozess PointsExpiryTimer scannt alle 60 s cursor-basiert abgelaufene earn-Zeilen, schreibt type=expire negative Abbuchungszeilen (source=expiry + order_id führt zur ursprünglichen Transaktion, dreischichtige Idempotenz) + aggregierte In-App-Benachrichtigung „您有 X 积分已过期"; das verfügbare Guthaben per SUM umfasst expire-negative Zeilen, abgelaufene Punkte können nicht mehr angerechnet/eingelöst werden.
+**Punkte-Ablauf (Runde 17)**: Spalte appointment_user_points.expires_at (Konfiguration points.expiry_days, Standard 365 Tage, ≤0 nie ablaufend), alle earn-Einträge speichern die Gültigkeit; der Timer-Prozess PointsExpiryTimer scannt alle 60 s cursor-basiert abgelaufene earn-Zeilen, schreibt type=expire negative Abbuchungszeilen (source=expiry + order_id führt zur ursprünglichen Transaktion, dreischichtige Idempotenz) + aggregierte In-App-Benachrichtigung „您有 X 积分已过期"; das verfügbare Guthaben per SUM umfasst expire-negative Zeilen, abgelaufene Punkte können nicht mehr angerechnet/eingelöst werden.
 
 **Gutschein-Übertragung (Runde 17)**: transfer prüft, ob der Gutschein zur eigenen Person gehört/available/Definition nicht abgelaufen/noch nie übertragen wurde, generiert einen 8-stelligen verwechslungsfreien eindeutigen Übertragungscode (uk_code eindeutiger Index als Absicherung), 7 Tage gültig. claim-Abuse-Schutz: Redis-NX-Sperre (coupon_transfer_claim:{code} 30s) + Zeilensperre und erneute Prüfung gegen Doppelbeanspruchung, eindeutiger Index uk_user_coupon begrenzt denselben Gutschein auf eine Übertragung, übertragene Gutscheine können nicht erneut übertragen werden (neuer Gutschein ohne Übertragungsprotokoll wird natürlich blockiert), Beanstandung des eigenen übertragenen Gutscheins 422, Empfänger ist nicht der ursprüngliche Inhaber; lazy-Ablaufprüfung setzt expired und stellt den Originalgutschein auf available zurück. In der claim-Transaktion wird der Originalgutschein auf used gesetzt + neuer UserCoupon für den Empfänger generiert (coupon_id unverändert, also auch die Gültigkeit unverändert) + Protokoll auf claimed gesetzt.
 
@@ -524,7 +524,7 @@ Regeln: Auszahlung am 20. jedes Monats möglich, T+1 auf dem Konto, Mindestbetra
 | GET | `/api/store-manager/technicians` | Technikerliste (inkl. heutigem Schichtplan) |
 | GET | `/api/store-manager/revenue` | Umsatzaggregation der letzten 7 Tage |
 
-**store_id-Isolation**: requireStoreId() erzwingt, dass der aktuelle Benutzer an eine Filiale gebunden ist (erik_user.store_id), ohne Filiale 403; alle Abfragen werden nach store_id gefiltert.
+**store_id-Isolation**: requireStoreId() erzwingt, dass der aktuelle Benutzer an eine Filiale gebunden ist (appointment_user.store_id), ohne Filiale 403; alle Abfragen werden nach store_id gefiltert.
 
 ---
 
@@ -673,7 +673,7 @@ Ohne Authentifizierung (nur ApiVersion-Middleware) nutzbarer Browsereinstieg fü
 
 | Methode | Pfad | Beschreibung |
 |------|------|------|
-| GET | `/api/seckill` | Blitzangebots-Aktivitätsliste (status=1 und im Zeitfenster; enthält verkaufte Menge = Anzahl der erik_order.seckill_id-Bestellungen, Restbestand) |
+| GET | `/api/seckill` | Blitzangebots-Aktivitätsliste (status=1 und im Zeitfenster; enthält verkaufte Menge = Anzahl der appointment_order.seckill_id-Bestellungen, Restbestand) |
 | GET | `/api/seckill/{id}` | Aktivitätsdetails (state=not_started/ongoing/ended) |
 | POST | `/api/seckill/{id}/buy` | Blitzangebots-Bestellung (client_token idempotent + Redis NX 30s gegen Konkurrenz + Aktivitätsprüfung; kein vorheriges Reservieren des Lagerbestands mehr) |
 
@@ -761,7 +761,7 @@ Berechtigungs-ID: 379.
 
 Berechtigungs-ID: 380.
 
-**Automatische Bewertung**: TierRatingService::evaluate berechnet in Echtzeit (Anzahl der erik_order completed-Bestellungen + Bewertungsdurchschnitt, auf 1 Nachkommastelle gerundet) und schreibt profile.order_count/rating zurück, Abgleich nach erik_technician_tier_config (min_orders/min_rating) von hoch nach niedrig, ohne Treffer niedrigste Stufe. Nur Aufwertung, keine Abwertung (Abwertung beeinflusst Provisionssatz und Preisfaktor, Backend greift manuell ein; allowDowngrade=true für manuelle Neubewertung); idempotent (bei gleicher Stufe nur Statistik synchronisiert); Änderungen in erik_technician_tier_log + In-App-Benachrichtigung. Auslöser: WorkController::complete / ReviewController Bewertungs-Einschreibung / ProfileController lazy-Prüfung beim Profilaufruf.
+**Automatische Bewertung**: TierRatingService::evaluate berechnet in Echtzeit (Anzahl der appointment_order completed-Bestellungen + Bewertungsdurchschnitt, auf 1 Nachkommastelle gerundet) und schreibt profile.order_count/rating zurück, Abgleich nach appointment_technician_tier_config (min_orders/min_rating) von hoch nach niedrig, ohne Treffer niedrigste Stufe. Nur Aufwertung, keine Abwertung (Abwertung beeinflusst Provisionssatz und Preisfaktor, Backend greift manuell ein; allowDowngrade=true für manuelle Neubewertung); idempotent (bei gleicher Stufe nur Statistik synchronisiert); Änderungen in appointment_technician_tier_log + In-App-Benachrichtigung. Auslöser: WorkController::complete / ReviewController Bewertungs-Einschreibung / ProfileController lazy-Prüfung beim Profilaufruf.
 
 ### Bewertungsantwort-Anzeige (Runde 18)
 
@@ -836,7 +836,7 @@ Berechtigungs-IDs: 396 Liste / 397 Hinzufügen / 398 Bearbeiten / 399 An-/Abhebe
 |------|------|------|
 | GET | `/admin/profit-sharing` | Umsatzbeteiligungs-Protokoll (leftJoin Bestellnummer/Technikernickname, ?status&order_no&technician_name&page=, hashid-codiert) |
 
-Berechtigungs-ID: 394. Serverseitige Logik: erik_system_config group=profit_sharing (enabled/receiver_ratio); bei nicht aktiviert disabled-Degradation nur Log; nach Aktivierung automatische Beteiligungsanfrage bei erfolgreicher Zahlung (Betrag=real gezahlt×receiver_ratio Standard 0.7, bei derselben Bestellung pending/success idempotent übersprungen); ohne Anmeldedaten kein HTTP-Aufruf, Anfragestruktur wird protokolliert.
+Berechtigungs-ID: 394. Serverseitige Logik: appointment_system_config group=profit_sharing (enabled/receiver_ratio); bei nicht aktiviert disabled-Degradation nur Log; nach Aktivierung automatische Beteiligungsanfrage bei erfolgreicher Zahlung (Betrag=real gezahlt×receiver_ratio Standard 0.7, bei derselben Bestellung pending/success idempotent übersprungen); ohne Anmeldedaten kein HTTP-Aufruf, Anfragestruktur wird protokolliert.
 
 ### Punkte-Glücksrad-Verwaltung (Runde 23)
 
@@ -859,7 +859,7 @@ Berechtigungs-IDs: 401-406. Die statischen Routen `/lucky-wheel/records` und `/l
 | PUT | `/admin/return-customer/config` | Konfigurationsaktualisierung (enabled in:0,1; ratio between:0.01,1) |
 | GET | `/admin/return-customer/rewards` | Belohnungsprotokoll-Liste (?keyword Technikername/Bestellnummer/Benutzernickname, type=return_customer paginiert) |
 
-Berechtigungs-IDs: 412-414. Belohnungsregel: Beim 2. Konsum eines Benutzers beim selben Techniker innerhalb von 30 Tagen (Bestellabschluss) wird ein Bonus von real gezahlt × ratio (Standard 0.05) ausgezahlt, Eintrag in erik_technician_earnings (type=return_customer, status=pending), Abrechnung einheitlich über die Provisions-Abrechnungskette; für dieselbe Bestellung idempotent ohne Doppelauszahlung.
+Berechtigungs-IDs: 412-414. Belohnungsregel: Beim 2. Konsum eines Benutzers beim selben Techniker innerhalb von 30 Tagen (Bestellabschluss) wird ein Bonus von real gezahlt × ratio (Standard 0.05) ausgezahlt, Eintrag in appointment_technician_earnings (type=return_customer, status=pending), Abrechnung einheitlich über die Provisions-Abrechnungskette; für dieselbe Bestellung idempotent ohne Doppelauszahlung.
 
 ### Blitzangebots-Verwaltung (Runde 24)
 
@@ -873,7 +873,7 @@ Berechtigungs-IDs: 412-414. Belohnungsregel: Beim 2. Konsum eines Benutzers beim
 | POST | `/admin/seckill/{id}/toggle-status` | An-/Abheben |
 | GET | `/admin/seckill/{id}/orders` | Blitzangebots-Bestellliste |
 
-Berechtigungs-IDs: 407-411, 420. Verkaufte Menge = Anzahl der erik_order.seckill_id-Bestellungen; Lagerbestand per Zeilensperre abgezogen, Ausverkauft-Sperre.
+Berechtigungs-IDs: 407-411, 420. Verkaufte Menge = Anzahl der appointment_order.seckill_id-Bestellungen; Lagerbestand per Zeilensperre abgezogen, Ausverkauft-Sperre.
 
 ### APP-Versionsverwaltung (Runde 24)
 

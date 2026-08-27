@@ -189,10 +189,10 @@ flowchart LR
     end
 
     subgraph DB存储["تخزين طبقة DB"]
-        D1["erik_user.phone<br/>تخزين نص صريح<br/>تسجيل الدخول/فحص التكرار يعتمدان على استعلام نص صريح"]
-        D2["erik_technician_profile<br/>.id_card VARCHAR(500)<br/>تشفير عبر encryptable"]
-        D3["erik_user.wx_openid<br/>تخزين نص صريح"]
-        D4["erik_user.real_name<br/>تشفير عبر encryptable"]
+        D1["appointment_user.phone<br/>تخزين نص صريح<br/>تسجيل الدخول/فحص التكرار يعتمدان على استعلام نص صريح"]
+        D2["appointment_technician_profile<br/>.id_card VARCHAR(500)<br/>تشفير عبر encryptable"]
+        D3["appointment_user.wx_openid<br/>تخزين نص صريح"]
+        D4["appointment_user.real_name<br/>تشفير عبر encryptable"]
     end
 
     subgraph ID处理["معالجة المعرفات (hashids + snowflake)"]

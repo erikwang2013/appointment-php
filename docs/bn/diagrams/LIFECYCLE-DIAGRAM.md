@@ -354,7 +354,7 @@ stateDiagram-v2
 
     checked --> pending: দ্বিতীয় কনজাম্পশন<br/>(বোনাস = পরিশোধিত অ্যামাউন্ট × ratio<br/>একই order_id+type আইডেমপোটেন্ট)
 
-    pending --> settled: কমিশন সেটেলমেন্ট চেইনে ইউনিফাইড সেটেলমেন্ট<br/>(erik_technician_earnings<br/>type=return_customer)
+    pending --> settled: কমিশন সেটেলমেন্ট চেইনে ইউনিফাইড সেটেলমেন্ট<br/>(appointment_technician_earnings<br/>type=return_customer)
 
     settled --> [*]
     none --> [*]

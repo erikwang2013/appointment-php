@@ -10,12 +10,12 @@ use support\Model;
 /**
  * 优惠券转赠记录
  *
- * 转赠即消耗原券：claim 时原 erik_user_coupon 置 used，新生成一条绑定接收人。
+ * 转赠即消耗原券：claim 时原 appointment_user_coupon 置 used，新生成一条绑定接收人。
  * 被转赠的券（接收人新生成的 UserCoupon）无对应转赠记录，自然不可再转赠。
  */
 class UserCouponTransfer extends Model
 {
-    protected $table = 'erik_user_coupon_transfer';
+    protected $table = 'appointment_user_coupon_transfer';
     public $incrementing = false;
     protected $keyType = 'string';
     public $timestamps = false;

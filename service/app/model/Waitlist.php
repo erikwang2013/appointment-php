@@ -13,7 +13,7 @@ use support\Model;
  */
 class Waitlist extends Model
 {
-    protected $table = 'erik_waitlist';
+    protected $table = 'appointment_waitlist';
     public $incrementing = false;
     protected $keyType = 'string';
     public $timestamps = true;

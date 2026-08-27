@@ -72,7 +72,7 @@ class ScheduledTaskController extends BaseController
 
     /**
      * 过期优惠券标记
-     * 条件: erik_user_coupon 中 status=available 且 coupon.end_at < now
+     * 条件: appointment_user_coupon 中 status=available 且 coupon.end_at < now
      */
     public function expireCoupons(Request $request): Response
     {
@@ -95,7 +95,7 @@ class ScheduledTaskController extends BaseController
 
     /**
      * 过期会员卡标记
-     * 条件: erik_user_member_card 中 status=active 且 end_at < now
+     * 条件: appointment_user_member_card 中 status=active 且 end_at < now
      */
     public function expireMemberCards(Request $request): Response
     {

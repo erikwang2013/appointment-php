@@ -100,7 +100,7 @@
 |------|------|
 | المعلومات الشخصية | الصورة/الاسم المستعار/رقم الهاتف |
 | تبديل الهوية | العميل ↔ الفني |
-| إشعارات الرسائل | الإشعارات الداخلية (erik_notification)؛ صفحة مركز الرسائل: ترقيم صفحات/سحب للتحديث/تمييز المقروء/تعليم كمقروء/تعليم الكل كمقروء |
+| إشعارات الرسائل | الإشعارات الداخلية (appointment_notification)؛ صفحة مركز الرسائل: ترقيم صفحات/سحب للتحديث/تمييز المقروء/تعليم كمقروء/تعليم الكل كمقروء |
 | بطاقات عضويتي | شهرية/سنوية VIP/بطاقة مرات (الانتهاء/المرات/المستخدم/المتبقي) |
 | نقاطي | سجل الحصول/النقاط المتاحة/سجل الاستخدام (1:100 صرف بطاقة هدايا)؛ نقاط الحضور/الاستهلاك، استرداد نسبي عند الاسترداد، سجل مفصل + تصفية type/source |
 | بطاقات هداياي | بطاقة نقدية/هدية عينية؛ نوع cash عند الصرف يُشحن مباشرة إلى المحفظة |
@@ -193,7 +193,7 @@
 
 | الميزة | الوصف |
 |------|------|
-| تفويض الاشتراك | utils/subscribe.js إدارة مركزية لمعرّفات القوالب (أسماء المفاتيح محاذاة مع erik_system_config.wechat_app.template_ids في الخادم) |
+| تفويض الاشتراك | utils/subscribe.js إدارة مركزية لمعرّفات القوالب (أسماء المفاتيح محاذاة مع appointment_system_config.wechat_app.template_ids في الخادم) |
 | سيناريوهات التشغيل | wx.requestSubscribeMessage داخل استدعاءات الإيماءات بعد نجاح الحجز/الدفع، صامت عند عدم إعداد معرّف القالب أو رفض المستخدم |
 | سلسلة الخادم | WechatTemplateMessageService إرسال + NotificationReminderService تذكير قبل الحجز بساعتين إلى ساعة + عملية فحص AutoCancelTimer |
 
@@ -222,16 +222,16 @@
 |------|------|
 | سعر المجموعة | استجابة join تعيد discount_percent/original_price/group_price |
 | طلب المجموعة | POST /api/order مع promotion_id: تحقق group_buy فقط/نشاط سارٍ/المتصل مشارك/غير ممتلئ/تطابق الخدمة؛ سعر المجموعة = السعر الأصلي × discount_percent/100، تعطيل تراكب الكوبون/بطاقة المرات/النقاط (422) |
-| علامة الطلب | erik_order يضيف عمودي promotion_id/participant_id + فهارس |
+| علامة الطلب | appointment_order يضيف عمودي promotion_id/participant_id + فهارس |
 | معالجة عدم التكوين | عدم الامتلاء عند الانتهاء ← إغلاق النشاط + إلغاء جماعي لطلباته pending (ذرّي)؛ pay() فحص كسول: إذا أُغلق يُلغى الطلب تلقائيًا وتُحرر أقفال الفني |
 
 ### 22. عمولة الإحالة (الجولة 16)
 
 | الميزة | الوصف |
 |------|------|
-| قاعدة الإصدار | بعد إتمام أول طلب للمُحال: المبلغ = paid_amount × reward_rate (erik_system_config referral.reward_rate افتراضي 0.05، تراجع إلى ثابت عند القيمة غير الصالحة)، يُصدر فقط عند >0 |
+| قاعدة الإصدار | بعد إتمام أول طلب للمُحال: المبلغ = paid_amount × reward_rate (appointment_system_config referral.reward_rate افتراضي 0.05، تراجع إلى ثابت عند القيمة غير الصالحة)، يُصدر فقط عند >0 |
 | نقطة الربط | ReferralRewardService::handleOrderCompleted مرتبط داخل معاملة WorkController::complete (المدخل الوحيد serving→completed، تحقق verify يصل فقط إلى serving دون تشغيل)، فشل كامل يُرجع ويُعاد |
-| الذرّية | قفل صفوف erik_user_referral lockForUpdate + فحص rewarded_at فارغ + إعادة فحص أول طلب داخل القفل (متزامن/مكرر يصدر مرة واحدة فقط) |
+| الذرّية | قفل صفوف appointment_user_referral lockForUpdate + فحص rewarded_at فارغ + إعادة فحص أول طلب داخل القفل (متزامن/مكرر يصدر مرة واحدة فقط) |
 | الإيداع | تراكم قفل صفوف المحفظة + WalletTxn type='referral_reward' (balance_after + ملاحظة رقم الطلب)؛ سجل الإحالة يكتب reward_type/reward_amount/rewarded_at/first_order_at |
 | التفاصيل | GET /api/user/referral/earnings ترقيم صفحات (اسم مستعار المُحال/صورة/رقم الطلب/المبلغ/الوقت) |
 
@@ -239,10 +239,10 @@
 
 | الميزة | الوصف |
 |------|------|
-| منتجات الصرف | erik_points_exchange_goods: type=coupon/gift_card/wallet، points_cost/value (DECIMAL(25,2) ضد فقدان دقة معرف الثلج)/stock/status |
+| منتجات الصرف | appointment_points_exchange_goods: type=coupon/gift_card/wallet، points_cost/value (DECIMAL(25,2) ضد فقدان دقة معرف الثلج)/stock/status |
 | قائمة المنتجات | GET /api/marketing/points-exchange: منتجات مُعلنة + مخزون متبقٍ حي + عدد المُصرف |
 | الصرف | POST /api/marketing/points-exchange/{id}: قفل Redis NX + قفل صفوف المنتج ضد الإفراط؛ تحقق SUM نقاط (ناقص 422) + UserPoints type='consume' source='exchange' خصم؛ coupon إصدار كوبون / wallet إيداع رصيد (WalletTxn points_exchange) / gift_card إرجاع كلمة المرور |
-| الذرّية | فهرس فريد uk_user_goods حد مرة واحدة لنفس المستخدم/المنتج + إعادة فحص داخل القفل + احتياطي 1062؛ سجل صرف erik_user_points_exchange |
+| الذرّية | فهرس فريد uk_user_goods حد مرة واحدة لنفس المستخدم/المنتج + إعادة فحص داخل القفل + احتياطي 1062؛ سجل صرف appointment_user_points_exchange |
 
 ### 24. إعادة جدولة الحجز (الجولة 17)
 
@@ -251,7 +251,7 @@
 | الواجهة | POST /api/order/reschedule/{id}: new_service_time (إلزامي) + reason (اختياري)، تغيير الوقت مع نفس الفني |
 | القواعد | طلب المستخدم فقط (غير المالك 404)؛ نوع appointment فقط وحالة pending/paid/confirmed (البقية 422)؛ ≥ 6 ساعات من بدء الخدمة الأصلية (متوافق مع نافذة الاسترداد الكامل) |
 | الحماية من التزامن | B1 order_lock (نفس عائلة الاستبعاد مع pay/cancel/refund) ← قفل فترة جديدة للفني Redis SETNX EX 180 (منع البيع الزائد في التعديل المتزامن) ← إعادة قراءة بقفل صفوف داخل المعاملة + تحقق B2 تعارض جدولة DB (استبعاد هذا الطلب) |
-| الإنهاء | تحديث service_time + كتابة erik_order_reschedule (مع reason) + تحرير قفل الفترة الأصلية/الجديدة الذي يحمله هذا الطلب؛ فشل المعاملة يرجع ويحرر قفل الفترة الجديدة |
+| الإنهاء | تحديث service_time + كتابة appointment_order_reschedule (مع reason) + تحرير قفل الفترة الأصلية/الجديدة الذي يحمله هذا الطلب؛ فشل المعاملة يرجع ويحرر قفل الفترة الجديدة |
 | الإشعار | رسالة اشتراك SCENE_RESCHEDULE (تنازل إلى إشعار داخلي «نجحت إعادة جدولة الحجز» عند عدم إعداد القالب) + pushOrderUpdate |
 
 ### 25. إهداء الكوبونات (الجولة 17)
@@ -267,7 +267,7 @@
 
 | الميزة | الوصف |
 |------|------|
-| الصلاحية | عمود erik_user_points.expires_at؛ جميع earn (حضور/استهلاك/إعادة) تُكتب مع expires_at = now + points.expiry_days (افتراضي 365، ≤0 لا تنتهي أبدًا)؛ consume/use فارغة |
+| الصلاحية | عمود appointment_user_points.expires_at؛ جميع earn (حضور/استهلاك/إعادة) تُكتب مع expires_at = now + points.expiry_days (افتراضي 365، ≤0 لا تنتهي أبدًا)؛ consume/use فارغة |
 | تنفيذ الانتهاء | عملية PointsExpiryTimer كل 60 ثانية مسح مؤشر (100/دفعة) لصفوف earn التي expires_at < now ← كتابة صف خصم سالب type=expire (source=expiry + order_id لأثر السجل الأصلي) ← إشعار داخلي مجمع «انتهت صلاحية X نقطة لديك» |
 | الذرّية | ① صف expire يشير order_id إلى سجل earn الأصلي، داخل المعاملة lockForUpdate + إعادة فحص exists (العمليات المتزامنة تتسلسل على قفل الصف) ② ترقيم مؤشر id ③ الإشعار فقط في جولة الخصم الفعلية |
 | المعيار | الرصيد المتاح SUM مجمع يشمل صفوف expire السالبة؛ النقاط المنتهية لا تُستخدم نقدًا/صرفًا |
@@ -297,7 +297,7 @@
 |------|------|
 | الواجهة | POST /api/technician/review/reply/{order_id} (وسيط هوية الفني): تقييم غير موجود/ليس للفني 404 موحد؛ رد موجود 422 (رفض ذرّي دون استبدال)؛ رد فارغ 422 |
 | بعد الرد | إشعار داخلي للمستخدم (type='review_reply'، try/catch غير حاجب + Log) |
-| البيانات | erik_order_review إضافة ذرّية لعمود replied_at (عمود reply موجود من الإنشاء)؛ قوائم/تفاصيل التقييم في لوحة الإدارة تمرر reply/replied_at عبر decorate()->toArray() |
+| البيانات | appointment_order_review إضافة ذرّية لعمود replied_at (عمود reply موجود من الإنشاء)؛ قوائم/تفاصيل التقييم في لوحة الإدارة تمرر reply/replied_at عبر decorate()->toArray() |
 
 ### 30. إشعار وصول الشحن (الجولة 18)
 
@@ -331,7 +331,7 @@
 |------|------|
 | الإضافة | POST /api/order/review/{order_id}/append: تقييم غير موجود/ليس للفني 404 موحد، غير completed 422، إضافة مكررة 422 (append_content/append_at أي منها غير فارغ يرفض)، محتوى فارغ 422؛ بعد النجاح كتابة append_content/append_images(JSON)/append_at + إشعار داخلي للفني type='review_append' |
 | تقديم التقييم | تسجيل POST /api/order/review/{order_id} (ReviewController::store لم يكن له مسار سابقًا)؛ مع إصلاح TypeError كامن: findByOrderId يستقبل int مخالفًا لتوقيع string (مقارنة بتحويل (string) في append)، التسجيل كشف الاستدعاء 500 |
-| البيانات | erik_order_review يضيف ثلاثة أعمدة append_content TEXT/append_images JSON/append_at DATETIME (ترحيل ذرّي)؛ الاستجابة تمرر حقول append |
+| البيانات | appointment_order_review يضيف ثلاثة أعمدة append_content TEXT/append_images JSON/append_at DATETIME (ترحيل ذرّي)؛ الاستجابة تمرر حقول append |
 
 ### 34. تتبع الشحن في واجهة المستخدم (الجولة 19)
 
@@ -345,9 +345,9 @@
 
 | الميزة | الوصف |
 |------|------|
-| البيانات | جدول erik_user_notify_setting (مفتاح مركب فريد user_id+type uk_user_type، صف افتراضي = مفتوح)؛ 5 أنواع: service_reminder تذكير الخدمة / card_expiry تذكير الانتهاء (بطاقة + كوبون موحد بمظلة واحدة) / points_expiry انتهاء النقاط / marketing تسويقي (محجوز) / system نظام (لا يُغلق، PUT يفرضه 1) |
+| البيانات | جدول appointment_user_notify_setting (مفتاح مركب فريد user_id+type uk_user_type، صف افتراضي = مفتوح)؛ 5 أنواع: service_reminder تذكير الخدمة / card_expiry تذكير الانتهاء (بطاقة + كوبون موحد بمظلة واحدة) / points_expiry انتهاء النقاط / marketing تسويقي (محجوز) / system نظام (لا يُغلق، PUT يفرضه 1) |
 | الواجهة | GET /api/user/notify-settings يعيد 5 مفاتيح كاملة؛ PUT upsert جماعي دون صفوف مكررة |
-| البوابة | NotificationReminderService::notifySettingEnabled مرتبط بـ 3 عمليات مؤقتة (ServiceReminderTimer/ExpiryReminderTimer بطاقة + كوبون/PointsExpiryTimer، المؤقتات تُدرج مباشرة في جدول erik_notification دون مسار كتابة الخدمة لذا أُضيفت نفس البوابة لكل منها) + أحداث الاشتراك (sendSubscribeForOrderEvent/تعيين سيناريوهات Notification PAY/REFUND/VERIFIED/RESCHEDULE←system دائم الإرسال، REMINDER←service_reminder، EXPIRY←card_expiry)؛ عند إغلاق النوع تُتخطى الإشعارات الداخلية ورسائل الاشتراك معًا |
+| البوابة | NotificationReminderService::notifySettingEnabled مرتبط بـ 3 عمليات مؤقتة (ServiceReminderTimer/ExpiryReminderTimer بطاقة + كوبون/PointsExpiryTimer، المؤقتات تُدرج مباشرة في جدول appointment_notification دون مسار كتابة الخدمة لذا أُضيفت نفس البوابة لكل منها) + أحداث الاشتراك (sendSubscribeForOrderEvent/تعيين سيناريوهات Notification PAY/REFUND/VERIFIED/RESCHEDULE←system دائم الإرسال، REMINDER←service_reminder، EXPIRY←card_expiry)؛ عند إغلاق النوع تُتخطى الإشعارات الداخلية ورسائل الاشتراك معًا |
 
 ---
 
@@ -456,13 +456,13 @@
 
 ### 14. إدارة بطاقات العضوية (الجولة 10)
 
-- عمود مستوى العضوية erik_user.member_level (ترحيل 000008)
+- عمود مستوى العضوية appointment_user.member_level (ترحيل 000008)
 - MemberCardController CRUD كامل (صلاحيات 365-369): GET/POST/PUT/DELETE /admin/member-cards
 - صفحة إدارة تعريفات بطاقات العضوية Flutter
 
 ### 15. إدارة ما بعد البيع (الجولة 14)
 
-- جدول erik_order_aftersale (ترحيل 000009): type=refund/exchange، status=pending/approved/rejected/completed
+- جدول appointment_order_aftersale (ترحيل 000009): type=refund/exchange، status=pending/approved/rejected/completed
 - AftersaleController: GET /admin/aftersales (ترقيم + تصفية status/uid/order_no) + POST /admin/aftersales/{id}/review (approve/reject+remark)
 - صفحة إدارة ما بعد البيع Flutter (قائمة + حوار مراجعة، صلاحيات 370/371)، التخطيط مسجل
 
@@ -483,10 +483,10 @@
 
 ### 19. تقييم تلقائي لمستوى الفني (الجولة 17)
 
-- TierRatingService::evaluate(technicianId, allowDowngrade=false): إحصاء فوري لعدد طلبات erik_order completed + متوسط درجات erik_order_review (تقريب لخانة عشرية واحدة) للكتابة في profile.order_count/rating، مطابقة من الأعلى للأسفل وفق erik_technician_tier_config (min_orders/min_rating)، بلا تطابق يُحسب أدنى مستوى
+- TierRatingService::evaluate(technicianId, allowDowngrade=false): إحصاء فوري لعدد طلبات appointment_order completed + متوسط درجات appointment_order_review (تقريب لخانة عشرية واحدة) للكتابة في profile.order_count/rating، مطابقة من الأعلى للأسفل وفق appointment_technician_tier_config (min_orders/min_rating)، بلا تطابق يُحسب أدنى مستوى
 - قواعد الترقي/التنزيل: ترقية فقط دون تنزيل (المستوى مربوط بنسبة العمولة ومعامل السعر، التنزيل التلقائي يؤثر على دخل الفني ويثير النزاعات، التراجع يُدار يدويًا في admin)؛ allowDowngrade=true (سيناريو إعادة التقييم اليدوي في الخلفية) فقط ينفذ التنزيل، والتنزيل يسجل في السجلات + الإشعارات
 - الذرّية: عند تطابق المستوى المستحق مع profile.tier_id يكتفي بمزامنة الإحصاء دون كتابة سجل أو إرسال إشعار
-- السجلات: التغيير يكتب erik_technician_tier_log (id/technician_id/old_tier_id/new_tier_id/reason/created_at) + إشعار داخلي (type='tier')
+- السجلات: التغيير يكتب appointment_technician_tier_log (id/technician_id/old_tier_id/new_tier_id/reason/created_at) + إشعار داخلي (type='tier')
 - نقاط التشغيل: WorkController::complete / كتابة تقييم ReviewController / ProfileController فحص كسول عند عرض الملف
 - لوحة الإدارة: TechnicianTierController يحافظ على إمكانية التكوين اليدوي؛ GET /admin/technician-tiers/logs ترقيم لعرض سجلات التغيير (join اسم الفني واسمي المستويين، ID بترميز hashid، صلاحية 380)
 
@@ -499,26 +499,26 @@
 ### 21. تقويم الحجوزات (الجولة 20)
 
 - CalendarController عرض شهري/يومي: GET /api/calendar/technician/{id} (شهري) + /day (يومي)
-- مصدر البيانات: time_slots JSON في technician_schedule يُفتح إلى فتحات ساعات حسب أيام الأسبوع، استبعاد فترات erik_order المحجوزة ذلك اليوم (status ∈ pending/paid/confirmed/serving)، إخراج الفتحات المتبقية
+- مصدر البيانات: time_slots JSON في technician_schedule يُفتح إلى فتحات ساعات حسب أيام الأسبوع، استبعاد فترات appointment_order المحجوزة ذلك اليوم (status ∈ pending/paid/confirmed/serving)، إخراج الفتحات المتبقية
 - الاستخدام: اختيار مرئي لوقت جدولة المتجر، الواجهة تمرر أفقيًا يوميًا + اختيار خلايا الوقت
 
 ### 22. مستوى نمو المستخدم (الجولة 20)
 
-- erik_user_growth (سجلات) + erik_growth_level (بذور 5 مستويات: برونزي 0/فضي 100/ذهبي 500/بلاتيني 2000/ماسي 5000)
+- appointment_user_growth (سجلات) + appointment_growth_level (بذور 5 مستويات: برونزي 0/فضي 100/ذهبي 500/بلاتيني 2000/ماسي 5000)
 - نقاط إيداع النمو: الحضور +10 (CheckInController)؛ تقديم التقييم +20 (ReviewController::store، الإضافة لا تُودع)؛ الاستهلاك floor(paid) كل 1 يوان نقطة واحدة (WechatPayService::markOrderPaid، إعادة استخدام التحقق من حالة الدفع القائمة كذرّية طبيعية، الاستدعاء المكرر لا يُودع مرتين)
 - الواجهات: GET /api/growth (نظرة المستوى الحالي: balance/level/فرق المستوى التالي)؛ GET /api/growth/records (سجل مرقّم)؛ GET /api/growth/levels (قائمة مستويات عامة، بلا تسجيل دخول)
 - إستراتيجية الفشل: أي نقطة إيداع try/catch تسجل في السجلات دون التأثير على العملية الرئيسية
 
 ### 23. الفاتورة الإلكترونية (الجولة 20)
 
-- erik_invoice: uk_order_type(order_id,order_type) ضد طلب مكرر لنفس الطلب (طلب مكرر 422، مع التقاط MySQL 1062 احتياطيًا)؛ idx_user_created/idx_status
+- appointment_invoice: uk_order_type(order_id,order_type) ضد طلب مكرر لنفس الطلب (طلب مكرر 422، مع التقاط MySQL 1062 احتياطيًا)؛ idx_user_created/idx_status
 - واجهة المستخدم: POST /api/invoices (طلب، المبلغ/الترويسة تُؤخذ من الخادم من الطلب، لا يمكن التلاعب)؛ GET /api/invoices (قائمة)؛ GET /api/invoices/{id} (تفاصيل)
 - لوحة الإدارة: InvoiceController issue (إصدار: كتابة invoice_no + status=issued + issued_at) / reject (رفض: status=rejected + reject_reason)، صلاحيات 382 قائمة/383 إصدار/384 رفض
 - آلة الحالة: pending ← issued / rejected
 
 ### 24. تذاكر خدمة العملاء (الجولة 20)
 
-- erik_ticket: تقديم المستخدم للخوذة (title/content)، رد الخلفية يُلحق (reply_content/replied_at)، المستخدم يمكنه الإغلاق (closed_at)
+- appointment_ticket: تقديم المستخدم للخوذة (title/content)، رد الخلفية يُلحق (reply_content/replied_at)، المستخدم يمكنه الإغلاق (closed_at)
 - واجهة المستخدم: POST /api/tickets (تقديم)؛ GET /api/tickets (قائمة)؛ GET /api/tickets/{id} (تفاصيل، المالك فقط)؛ POST /api/tickets/{id}/close (إغلاق)
 - لوحة الإدارة: TicketController index (قائمة) / reply (رد)، مسارات ثابتة قبل resource لتجنب تظليل {id}؛ صلاحيات 385 رد التذاكر/387 عرض قائمة التذاكر
 - آلة الحالة: open ← replied (بعد الرد يعود open ويمكن الرد مجددًا) / closed
@@ -539,14 +539,14 @@
 
 ### 27. إدارة ترويسة الفاتورة (الجولة 21)
 
-- erik_invoice_title (uk_user_title(user_id, title_type, invoice_title) ضد التكرار + idx_user_default)
+- appointment_invoice_title (uk_user_title(user_id, title_type, invoice_title) ضد التكرار + idx_user_default)
 - الواجهات: POST /api/invoice-titles (حفظ، company يلزم tax_no، مكرر 422)؛ GET (قائمة، الافتراضي أعلى)؛ PUT /{id} (تعديل، المالك فقط)؛ DELETE /{id} (حذف، المالك فقط)؛ POST /{id}/default (تعيين افتراضي، تصفير معاملة لصفوف المستخدم الأخرى)
 - قاعدة الافتراضي: أول ترويسة محفوظة تلقائيًا افتراضية؛ حذف الافتراضي يعين تلقائيًا الأقدم
 - ربط الطلب: InvoiceController::store title_id اختياري يحلل الترويسة لجلب invoice_title/tax_no/title_type، بدون title_id يحتفظ بمسار الإدخال اليدوي الأصلي؛ منطق uk_order_type المضاد للتكرار دون تغيير
 
 ### 28. رضا التذاكر (الجولة 21)
 
-- erik_ticket يضيف rating TINYINT NULL + rated_at DATETIME NULL (ترحيل 000303)
+- appointment_ticket يضيف rating TINYINT NULL + rated_at DATETIME NULL (ترحيل 000303)
 - تقييم الإغلاق: TicketController::close() يدعم rating اختياري 1-5 (تحقق أعداد صحيحة filter_var، خارج النطاق/غير صحيح 422؛ عند تقديمه يكتب rating+rated_at، عند عدم تقديمه يبقى NULL توافقًا مع العملاء القدامى؛ قاعدة إغلاق التذاكر المفتوحة فقط محفوظة)
 - إحصاءات الخلفية: GET /admin/tickets/satisfaction (مسار ثابت قبل resource لتجنب تظليل {id}) يعيد total/rated_count/unrated_count/average (خانة عشرية واحدة)/distribution (أعداد 1-5 نجوم، النجوم الناقصة تُكمل 0)؛ صلاحية 388
 
@@ -559,13 +559,13 @@
 
 ### 30. سجل تصفح المستخدم (الجولة 21)
 
-- erik_browse_history (uk_user_item(user_id, item_id) فريد، التصفح المكرر يحدّث viewed_at فقط دون إدراج مكرر؛ idx_user_viewed للترتيب)
+- appointment_browse_history (uk_user_item(user_id, item_id) فريد، التصفح المكرر يحدّث viewed_at فقط دون إدراج مكرر؛ idx_user_viewed للترتيب)
 - ربط السجل: ServiceController::detail() يسجل بعد النجاح (try/catch + Log::warning دون تأثير على العملية الرئيسية؛ المسارات العامة بلا JWT، user_id فارغ يتخطى المجهولين)
-- الواجهات: GET /api/browse-history (join erik_service الاسم/الغلاف/السعر/السعر الأصلي، viewed_at تنازلي، per_page افتراضي 15 سقف 50، item_id hashid)؛ DELETE /{item_id} (المالك فقط، غير صالح/لشخص آخر 404)؛ DELETE / (مسح للمالك فقط)
+- الواجهات: GET /api/browse-history (join appointment_service الاسم/الغلاف/السعر/السعر الأصلي، viewed_at تنازلي، per_page افتراضي 15 سقف 50، item_id hashid)؛ DELETE /{item_id} (المالك فقط، غير صالح/لشخص آخر 404)؛ DELETE / (مسح للمالك فقط)
 
 ### 31. تسويق التخفيض (الجولة 22)
 
-- erik_full_reduction_activity (threshold/reduction/title/status/start_at/end_at + idx_status_status_time)
+- appointment_full_reduction_activity (threshold/reduction/title/status/start_at/end_at + idx_status_status_time)
 - تراكب الطلب: الطلبات القياسية فقط (الشراء الجماعي/الفلاش تُتخطى)، الحكم بالحد على المبلغ المستحق بعد خصم الكوبون/بطاقة المرات، الترتيب **كوبون/بطاقة مرات ← تخفيض ← خصم مستوى**؛ اختيار النشاط بأكبر مبلغ خصم؛ مبلغ الخصم يندمج في discount_amount + ملاحظات «تخفيض: فوق X خصم Y»؛ بعد التخفيض حد أدنى للدفع 0.01 يوان (نقاط)
 - واجهة المستخدم GET /api/full-reduction-activities (عام، السارية بترتيب تنازلي لمبلغ الخصم)
 - admin FullReductionController: CRUD + toggle-status رفع/إنزال (destroy مع confirmPassword)
@@ -579,29 +579,29 @@
 
 ### 33. حضور الفنيين (الجولة 22)
 
-- erik_technician_attendance (date/check_in_at/check_out_at/status + فهرس فريد uk_technician_date ضد الحضور المكرر المتزامن)
+- appointment_technician_attendance (date/check_in_at/check_out_at/status + فهرس فريد uk_technician_date ضد الحضور المكرر المتزامن)
 - واجهة الفني (TechnicianAuth): check-in تكرار اليوم 422؛ check-out لم يبدأ العمل/غادر بالفعل 422 + قفل صفوف؛ >10:00 يُعلَّم تأخرًا؛ GET قائمة الشهر + عدد أيام الحضور/إجمالي الساعات/متوسط الساعات (?month=YYYY-MM غير صالح 422)
 - admin: GET /admin/attendance (تصفية date+اسم الفني، join real_name، hashid) + /stats (إحصاءات مجمعة حسب الفني)
 - الصلاحيات: 392 قائمة / 393 إحصاءات
 
 ### 34. خدمة دفع APP (الجولة 22)
 
-- AppPushService (config group=push: enabled افتراضي 0 / provider jpush/getui/placeholder): غير مفعل تنازل صامت إلى سجلات فقط؛ عند التفعيل يبني platform/title/content/payload يسجل في Log + يكتب erik_push_log (status=sent)؛ ربط SDKات الموردين متروك TODO (بلا بيانات اعتماد لا إرسال فعلي)
+- AppPushService (config group=push: enabled افتراضي 0 / provider jpush/getui/placeholder): غير مفعل تنازل صامت إلى سجلات فقط؛ عند التفعيل يبني platform/title/content/payload يسجل في Log + يكتب appointment_push_log (status=sent)؛ ربط SDKات الموردين متروك TODO (بلا بيانات اعتماد لا إرسال فعلي)
 - ربط 5 أحداث: نجاح الدفع (WechatPayService::markOrderPaid)، الاسترداد التلقائي (autoRefundCancelledOrder)، الاسترداد اليدوي (doRefund/refundToBalance)، تعويض الاسترداد (completeOneRefundCompensation)، تذكير بدء الخدمة (ServiceReminderTimer)؛ جميعها try/catch لا تعيق العملية الرئيسية
-- erik_push_log (user_id/title/content/payload JSON/status/provider + idx_user)
+- appointment_push_log (user_id/title/content/payload JSON/status/provider + idx_user)
 
 ### 35. تقسيم الأرباح الرسمي من WeChat (الجولة 22)
 
 - WechatProfitSharingService (config group=profit_sharing: enabled/receiver_ratio، بيانات الاعتماد تعيد استخدام wechat_pay): غير مفعل disabled تنازل إلى سجلات فقط دون كتابة؛ عند التفعيل ← تحقق المبلغ (>0 و≤paid، الدفع الفعلي × 0.7 افتراضي) + ذرّية (نفس الطلب pending/success يُتخطى) ← كتابة سجل pending ← بناء «طلب تقسيم لمرة واحدة» (بلا بيانات اعتماد لا تنفيذ HTTP، محتوى الطلب يسجل، السجل يبقى pending)؛ HTTP معزول doRequest خاص قابل للاختبار
 - WechatPayService::markOrderPaid بعد التقديم يرتبط بـ requestSharing (try/catch فشل يسجل فقط)
-- erik_profit_sharing (uk_sharing_no فريد + idx_order)؛ admin GET /admin/profit-sharing قائمة (join رقم الطلب/اسم الفني، تصفية حالة/رقم طلب/اسم فني)
+- appointment_profit_sharing (uk_sharing_no فريد + idx_order)؛ admin GET /admin/profit-sharing قائمة (join رقم الطلب/اسم الفني، تصفية حالة/رقم طلب/اسم فني)
 - الصلاحية: 394
 
 ### 36. خصوصية الامتثال (الجولة 22)
 
 - GET /api/privacy/data: تصدير البيانات (personal/orders/points/wallet_txns/reviews/addresses/invoices مجمعة؛ السجلات تسجل رقم الهاتف المموه + العدد فقط)
 - إغلاق الحذف: close-request (رصيد غير صفري / طلبات غير مكتملة / تذاكر جارية 422 ← close_status=1) ← close-cancel (1←0) ← close-confirm (إتمام 72 ساعة ← close_status=2 + close_at + إخفاء هوية phone/nickname إلى user{id} + status=0)
-- erik_user يضيف close_status/close_requested_at/close_at (ترحيل ALTER ذرّي)؛ AuthController login/loginByCode لـ close_status=2 يعيدان 403 «الحساب محذوف»
+- appointment_user يضيف close_status/close_requested_at/close_at (ترحيل ALTER ذرّي)؛ AuthController login/loginByCode لـ close_status=2 يعيدان 403 «الحساب محذوف»
 
 ### 37. الملف الصحي للمستخدم (الجولة 23)
 
@@ -633,7 +633,7 @@
 - GET /api/wheel/prizes (إخفاء weight/stock)؛ POST /api/wheel/spin: Redis NX + قفل صفوف ضد التزامن، سحب موزون random_int، client_token ذرّي
 - إيداع الجوائز: نقاط ← سجل earn (مع وقت انتهاء، يمكن لـ PointsExpiryTimer انتهاؤه طبيعيًا)، رصيد ← lockForUpdate، كوبون ← pending إصدار يدوي، بلا جائزة ← lose
 - GET /api/wheel/records سجلاتي مرقمة؛ admin /admin/lucky-wheel CRUD + رفع/إنزال + سجلات (صلاحيات 401-406)
-- ترحيلان 000503 (erik_lucky_wheel + erik_wheel_record + بذور تجريبية w60/w40) + 000505 (بذور صلاحيات)؛ LuckyWheelTest admin 3 + service 6 اختبارات
+- ترحيلان 000503 (appointment_lucky_wheel + appointment_wheel_record + بذور تجريبية w60/w40) + 000505 (بذور صلاحيات)؛ LuckyWheelTest admin 3 + service 6 اختبارات
 
 ### 42. وضع الضيف (الجولة 24)
 
@@ -643,21 +643,21 @@
 
 ### 43. الفلاش (الجولة 24)
 
-- erik_seckill_activity (name/service_id/seckill_price/original_price/stock/start_at/end_at/status)؛ الكمية المباعة = عدد طلبات erik_order.seckill_id
+- appointment_seckill_activity (name/service_id/seckill_price/original_price/stock/start_at/end_at/status)؛ الكمية المباعة = عدد طلبات appointment_order.seckill_id
 - GET /api/seckill (status=1 + نافذة زمنية)، /{id} (state=not_started/ongoing/ended)، POST /{id}/buy: client_token (8-64 حرفًا، SETNX 24 ساعة) ذرّي + Redis NX 30 ثانية ضد التزامن + تحقق النشاط (منذ 2026-08-26 لا حجز مسبق للمخزون)
 - حقن seckill_id في الطلب يعيد استخدام OrderController::store؛ المخزون يُخصم موحدًا بقفل صفوف داخل معاملة store() (استدعاء /api/order مباشرة مع seckill_id يخصم المخزون أيضًا)، سعر الفلاش = seckill_price (يتبع قاعدة البيانات)، دون تراكب كوبون/نقاط/بطاقة عضوية؛ إلغاء الطلب لا يعيد المخزون؛ قناة الترويج FLASH_SALE القديمة حُذفت (فرع الترويج في store() بقي للشراء الجماعي فقط، PromotionController index يفلتر flash_sale وshow/join يعيدان 400)، الفلاش فقط عبر هذه القناة
 - admin /admin/seckill CRUD + رفع/إنزال + قائمة الطلبات (صلاحيات 407-411 و420)؛ بذور صلاحيات ترحيل 000606؛ SeckillTest service + admin
 
 ### 44. إدارة إصدارات APP والتحقق من التحديث (الجولة 24)
 
-- erik_app_version (platform/version_code/version_name/force_update/changelog/download_url/status)
+- appointment_app_version (platform/version_code/version_name/force_update/changelog/download_url/status)
 - GET /api/app/version?platform=android|ios فحص تحديث عام (platform غير صالح 422؛ الأحدث بين status=1؛ بلا كائن فارغ)
 - admin /admin/versions CRUD (صلاحيات 416-419)؛ بذور صلاحيات ترحيل 000609؛ VersionTest service + admin
 
 ### 45. مكافأة العميل العائد (الجولة 24)
 
 - ReturnCustomerRewardService: استهلاك المستخدم الثاني لنفس الفني خلال 30 يومًا (إتمام الطلب) يمنح الفني مكافأة = الدفع الفعلي paid_amount × ratio (system_config group=return_customer، ratio افتراضي 0.05 وenabled مفتاح، القيم غير الصالحة ترجع للافتراضي)
-- كتابة erik_technician_earnings (type=return_customer، status=pending) يعيد استخدام سلسلة تسوية العمولة، ملخص earnings لواجهة الفني يتضمنه تلقائيًا؛ نفس order_id+type ذرّي؛ استدعاء داخل معاملة قفل صفوف WorkController::complete
+- كتابة appointment_technician_earnings (type=return_customer، status=pending) يعيد استخدام سلسلة تسوية العمولة، ملخص earnings لواجهة الفني يتضمنه تلقائيًا؛ نفس order_id+type ذرّي؛ استدعاء داخل معاملة قفل صفوف WorkController::complete
 - admin /admin/return-customer/config (GET/PUT) + /rewards (?keyword اسم فني/رقم طلب/اسم مستعار) (صلاحيات 412-414)؛ بذور صلاحيات ترحيل 000607؛ ReturnCustomerRewardServiceTest
 
 ### 46. تصدير الجدولة (الجولة 24)

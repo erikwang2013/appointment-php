@@ -3,7 +3,7 @@
 -- Copyright (c) 2026 erik <erik@erik.xyz> — https://erik.xyz
 --
 -- 包含: 管理后台 + 业务服务 全部表结构、权限数据、演示数据
--- 表前缀: erik_
+-- 表前缀: appointment_
 -- 主键: BIGINT 非自增，由 snowflake-php 应用层生成
 -- 字符集: utf8mb4 / utf8mb4_unicode_ci
 -- 存储引擎: InnoDB
@@ -23,7 +23,7 @@
 -- ============================================================
 -- 管理用户表
 -- ============================================================
-CREATE TABLE IF NOT EXISTS `erik_admin_user` (
+CREATE TABLE IF NOT EXISTS `appointment_admin_user` (
     `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
     `username` VARCHAR(50) NOT NULL COMMENT '用户名',
     `password` VARCHAR(255) NOT NULL COMMENT '密码（bcrypt哈希）',
@@ -48,7 +48,7 @@ CREATE TABLE IF NOT EXISTS `erik_admin_user` (
 -- ============================================================
 -- 角色表
 -- ============================================================
-CREATE TABLE IF NOT EXISTS `erik_admin_role` (
+CREATE TABLE IF NOT EXISTS `appointment_admin_role` (
     `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
     `name` VARCHAR(50) NOT NULL COMMENT '角色名称',
     `slug` VARCHAR(50) NOT NULL COMMENT '角色标识，用于权限判断',
@@ -63,7 +63,7 @@ CREATE TABLE IF NOT EXISTS `erik_admin_role` (
 -- ============================================================
 -- 权限表（菜单/按钮/接口）
 -- ============================================================
-CREATE TABLE IF NOT EXISTS `erik_admin_permission` (
+CREATE TABLE IF NOT EXISTS `appointment_admin_permission` (
     `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
     `parent_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '父级权限ID，0表示顶级',
     `name` VARCHAR(50) NOT NULL COMMENT '权限名称',
@@ -83,7 +83,7 @@ CREATE TABLE IF NOT EXISTS `erik_admin_permission` (
 -- ============================================================
 -- 用户角色关联表（多对多中间表）
 -- ============================================================
-CREATE TABLE IF NOT EXISTS `erik_admin_user_role` (
+CREATE TABLE IF NOT EXISTS `appointment_admin_user_role` (
     `user_id` BIGINT UNSIGNED NOT NULL COMMENT '用户ID',
     `role_id` BIGINT UNSIGNED NOT NULL COMMENT '角色ID',    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
@@ -95,7 +95,7 @@ CREATE TABLE IF NOT EXISTS `erik_admin_user_role` (
 -- ============================================================
 -- 角色权限关联表（多对多中间表）
 -- ============================================================
-CREATE TABLE IF NOT EXISTS `erik_admin_role_permission` (
+CREATE TABLE IF NOT EXISTS `appointment_admin_role_permission` (
     `role_id` BIGINT UNSIGNED NOT NULL COMMENT '角色ID',
     `permission_id` BIGINT UNSIGNED NOT NULL COMMENT '权限ID',    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
@@ -107,7 +107,7 @@ CREATE TABLE IF NOT EXISTS `erik_admin_role_permission` (
 -- ============================================================
 -- 系统配置表
 -- ============================================================
-CREATE TABLE IF NOT EXISTS `erik_system_config` (
+CREATE TABLE IF NOT EXISTS `appointment_system_config` (
     `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
     `group` VARCHAR(50) NOT NULL DEFAULT 'default' COMMENT '配置分组标识',
     `key` VARCHAR(100) NOT NULL COMMENT '配置键名',
@@ -123,7 +123,7 @@ CREATE TABLE IF NOT EXISTS `erik_system_config` (
 -- ============================================================
 -- 操作日志表
 -- ============================================================
-CREATE TABLE IF NOT EXISTS `erik_operation_log` (
+CREATE TABLE IF NOT EXISTS `appointment_operation_log` (
     `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
     `user_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '操作用户ID',
     `action` VARCHAR(100) NOT NULL COMMENT '操作动作，如 admin.user.store',
@@ -142,7 +142,7 @@ CREATE TABLE IF NOT EXISTS `erik_operation_log` (
 -- ============================================================
 -- 插入默认管理员角色
 -- ============================================================
-INSERT INTO `erik_admin_role` (`id`, `name`, `slug`, `description`, `status`) VALUES
+INSERT INTO `appointment_admin_role` (`id`, `name`, `slug`, `description`, `status`) VALUES
 (10000000000000001, '超级管理员', 'super_admin', '系统超级管理员，拥有所有权限', 1);
 
 
@@ -158,7 +158,7 @@ INSERT INTO `erik_admin_role` (`id`, `name`, `slug`, `description`, `status`) VA
 -- ============================================================
 
 -- 菜单权限 (type=1)
-INSERT INTO `erik_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
+INSERT INTO `appointment_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
 (21000000000000001, 0, '仪表盘',    'dashboard',     1, 'dashboard', '/dashboard',        1, NOW(), NOW()),
 (21000000000000002, 0, '用户管理',  'user',           1, 'people',    '/admin/user',        2, NOW(), NOW()),
 (21000000000000003, 0, '角色管理',  'role',           1, 'shield',    '/admin/role',        3, NOW(), NOW()),
@@ -167,7 +167,7 @@ INSERT INTO `erik_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, 
 (21000000000000006, 0, '操作日志',  'log',            1, 'article',   '/admin/log',         6, NOW(), NOW());
 
 -- 按钮权限 (type=2)
-INSERT INTO `erik_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
+INSERT INTO `appointment_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
 (21000000000000011, 21000000000000002, '批量删除',     'batch.destroy', 2, '', '', 1, NOW(), NOW()),
 (21000000000000012, 21000000000000002, '批量启用/禁用', 'batch.status', 2, '', '', 2, NOW(), NOW()),
 (21000000000000013, 21000000000000002, '导入用户',     'import.users',  2, '', '', 3, NOW(), NOW()),
@@ -176,11 +176,11 @@ INSERT INTO `erik_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, 
 (21000000000000016, 21000000000000002, '文件上传',     'upload',         2, '', '', 6, NOW(), NOW());
 
 -- API 权限 (type=3) — 仪表盘
-INSERT INTO `erik_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
+INSERT INTO `appointment_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
 (21000000000000021, 21000000000000001, '查看仪表盘',   'get.admin/dashboard', 3, '', '', 1, NOW(), NOW());
 
 -- API 权限 — 用户管理
-INSERT INTO `erik_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
+INSERT INTO `appointment_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
 (21000000000000031, 21000000000000002, '查看用户',     'get.admin/user',             3, '', '', 1, NOW(), NOW()),
 (21000000000000032, 21000000000000002, '创建用户',     'post.admin/user',            3, '', '', 2, NOW(), NOW()),
 (21000000000000033, 21000000000000002, '更新用户',     'put.admin/user',             3, '', '', 3, NOW(), NOW()),
@@ -189,47 +189,47 @@ INSERT INTO `erik_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, 
 (21000000000000036, 21000000000000002, '批量启禁用',   'post.admin/user/batch/status',  3, '', '', 6, NOW(), NOW());
 
 -- API 权限 — 角色管理
-INSERT INTO `erik_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
+INSERT INTO `appointment_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
 (21000000000000041, 21000000000000003, '查看角色', 'get.admin/role',    3, '', '', 1, NOW(), NOW()),
 (21000000000000042, 21000000000000003, '创建角色', 'post.admin/role',   3, '', '', 2, NOW(), NOW()),
 (21000000000000043, 21000000000000003, '更新角色', 'put.admin/role',    3, '', '', 3, NOW(), NOW()),
 (21000000000000044, 21000000000000003, '删除角色', 'delete.admin/role', 3, '', '', 4, NOW(), NOW());
 
 -- API 权限 — 权限管理
-INSERT INTO `erik_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
+INSERT INTO `appointment_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
 (21000000000000051, 21000000000000004, '查看权限', 'get.admin/permission',    3, '', '', 1, NOW(), NOW()),
 (21000000000000052, 21000000000000004, '创建权限', 'post.admin/permission',   3, '', '', 2, NOW(), NOW()),
 (21000000000000053, 21000000000000004, '更新权限', 'put.admin/permission',    3, '', '', 3, NOW(), NOW()),
 (21000000000000054, 21000000000000004, '删除权限', 'delete.admin/permission', 3, '', '', 4, NOW(), NOW());
 
 -- API 权限 — 系统配置
-INSERT INTO `erik_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
+INSERT INTO `appointment_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
 (21000000000000061, 21000000000000005, '查看配置', 'get.admin/config',    3, '', '', 1, NOW(), NOW()),
 (21000000000000062, 21000000000000005, '创建配置', 'post.admin/config',   3, '', '', 2, NOW(), NOW()),
 (21000000000000063, 21000000000000005, '更新配置', 'put.admin/config',    3, '', '', 3, NOW(), NOW()),
 (21000000000000064, 21000000000000005, '删除配置', 'delete.admin/config', 3, '', '', 4, NOW(), NOW());
 
 -- API 权限 — 操作日志
-INSERT INTO `erik_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
+INSERT INTO `appointment_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
 (21000000000000071, 21000000000000006, '查看日志', 'get.admin/log', 3, '', '', 1, NOW(), NOW());
 
 -- API 权限 — 个人中心
-INSERT INTO `erik_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
+INSERT INTO `appointment_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
 (21000000000000081, 0, '个人中心-更新信息', 'put.admin/profile',         3, '', '', 1, NOW(), NOW()),
 (21000000000000082, 0, '个人中心-修改密码', 'put.admin/profile/password', 3, '', '', 2, NOW(), NOW()),
 (21000000000000083, 0, '个人中心-登出',     'post.admin/profile/logout',  3, '', '', 3, NOW(), NOW());
 
 -- API 权限 — 导出
-INSERT INTO `erik_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
+INSERT INTO `appointment_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
 (21000000000000091, 0, '导出Excel', 'post.admin/export/excel', 3, '', '', 1, NOW(), NOW()),
 (21000000000000092, 0, '导出PDF',   'post.admin/export/pdf',   3, '', '', 2, NOW(), NOW());
 
 -- API 权限 — 导入
-INSERT INTO `erik_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
+INSERT INTO `appointment_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
 (21000000000000093, 0, '导入用户', 'post.admin/import/users', 3, '', '', 1, NOW(), NOW());
 
 -- API 权限 — 上传
-INSERT INTO `erik_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
+INSERT INTO `appointment_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
 (21000000000000094, 0, '文件上传', 'post.admin/upload', 3, '', '', 1, NOW(), NOW());
 
 -- ============================================================
@@ -237,67 +237,67 @@ INSERT INTO `erik_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, 
 -- ============================================================
 
 -- 菜单: 店长工作台
-INSERT INTO `erik_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
+INSERT INTO `appointment_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
 (21000000000000101, 0, '店长工作台', 'store_manager', 1, 'store', '/store-manager', 7, NOW(), NOW());
 
 -- API 权限: 店长仪表盘
-INSERT INTO `erik_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
+INSERT INTO `appointment_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
 (21000000000000102, 21000000000000101, '店长仪表盘', 'get.admin/store-manager/dashboard', 3, '', '', 1, NOW(), NOW());
 
 -- API 权限: 订单管理
-INSERT INTO `erik_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
+INSERT INTO `appointment_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
 (21000000000000103, 21000000000000101, '订单查询', 'get.admin/appointment-orders', 3, '', '', 2, NOW(), NOW()),
 (21000000000000104, 21000000000000101, '订单更新', 'put.admin/appointment-orders', 3, '', '', 3, NOW(), NOW());
 
 -- API 权限: 排班管理
-INSERT INTO `erik_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
+INSERT INTO `appointment_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
 (21000000000000105, 21000000000000101, '排班管理', 'get.admin/technicians/schedules', 3, '', '', 4, NOW(), NOW()),
 (21000000000000106, 21000000000000101, '排班设置', 'post.admin/technicians/schedules', 3, '', '', 5, NOW(), NOW());
 
 -- API 权限: 优惠券管理
-INSERT INTO `erik_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
+INSERT INTO `appointment_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
 (21000000000000107, 21000000000000101, '优惠券查询', 'get.admin/coupons', 3, '', '', 6, NOW(), NOW()),
 (21000000000000108, 21000000000000101, '优惠券创建', 'post.admin/coupons', 3, '', '', 7, NOW(), NOW());
 
 -- API 权限: Store manager CRUD
-INSERT INTO `erik_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
+INSERT INTO `appointment_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
 (21000000000000109, 0, '店长查询', 'get.admin/store-managers', 3, '', '', 1, NOW(), NOW()),
 (21000000000000110, 0, '店长创建', 'post.admin/store-managers', 3, '', '', 2, NOW(), NOW()),
 (21000000000000111, 0, '店长更新', 'put.admin/store-managers', 3, '', '', 3, NOW(), NOW()),
 (21000000000000112, 0, '店长删除', 'delete.admin/store-managers', 3, '', '', 4, NOW(), NOW());
 
 -- API 权限: 培训课程
-INSERT INTO `erik_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
+INSERT INTO `appointment_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
 (21000000000000113, 0, '培训课程查询', 'get.admin/training-courses', 3, '', '', 1, NOW(), NOW()),
 (21000000000000114, 0, '培训课程创建', 'post.admin/training-courses', 3, '', '', 2, NOW(), NOW()),
 (21000000000000115, 0, '培训课程更新', 'put.admin/training-courses', 3, '', '', 3, NOW(), NOW()),
 (21000000000000116, 0, '培训课程删除', 'delete.admin/training-courses', 3, '', '', 4, NOW(), NOW());
 
 -- API 权限: 调度任务
-INSERT INTO `erik_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
+INSERT INTO `appointment_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
 (21000000000000117, 0, '调度任务执行', 'post.admin/scheduled-tasks', 3, '', '', 1, NOW(), NOW());
 
 -- API 权限: 客户画像
-INSERT INTO `erik_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
+INSERT INTO `appointment_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
 (21000000000000118, 0, '客户画像查询', 'get.admin/customer-profiles', 3, '', '', 1, NOW(), NOW());
 
 -- API 权限: 批量消息
-INSERT INTO `erik_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
+INSERT INTO `appointment_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
 (21000000000000119, 0, '批量消息发送', 'post.admin/batch-messages', 3, '', '', 1, NOW(), NOW());
 
 -- API 权限: 退款审批
-INSERT INTO `erik_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
+INSERT INTO `appointment_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
 (21000000000000120, 0, '退款审批列表', 'get.admin/refund-workflows', 3, '', '', 1, NOW(), NOW()),
 (21000000000000121, 0, '退款审批通过', 'post.admin/refund-workflows/approve', 3, '', '', 2, NOW(), NOW()),
 (21000000000000122, 0, '退款审批驳回', 'post.admin/refund-workflows/reject', 3, '', '', 3, NOW(), NOW());
 
 -- API 权限: 技师等级
-INSERT INTO `erik_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
+INSERT INTO `appointment_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
 (21000000000000123, 0, '技师等级查询', 'get.admin/technician-tiers', 3, '', '', 1, NOW(), NOW()),
 (21000000000000124, 0, '技师等级更新', 'put.admin/technician-tiers', 3, '', '', 2, NOW(), NOW());
 
 -- API 权限: 会员卡定义（S10，id 与迁移 2026_08_14_000008 对齐）
-INSERT INTO `erik_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
+INSERT INTO `appointment_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
 (21000000000000365, 0, '会员卡定义列表', 'get.admin/member-cards', 3, '', '', 164, NOW(), NOW()),
 (21000000000000366, 0, '创建会员卡定义', 'post.admin/member-cards', 3, '', '', 165, NOW(), NOW()),
 (21000000000000367, 0, '会员卡定义详情', 'get.admin/member-cards/{id}', 3, '', '', 166, NOW(), NOW()),
@@ -307,10 +307,10 @@ INSERT INTO `erik_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, 
 -- ============================================================
 -- 超级管理员角色 (ID=10000000000000001) 关联所有权限
 -- ============================================================
-INSERT INTO `erik_admin_role_permission` (`role_id`, `permission_id`)
-SELECT 10000000000000001, `id` FROM `erik_admin_permission`
+INSERT INTO `appointment_admin_role_permission` (`role_id`, `permission_id`)
+SELECT 10000000000000001, `id` FROM `appointment_admin_permission`
 WHERE `id` NOT IN (
-    SELECT `permission_id` FROM `erik_admin_role_permission` WHERE `role_id` = 10000000000000001
+    SELECT `permission_id` FROM `appointment_admin_role_permission` WHERE `role_id` = 10000000000000001
 );
 
 
@@ -322,10 +322,10 @@ WHERE `id` NOT IN (
 -- Copyright (c) 2026 erik <erik@erik.xyz> — https://erik.xyz
 -- ============================================================
 
-ALTER TABLE `erik_operation_log`
+ALTER TABLE `appointment_operation_log`
 ADD COLUMN `source` VARCHAR(20) NOT NULL DEFAULT 'web' COMMENT '操作来源端: ipados|macos|windows|linux|ios|android|harmonyos|web' AFTER `ip`;
 
-ALTER TABLE `erik_operation_log`
+ALTER TABLE `appointment_operation_log`
 ADD KEY `idx_source` (`source`);
 
 
@@ -337,7 +337,7 @@ ADD KEY `idx_source` (`source`);
 -- 迁移: 预约服务系统业务数据表
 -- 注意: 主键 id 使用 BIGINT 非自增，由 erikwang2013/snowflake-php 在应用层生成
 -- 敏感字段使用 erikwang2013/encryptable trait 自动加解密
--- 表前缀: erik_
+-- 表前缀: appointment_
 -- ============================================================
 
 -- ============================================================
@@ -345,7 +345,7 @@ ADD KEY `idx_source` (`source`);
 -- ============================================================
 
 -- 统一用户表
-CREATE TABLE IF NOT EXISTS `erik_user` (
+CREATE TABLE IF NOT EXISTS `appointment_user` (
     `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
     `phone` VARCHAR(500) NOT NULL DEFAULT '' COMMENT '手机号（明文存储）',
     `password` VARCHAR(255) NOT NULL DEFAULT '' COMMENT '密码（bcrypt哈希）',
@@ -378,7 +378,7 @@ CREATE TABLE IF NOT EXISTS `erik_user` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='统一用户表';
 
 -- 用户收货地址表
-CREATE TABLE IF NOT EXISTS `erik_user_address` (
+CREATE TABLE IF NOT EXISTS `appointment_user_address` (
     `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
     `user_id` BIGINT UNSIGNED NOT NULL COMMENT '用户ID',
     `contact_name` VARCHAR(50) NOT NULL DEFAULT '' COMMENT '联系人姓名',
@@ -397,7 +397,7 @@ CREATE TABLE IF NOT EXISTS `erik_user_address` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='用户收货地址表';
 
 -- 用户收藏表
-CREATE TABLE IF NOT EXISTS `erik_user_favorite` (
+CREATE TABLE IF NOT EXISTS `appointment_user_favorite` (
     `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
     `user_id` BIGINT UNSIGNED NOT NULL COMMENT '用户ID',
     `target_type` VARCHAR(20) NOT NULL DEFAULT 'service' COMMENT '收藏类型: service=服务 technician=技师',
@@ -414,7 +414,7 @@ CREATE TABLE IF NOT EXISTS `erik_user_favorite` (
 -- ============================================================
 
 -- 技师档案表
-CREATE TABLE IF NOT EXISTS `erik_technician_profile` (
+CREATE TABLE IF NOT EXISTS `appointment_technician_profile` (
     `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
     `user_id` BIGINT UNSIGNED NOT NULL COMMENT '关联用户ID',
     `real_name` VARCHAR(500) NOT NULL DEFAULT '' COMMENT '真实姓名（加密存储）',
@@ -444,7 +444,7 @@ CREATE TABLE IF NOT EXISTS `erik_technician_profile` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='技师档案表';
 
 -- 技师排班表
-CREATE TABLE IF NOT EXISTS `erik_technician_schedule` (
+CREATE TABLE IF NOT EXISTS `appointment_technician_schedule` (
     `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
     `technician_id` BIGINT UNSIGNED NOT NULL COMMENT '技师档案ID',
     `date` DATE NOT NULL COMMENT '排班日期',
@@ -458,7 +458,7 @@ CREATE TABLE IF NOT EXISTS `erik_technician_schedule` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='技师排班表';
 
 -- 技师可服务项目关联表
-CREATE TABLE IF NOT EXISTS `erik_technician_service` (
+CREATE TABLE IF NOT EXISTS `appointment_technician_service` (
     `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
     `technician_id` BIGINT UNSIGNED NOT NULL COMMENT '技师档案ID',
     `service_id` BIGINT UNSIGNED NOT NULL COMMENT '服务项目ID',
@@ -470,7 +470,7 @@ CREATE TABLE IF NOT EXISTS `erik_technician_service` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='技师可服务项目关联表';
 
 -- 技师收益流水表
-CREATE TABLE IF NOT EXISTS `erik_technician_earnings` (
+CREATE TABLE IF NOT EXISTS `appointment_technician_earnings` (
     `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
     `technician_id` BIGINT UNSIGNED NOT NULL COMMENT '技师档案ID',
     `order_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '关联订单ID',
@@ -490,7 +490,7 @@ CREATE TABLE IF NOT EXISTS `erik_technician_earnings` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='技师收益流水表';
 
 -- 技师提现记录表
-CREATE TABLE IF NOT EXISTS `erik_technician_withdrawal` (
+CREATE TABLE IF NOT EXISTS `appointment_technician_withdrawal` (
     `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
     `technician_id` BIGINT UNSIGNED NOT NULL COMMENT '技师档案ID',
     `withdrawal_no` VARCHAR(32) NOT NULL DEFAULT '' COMMENT '提现单号',
@@ -515,7 +515,7 @@ CREATE TABLE IF NOT EXISTS `erik_technician_withdrawal` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='技师提现记录表';
 
 -- 技师考勤表
-CREATE TABLE IF NOT EXISTS `erik_technician_attendance` (
+CREATE TABLE IF NOT EXISTS `appointment_technician_attendance` (
     `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
     `technician_id` BIGINT UNSIGNED NOT NULL COMMENT '技师档案ID',
     `date` DATE NOT NULL COMMENT '考勤日期',
@@ -532,7 +532,7 @@ CREATE TABLE IF NOT EXISTS `erik_technician_attendance` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='技师考勤表';
 
 -- 技师会员档案表（技师对顾客的记录）
-CREATE TABLE IF NOT EXISTS `erik_technician_member_note` (
+CREATE TABLE IF NOT EXISTS `appointment_technician_member_note` (
     `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
     `technician_id` BIGINT UNSIGNED NOT NULL COMMENT '技师档案ID',
     `user_id` BIGINT UNSIGNED NOT NULL COMMENT '顾客用户ID',
@@ -551,7 +551,7 @@ CREATE TABLE IF NOT EXISTS `erik_technician_member_note` (
 -- ============================================================
 
 -- 服务分类表
-CREATE TABLE IF NOT EXISTS `erik_service_category` (
+CREATE TABLE IF NOT EXISTS `appointment_service_category` (
     `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
     `name` VARCHAR(50) NOT NULL DEFAULT '' COMMENT '分类名称',
     `icon` VARCHAR(255) NOT NULL DEFAULT '' COMMENT '分类图标URL',
@@ -566,7 +566,7 @@ CREATE TABLE IF NOT EXISTS `erik_service_category` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='服务分类表';
 
 -- 服务项目表
-CREATE TABLE IF NOT EXISTS `erik_service` (
+CREATE TABLE IF NOT EXISTS `appointment_service` (
     `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
     `category_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '服务分类ID',
     `name` VARCHAR(100) NOT NULL DEFAULT '' COMMENT '服务名称',
@@ -592,7 +592,7 @@ CREATE TABLE IF NOT EXISTS `erik_service` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='服务项目表';
 
 -- 产品表
-CREATE TABLE IF NOT EXISTS `erik_product` (
+CREATE TABLE IF NOT EXISTS `appointment_product` (
     `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
     `category_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '产品分类ID',
     `name` VARCHAR(100) NOT NULL DEFAULT '' COMMENT '产品名称',
@@ -617,7 +617,7 @@ CREATE TABLE IF NOT EXISTS `erik_product` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='产品表';
 
 -- 门店表
-CREATE TABLE IF NOT EXISTS `erik_store` (
+CREATE TABLE IF NOT EXISTS `appointment_store` (
     `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
     `name` VARCHAR(100) NOT NULL DEFAULT '' COMMENT '门店名称',
     `address` VARCHAR(255) NOT NULL DEFAULT '' COMMENT '门店地址',
@@ -641,7 +641,7 @@ CREATE TABLE IF NOT EXISTS `erik_store` (
 -- ============================================================
 
 -- 订单主表
-CREATE TABLE IF NOT EXISTS `erik_order` (
+CREATE TABLE IF NOT EXISTS `appointment_order` (
     `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
     `order_no` VARCHAR(32) NOT NULL DEFAULT '' COMMENT '订单编号（展示用）',
     `user_id` BIGINT UNSIGNED NOT NULL COMMENT '用户ID',
@@ -682,7 +682,7 @@ CREATE TABLE IF NOT EXISTS `erik_order` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='订单主表';
 
 -- 订单明细表
-CREATE TABLE IF NOT EXISTS `erik_order_item` (
+CREATE TABLE IF NOT EXISTS `appointment_order_item` (
     `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
     `order_id` BIGINT UNSIGNED NOT NULL COMMENT '订单ID',
     `target_type` VARCHAR(20) NOT NULL DEFAULT 'service' COMMENT '项目类型: service=服务 product=产品',
@@ -699,7 +699,7 @@ CREATE TABLE IF NOT EXISTS `erik_order_item` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='订单明细表';
 
 -- 支付记录表
-CREATE TABLE IF NOT EXISTS `erik_order_payment` (
+CREATE TABLE IF NOT EXISTS `appointment_order_payment` (
     `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
     `order_id` BIGINT UNSIGNED NOT NULL COMMENT '订单ID',
     `payment_no` VARCHAR(32) NOT NULL DEFAULT '' COMMENT '支付单号',
@@ -718,7 +718,7 @@ CREATE TABLE IF NOT EXISTS `erik_order_payment` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='支付记录表';
 
 -- 退款记录表
-CREATE TABLE IF NOT EXISTS `erik_order_refund` (
+CREATE TABLE IF NOT EXISTS `appointment_order_refund` (
     `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
     `order_id` BIGINT UNSIGNED NOT NULL COMMENT '订单ID',
     `payment_id` BIGINT UNSIGNED NOT NULL COMMENT '支付记录ID',
@@ -737,7 +737,7 @@ CREATE TABLE IF NOT EXISTS `erik_order_refund` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='退款记录表';
 
 -- 用户钱包表（储值支付）
-CREATE TABLE IF NOT EXISTS `erik_user_wallet` (
+CREATE TABLE IF NOT EXISTS `appointment_user_wallet` (
     `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
     `user_id` BIGINT UNSIGNED NOT NULL COMMENT '用户ID',
     `balance` DECIMAL(10,2) NOT NULL DEFAULT 0.00 COMMENT '可用余额（元）',
@@ -750,7 +750,7 @@ CREATE TABLE IF NOT EXISTS `erik_user_wallet` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='用户钱包表';
 
 -- 钱包充值单表
-CREATE TABLE IF NOT EXISTS `erik_wallet_recharge` (
+CREATE TABLE IF NOT EXISTS `appointment_wallet_recharge` (
     `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
     `user_id` BIGINT UNSIGNED NOT NULL COMMENT '用户ID',
     `order_no` VARCHAR(32) NOT NULL DEFAULT '' COMMENT '充值单号（R + 时间戳 + 4位随机数，与订单号体系区分）',
@@ -766,7 +766,7 @@ CREATE TABLE IF NOT EXISTS `erik_wallet_recharge` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='钱包充值单表';
 
 -- 钱包流水表
-CREATE TABLE IF NOT EXISTS `erik_wallet_txn` (
+CREATE TABLE IF NOT EXISTS `appointment_wallet_txn` (
     `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
     `user_id` BIGINT UNSIGNED NOT NULL COMMENT '用户ID',
     `type` VARCHAR(20) NOT NULL DEFAULT 'recharge' COMMENT '流水类型: recharge=充值 consume=消费 refund=退款（金额一律正数，方向由 type 表达）',
@@ -781,7 +781,7 @@ CREATE TABLE IF NOT EXISTS `erik_wallet_txn` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='钱包流水表';
 
 -- 服务评价表
-CREATE TABLE IF NOT EXISTS `erik_order_review` (
+CREATE TABLE IF NOT EXISTS `appointment_order_review` (
     `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
     `order_id` BIGINT UNSIGNED NOT NULL COMMENT '订单ID',
     `service_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '被评价服务ID',
@@ -804,7 +804,7 @@ CREATE TABLE IF NOT EXISTS `erik_order_review` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='服务评价表';
 
 -- 核销记录表
-CREATE TABLE IF NOT EXISTS `erik_order_verification` (
+CREATE TABLE IF NOT EXISTS `appointment_order_verification` (
     `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
     `order_id` BIGINT UNSIGNED NOT NULL COMMENT '订单ID',
     `code` VARCHAR(64) NOT NULL DEFAULT '' COMMENT '核销二维码值',
@@ -824,7 +824,7 @@ CREATE TABLE IF NOT EXISTS `erik_order_verification` (
 -- ============================================================
 
 -- 优惠券定义表
-CREATE TABLE IF NOT EXISTS `erik_coupon` (
+CREATE TABLE IF NOT EXISTS `appointment_coupon` (
     `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
     `name` VARCHAR(100) NOT NULL DEFAULT '' COMMENT '优惠券名称',
     `type` VARCHAR(20) NOT NULL DEFAULT 'fixed' COMMENT '优惠类型: fixed=固定金额 percent=百分比',
@@ -844,7 +844,7 @@ CREATE TABLE IF NOT EXISTS `erik_coupon` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='优惠券定义表';
 
 -- 用户优惠券表
-CREATE TABLE IF NOT EXISTS `erik_user_coupon` (
+CREATE TABLE IF NOT EXISTS `appointment_user_coupon` (
     `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
     `user_id` BIGINT UNSIGNED NOT NULL COMMENT '用户ID',
     `coupon_id` BIGINT UNSIGNED NOT NULL COMMENT '优惠券ID',
@@ -859,7 +859,7 @@ CREATE TABLE IF NOT EXISTS `erik_user_coupon` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='用户优惠券表';
 
 -- 会员卡定义表
-CREATE TABLE IF NOT EXISTS `erik_member_card` (
+CREATE TABLE IF NOT EXISTS `appointment_member_card` (
     `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
     `name` VARCHAR(100) NOT NULL DEFAULT '' COMMENT '会员卡名称',
     `type` VARCHAR(20) NOT NULL DEFAULT 'month' COMMENT '会员卡类型: month=普通月卡 vip=VIP年卡 times=次卡',
@@ -876,7 +876,7 @@ CREATE TABLE IF NOT EXISTS `erik_member_card` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='会员卡定义表';
 
 -- 用户会员卡表
-CREATE TABLE IF NOT EXISTS `erik_user_member_card` (
+CREATE TABLE IF NOT EXISTS `appointment_user_member_card` (
     `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
     `user_id` BIGINT UNSIGNED NOT NULL COMMENT '用户ID',
     `card_id` BIGINT UNSIGNED NOT NULL COMMENT '会员卡定义ID',
@@ -894,7 +894,7 @@ CREATE TABLE IF NOT EXISTS `erik_user_member_card` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='用户会员卡表';
 
 -- 次卡使用记录表
-CREATE TABLE IF NOT EXISTS `erik_member_card_usage` (
+CREATE TABLE IF NOT EXISTS `appointment_member_card_usage` (
     `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
     `user_card_id` BIGINT UNSIGNED NOT NULL COMMENT '用户会员卡ID',
     `order_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '关联订单ID',
@@ -910,7 +910,7 @@ CREATE TABLE IF NOT EXISTS `erik_member_card_usage` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='次卡使用记录表';
 
 -- 积分流水表
-CREATE TABLE IF NOT EXISTS `erik_user_points` (
+CREATE TABLE IF NOT EXISTS `appointment_user_points` (
     `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
     `user_id` BIGINT UNSIGNED NOT NULL COMMENT '用户ID',
     `type` VARCHAR(20) NOT NULL DEFAULT 'earn' COMMENT '类型: earn=获取 use=使用 expire=过期',
@@ -930,7 +930,7 @@ CREATE TABLE IF NOT EXISTS `erik_user_points` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='积分流水表';
 
 -- 礼品卡表
-CREATE TABLE IF NOT EXISTS `erik_gift_card` (
+CREATE TABLE IF NOT EXISTS `appointment_gift_card` (
     `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
     `code` VARCHAR(32) NOT NULL DEFAULT '' COMMENT '礼品卡兑换码',
     `type` VARCHAR(20) NOT NULL DEFAULT 'cash' COMMENT '类型: cash=现金礼品卡 gift=实物礼品',
@@ -948,7 +948,7 @@ CREATE TABLE IF NOT EXISTS `erik_gift_card` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='礼品卡表';
 
 -- 用户推广记录表
-CREATE TABLE IF NOT EXISTS `erik_user_referral` (
+CREATE TABLE IF NOT EXISTS `appointment_user_referral` (
     `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
     `referrer_id` BIGINT UNSIGNED NOT NULL COMMENT '推荐人用户ID',
     `referred_user_id` BIGINT UNSIGNED NOT NULL COMMENT '被推荐用户ID',
@@ -969,7 +969,7 @@ CREATE TABLE IF NOT EXISTS `erik_user_referral` (
 -- ============================================================
 
 -- 轮播图表
-CREATE TABLE IF NOT EXISTS `erik_banner` (
+CREATE TABLE IF NOT EXISTS `appointment_banner` (
     `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
     `position` VARCHAR(50) NOT NULL DEFAULT 'home' COMMENT '展示位置: home=首页',
     `image` VARCHAR(500) NOT NULL DEFAULT '' COMMENT '轮播图URL',
@@ -986,7 +986,7 @@ CREATE TABLE IF NOT EXISTS `erik_banner` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='轮播图表';
 
 -- 公告表
-CREATE TABLE IF NOT EXISTS `erik_announcement` (
+CREATE TABLE IF NOT EXISTS `appointment_announcement` (
     `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
     `title` VARCHAR(100) NOT NULL DEFAULT '' COMMENT '公告标题',
     `content` TEXT NOT NULL COMMENT '公告内容',
@@ -1000,7 +1000,7 @@ CREATE TABLE IF NOT EXISTS `erik_announcement` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='公告表';
 
 -- 平台协议表
-CREATE TABLE IF NOT EXISTS `erik_platform_agreement` (
+CREATE TABLE IF NOT EXISTS `appointment_platform_agreement` (
     `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
     `type` VARCHAR(50) NOT NULL DEFAULT '' COMMENT '协议类型: user_agreement=用户协议 privacy_policy=隐私协议 service_agreement=服务协议',
     `title` VARCHAR(100) NOT NULL DEFAULT '' COMMENT '协议标题',
@@ -1015,7 +1015,7 @@ CREATE TABLE IF NOT EXISTS `erik_platform_agreement` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='平台协议表';
 
 -- 常见问题表
-CREATE TABLE IF NOT EXISTS `erik_faq` (
+CREATE TABLE IF NOT EXISTS `appointment_faq` (
     `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
     `title` VARCHAR(200) NOT NULL DEFAULT '' COMMENT '问题标题',
     `content` TEXT NOT NULL COMMENT '问题答案',
@@ -1029,7 +1029,7 @@ CREATE TABLE IF NOT EXISTS `erik_faq` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='常见问题表';
 
 -- 意见反馈表
-CREATE TABLE IF NOT EXISTS `erik_feedback` (
+CREATE TABLE IF NOT EXISTS `appointment_feedback` (
     `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
     `user_id` BIGINT UNSIGNED NOT NULL COMMENT '用户ID',
     `content` VARCHAR(1000) NOT NULL DEFAULT '' COMMENT '反馈内容',
@@ -1046,7 +1046,7 @@ CREATE TABLE IF NOT EXISTS `erik_feedback` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='意见反馈表';
 
 -- 朋友圈动态表
-CREATE TABLE IF NOT EXISTS `erik_moment` (
+CREATE TABLE IF NOT EXISTS `appointment_moment` (
     `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
     `content` TEXT NOT NULL COMMENT '动态内容',
     `images` JSON COMMENT '动态图片列表',
@@ -1061,7 +1061,7 @@ CREATE TABLE IF NOT EXISTS `erik_moment` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='朋友圈动态表';
 
 -- 消息通知表
-CREATE TABLE IF NOT EXISTS `erik_notification` (
+CREATE TABLE IF NOT EXISTS `appointment_notification` (
     `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
     `user_id` BIGINT UNSIGNED NOT NULL COMMENT '接收用户ID，0=全部用户',
     `type` VARCHAR(20) NOT NULL DEFAULT 'system' COMMENT '通知类型: system=系统通知 order=订单通知',
@@ -1086,7 +1086,7 @@ CREATE TABLE IF NOT EXISTS `erik_notification` (
 -- ============================================================
 
 -- 收支流水表
-CREATE TABLE IF NOT EXISTS `erik_finance_transaction` (
+CREATE TABLE IF NOT EXISTS `appointment_finance_transaction` (
     `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
     `finance_no` VARCHAR(32) NOT NULL DEFAULT '' COMMENT '财务单号',
     `user_id` BIGINT UNSIGNED NOT NULL COMMENT '用户ID',
@@ -1111,7 +1111,7 @@ CREATE TABLE IF NOT EXISTS `erik_finance_transaction` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='收支流水表';
 
 -- 技师佣金配置表
-CREATE TABLE IF NOT EXISTS `erik_technician_commission_config` (
+CREATE TABLE IF NOT EXISTS `appointment_technician_commission_config` (
     `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
     `technician_id` BIGINT UNSIGNED NOT NULL COMMENT '技师档案ID',
     `commission_rate` DECIMAL(4,2) NOT NULL DEFAULT 0.00 COMMENT '佣金率（百分比，如30.00表示30%）',
@@ -1126,7 +1126,7 @@ CREATE TABLE IF NOT EXISTS `erik_technician_commission_config` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='技师佣金配置表';
 
 -- 提现账号表
-CREATE TABLE IF NOT EXISTS `erik_withdrawal_account` (
+CREATE TABLE IF NOT EXISTS `appointment_withdrawal_account` (
     `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
     `user_id` BIGINT UNSIGNED NOT NULL COMMENT '用户ID',
     `type` VARCHAR(20) NOT NULL DEFAULT 'wechat' COMMENT '账号类型: wechat=微信零钱',
@@ -1140,7 +1140,7 @@ CREATE TABLE IF NOT EXISTS `erik_withdrawal_account` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='提现账号表';
 
 -- 提现限制配置表
-CREATE TABLE IF NOT EXISTS `erik_withdrawal_config` (
+CREATE TABLE IF NOT EXISTS `appointment_withdrawal_config` (
     `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
     `min_amount` DECIMAL(10,2) NOT NULL DEFAULT 10.00 COMMENT '最低提现金额（元）',
     `reserve_amount` DECIMAL(10,2) NOT NULL DEFAULT 0.00 COMMENT '最低保留金额（元）',
@@ -1156,7 +1156,7 @@ CREATE TABLE IF NOT EXISTS `erik_withdrawal_config` (
 -- 初始数据: 提现默认配置
 -- ============================================================
 
-INSERT INTO `erik_withdrawal_config` (`id`, `min_amount`, `reserve_amount`, `round_to_hundred`, `withdrawal_day`, `arrival_days`) VALUES
+INSERT INTO `appointment_withdrawal_config` (`id`, `min_amount`, `reserve_amount`, `round_to_hundred`, `withdrawal_day`, `arrival_days`) VALUES
 (10000000000000001, 10.00, 0.00, 1, 20, 1);
 
 
@@ -1169,19 +1169,19 @@ INSERT INTO `erik_withdrawal_config` (`id`, `min_amount`, `reserve_amount`, `rou
 -- ============================================================
 
 -- ============================================================
--- 1. erik_admin_user 增加 store_id（店长子账号所属门店，0=平台管理员）
+-- 1. appointment_admin_user 增加 store_id（店长子账号所属门店，0=平台管理员）
 -- ============================================================
-ALTER TABLE `erik_admin_user`
+ALTER TABLE `appointment_admin_user`
 ADD COLUMN `store_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '店长所管门店ID，0=平台管理员'
 AFTER `deleted_at`;
 
-ALTER TABLE `erik_admin_user`
+ALTER TABLE `appointment_admin_user`
 ADD INDEX `idx_store_id` (`store_id`);
 
 -- ============================================================
 -- 2. 培训课程表
 -- ============================================================
-CREATE TABLE IF NOT EXISTS `erik_training_course` (
+CREATE TABLE IF NOT EXISTS `appointment_training_course` (
     `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
     `title` VARCHAR(200) NOT NULL DEFAULT '' COMMENT '课程标题',
     `type` VARCHAR(20) NOT NULL DEFAULT 'video' COMMENT '课程类型: video=视频 article=文章',
@@ -1201,7 +1201,7 @@ CREATE TABLE IF NOT EXISTS `erik_training_course` (
 -- ============================================================
 -- 3. 培训学习进度表
 -- ============================================================
-CREATE TABLE IF NOT EXISTS `erik_training_progress` (
+CREATE TABLE IF NOT EXISTS `appointment_training_progress` (
     `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
     `technician_id` BIGINT UNSIGNED NOT NULL COMMENT '技师档案ID',
     `course_id` BIGINT UNSIGNED NOT NULL COMMENT '课程ID',
@@ -1218,24 +1218,24 @@ CREATE TABLE IF NOT EXISTS `erik_training_progress` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='培训学习进度表';
 
 -- ============================================================
--- 4. erik_technician_withdrawal 增加多级审批链字段
+-- 4. appointment_technician_withdrawal 增加多级审批链字段
 -- ============================================================
-ALTER TABLE `erik_technician_withdrawal`
+ALTER TABLE `appointment_technician_withdrawal`
 ADD COLUMN `store_approved_at` DATETIME DEFAULT NULL COMMENT '店长审批时间'
 AFTER `audit_remark`;
 
-ALTER TABLE `erik_technician_withdrawal`
+ALTER TABLE `appointment_technician_withdrawal`
 ADD COLUMN `finance_approved_at` DATETIME DEFAULT NULL COMMENT '财务审批时间'
 AFTER `store_approved_at`;
 
-ALTER TABLE `erik_technician_withdrawal`
+ALTER TABLE `appointment_technician_withdrawal`
 ADD COLUMN `reject_reason` VARCHAR(500) NOT NULL DEFAULT '' COMMENT '驳回原因'
 AFTER `finance_approved_at`;
 
 -- ============================================================
 -- 5. 技师等级配置表
 -- ============================================================
-CREATE TABLE IF NOT EXISTS `erik_technician_tier_config` (
+CREATE TABLE IF NOT EXISTS `appointment_technician_tier_config` (
     `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
     `name` VARCHAR(50) NOT NULL DEFAULT '' COMMENT '等级名称: junior=初级 senior=高级 expert=专家',
     `slug` VARCHAR(50) NOT NULL DEFAULT '' COMMENT '等级标识: junior/senior/expert',
@@ -1251,7 +1251,7 @@ CREATE TABLE IF NOT EXISTS `erik_technician_tier_config` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='技师等级配置表';
 
 -- 默认等级种子数据
-INSERT INTO `erik_technician_tier_config` (`id`, `name`, `slug`, `min_orders`, `min_rating`, `commission_rate`, `price_multiplier`, `sort`) VALUES
+INSERT INTO `appointment_technician_tier_config` (`id`, `name`, `slug`, `min_orders`, `min_rating`, `commission_rate`, `price_multiplier`, `sort`) VALUES
 (80000000000000001, '初级技师', 'junior', 0, 0.0, 30.00, 1.00, 1),
 (80000000000000002, '高级技师', 'senior', 100, 4.0, 35.00, 1.20, 2),
 (80000000000000003, '专家技师', 'expert', 500, 4.5, 40.00, 1.50, 3);
@@ -1266,9 +1266,9 @@ INSERT INTO `erik_technician_tier_config` (`id`, `name`, `slug`, `min_orders`, `
 -- ============================================================
 
 -- ============================================================
--- 1. erik_operation_log_detail 操作日志详情表
+-- 1. appointment_operation_log_detail 操作日志详情表
 -- ============================================================
-CREATE TABLE IF NOT EXISTS `erik_operation_log_detail` (
+CREATE TABLE IF NOT EXISTS `appointment_operation_log_detail` (
     `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
     `log_id` BIGINT UNSIGNED NOT NULL COMMENT '关联操作日志ID',
     `snapshot_before` TEXT COMMENT '操作前数据快照（JSON）',
@@ -1291,7 +1291,7 @@ CREATE TABLE IF NOT EXISTS `erik_operation_log_detail` (
 -- ============================================================
 
 -- 微信支付配置 (wechat_pay)
-INSERT IGNORE INTO `erik_system_config` (`id`, `group`, `key`, `value`, `type`, `description`) VALUES
+INSERT IGNORE INTO `appointment_system_config` (`id`, `group`, `key`, `value`, `type`, `description`) VALUES
 (91000000000000001, 'wechat_pay', 'app_id', '', 'string', '微信支付 AppID'),
 (91000000000000002, 'wechat_pay', 'mch_id', '', 'string', '微信支付商户号'),
 (91000000000000003, 'wechat_pay', 'api_key', '', 'string', '微信支付 API 密钥'),
@@ -1300,7 +1300,7 @@ INSERT IGNORE INTO `erik_system_config` (`id`, `group`, `key`, `value`, `type`, 
 (91000000000000006, 'wechat_pay', 'key_path', '', 'string', '微信支付 API 证书密钥路径（apiclient_key.pem）');
 
 -- 短信配置 (sms)
-INSERT IGNORE INTO `erik_system_config` (`id`, `group`, `key`, `value`, `type`, `description`) VALUES
+INSERT IGNORE INTO `appointment_system_config` (`id`, `group`, `key`, `value`, `type`, `description`) VALUES
 (91000000000000007, 'sms', 'provider', 'aliyun', 'string', '短信服务商: aliyun=阿里云 tencent=腾讯云'),
 (91000000000000008, 'sms', 'access_key', '', 'string', 'AccessKey（阿里云）/ SmsSdkAppId（腾讯云）'),
 (91000000000000009, 'sms', 'secret_key', '', 'string', 'SecretKey'),
@@ -1308,18 +1308,18 @@ INSERT IGNORE INTO `erik_system_config` (`id`, `group`, `key`, `value`, `type`, 
 (91000000000000011, 'sms', 'template_code', '', 'string', '默认验证码模板ID');
 
 -- 地图服务配置 (map_service)
-INSERT IGNORE INTO `erik_system_config` (`id`, `group`, `key`, `value`, `type`, `description`) VALUES
+INSERT IGNORE INTO `appointment_system_config` (`id`, `group`, `key`, `value`, `type`, `description`) VALUES
 (91000000000000012, 'map_service', 'provider', 'amap', 'string', '地图服务商: amap=高德 tencent=腾讯'),
 (91000000000000013, 'map_service', 'api_key', '', 'string', '地图 API Key');
 
 -- 微信应用配置 (wechat_app) — 用于模板消息、小程序登录等
-INSERT IGNORE INTO `erik_system_config` (`id`, `group`, `key`, `value`, `type`, `description`) VALUES
+INSERT IGNORE INTO `appointment_system_config` (`id`, `group`, `key`, `value`, `type`, `description`) VALUES
 (91000000000000014, 'wechat_app', 'app_id', '', 'string', '微信公众号/小程序 AppID'),
 (91000000000000015, 'wechat_app', 'app_secret', '', 'string', '微信公众号/小程序 AppSecret'),
 (91000000000000016, 'wechat_app', 'template_ids', '{}', 'json', '微信模板消息 ID 映射（JSON 格式，keys: order_confirm, service_reminder, refund_notify, technician_assigned）');
 
 -- 对象存储配置 (storage)
-INSERT IGNORE INTO `erik_system_config` (`id`, `group`, `key`, `value`, `type`, `description`) VALUES
+INSERT IGNORE INTO `appointment_system_config` (`id`, `group`, `key`, `value`, `type`, `description`) VALUES
 (91000000000000017, 'storage', 'provider', 'local', 'string', '存储服务商: local=本地 oss=阿里云OSS cos=腾讯云COS'),
 (91000000000000018, 'storage', 'access_key', '', 'string', 'AccessKey（OSS）/ SecretId（COS）'),
 (91000000000000019, 'storage', 'secret_key', '', 'string', 'SecretKey'),
@@ -1340,7 +1340,7 @@ INSERT IGNORE INTO `erik_system_config` (`id`, `group`, `key`, `value`, `type`, 
 -- ============================================================
 -- 1. 服务分类
 -- ============================================================
-INSERT IGNORE INTO `erik_service_category` (`id`, `name`, `icon`, `sort`, `status`) VALUES
+INSERT IGNORE INTO `appointment_service_category` (`id`, `name`, `icon`, `sort`, `status`) VALUES
 (10000000000001001, '推拿按摩', '/images/icons/massage.png', 1, 1),
 (10000000000001002, '美容护肤', '/images/icons/skincare.png', 2, 1),
 (10000000000001003, '足疗保健', '/images/icons/foot.png', 3, 1),
@@ -1350,7 +1350,7 @@ INSERT IGNORE INTO `erik_service_category` (`id`, `name`, `icon`, `sort`, `statu
 -- ============================================================
 -- 2. 服务项目
 -- ============================================================
-INSERT IGNORE INTO `erik_service` (`id`, `category_id`, `name`, `description`, `cover_image`, `price`, `original_price`, `duration`, `sort`, `status`) VALUES
+INSERT IGNORE INTO `appointment_service` (`id`, `category_id`, `name`, `description`, `cover_image`, `price`, `original_price`, `duration`, `sort`, `status`) VALUES
 -- 推拿按摩
 (10000000000002001, 10000000000001001, '全身经络推拿', '疏通经络、缓解疲劳，60分钟深度按摩，适合长期久坐办公人群', '/images/services/fullbody.jpg', 198.00, 298.00, 60, 1, 1),
 (10000000000002002, 10000000000001001, '肩颈专项调理', '针对肩颈酸痛、僵硬问题，采用推拿配合热敷，30分钟快速见效', '/images/services/shoulder.jpg', 128.00, 188.00, 30, 2, 1),
@@ -1368,7 +1368,7 @@ INSERT IGNORE INTO `erik_service` (`id`, `category_id`, `name`, `description`, `
 -- ============================================================
 -- 3. 门店
 -- ============================================================
-INSERT IGNORE INTO `erik_store` (`id`, `name`, `address`, `lat`, `lng`, `phone`, `business_hours`, `status`) VALUES
+INSERT IGNORE INTO `appointment_store` (`id`, `name`, `address`, `lat`, `lng`, `phone`, `business_hours`, `status`) VALUES
 (10000000000003001, '康悦养生·旗舰店', '广东省深圳市南山区科技园南区高新南一道3号', 22.5362000, 113.9526000, '0755-88888801', '{"mon":{"start":"09:00","end":"22:00"},"tue":{"start":"09:00","end":"22:00"},"wed":{"start":"09:00","end":"22:00"},"thu":{"start":"09:00","end":"22:00"},"fri":{"start":"09:00","end":"22:00"},"sat":{"start":"09:00","end":"22:00"},"sun":{"start":"10:00","end":"20:00"}}', 1),
 (10000000000003002, '康悦养生·福田店', '广东省深圳市福田区中心区福华三路88号', 22.5429000, 114.0596000, '0755-88888802', '{"mon":{"start":"09:00","end":"21:00"},"tue":{"start":"09:00","end":"21:00"},"wed":{"start":"09:00","end":"21:00"},"thu":{"start":"09:00","end":"21:00"},"fri":{"start":"09:00","end":"21:00"},"sat":{"start":"09:00","end":"21:00"},"sun":{"start":"10:00","end":"19:00"}}', 1),
 (10000000000003003, '康悦养生·宝安店', '广东省深圳市宝安区新安街道宝民一路168号', 22.5683000, 113.8830000, '0755-88888803', '{"mon":{"start":"10:00","end":"21:00"},"tue":{"start":"10:00","end":"21:00"},"wed":{"start":"10:00","end":"21:00"},"thu":{"start":"10:00","end":"21:00"},"fri":{"start":"10:00","end":"21:00"},"sat":{"start":"10:00","end":"21:00"},"sun":{"start":"10:00","end":"20:00"}}', 1);
@@ -1376,28 +1376,28 @@ INSERT IGNORE INTO `erik_store` (`id`, `name`, `address`, `lat`, `lng`, `phone`,
 -- ============================================================
 -- 4. 演示用户（技师账号）
 -- ============================================================
-INSERT IGNORE INTO `erik_user` (`id`, `phone`, `password`, `nickname`, `avatar`, `user_type`, `active_role`, `status`) VALUES
+INSERT IGNORE INTO `appointment_user` (`id`, `phone`, `password`, `nickname`, `avatar`, `user_type`, `active_role`, `status`) VALUES
 (10000000000004001, '13800138001', '$2y$10$dummy_hash_placeholder_tech1', '张师傅', '/images/avatars/tech1.jpg', 'technician', 'technician', 1),
 (10000000000004002, '13800138002', '$2y$10$dummy_hash_placeholder_tech2', '李师傅', '/images/avatars/tech2.jpg', 'technician', 'technician', 1);
 
 -- ============================================================
 -- 5. 技师档案
 -- ============================================================
-INSERT IGNORE INTO `erik_technician_profile` (`id`, `user_id`, `real_name`, `gender`, `avatar`, `intro`, `rating`, `order_count`, `favorite_count`, `cover_image`, `video_url`, `certificates`, `status`) VALUES
+INSERT IGNORE INTO `appointment_technician_profile` (`id`, `user_id`, `real_name`, `gender`, `avatar`, `intro`, `rating`, `order_count`, `favorite_count`, `cover_image`, `video_url`, `certificates`, `status`) VALUES
 (10000000000005001, 10000000000004001, '张伟', 1, '/images/avatars/tech1.jpg', '从业8年，国家高级按摩师，擅长经络调理和运动康复，服务细致耐心，深受客户好评。', 4.8, 326, 58, '/images/covers/tech1_cover.jpg', '', '["/images/certs/tech1_cert1.jpg","/images/certs/tech1_cert2.jpg"]', 'approved'),
 (10000000000005002, 10000000000004002, '李芳', 2, '/images/avatars/tech2.jpg', '从业5年，国际认证美容师，擅长面部护理和中医体质调理，手法轻柔专业，让您享受极致放松体验。', 4.9, 218, 42, '/images/covers/tech2_cover.jpg', '', '["/images/certs/tech2_cert1.jpg"]', 'approved');
 
 -- ============================================================
 -- 6. 技师排班
 -- ============================================================
-INSERT IGNORE INTO `erik_technician_schedule` (`id`, `technician_id`, `date`, `time_slots`, `status`) VALUES
+INSERT IGNORE INTO `appointment_technician_schedule` (`id`, `technician_id`, `date`, `time_slots`, `status`) VALUES
 (10000000000006001, 10000000000005001, CURDATE(), '[{"start":"09:00","end":"12:00"},{"start":"14:00","end":"18:00"},{"start":"19:00","end":"21:00"}]', 1),
 (10000000000006002, 10000000000005002, CURDATE(), '[{"start":"09:00","end":"12:00"},{"start":"13:00","end":"17:00"},{"start":"18:00","end":"20:00"}]', 1);
 
 -- ============================================================
 -- 7. 技师可服务项目
 -- ============================================================
-INSERT IGNORE INTO `erik_technician_service` (`id`, `technician_id`, `service_id`) VALUES
+INSERT IGNORE INTO `appointment_technician_service` (`id`, `technician_id`, `service_id`) VALUES
 (10000000000007001, 10000000000005001, 10000000000002001),
 (10000000000007002, 10000000000005001, 10000000000002002),
 (10000000000007003, 10000000000005001, 10000000000002007),
@@ -1410,7 +1410,7 @@ INSERT IGNORE INTO `erik_technician_service` (`id`, `technician_id`, `service_id
 -- ============================================================
 -- 8. 优惠券
 -- ============================================================
-INSERT IGNORE INTO `erik_coupon` (`id`, `name`, `type`, `amount`, `min_amount`, `total_qty`, `remain_qty`, `start_at`, `end_at`, `status`) VALUES
+INSERT IGNORE INTO `appointment_coupon` (`id`, `name`, `type`, `amount`, `min_amount`, `total_qty`, `remain_qty`, `start_at`, `end_at`, `status`) VALUES
 (10000000000008001, '新用户专享券', 'fixed', 30.00, 100.00, 999, 998, CURDATE(), DATE_ADD(CURDATE(), INTERVAL 90 DAY), 1),
 (10000000000008002, '满200减40', 'fixed', 40.00, 200.00, 500, 499, CURDATE(), DATE_ADD(CURDATE(), INTERVAL 60 DAY), 1),
 (10000000000008003, '全场9折券', 'percent', 0.90, 0.00, 200, 198, CURDATE(), DATE_ADD(CURDATE(), INTERVAL 30 DAY), 1);
@@ -1418,7 +1418,7 @@ INSERT IGNORE INTO `erik_coupon` (`id`, `name`, `type`, `amount`, `min_amount`, 
 -- ============================================================
 -- 9. 会员卡
 -- ============================================================
-INSERT IGNORE INTO `erik_member_card` (`id`, `name`, `type`, `price`, `duration_days`, `total_times`, `services`, `status`) VALUES
+INSERT IGNORE INTO `appointment_member_card` (`id`, `name`, `type`, `price`, `duration_days`, `total_times`, `services`, `status`) VALUES
 (10000000000009001, '月卡会员', 'month', 99.00, 30, 0, NULL, 1),
 (10000000000009002, '季卡会员', 'month', 268.00, 90, 0, NULL, 1),
 (10000000000009003, '年卡VIP', 'vip', 888.00, 365, 0, NULL, 1),
@@ -1427,7 +1427,7 @@ INSERT IGNORE INTO `erik_member_card` (`id`, `name`, `type`, `price`, `duration_
 -- ============================================================
 -- 10. 轮播图
 -- ============================================================
-INSERT IGNORE INTO `erik_banner` (`id`, `position`, `image`, `jump_type`, `jump_value`, `sort`, `status`) VALUES
+INSERT IGNORE INTO `appointment_banner` (`id`, `position`, `image`, `jump_type`, `jump_value`, `sort`, `status`) VALUES
 (10000000000010001, 'home', '/images/banners/banner1.jpg', 'url', '', 1, 1),
 (10000000000010002, 'home', '/images/banners/banner2.jpg', 'detail', '10000000000002001', 2, 1),
 (10000000000010003, 'home', '/images/banners/banner3.jpg', 'detail', '10000000000002003', 3, 1);
@@ -1435,14 +1435,14 @@ INSERT IGNORE INTO `erik_banner` (`id`, `position`, `image`, `jump_type`, `jump_
 -- ============================================================
 -- 11. 公告
 -- ============================================================
-INSERT IGNORE INTO `erik_announcement` (`id`, `title`, `content`, `sort`, `status`, `published_at`) VALUES
+INSERT IGNORE INTO `appointment_announcement` (`id`, `title`, `content`, `sort`, `status`, `published_at`) VALUES
 (10000000000011001, '康悦养生APP全新上线！', '康悦养生预约平台正式上线啦！在线预约、上门服务、实名技师、品质保障。首次注册即送30元优惠券！', 1, 1, NOW()),
 (10000000000011002, '五一假期营业时间调整通知', '尊敬的顾客，五一劳动节期间（5月1日-5月5日），各门店正常营业，营业时间为10:00-20:00，请提前预约。', 2, 1, NOW());
 
 -- ============================================================
 -- 12. 系统配置值
 -- ============================================================
-INSERT IGNORE INTO `erik_system_config` (`id`, `group`, `key`, `value`, `type`, `description`) VALUES
+INSERT IGNORE INTO `appointment_system_config` (`id`, `group`, `key`, `value`, `type`, `description`) VALUES
 (10000000000012001, 'app', 'app_name', '康悦养生', 'string', '应用名称'),
 (10000000000012002, 'app', 'app_slogan', '专业养生，品质生活', 'string', '应用口号'),
 (10000000000012003, 'app', 'contact_phone', '400-888-9999', 'string', '客服电话'),
@@ -1454,7 +1454,7 @@ INSERT IGNORE INTO `erik_system_config` (`id`, `group`, `key`, `value`, `type`, 
 -- ============================================================
 -- 13. 电子签名表结构
 -- ============================================================
-CREATE TABLE IF NOT EXISTS `erik_signature` (
+CREATE TABLE IF NOT EXISTS `appointment_signature` (
     `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
     `order_id` BIGINT UNSIGNED NOT NULL COMMENT '订单ID',
     `user_id` BIGINT UNSIGNED NOT NULL COMMENT '用户ID',
@@ -1468,7 +1468,7 @@ CREATE TABLE IF NOT EXISTS `erik_signature` (
     KEY `idx_user_id` (`user_id`),
     KEY `idx_technician_id` (`technician_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='电子签名记录表';
-CREATE TABLE IF NOT EXISTS `erik_card_transfer` (
+CREATE TABLE IF NOT EXISTS `appointment_card_transfer` (
     `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
     `card_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'card_id',
     `from_user_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'from_user_id',
@@ -1481,7 +1481,7 @@ CREATE TABLE IF NOT EXISTS `erik_card_transfer` (
     KEY `idx_from_user_id` (`from_user_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='会员卡转赠记录表';
 
-CREATE TABLE IF NOT EXISTS `erik_check_in` (
+CREATE TABLE IF NOT EXISTS `appointment_check_in` (
     `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
     `user_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'user_id',
     `date` DATE DEFAULT NULL COMMENT 'date',
@@ -1494,7 +1494,7 @@ CREATE TABLE IF NOT EXISTS `erik_check_in` (
     KEY `idx_user_id` (`user_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='签到记录表';
 
-CREATE TABLE IF NOT EXISTS `erik_community_post` (
+CREATE TABLE IF NOT EXISTS `appointment_community_post` (
     `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
     `user_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'user_id',
     `title` VARCHAR(200) NOT NULL DEFAULT '' COMMENT 'title',
@@ -1512,7 +1512,7 @@ CREATE TABLE IF NOT EXISTS `erik_community_post` (
     KEY `idx_created_at` (`created_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='社区帖子表';
 
-CREATE TABLE IF NOT EXISTS `erik_community_comment` (
+CREATE TABLE IF NOT EXISTS `appointment_community_comment` (
     `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
     `post_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'post_id',
     `user_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'user_id',
@@ -1527,7 +1527,7 @@ CREATE TABLE IF NOT EXISTS `erik_community_comment` (
     KEY `idx_user_id` (`user_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='社区评论表';
 
-CREATE TABLE IF NOT EXISTS `erik_exam` (
+CREATE TABLE IF NOT EXISTS `appointment_exam` (
     `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
     `title` VARCHAR(200) NOT NULL DEFAULT '' COMMENT 'title',
     `course_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'course_id',
@@ -1541,7 +1541,7 @@ CREATE TABLE IF NOT EXISTS `erik_exam` (
     KEY `idx_status` (`status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='技师考试表';
 
-CREATE TABLE IF NOT EXISTS `erik_exam_attempt` (
+CREATE TABLE IF NOT EXISTS `appointment_exam_attempt` (
     `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
     `exam_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'exam_id',
     `technician_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'technician_id',
@@ -1557,7 +1557,7 @@ CREATE TABLE IF NOT EXISTS `erik_exam_attempt` (
     KEY `idx_technician_id` (`technician_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='考试答题记录表';
 
-CREATE TABLE IF NOT EXISTS `erik_exam_question` (
+CREATE TABLE IF NOT EXISTS `appointment_exam_question` (
     `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
     `exam_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'exam_id',
     `content` TEXT COMMENT 'content',
@@ -1571,7 +1571,7 @@ CREATE TABLE IF NOT EXISTS `erik_exam_question` (
     KEY `idx_exam_id` (`exam_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='考试题目表';
 
-CREATE TABLE IF NOT EXISTS `erik_invoice` (
+CREATE TABLE IF NOT EXISTS `appointment_invoice` (
     `id`            BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
     `user_id`       BIGINT UNSIGNED NOT NULL COMMENT '用户ID',
     `order_id`      BIGINT UNSIGNED NOT NULL COMMENT '业务单ID（服务订单/充值单）',
@@ -1593,7 +1593,7 @@ CREATE TABLE IF NOT EXISTS `erik_invoice` (
     KEY `idx_status` (`status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='电子发票';
 
-CREATE TABLE IF NOT EXISTS `erik_promotion` (
+CREATE TABLE IF NOT EXISTS `appointment_promotion` (
     `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
     `name` VARCHAR(200) NOT NULL DEFAULT '' COMMENT 'name',
     `type` VARCHAR(20) NOT NULL DEFAULT '' COMMENT 'type',
@@ -1611,7 +1611,7 @@ CREATE TABLE IF NOT EXISTS `erik_promotion` (
     KEY `idx_status` (`status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='营销活动表';
 
-CREATE TABLE IF NOT EXISTS `erik_promotion_participant` (
+CREATE TABLE IF NOT EXISTS `appointment_promotion_participant` (
     `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
     `promotion_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'promotion_id',
     `user_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'user_id',
@@ -1625,7 +1625,7 @@ CREATE TABLE IF NOT EXISTS `erik_promotion_participant` (
     KEY `idx_order_id` (`order_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='活动参与记录表';
 
-CREATE TABLE IF NOT EXISTS `erik_queue_number` (
+CREATE TABLE IF NOT EXISTS `appointment_queue_number` (
     `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
     `store_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'store_id',
     `user_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'user_id',
@@ -1640,7 +1640,7 @@ CREATE TABLE IF NOT EXISTS `erik_queue_number` (
     KEY `idx_status` (`status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='门店排队叫号表';
 
-CREATE TABLE IF NOT EXISTS `erik_service_package` (
+CREATE TABLE IF NOT EXISTS `appointment_service_package` (
     `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
     `name` VARCHAR(200) NOT NULL DEFAULT '' COMMENT 'name',
     `description` TEXT COMMENT 'description',
@@ -1658,7 +1658,7 @@ CREATE TABLE IF NOT EXISTS `erik_service_package` (
     KEY `idx_price` (`price`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='服务套餐表';
 
-CREATE TABLE IF NOT EXISTS `erik_service_record` (
+CREATE TABLE IF NOT EXISTS `appointment_service_record` (
     `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
     `order_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'order_id',
     `technician_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'technician_id',
@@ -1672,7 +1672,7 @@ CREATE TABLE IF NOT EXISTS `erik_service_record` (
     KEY `idx_technician_id` (`technician_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='服务记录表';
 
-CREATE TABLE IF NOT EXISTS `erik_share` (
+CREATE TABLE IF NOT EXISTS `appointment_share` (
     `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
     `sharer_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'sharer_id',
     `share_type` VARCHAR(30) NOT NULL DEFAULT '' COMMENT 'share_type',
@@ -1687,7 +1687,7 @@ CREATE TABLE IF NOT EXISTS `erik_share` (
     KEY `idx_target_id` (`target_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='分享记录表';
 
-CREATE TABLE IF NOT EXISTS `erik_user_device` (
+CREATE TABLE IF NOT EXISTS `appointment_user_device` (
     `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
     `user_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'user_id',
     `platform` VARCHAR(20) NOT NULL DEFAULT '' COMMENT 'platform',
@@ -1698,7 +1698,7 @@ CREATE TABLE IF NOT EXISTS `erik_user_device` (
     KEY `idx_user_id` (`user_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='用户设备表';
 
-CREATE TABLE IF NOT EXISTS `erik_video_post` (
+CREATE TABLE IF NOT EXISTS `appointment_video_post` (
     `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
     `technician_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'technician_id',
     `title` VARCHAR(200) NOT NULL DEFAULT '' COMMENT 'title',
@@ -1716,7 +1716,7 @@ CREATE TABLE IF NOT EXISTS `erik_video_post` (
     KEY `idx_views` (`views`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='技师短视频表';
 
-CREATE TABLE IF NOT EXISTS `erik_waitlist` (
+CREATE TABLE IF NOT EXISTS `appointment_waitlist` (
     `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
     `user_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'user_id',
     `service_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'service_id',
@@ -1735,32 +1735,32 @@ CREATE TABLE IF NOT EXISTS `erik_waitlist` (
 -- ============================================================
 -- [第4轮审计 P1/P2/P4] 收益/提现/卡券查询复合索引
 -- idx_tech_status:            收益汇总 (technician_id, status) — EarningController/WithdrawController 汇总聚合
---                              （erik_technician_withdrawal 已存在 idx_tech_status，不重复添加）
+--                              （appointment_technician_withdrawal 已存在 idx_tech_status，不重复添加）
 -- idx_tech_status_created:    markCompleted 核销按 created_at 顺序取 settled 收益
 -- idx_status_end (coupon):    expireCoupons EXISTS 子查询按 end_at 范围过滤
 -- idx_status_end (user_card): expireMemberCards 按 status=active + end_at 范围过滤
 -- ============================================================
-ALTER TABLE `erik_technician_earnings`
+ALTER TABLE `appointment_technician_earnings`
 ADD KEY `idx_tech_status` (`technician_id`, `status`);
 
-ALTER TABLE `erik_technician_earnings`
+ALTER TABLE `appointment_technician_earnings`
 ADD KEY `idx_tech_status_created` (`technician_id`, `status`, `created_at`);
 
-ALTER TABLE `erik_coupon`
+ALTER TABLE `appointment_coupon`
 ADD KEY `idx_status_end` (`status`, `end_at`);
 
-ALTER TABLE `erik_user_member_card`
+ALTER TABLE `appointment_user_member_card`
 ADD KEY `idx_status_end` (`status`, `end_at`);
 
 -- ============================================================
 -- [合并补齐] R16-R24 轮次迁移（由合并脚本生成，去重后追加）
 -- ============================================================
--- (merge) 2026_05_20_000001_seed_permissions.sql → erik_admin_permission
+-- (merge) 2026_05_20_000001_seed_permissions.sql → appointment_admin_permission
 
 -- ============================================================
 -- [2026_05_20_000001_seed_permissions.sql]
 -- ============================================================
-INSERT INTO `erik_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
+INSERT INTO `appointment_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
 (21000000000000201, 0, '用户详情', 'get.admin/user/{id}', 3, '', '', 1, NOW(), NOW()),
 (21000000000000202, 0, '更新用户详情', 'put.admin/user/{id}', 3, '', '', 2, NOW(), NOW()),
 (21000000000000203, 0, '删除用户详情', 'delete.admin/user/{id}', 3, '', '', 3, NOW(), NOW()),
@@ -1915,30 +1915,30 @@ INSERT INTO `erik_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, 
 (21000000000000352, 0, '更新培训课程', 'put.admin/training-courses/{id}', 3, '', '', 152, NOW(), NOW()),
 (21000000000000353, 0, '删除培训课程', 'delete.admin/training-courses/{id}', 3, '', '', 153, NOW(), NOW()),
 (21000000000000354, 0, '更新技师等级', 'put.admin/technician-tiers/{id}', 3, '', '', 154, NOW(), NOW());
--- (merge) 2026_08_14_000002_schedule_permissions.sql → erik_admin_permission
+-- (merge) 2026_08_14_000002_schedule_permissions.sql → appointment_admin_permission
 
 -- ============================================================
 -- [2026_08_14_000002_schedule_permissions.sql]
 -- ============================================================
-INSERT INTO `erik_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
+INSERT INTO `appointment_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
 (21000000000000355, 0, '排班列表', 'get.admin/schedules', 3, '', '', 155, NOW(), NOW()),
 (21000000000000356, 0, '创建排班', 'post.admin/schedules', 3, '', '', 156, NOW(), NOW()),
 (21000000000000357, 0, '删除排班', 'delete.admin/schedules/{id}', 3, '', '', 157, NOW(), NOW()),
 (21000000000000358, 0, '排班设为休息', 'put.admin/schedules/{id}/rest', 3, '', '', 158, NOW(), NOW());
--- (merge) 2026_08_14_000003_verification_permissions.sql → erik_admin_permission
+-- (merge) 2026_08_14_000003_verification_permissions.sql → appointment_admin_permission
 
 -- ============================================================
 -- [2026_08_14_000003_verification_permissions.sql]
 -- ============================================================
-INSERT INTO `erik_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
+INSERT INTO `appointment_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
 (21000000000000359, 0, '核销记录列表', 'get.admin/order-verifications', 3, '', '', 155, NOW(), NOW()),
 (21000000000000360, 0, '核销记录详情', 'get.admin/order-verifications/{id}', 3, '', '', 156, NOW(), NOW());
--- (merge) 2026_08_14_000006_review_permissions.sql → erik_admin_permission
+-- (merge) 2026_08_14_000006_review_permissions.sql → appointment_admin_permission
 
 -- ============================================================
 -- [2026_08_14_000006_review_permissions.sql]
 -- ============================================================
-INSERT INTO `erik_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
+INSERT INTO `appointment_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
 (21000000000000361, 0, '评价列表', 'get.admin/reviews', 3, '', '', 161, NOW(), NOW()),
 (21000000000000362, 0, '评价详情', 'get.admin/reviews/{id}', 3, '', '', 162, NOW(), NOW()),
 (21000000000000363, 0, '评价审核', 'put.admin/reviews/{id}/audit', 3, '', '', 163, NOW(), NOW()),
@@ -1947,7 +1947,7 @@ INSERT INTO `erik_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, 
 -- ============================================================
 -- [2026_08_14_000009_order_aftersale.sql]
 -- ============================================================
-CREATE TABLE IF NOT EXISTS `erik_order_aftersale` (
+CREATE TABLE IF NOT EXISTS `appointment_order_aftersale` (
     `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
     `aftersale_no` VARCHAR(32) NOT NULL DEFAULT '' COMMENT '售后单号',
     `order_id` BIGINT UNSIGNED NOT NULL COMMENT '订单ID',
@@ -1966,26 +1966,26 @@ CREATE TABLE IF NOT EXISTS `erik_order_aftersale` (
     KEY `idx_user_id` (`user_id`),
     KEY `idx_status` (`status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='售后（退换货）申请表';
--- (merge) 2026_08_14_000010_aftersale_permissions.sql → erik_admin_permission
+-- (merge) 2026_08_14_000010_aftersale_permissions.sql → appointment_admin_permission
 
 -- ============================================================
 -- [2026_08_14_000010_aftersale_permissions.sql]
 -- ============================================================
-INSERT INTO `erik_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
+INSERT INTO `appointment_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
 (21000000000000370, 0, '售后列表', 'get.admin/aftersales', 3, '', '', 165, NOW(), NOW()),
 (21000000000000371, 0, '售后审核', 'post.admin/aftersales/{id}/review', 3, '', '', 166, NOW(), NOW());
--- (merge) 2026_08_14_000011_store_workbench_permissions.sql → erik_admin_permission
+-- (merge) 2026_08_14_000011_store_workbench_permissions.sql → appointment_admin_permission
 
 -- ============================================================
 -- [2026_08_14_000011_store_workbench_permissions.sql]
 -- ============================================================
-INSERT INTO `erik_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
+INSERT INTO `appointment_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
 (21000000000000372, 0, '门店工作台概览', 'get.admin/stores/workbench-overview', 3, '', '', 167, NOW(), NOW());
 
 -- ============================================================
 -- [2026_08_14_000012_points_exchange_tables.sql]
 -- ============================================================
-CREATE TABLE IF NOT EXISTS `erik_points_exchange_goods` (
+CREATE TABLE IF NOT EXISTS `appointment_points_exchange_goods` (
     `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
     `name` VARCHAR(100) NOT NULL DEFAULT '' COMMENT '商品名称',
     `type` VARCHAR(20) NOT NULL DEFAULT 'coupon' COMMENT '兑换类型: coupon=优惠券 gift_card=礼品卡 wallet=钱包余额',
@@ -1999,7 +1999,7 @@ CREATE TABLE IF NOT EXISTS `erik_points_exchange_goods` (
     PRIMARY KEY (`id`),
     KEY `idx_status_sort` (`status`, `sort`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='积分兑换商品表';
-CREATE TABLE IF NOT EXISTS `erik_user_points_exchange` (
+CREATE TABLE IF NOT EXISTS `appointment_user_points_exchange` (
     `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
     `user_id` BIGINT UNSIGNED NOT NULL COMMENT '用户ID',
     `goods_id` BIGINT UNSIGNED NOT NULL COMMENT '商品ID',
@@ -2011,32 +2011,32 @@ CREATE TABLE IF NOT EXISTS `erik_user_points_exchange` (
     UNIQUE KEY `uk_user_goods` (`user_id`, `goods_id`),
     KEY `idx_goods_id` (`goods_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='用户积分兑换记录表';
--- (merge) 2026_08_14_000013_points_exchange_permissions.sql → erik_admin_permission
+-- (merge) 2026_08_14_000013_points_exchange_permissions.sql → appointment_admin_permission
 
 -- ============================================================
 -- [2026_08_14_000013_points_exchange_permissions.sql]
 -- ============================================================
-INSERT INTO `erik_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
+INSERT INTO `appointment_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
 (21000000000000373, 0, '兑换商品列表', 'get.admin/points-exchange-goods', 3, '', '', 168, NOW(), NOW()),
 (21000000000000374, 0, '新增兑换商品', 'post.admin/points-exchange-goods', 3, '', '', 169, NOW(), NOW()),
 (21000000000000375, 0, '更新兑换商品', 'put.admin/points-exchange-goods/{id}', 3, '', '', 170, NOW(), NOW()),
 (21000000000000376, 0, '删除兑换商品', 'delete.admin/points-exchange-goods/{id}', 3, '', '', 171, NOW(), NOW()),
 (21000000000000377, 0, '兑换商品上下架', 'post.admin/points-exchange-goods/{id}/toggle-status', 3, '', '', 172, NOW(), NOW()),
 (21000000000000378, 0, '兑换记录列表', 'get.admin/points-exchange-goods/{id}/exchanges', 3, '', '', 173, NOW(), NOW());
--- (merge) 2026_08_14_000014_referral_reward_permissions.sql → erik_admin_permission
+-- (merge) 2026_08_14_000014_referral_reward_permissions.sql → appointment_admin_permission
 
 -- ============================================================
 -- [2026_08_14_000014_referral_reward_permissions.sql]
 -- ============================================================
-INSERT INTO `erik_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
+INSERT INTO `appointment_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
 (21000000000000379, 0, '返佣记录列表', 'get.admin/referral-rewards', 3, '', '', 174, NOW(), NOW());
 
 -- ============================================================
 -- [2026_08_14_000015_technician_tier_auto.sql]
 -- ============================================================
-CREATE TABLE IF NOT EXISTS `erik_technician_tier_log` (
+CREATE TABLE IF NOT EXISTS `appointment_technician_tier_log` (
     `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
-    `technician_id` BIGINT UNSIGNED NOT NULL COMMENT '技师ID（erik_technician_profile.id）',
+    `technician_id` BIGINT UNSIGNED NOT NULL COMMENT '技师ID（appointment_technician_profile.id）',
     `old_tier_id` BIGINT UNSIGNED NULL DEFAULT NULL COMMENT '变更前等级ID，空=首次评定',
     `new_tier_id` BIGINT UNSIGNED NOT NULL COMMENT '变更后等级ID',
     `reason` VARCHAR(255) NOT NULL DEFAULT '' COMMENT '变更原因（统计值快照）',
@@ -2046,143 +2046,143 @@ CREATE TABLE IF NOT EXISTS `erik_technician_tier_log` (
     KEY `idx_technician_id` (`technician_id`),
     KEY `idx_created_at` (`created_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='技师等级变更日志';
--- (merge) 2026_08_14_000016_technician_tier_permissions.sql → erik_admin_permission
+-- (merge) 2026_08_14_000016_technician_tier_permissions.sql → appointment_admin_permission
 
 -- ============================================================
 -- [2026_08_14_000016_technician_tier_permissions.sql]
 -- ============================================================
-INSERT INTO `erik_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
+INSERT INTO `appointment_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
 (21000000000000380, 0, '技师等级变更日志', 'get.admin/technician-tiers/logs', 3, '', '', 168, NOW(), NOW());
--- (merge) 2026_08_14_000017_review_reply_permissions.sql → erik_admin_permission
+-- (merge) 2026_08_14_000017_review_reply_permissions.sql → appointment_admin_permission
 
 -- ============================================================
 -- [2026_08_14_000017_review_reply_permissions.sql]
 -- ============================================================
-INSERT INTO `erik_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
+INSERT INTO `appointment_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
 (21000000000000381, 0, '评价回复查看', 'get.admin/reviews/{id}/reply', 3, '', '', 169, NOW(), NOW());
--- (merge) 2026_08_15_000203_permission.sql → erik_admin_permission
+-- (merge) 2026_08_15_000203_permission.sql → appointment_admin_permission
 
 -- ============================================================
 -- [2026_08_15_000203_permission.sql]
 -- ============================================================
-INSERT IGNORE INTO `erik_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
+INSERT IGNORE INTO `appointment_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
 (21000000000000386, 0, '二级返佣记录列表', 'get.admin/referral-level2', 3, '', '', 175, NOW(), NOW());
--- (merge) 2026_08_15_000204_permission.sql → erik_admin_permission
+-- (merge) 2026_08_15_000204_permission.sql → appointment_admin_permission
 
 -- ============================================================
 -- [2026_08_15_000204_permission.sql]
 -- ============================================================
-INSERT IGNORE INTO `erik_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
+INSERT IGNORE INTO `appointment_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
 (21000000000000385, 0, '工单回复', 'post.admin/tickets/{id}/reply', 3, '', '', 173, NOW(), NOW()),
 (21000000000000387, 0, '工单列表查看', 'get.admin/tickets', 3, '', '', 172, NOW(), NOW());
--- (merge) 2026_08_15_000205_permission.sql → erik_admin_permission
+-- (merge) 2026_08_15_000205_permission.sql → appointment_admin_permission
 
 -- ============================================================
 -- [2026_08_15_000205_permission.sql]
 -- ============================================================
-INSERT IGNORE INTO `erik_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
+INSERT IGNORE INTO `appointment_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
 (21000000000000382, 0, '发票列表', 'get.admin/invoices', 3, '', '', 170, NOW(), NOW()),
 (21000000000000383, 0, '发票开票', 'post.admin/invoices/{id}/issue', 3, '', '', 171, NOW(), NOW()),
 (21000000000000384, 0, '发票驳回', 'post.admin/invoices/{id}/reject', 3, '', '', 172, NOW(), NOW());
--- (merge) 2026_08_15_000306_ticket_satisfaction_permission.sql → erik_admin_permission
+-- (merge) 2026_08_15_000306_ticket_satisfaction_permission.sql → appointment_admin_permission
 
 -- ============================================================
 -- [2026_08_15_000306_ticket_satisfaction_permission.sql]
 -- ============================================================
-INSERT IGNORE INTO `erik_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
+INSERT IGNORE INTO `appointment_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
 (21000000000000388, 0, '工单满意度统计', 'get.admin/tickets/satisfaction', 3, '', '', 174, NOW(), NOW());
--- (merge) 2026_08_15_000307_review_audit_permission.sql → erik_admin_permission
+-- (merge) 2026_08_15_000307_review_audit_permission.sql → appointment_admin_permission
 
 -- ============================================================
 -- [2026_08_15_000307_review_audit_permission.sql]
 -- ============================================================
-INSERT IGNORE INTO `erik_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
+INSERT IGNORE INTO `appointment_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
 (21000000000000389, 0, '评价图片审核列表', 'get.admin/review-audit', 3, '', '', 176, NOW(), NOW()),
 (21000000000000390, 0, '评价图片隐藏', 'post.admin/review-audit/{id}/hide', 3, '', '', 177, NOW(), NOW()),
 (21000000000000391, 0, '评价图片恢复', 'post.admin/review-audit/{id}/restore', 3, '', '', 178, NOW(), NOW());
--- (merge) 2026_08_15_000406_full_reduction_permissions.sql → erik_admin_permission
+-- (merge) 2026_08_15_000406_full_reduction_permissions.sql → appointment_admin_permission
 
 -- ============================================================
 -- [2026_08_15_000406_full_reduction_permissions.sql]
 -- ============================================================
-INSERT IGNORE INTO `erik_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
+INSERT IGNORE INTO `appointment_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
 (21000000000000396, 0, '满减活动列表', 'get.admin/full-reduction-activities', 3, '', '', 179, NOW(), NOW()),
 (21000000000000397, 0, '满减活动新增', 'post.admin/full-reduction-activities', 3, '', '', 180, NOW(), NOW()),
 (21000000000000398, 0, '满减活动编辑', 'put.admin/full-reduction-activities/{id}', 3, '', '', 181, NOW(), NOW()),
 (21000000000000399, 0, '满减活动上下架', 'post.admin/full-reduction-activities/{id}/toggle-status', 3, '', '', 182, NOW(), NOW()),
 (21000000000000400, 0, '满减活动删除', 'delete.admin/full-reduction-activities/{id}', 3, '', '', 183, NOW(), NOW());
--- (merge) 2026_08_15_000407_permission.sql → erik_admin_permission
+-- (merge) 2026_08_15_000407_permission.sql → appointment_admin_permission
 
 -- ============================================================
 -- [2026_08_15_000407_permission.sql]
 -- ============================================================
-INSERT IGNORE INTO `erik_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
+INSERT IGNORE INTO `appointment_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
 (21000000000000394, 0, '分账记录查看', 'get.admin/profit-sharing', 3, '', '', 175, NOW(), NOW());
--- (merge) 2026_08_15_000408_permission.sql → erik_admin_permission
+-- (merge) 2026_08_15_000408_permission.sql → appointment_admin_permission
 
 -- ============================================================
 -- [2026_08_15_000408_permission.sql]
 -- ============================================================
-INSERT IGNORE INTO `erik_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
+INSERT IGNORE INTO `appointment_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
 (21000000000000392, 0, '考勤列表', 'get.admin/attendance', 3, '', '', 176, NOW(), NOW()),
 (21000000000000393, 0, '考勤统计', 'get.admin/attendance/stats', 3, '', '', 177, NOW(), NOW());
--- (merge) 2026_08_15_000505_lucky_wheel_permissions.sql → erik_admin_permission
+-- (merge) 2026_08_15_000505_lucky_wheel_permissions.sql → appointment_admin_permission
 
 -- ============================================================
 -- [2026_08_15_000505_lucky_wheel_permissions.sql]
 -- ============================================================
-INSERT IGNORE INTO `erik_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
+INSERT IGNORE INTO `appointment_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
 (21000000000000401, 0, '幸运转盘奖品列表', 'get.admin/lucky-wheel', 3, '', '', 184, NOW(), NOW()),
 (21000000000000402, 0, '幸运转盘奖品新增', 'post.admin/lucky-wheel', 3, '', '', 185, NOW(), NOW()),
 (21000000000000403, 0, '幸运转盘奖品编辑', 'put.admin/lucky-wheel/{id}', 3, '', '', 186, NOW(), NOW()),
 (21000000000000404, 0, '幸运转盘奖品删除', 'delete.admin/lucky-wheel/{id}', 3, '', '', 187, NOW(), NOW()),
 (21000000000000405, 0, '幸运转盘奖品上下架', 'post.admin/lucky-wheel/{id}/toggle-status', 3, '', '', 188, NOW(), NOW()),
 (21000000000000406, 0, '幸运转盘抽奖记录', 'get.admin/lucky-wheel/records', 3, '', '', 189, NOW(), NOW());
--- (merge) 2026_08_15_000606_seckill_permissions.sql → erik_admin_permission
+-- (merge) 2026_08_15_000606_seckill_permissions.sql → appointment_admin_permission
 
 -- ============================================================
 -- [2026_08_15_000606_seckill_permissions.sql]
 -- ============================================================
-INSERT INTO `erik_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
+INSERT INTO `appointment_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
 (21000000000000407, 0, '秒杀活动列表', 'get.admin/seckill', 3, '', '', 194, NOW(), NOW()),
 (21000000000000408, 0, '秒杀活动新增', 'post.admin/seckill', 3, '', '', 195, NOW(), NOW()),
 (21000000000000409, 0, '秒杀活动编辑', 'put.admin/seckill/{id}', 3, '', '', 196, NOW(), NOW()),
 (21000000000000410, 0, '秒杀活动删除', 'delete.admin/seckill/{id}', 3, '', '', 197, NOW(), NOW()),
 (21000000000000411, 0, '秒杀活动上下架', 'post.admin/seckill/{id}/toggle-status', 3, '', '', 198, NOW(), NOW()),
 (21000000000000420, 0, '秒杀订单列表', 'get.admin/seckill/{id}/orders', 3, '', '', 199, NOW(), NOW());
--- (merge) 2026_08_15_000607_return_customer_permissions.sql → erik_admin_permission
+-- (merge) 2026_08_15_000607_return_customer_permissions.sql → appointment_admin_permission
 
 -- ============================================================
 -- [2026_08_15_000607_return_customer_permissions.sql]
 -- ============================================================
-INSERT IGNORE INTO `erik_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
+INSERT IGNORE INTO `appointment_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
 (21000000000000412, 0, '回头客奖励配置查看', 'get.admin/return-customer/config', 3, '', '', 190, NOW(), NOW()),
 (21000000000000413, 0, '回头客奖励配置更新', 'put.admin/return-customer/config', 3, '', '', 191, NOW(), NOW()),
 (21000000000000414, 0, '回头客奖励记录列表', 'get.admin/return-customer/rewards', 3, '', '', 192, NOW(), NOW());
--- (merge) 2026_08_15_000608_schedule_export_permission.sql → erik_admin_permission
+-- (merge) 2026_08_15_000608_schedule_export_permission.sql → appointment_admin_permission
 
 -- ============================================================
 -- [2026_08_15_000608_schedule_export_permission.sql]
 -- ============================================================
-INSERT IGNORE INTO `erik_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
+INSERT IGNORE INTO `appointment_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
 (21000000000000415, 0, '排班导出', 'get.admin/technician-schedule/export', 3, '', '', 190, NOW(), NOW());
--- (merge) 2026_08_15_000609_version_permissions.sql → erik_admin_permission
+-- (merge) 2026_08_15_000609_version_permissions.sql → appointment_admin_permission
 
 -- ============================================================
 -- [2026_08_15_000609_version_permissions.sql]
 -- ============================================================
-INSERT IGNORE INTO `erik_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
+INSERT IGNORE INTO `appointment_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
 (21000000000000416, 0, 'APP版本列表', 'get.admin/versions', 3, '', '', 190, NOW(), NOW()),
 (21000000000000417, 0, 'APP版本新增', 'post.admin/versions', 3, '', '', 191, NOW(), NOW()),
 (21000000000000418, 0, 'APP版本编辑', 'put.admin/versions/{id}', 3, '', '', 192, NOW(), NOW()),
 (21000000000000419, 0, 'APP版本删除', 'delete.admin/versions/{id}', 3, '', '', 193, NOW(), NOW());
--- (merge) 2026_08_14_000007_report_permissions.sql → erik_admin_permission
+-- (merge) 2026_08_14_000007_report_permissions.sql → appointment_admin_permission
 -- [修复] 原 id 361-363 与评价权限（000307）冲突被覆盖丢失，改用 421-423 追加
 
 -- ============================================================
 -- [2026_08_14_000007_report_permissions.sql]
 -- ============================================================
-INSERT IGNORE INTO `erik_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
+INSERT IGNORE INTO `appointment_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
 (21000000000000421, 0, '订单统计报表', 'get.admin/reports/orders', 3, '', '', 200, NOW(), NOW()),
 (21000000000000422, 0, '技师绩效报表', 'get.admin/reports/technicians', 3, '', '', 201, NOW(), NOW()),
 (21000000000000423, 0, '分布报表', 'get.admin/reports/distribution', 3, '', '', 202, NOW(), NOW());
@@ -2190,7 +2190,7 @@ INSERT IGNORE INTO `erik_admin_permission` (`id`, `parent_id`, `name`, `slug`, `
 -- ============================================================
 -- [20260814_create_order_reschedule.sql]
 -- ============================================================
-CREATE TABLE IF NOT EXISTS `erik_order_reschedule` (
+CREATE TABLE IF NOT EXISTS `appointment_order_reschedule` (
     `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
     `order_id` BIGINT UNSIGNED NOT NULL COMMENT '订单ID',
     `old_service_time` DATETIME NOT NULL COMMENT '原服务时间',
@@ -2207,7 +2207,7 @@ CREATE TABLE IF NOT EXISTS `erik_order_reschedule` (
 -- ============================================================
 -- [2026_08_14_000100_user_coupon_transfer.sql]
 -- ============================================================
-CREATE TABLE IF NOT EXISTS `erik_user_coupon_transfer` (
+CREATE TABLE IF NOT EXISTS `appointment_user_coupon_transfer` (
     `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
     `user_coupon_id` BIGINT UNSIGNED NOT NULL COMMENT '原用户券ID',
     `coupon_id` BIGINT UNSIGNED NOT NULL COMMENT '券定义ID',
@@ -2230,7 +2230,7 @@ CREATE TABLE IF NOT EXISTS `erik_user_coupon_transfer` (
 -- ============================================================
 -- [2026_08_14_000101_points_transfer.sql]
 -- ============================================================
-CREATE TABLE IF NOT EXISTS `erik_user_points_transfer` (
+CREATE TABLE IF NOT EXISTS `appointment_user_points_transfer` (
     `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
     `from_user_id` BIGINT UNSIGNED NOT NULL COMMENT '转赠人ID',
     `to_user_id` BIGINT UNSIGNED NOT NULL COMMENT '接收人ID',
@@ -2245,7 +2245,7 @@ CREATE TABLE IF NOT EXISTS `erik_user_points_transfer` (
 -- ============================================================
 -- [2026_08_14_000101_wallet_transfer.sql]
 -- ============================================================
-CREATE TABLE IF NOT EXISTS `erik_wallet_transfer` (
+CREATE TABLE IF NOT EXISTS `appointment_wallet_transfer` (
     `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
     `from_user_id` BIGINT UNSIGNED NOT NULL COMMENT '转出用户ID',
     `to_user_id` BIGINT UNSIGNED NOT NULL COMMENT '接收用户ID',
@@ -2261,7 +2261,7 @@ CREATE TABLE IF NOT EXISTS `erik_wallet_transfer` (
 -- ============================================================
 -- [2026_08_14_000102_notify_setting.sql]
 -- ============================================================
-CREATE TABLE IF NOT EXISTS `erik_user_notify_setting` (
+CREATE TABLE IF NOT EXISTS `appointment_user_notify_setting` (
     `id`         BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
     `user_id`    BIGINT UNSIGNED NOT NULL COMMENT '用户ID',
     `type`       VARCHAR(32)     NOT NULL COMMENT '通知类型: service_reminder/card_expiry/points_expiry/marketing/system',
@@ -2275,7 +2275,7 @@ CREATE TABLE IF NOT EXISTS `erik_user_notify_setting` (
 -- ============================================================
 -- [2026_08_15_000201_growth.sql]
 -- ============================================================
-CREATE TABLE IF NOT EXISTS `erik_user_growth` (
+CREATE TABLE IF NOT EXISTS `appointment_user_growth` (
     `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
     `user_id` BIGINT UNSIGNED NOT NULL COMMENT '用户ID',
     `type` VARCHAR(20) NOT NULL COMMENT '成长值类型: consume=消费/signin=签到/review=评价',
@@ -2285,7 +2285,7 @@ CREATE TABLE IF NOT EXISTS `erik_user_growth` (
     PRIMARY KEY (`id`),
     KEY `idx_user_created` (`user_id`, `created_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='用户成长值流水表';
-CREATE TABLE IF NOT EXISTS `erik_growth_level` (
+CREATE TABLE IF NOT EXISTS `appointment_growth_level` (
     `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID',
     `level` INT UNSIGNED NOT NULL COMMENT '等级序号（1 起）',
     `name` VARCHAR(50) NOT NULL COMMENT '等级名称',
@@ -2299,7 +2299,7 @@ CREATE TABLE IF NOT EXISTS `erik_growth_level` (
 -- ============================================================
 -- [2026_08_15_000201_referral_level2.sql]
 -- ============================================================
-CREATE TABLE IF NOT EXISTS `erik_referral_level2_reward` (
+CREATE TABLE IF NOT EXISTS `appointment_referral_level2_reward` (
     `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
     `order_id` BIGINT UNSIGNED NOT NULL COMMENT '订单ID（被推荐人首单）',
     `referred_user_id` BIGINT UNSIGNED NOT NULL COMMENT '被推荐人用户ID（首单用户）',
@@ -2317,7 +2317,7 @@ CREATE TABLE IF NOT EXISTS `erik_referral_level2_reward` (
 -- ============================================================
 -- [2026_08_15_000201_ticket.sql]
 -- ============================================================
-CREATE TABLE IF NOT EXISTS `erik_ticket` (
+CREATE TABLE IF NOT EXISTS `appointment_ticket` (
     `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
     `user_id` BIGINT UNSIGNED NOT NULL COMMENT '提交用户ID',
     `category` VARCHAR(20) NOT NULL DEFAULT 'other' COMMENT '工单分类: service=服务类 refund=退款类 technician=技师类 other=其他',
@@ -2337,7 +2337,7 @@ CREATE TABLE IF NOT EXISTS `erik_ticket` (
 -- ============================================================
 -- [2026_08_15_000302_invoice_title.sql]
 -- ============================================================
-CREATE TABLE IF NOT EXISTS `erik_invoice_title` (
+CREATE TABLE IF NOT EXISTS `appointment_invoice_title` (
     `id`            BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
     `user_id`       BIGINT UNSIGNED NOT NULL COMMENT '用户ID',
     `title_type`    VARCHAR(20)     NOT NULL COMMENT '抬头类型: personal=个人/company=企业',
@@ -2354,10 +2354,10 @@ CREATE TABLE IF NOT EXISTS `erik_invoice_title` (
 -- ============================================================
 -- [2026_08_15_000305_browse_history.sql]
 -- ============================================================
-CREATE TABLE IF NOT EXISTS `erik_browse_history` (
+CREATE TABLE IF NOT EXISTS `appointment_browse_history` (
     `id`         BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
     `user_id`    BIGINT UNSIGNED NOT NULL COMMENT '用户ID',
-    `item_id`    BIGINT UNSIGNED NOT NULL COMMENT '服务项目ID（erik_service.id）',
+    `item_id`    BIGINT UNSIGNED NOT NULL COMMENT '服务项目ID（appointment_service.id）',
     `viewed_at`  DATETIME        NOT NULL COMMENT '最近浏览时间',
     `created_at` DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     `updated_at` DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
@@ -2369,10 +2369,10 @@ CREATE TABLE IF NOT EXISTS `erik_browse_history` (
 -- ============================================================
 -- [2026_08_15_000402_profit_sharing.sql]
 -- ============================================================
-CREATE TABLE IF NOT EXISTS `erik_profit_sharing` (
+CREATE TABLE IF NOT EXISTS `appointment_profit_sharing` (
     `id`         BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
-    `user_id`    BIGINT UNSIGNED NOT NULL COMMENT '分账接收方用户ID（技师用户，erik_user.id）',
-    `order_id`   BIGINT UNSIGNED NOT NULL COMMENT '订单ID（erik_order.id）',
+    `user_id`    BIGINT UNSIGNED NOT NULL COMMENT '分账接收方用户ID（技师用户，appointment_user.id）',
+    `order_id`   BIGINT UNSIGNED NOT NULL COMMENT '订单ID（appointment_order.id）',
     `sharing_no` VARCHAR(64)     NOT NULL COMMENT '分账单号（复用支付单号，唯一）',
     `amount`     DECIMAL(10,2)   NOT NULL COMMENT '分账金额（元）',
     `ratio`      DECIMAL(5,4)    NOT NULL COMMENT '分账比例（技师分成，如 0.7000）',
@@ -2388,7 +2388,7 @@ CREATE TABLE IF NOT EXISTS `erik_profit_sharing` (
 -- ============================================================
 -- [2026_08_15_000404_push_log.sql]
 -- ============================================================
-CREATE TABLE IF NOT EXISTS `erik_push_log` (
+CREATE TABLE IF NOT EXISTS `appointment_push_log` (
     `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
     `user_id` BIGINT UNSIGNED NOT NULL COMMENT '目标用户ID',
     `title` VARCHAR(100) NOT NULL DEFAULT '' COMMENT '推送标题',
@@ -2406,7 +2406,7 @@ CREATE TABLE IF NOT EXISTS `erik_push_log` (
 -- ============================================================
 -- [2026_08_15_000405_full_reduction.sql]
 -- ============================================================
-CREATE TABLE IF NOT EXISTS `erik_full_reduction_activity` (
+CREATE TABLE IF NOT EXISTS `appointment_full_reduction_activity` (
     `id` VARCHAR(32) NOT NULL COMMENT '主键ID，由snowflake生成',
     `title` VARCHAR(100) NOT NULL COMMENT '活动标题',
     `threshold` DECIMAL(10,2) NOT NULL DEFAULT 0.00 COMMENT '满减门槛（满多少元）',
@@ -2423,7 +2423,7 @@ CREATE TABLE IF NOT EXISTS `erik_full_reduction_activity` (
 -- ============================================================
 -- [2026_08_15_000501_order_status_log.sql]
 -- ============================================================
-CREATE TABLE IF NOT EXISTS `erik_order_status_log` (
+CREATE TABLE IF NOT EXISTS `appointment_order_status_log` (
     `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
     `order_id` BIGINT UNSIGNED NOT NULL COMMENT '订单ID',
     `from_status` VARCHAR(20) NULL COMMENT '变更前状态（首条可为 NULL）',
@@ -2440,7 +2440,7 @@ CREATE TABLE IF NOT EXISTS `erik_order_status_log` (
 -- ============================================================
 -- [2026_08_15_000503_lucky_wheel.sql]
 -- ============================================================
-CREATE TABLE IF NOT EXISTS `erik_lucky_wheel` (
+CREATE TABLE IF NOT EXISTS `appointment_lucky_wheel` (
     `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
     `name` VARCHAR(100) NOT NULL COMMENT '奖品名称',
     `cost_points` INT NOT NULL DEFAULT 0 COMMENT '单次抽奖消耗积分',
@@ -2455,10 +2455,10 @@ CREATE TABLE IF NOT EXISTS `erik_lucky_wheel` (
     PRIMARY KEY (`id`),
     KEY `idx_status` (`status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='幸运转盘奖品表';
-CREATE TABLE IF NOT EXISTS `erik_wheel_record` (
+CREATE TABLE IF NOT EXISTS `appointment_wheel_record` (
     `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
     `user_id` BIGINT UNSIGNED NOT NULL COMMENT '用户ID',
-    `wheel_id` BIGINT UNSIGNED NOT NULL COMMENT '奖品ID（erik_lucky_wheel.id）',
+    `wheel_id` BIGINT UNSIGNED NOT NULL COMMENT '奖品ID（appointment_lucky_wheel.id）',
     `prize_type` VARCHAR(20) NOT NULL DEFAULT 'none' COMMENT 'points 积分返还/coupon 优惠券/balance 余额/none 谢谢参与',
     `prize_value` DECIMAL(10,2) NOT NULL DEFAULT 0.00 COMMENT '中奖数值（面额/返还积分）',
     `result` VARCHAR(20) NOT NULL DEFAULT 'lose' COMMENT 'win=中奖 lose=未中',
@@ -2472,12 +2472,12 @@ CREATE TABLE IF NOT EXISTS `erik_wheel_record` (
 -- ============================================================
 -- [2026_08_15_000504_user_health_profile.sql]
 -- ============================================================
-CREATE TABLE IF NOT EXISTS `erik_user_health_profile` (
+CREATE TABLE IF NOT EXISTS `appointment_user_health_profile` (
     `id`                      BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
-    `user_id`                 BIGINT UNSIGNED NOT NULL COMMENT '用户ID（erik_user.id）',
+    `user_id`                 BIGINT UNSIGNED NOT NULL COMMENT '用户ID（appointment_user.id）',
     `allergies`               VARCHAR(500)    NULL COMMENT '过敏史，逗号分隔，如 "花粉、青霉素"',
     `chronic_diseases`        VARCHAR(500)    NULL COMMENT '慢性病/禁忌，如 "高血压，不宜剧烈按摩"',
-    `preferred_technician_id` BIGINT UNSIGNED NULL COMMENT '偏好技师（erik_user.user_type=technician 的用户ID）',
+    `preferred_technician_id` BIGINT UNSIGNED NULL COMMENT '偏好技师（appointment_user.user_type=technician 的用户ID）',
     `preferred_time`          VARCHAR(50)     NULL COMMENT '偏好时段，如 14:00-17:00',
     `notes`                   VARCHAR(500)    NULL COMMENT '其他备注',
     `created_at`              DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
@@ -2489,10 +2489,10 @@ CREATE TABLE IF NOT EXISTS `erik_user_health_profile` (
 -- ============================================================
 -- [2026_08_15_000601_seckill_activity.sql]
 -- ============================================================
-CREATE TABLE IF NOT EXISTS `erik_seckill_activity` (
+CREATE TABLE IF NOT EXISTS `appointment_seckill_activity` (
     `id`             BIGINT       NOT NULL COMMENT '活动 ID（snowflake）',
     `name`           VARCHAR(100) NOT NULL COMMENT '活动名称',
-    `service_id`     BIGINT       NOT NULL COMMENT '关联服务 ID（erik_service.id）',
+    `service_id`     BIGINT       NOT NULL COMMENT '关联服务 ID（appointment_service.id）',
     `seckill_price`  DECIMAL(10,2) NOT NULL DEFAULT 0.00 COMMENT '秒杀价（实付）',
     `original_price` DECIMAL(10,2) NOT NULL DEFAULT 0.00 COMMENT '原价（订单项展示价）',
     `stock`          INT          NOT NULL DEFAULT 0 COMMENT '剩余库存（售罄拦截，扣减不回补，取消订单不返还）',
@@ -2508,7 +2508,7 @@ CREATE TABLE IF NOT EXISTS `erik_seckill_activity` (
 -- ============================================================
 -- [2026_08_15_000603_app_version.sql]
 -- ============================================================
-CREATE TABLE IF NOT EXISTS `erik_app_version` (
+CREATE TABLE IF NOT EXISTS `appointment_app_version` (
     `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
     `platform` VARCHAR(16) NOT NULL COMMENT '平台: android/ios',
     `version_code` VARCHAR(32) NOT NULL DEFAULT '' COMMENT '版本号（客户端比对用，如 1.0.0）',
@@ -2526,69 +2526,69 @@ CREATE TABLE IF NOT EXISTS `erik_app_version` (
 -- ============================================================
 -- [合并补齐] 缺失列/索引 ALTER（幂等 INFORMATION_SCHEMA guard）
 -- ============================================================
--- erik_order_review.append_content
-ALTER TABLE `erik_order_review` ADD COLUMN `append_content` TEXT NULL COMMENT '追评内容' AFTER `replied_at`;
+-- appointment_order_review.append_content
+ALTER TABLE `appointment_order_review` ADD COLUMN `append_content` TEXT NULL COMMENT '追评内容' AFTER `replied_at`;
 
--- erik_order_review.append_images
-ALTER TABLE `erik_order_review` ADD COLUMN `append_images` JSON NULL COMMENT '追评图片列表' AFTER `append_content`;
+-- appointment_order_review.append_images
+ALTER TABLE `appointment_order_review` ADD COLUMN `append_images` JSON NULL COMMENT '追评图片列表' AFTER `append_content`;
 
--- erik_order_review.append_at
-ALTER TABLE `erik_order_review` ADD COLUMN `append_at` DATETIME NULL DEFAULT NULL COMMENT '追评时间' AFTER `append_images`;
+-- appointment_order_review.append_at
+ALTER TABLE `appointment_order_review` ADD COLUMN `append_at` DATETIME NULL DEFAULT NULL COMMENT '追评时间' AFTER `append_images`;
 
--- erik_technician_attendance.uk_technician_date
-ALTER TABLE `erik_technician_attendance` ADD UNIQUE KEY `uk_technician_date` (`technician_id`, `date`);
+-- appointment_technician_attendance.uk_technician_date
+ALTER TABLE `appointment_technician_attendance` ADD UNIQUE KEY `uk_technician_date` (`technician_id`, `date`);
 
--- erik_user.close_status
-ALTER TABLE `erik_user` ADD COLUMN `close_status` TINYINT NOT NULL DEFAULT 0 COMMENT '注销状态: 0=正常 1=申请中 2=已注销';
+-- appointment_user.close_status
+ALTER TABLE `appointment_user` ADD COLUMN `close_status` TINYINT NOT NULL DEFAULT 0 COMMENT '注销状态: 0=正常 1=申请中 2=已注销';
 
--- erik_user.close_requested_at
-ALTER TABLE `erik_user` ADD COLUMN `close_requested_at` DATETIME NULL DEFAULT NULL COMMENT '注销申请时间';
+-- appointment_user.close_requested_at
+ALTER TABLE `appointment_user` ADD COLUMN `close_requested_at` DATETIME NULL DEFAULT NULL COMMENT '注销申请时间';
 
--- erik_user.close_at
-ALTER TABLE `erik_user` ADD COLUMN `close_at` DATETIME NULL DEFAULT NULL COMMENT '注销完成时间';
+-- appointment_user.close_at
+ALTER TABLE `appointment_user` ADD COLUMN `close_at` DATETIME NULL DEFAULT NULL COMMENT '注销完成时间';
 
--- erik_order.seckill_id
-ALTER TABLE `erik_order` ADD COLUMN `seckill_id` BIGINT NULL DEFAULT NULL COMMENT '秒杀活动ID', ADD KEY `idx_seckill_id` (`seckill_id`);
+-- appointment_order.seckill_id
+ALTER TABLE `appointment_order` ADD COLUMN `seckill_id` BIGINT NULL DEFAULT NULL COMMENT '秒杀活动ID', ADD KEY `idx_seckill_id` (`seckill_id`);
 
--- erik_user_wallet.pay_password
-ALTER TABLE `erik_user_wallet` ADD COLUMN `pay_password` VARCHAR(255) NULL DEFAULT NULL COMMENT '支付密码（password_hash）';
+-- appointment_user_wallet.pay_password
+ALTER TABLE `appointment_user_wallet` ADD COLUMN `pay_password` VARCHAR(255) NULL DEFAULT NULL COMMENT '支付密码（password_hash）';
 
--- erik_user_wallet.pay_password_set_at
-ALTER TABLE `erik_user_wallet` ADD COLUMN `pay_password_set_at` DATETIME NULL DEFAULT NULL COMMENT '支付密码设置时间';
+-- appointment_user_wallet.pay_password_set_at
+ALTER TABLE `appointment_user_wallet` ADD COLUMN `pay_password_set_at` DATETIME NULL DEFAULT NULL COMMENT '支付密码设置时间';
 
 -- ============================================================
 -- [合并补齐] R16-R24 轮次迁移（由合并脚本生成，去重后追加）
 -- ============================================================
--- (merge) 2026_08_14_000013_points_expiry.sql → erik_system_config
+-- (merge) 2026_08_14_000013_points_expiry.sql → appointment_system_config
 
 -- ============================================================
 -- [2026_08_14_000013_points_expiry.sql]
 -- ============================================================
-INSERT INTO `erik_system_config`
+INSERT INTO `appointment_system_config`
     (`id`, `group`, `key`, `value`, `type`, `description`)
 VALUES
     (990000000000000021, 'points', 'expiry_days', '365', 'int',
      '积分有效期（天）：新 earn 积分到期时间 = 发放时间 + 该值；<=0 视为永不过期')
 ON DUPLICATE KEY UPDATE
     `description` = VALUES(`description`);
--- (merge) 2026_08_15_000201_referral_level2.sql → erik_system_config
+-- (merge) 2026_08_15_000201_referral_level2.sql → appointment_system_config
 
 -- ============================================================
 -- [2026_08_15_000201_referral_level2.sql]
 -- ============================================================
-INSERT INTO `erik_system_config`
+INSERT INTO `appointment_system_config`
     (`id`, `group`, `key`, `value`, `type`, `description`)
 VALUES
     (91000000000000024, 'referral', 'level2_rate', '0.02', 'string',
      '二级返佣比例：被推荐人首单完成后发放给上上级推荐人的佣金比例（0-1，非法值回落 0.02）')
 ON DUPLICATE KEY UPDATE
     `description` = VALUES(`description`);
--- (merge) 2026_08_15_000402_profit_sharing.sql → erik_system_config
+-- (merge) 2026_08_15_000402_profit_sharing.sql → appointment_system_config
 
 -- ============================================================
 -- [2026_08_15_000402_profit_sharing.sql]
 -- ============================================================
-INSERT INTO `erik_system_config`
+INSERT INTO `appointment_system_config`
     (`id`, `group`, `key`, `value`, `type`, `description`)
 VALUES
     (91000000000000027, 'profit_sharing', 'enabled', '0', 'string',
@@ -2597,26 +2597,26 @@ VALUES
      '技师分账比例（0-1，分账金额=订单实付×比例）')
 ON DUPLICATE KEY UPDATE
     `description` = VALUES(`description`);
--- (merge) 2026_08_15_000404_push_log.sql → erik_system_config
+-- (merge) 2026_08_15_000404_push_log.sql → appointment_system_config
 
 -- ============================================================
 -- [2026_08_15_000404_push_log.sql]
 -- ============================================================
-INSERT INTO `erik_system_config`
+INSERT INTO `appointment_system_config`
     (`id`, `group`, `key`, `value`, `type`, `description`)
 VALUES
     (91000000000000025, 'push', 'enabled', '0', 'string',
-     'APP 推送总开关：1=启用（占位层构造推送结构并写 erik_push_log），0=关闭（静默降级仅记日志）'),
+     'APP 推送总开关：1=启用（占位层构造推送结构并写 appointment_push_log），0=关闭（静默降级仅记日志）'),
     (91000000000000026, 'push', 'provider', '', 'string',
      'APP 推送厂商：jpush/getui/placeholder，空表示未配置凭据（不实际发送）')
 ON DUPLICATE KEY UPDATE
     `description` = VALUES(`description`);
--- (merge) 2026_08_15_000602_return_customer_reward.sql → erik_system_config
+-- (merge) 2026_08_15_000602_return_customer_reward.sql → appointment_system_config
 
 -- ============================================================
 -- [2026_08_15_000602_return_customer_reward.sql]
 -- ============================================================
-INSERT INTO `erik_system_config`
+INSERT INTO `appointment_system_config`
     (`id`, `group`, `key`, `value`, `type`, `description`)
 VALUES
     (91000000000000029, 'return_customer', 'enabled', '1', 'string',
@@ -2629,7 +2629,7 @@ ON DUPLICATE KEY UPDATE
 -- ============================================================
 -- [合并补齐] referral.reward_rate（ID 23，仅历史 DB 存在，无迁移文件）
 -- ============================================================
-INSERT INTO `erik_system_config` (`id`, `group`, `key`, `value`, `type`, `description`) VALUES
+INSERT INTO `appointment_system_config` (`id`, `group`, `key`, `value`, `type`, `description`) VALUES
     (91000000000000023, 'referral', 'reward_rate', '0.05', 'string',
      '分销返佣比例（推荐人每笔有效订单 paid_amount × 比例）')
 ON DUPLICATE KEY UPDATE `description` = VALUES(`description`);
@@ -2640,15 +2640,15 @@ ON DUPLICATE KEY UPDATE `description` = VALUES(`description`);
 
 -- ============================================================
 -- [覆盖验证补充 2026-08-15] 全量迁移覆盖核查后的剩余补全
--- 种子: erik_growth_level 5 行 / erik_lucky_wheel 2 行 / erik_app_version 2 行 / 角色授权
--- 列:   erik_ticket.rating,rated_at / erik_technician_profile.tier_id / erik_invoice 5 列
+-- 种子: appointment_growth_level 5 行 / appointment_lucky_wheel 2 行 / appointment_app_version 2 行 / 角色授权
+-- 列:   appointment_ticket.rating,rated_at / appointment_technician_profile.tier_id / appointment_invoice 5 列
 -- ============================================================
 
 -- ============================================================
--- [2026_08_15_000201_growth.sql] erik_growth_level 种子（INSERT IGNORE 幂等）
+-- [2026_08_15_000201_growth.sql] appointment_growth_level 种子（INSERT IGNORE 幂等）
 -- 注: 000301_growth_benefit 的 5 条 UPDATE 权益值已内嵌于以下 benefits JSON，无需重复追加
 -- ============================================================
-INSERT IGNORE INTO `erik_growth_level` (`id`, `level`, `name`, `min_growth`, `benefits`) VALUES
+INSERT IGNORE INTO `appointment_growth_level` (`id`, `level`, `name`, `min_growth`, `benefits`) VALUES
 (1, 1, '青铜', 0, JSON_OBJECT('discount_rate', 1.0, 'points_multiplier', 1.0)),
 (2, 2, '白银', 100, JSON_OBJECT('discount_rate', 0.98, 'points_multiplier', 1.1)),
 (3, 3, '黄金', 500, JSON_OBJECT('discount_rate', 0.95, 'points_multiplier', 1.2)),
@@ -2658,14 +2658,14 @@ INSERT IGNORE INTO `erik_growth_level` (`id`, `level`, `name`, `min_growth`, `be
 -- ============================================================
 -- [2026_08_15_000503_lucky_wheel.sql] 转盘演示奖品（INSERT IGNORE 幂等）
 -- ============================================================
-INSERT IGNORE INTO `erik_lucky_wheel` (`id`, `name`, `cost_points`, `prize_type`, `prize_value`, `weight`, `stock`, `sort`, `status`, `created_at`, `updated_at`) VALUES
+INSERT IGNORE INTO `appointment_lucky_wheel` (`id`, `name`, `cost_points`, `prize_type`, `prize_value`, `weight`, `stock`, `sort`, `status`, `created_at`, `updated_at`) VALUES
 (10000000000001001, '谢谢参与', 10, 'none', 0.00, 60, -1, 1, 1, NOW(), NOW()),
 (10000000000001002, '100积分返还', 10, 'points', 100.00, 40, -1, 2, 1, NOW(), NOW());
 
 -- ============================================================
 -- [2026_08_15_000603_app_version.sql] 版本种子（ON DUPLICATE KEY UPDATE 幂等）
 -- ============================================================
-INSERT INTO `erik_app_version` (`id`, `platform`, `version_code`, `version_name`, `force_update`, `changelog`, `download_url`, `status`, `created_at`, `updated_at`) VALUES
+INSERT INTO `appointment_app_version` (`id`, `platform`, `version_code`, `version_name`, `force_update`, `changelog`, `download_url`, `status`, `created_at`, `updated_at`) VALUES
 (10000000000000001, 'android', '1.0.0', 'v1.0.0', 0, '初始版本', '', 1, NOW(), NOW()),
 (10000000000000002, 'ios', '1.0.0', 'v1.0.0', 0, '初始版本', '', 1, NOW(), NOW())
 ON DUPLICATE KEY UPDATE
@@ -2680,18 +2680,18 @@ ON DUPLICATE KEY UPDATE
 -- ============================================================
 -- [2026_08_15_000303_ticket_rating.sql] 工单满意度评分列
 -- ============================================================
-ALTER TABLE `erik_ticket`
+ALTER TABLE `appointment_ticket`
     ADD COLUMN `rating` TINYINT UNSIGNED DEFAULT NULL COMMENT '满意度评分 1-5，NULL 表示未评分' AFTER `replied_at`,
     ADD COLUMN `rated_at` DATETIME DEFAULT NULL COMMENT '评分时间' AFTER `rating`;
 
 -- ============================================================
 -- [2026_08_14_000015_technician_tier_auto.sql] 技师等级列
 -- ============================================================
-ALTER TABLE `erik_technician_profile`
-    ADD COLUMN `tier_id` BIGINT UNSIGNED NULL DEFAULT NULL COMMENT '当前等级ID（erik_technician_tier_config.id），空=未评定' AFTER `favorite_count`;
+ALTER TABLE `appointment_technician_profile`
+    ADD COLUMN `tier_id` BIGINT UNSIGNED NULL DEFAULT NULL COMMENT '当前等级ID（appointment_technician_tier_config.id），空=未评定' AFTER `favorite_count`;
 
 -- ============================================================
--- [2026_08_15_000201_invoice.sql] erik_invoice 已并入上方 CREATE 定义（迁移规范列集），无需 ALTER
+-- [2026_08_15_000201_invoice.sql] appointment_invoice 已并入上方 CREATE 定义（迁移规范列集），无需 ALTER
 -- ============================================================
 
 -- ============================================================
@@ -2699,7 +2699,7 @@ ALTER TABLE `erik_technician_profile`
 -- 来源: 000204(385,387) / 000306(388) / 000407(394) / 000408(392,393)
 -- 兜底 SELECT 等价于各权限迁移文件中 INSERT...SELECT 授权的累积效果（幂等）
 -- ============================================================
-INSERT IGNORE INTO `erik_admin_role_permission` (`role_id`, `permission_id`) VALUES
+INSERT IGNORE INTO `appointment_admin_role_permission` (`role_id`, `permission_id`) VALUES
 (10000000000000001, 21000000000000385),
 (10000000000000001, 21000000000000387),
 (10000000000000001, 21000000000000388),
@@ -2707,17 +2707,17 @@ INSERT IGNORE INTO `erik_admin_role_permission` (`role_id`, `permission_id`) VAL
 (10000000000000001, 21000000000000393),
 (10000000000000001, 21000000000000394);
 
-INSERT INTO `erik_admin_role_permission` (`role_id`, `permission_id`)
-SELECT 10000000000000001, `id` FROM `erik_admin_permission`
+INSERT INTO `appointment_admin_role_permission` (`role_id`, `permission_id`)
+SELECT 10000000000000001, `id` FROM `appointment_admin_permission`
 WHERE `id` NOT IN (
-    SELECT `permission_id` FROM `erik_admin_role_permission` WHERE `role_id` = 10000000000000001
+    SELECT `permission_id` FROM `appointment_admin_role_permission` WHERE `role_id` = 10000000000000001
 
 )
 ;
 -- ============================================================
 -- [合并补齐] 列级校验补齐（对照线上 DB information_schema，逐列核验后仅保留真缺失）
 -- ============================================================
--- erik_user.store_id（店长隔离，CREATE 缺失）
-ALTER TABLE `erik_user` ADD COLUMN `store_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '所属门店ID(店长隔离用,0=无门店)', ADD KEY `idx_user_store` (`store_id`);
--- erik_user_coupon.created_at / updated_at（CREATE 缺失）
-ALTER TABLE `erik_user_coupon` ADD COLUMN `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间', ADD COLUMN `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间';
+-- appointment_user.store_id（店长隔离，CREATE 缺失）
+ALTER TABLE `appointment_user` ADD COLUMN `store_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '所属门店ID(店长隔离用,0=无门店)', ADD KEY `idx_user_store` (`store_id`);
+-- appointment_user_coupon.created_at / updated_at（CREATE 缺失）
+ALTER TABLE `appointment_user_coupon` ADD COLUMN `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间', ADD COLUMN `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间';

@@ -16,7 +16,7 @@ use support\Model;
  */
 class GrowthLevel extends Model
 {
-    protected $table = 'erik_growth_level';
+    protected $table = 'appointment_growth_level';
 
     public $timestamps = false;
 

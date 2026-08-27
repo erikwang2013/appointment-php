@@ -353,7 +353,7 @@ trait OrderCreateTrait
             // 生成核销码（仅预约订单）
             if ($orderType === Order::ORDER_TYPE_APPOINTMENT) {
                 $verifyCode = OrderVerification::generateCode();
-                // erik_order_verification.uk_code 唯一索引：核销码禁止为空
+                // appointment_order_verification.uk_code 唯一索引：核销码禁止为空
                 if ($verifyCode === '') {
                     throw new \RuntimeException('核销码生成失败');
                 }

@@ -383,7 +383,7 @@ class TechnicianController extends BaseController
 
     /**
      * 管理员更新全局性别限制配置
-     * 存储到 erik_system_config，key: gender_service_restrictions
+     * 存储到 appointment_system_config，key: gender_service_restrictions
      * 格式: {"male": ["svc_id1", "svc_id2"], "female": ["svc_id3"]}
      */
     public function updateRestrictions(Request $request): Response
@@ -512,7 +512,7 @@ class TechnicianController extends BaseController
     /**
      * 导出考勤记录
      * 列: 技师姓名, 日期, 签到时间, 签退时间, 考勤状态, 卫生照片, 备注
-     * 考勤数据从 erik_technician_schedule 扩展字段中提取
+     * 考勤数据从 appointment_technician_schedule 扩展字段中提取
      */
     public function exportAttendance(Request $request): Response
     {
@@ -603,7 +603,7 @@ class TechnicianController extends BaseController
     // ────────────────────────────────────────────────
 
     /**
-     * 从 erik_system_config 获取性别服务限制
+     * 从 appointment_system_config 获取性别服务限制
      */
     private function getGenderRestrictions(): array
     {

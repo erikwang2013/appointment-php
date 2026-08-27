@@ -189,10 +189,10 @@ flowchart LR
     end
 
     subgraph DB存储["Couche de stockage DB"]
-        D1["erik_user.phone<br/>stocké en clair<br/>la connexion / la recherche de doublons reposent sur la recherche en clair"]
-        D2["erik_technician_profile<br/>.id_card VARCHAR(500)<br/>chiffré via encryptable"]
-        D3["erik_user.wx_openid<br/>stocké en clair"]
-        D4["erik_user.real_name<br/>chiffré via encryptable"]
+        D1["appointment_user.phone<br/>stocké en clair<br/>la connexion / la recherche de doublons reposent sur la recherche en clair"]
+        D2["appointment_technician_profile<br/>.id_card VARCHAR(500)<br/>chiffré via encryptable"]
+        D3["appointment_user.wx_openid<br/>stocké en clair"]
+        D4["appointment_user.real_name<br/>chiffré via encryptable"]
     end
 
     subgraph ID处理["Traitement des ID (hashids + snowflake)"]

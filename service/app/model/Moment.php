@@ -9,7 +9,7 @@ use support\Model;
 
 class Moment extends Model
 {
-    protected $table = 'erik_moment';
+    protected $table = 'appointment_moment';
     public $incrementing = false;
     protected $keyType = 'string';
     public $timestamps = true;

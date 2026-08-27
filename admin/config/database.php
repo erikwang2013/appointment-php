@@ -8,7 +8,7 @@ declare(strict_types=1);
 /**
  * 数据库连接配置
  * 使用 illuminate/database (Laravel Eloquent)
- * 表前缀统一为 erik_
+ * 表前缀统一为 appointment_
  */
 return [
     // 默认连接
@@ -34,8 +34,8 @@ return [
             'charset' => 'utf8mb4',
             // 排序规则
             'collation' => 'utf8mb4_unicode_ci',
-            // 表前缀：模型 $table 已内嵌完整前缀（如 erik_user_coupon），此处必须留空，
-            // 否则 Eloquent 会拼出 erik_erik_xxx 双前缀表名（与 service 端做法一致）
+            // 表前缀：模型 $table 已内嵌完整前缀（如 appointment_user_coupon），此处必须留空，
+            // 否则 Eloquent 会拼出 appointment_appointment_xxx 双前缀表名（与 service 端做法一致）
             'prefix' => '',
             // 严格模式
             'strict' => true,

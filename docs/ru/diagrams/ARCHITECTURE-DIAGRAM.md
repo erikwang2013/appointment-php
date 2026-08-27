@@ -34,7 +34,7 @@ graph TB
     end
 
     subgraph 数据层["Слой данных"]
-        MySQL[("MySQL 8.0<br/>55+ таблиц · префикс erik_<br/>BIGINT Snowflake первичный ключ")]
+        MySQL[("MySQL 8.0<br/>55+ таблиц · префикс appointment_<br/>BIGINT Snowflake первичный ключ")]
         Redis[("Redis<br/>кэш/лимит частоты/Session<br/>очереди/блокировки мастера<br/>кэш списков svc:*")]
         ES[("Elasticsearch<br/>полнотекстовый поиск<br/>webman-scout автосинхронизация")]
     end

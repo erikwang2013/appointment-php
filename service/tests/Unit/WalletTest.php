@@ -45,7 +45,7 @@ class WalletTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->savedApiKey = (string) Db::table('erik_system_config')
+        $this->savedApiKey = (string) Db::table('appointment_system_config')
             ->where('group', 'wechat_pay')
             ->where('key', 'api_key')
             ->value('value');
@@ -59,7 +59,7 @@ class WalletTest extends TestCase
             UserWallet::where('user_id', $uid)->delete();
         }
         foreach ($this->orderIds as $id) {
-            Db::table('erik_notification')->where('order_id', $id)->delete();
+            Db::table('appointment_notification')->where('order_id', $id)->delete();
             OrderRefund::where('order_id', $id)->delete();
             OrderPayment::where('order_id', $id)->delete();
             Order::where('id', $id)->delete();
@@ -72,7 +72,7 @@ class WalletTest extends TestCase
             }
         }
         // 恢复 wechat_pay api_key 配置（若被用例覆盖）
-        Db::table('erik_system_config')
+        Db::table('appointment_system_config')
             ->where('group', 'wechat_pay')
             ->where('key', 'api_key')
             ->update(['value' => $this->savedApiKey]);
@@ -207,7 +207,7 @@ class WalletTest extends TestCase
     private function enableWechatSign(): string
     {
         $key = 'TEST_API_KEY_' . uniqid();
-        Db::table('erik_system_config')
+        Db::table('appointment_system_config')
             ->where('group', 'wechat_pay')
             ->where('key', 'api_key')
             ->update(['value' => $key]);
@@ -563,7 +563,7 @@ class WalletTest extends TestCase
             'reason'     => '落库失败滞留',
             'status'     => OrderRefund::STATUS_PENDING,
         ]);
-        Db::table('erik_order_refund')
+        Db::table('appointment_order_refund')
             ->where('id', $refund->id)
             ->update(['created_at' => date('Y-m-d H:i:s', time() - 660)]);
 

@@ -15,7 +15,7 @@ use support\Response;
 /**
  * 会员卡定义管理控制器
  *
- * 管理 erik_member_card 会员卡定义（月卡/年卡/次卡等）。
+ * 管理 appointment_member_card 会员卡定义（月卡/年卡/次卡等）。
  * 类型: month=月卡 vip=权益卡 times=次卡
  * 权限: get/post/put/delete admin/member-cards
  */

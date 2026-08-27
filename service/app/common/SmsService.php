@@ -30,7 +30,7 @@ class SmsService
 
     public function __construct()
     {
-        $configs = Db::table('erik_system_config')
+        $configs = Db::table('appointment_system_config')
             ->where('group', 'sms')
             ->pluck('value', 'key')
             ->toArray();

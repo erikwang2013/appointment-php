@@ -92,7 +92,7 @@ class SeckillTest extends TestCase
     {
         $id = Service::generateId();
         $now = date('Y-m-d H:i:s');
-        Db::table('erik_service')->insert([
+        Db::table('appointment_service')->insert([
             'id'             => $id,
             'category_id'    => 1,
             'name'           => '秒杀管理测试服务',

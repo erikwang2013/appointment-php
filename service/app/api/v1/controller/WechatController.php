@@ -16,7 +16,7 @@ use Webman\Http\Request;
  * 微信认证控制器
  * 处理小程序登录、手机号绑定、公众号登录
  *
- * 前置条件: 需在 erik_system_config 表中配置 group='wechat_app' 的记录:
+ * 前置条件: 需在 appointment_system_config 表中配置 group='wechat_app' 的记录:
  *   - app_id: 小程序/公众号 AppID
  *   - app_secret: 小程序/公众号 AppSecret
  */
@@ -24,7 +24,7 @@ class WechatController extends BaseController
 {
     private function getWechatConfig(): array
     {
-        $configs = Db::table('erik_system_config')
+        $configs = Db::table('appointment_system_config')
             ->where('group', 'wechat_app')
             ->pluck('value', 'key')
             ->toArray();
@@ -40,7 +40,7 @@ class WechatController extends BaseController
         $config = $this->getWechatConfig();
 
         if (empty($config['app_id']) || empty($config['app_secret'])) {
-            return ['success' => false, 'message' => '微信小程序未配置 (erik_system_config.wechat_app)'];
+            return ['success' => false, 'message' => '微信小程序未配置 (appointment_system_config.wechat_app)'];
         }
 
         $url = sprintf(
@@ -89,7 +89,7 @@ class WechatController extends BaseController
         $config = $this->getWechatConfig();
 
         if (empty($config['app_id']) || empty($config['app_secret'])) {
-            return ['success' => false, 'message' => '微信公众号未配置 (erik_system_config.wechat_app)'];
+            return ['success' => false, 'message' => '微信公众号未配置 (appointment_system_config.wechat_app)'];
         }
 
         $tokenUrl = sprintf(
@@ -181,7 +181,7 @@ class WechatController extends BaseController
 
         // 存储 session_key 供后续 phone() 使用
         if (!empty($wxResult['session_key']) && !empty($wxResult['openid'])) {
-            Redis::setex('wx_session_key:' . $wxResult['openid'], 3600, $wxResult['session_key']);
+            Redis::setex('appointment:wx_session_key:' . $wxResult['openid'], 3600, $wxResult['session_key']);
         }
 
         $user = $this->findOrCreateByOpenid($wxResult['openid'], $wxResult['unionid'] ?? '');
@@ -234,7 +234,7 @@ class WechatController extends BaseController
         }
 
         // 检查 session_key 是否可用
-        $sessionKey = Redis::get('wx_session_key:' . $user->wx_openid);
+        $sessionKey = Redis::get('appointment:wx_session_key:' . $user->wx_openid);
         if (empty($sessionKey)) {
             return $this->error('微信会话已过期，请重新登录');
         }

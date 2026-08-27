@@ -16,7 +16,7 @@ use support\Model;
  */
 class UserHealthProfile extends Model
 {
-    protected $table = 'erik_user_health_profile';
+    protected $table = 'appointment_user_health_profile';
     public $incrementing = false;
     protected $keyType = 'string';
     public $timestamps = true;

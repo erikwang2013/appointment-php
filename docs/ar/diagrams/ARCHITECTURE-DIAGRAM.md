@@ -34,7 +34,7 @@ graph TB
     end
 
     subgraph 数据层["طبقة البيانات"]
-        MySQL[("MySQL 8.0<br/>55+ جدول · بادئة erik_<br/>مفتاح أساسي BIGINT Snowflake")]
+        MySQL[("MySQL 8.0<br/>55+ جدول · بادئة appointment_<br/>مفتاح أساسي BIGINT Snowflake")]
         Redis[("Redis<br/>التخزين المؤقت/تحديد المعدل/الجلسة<br/>قوائم الانتظار/قفل الفني<br/>تخزين قوائم svc:*")]
         ES[("Elasticsearch<br/>بحث النص الكامل<br/>مزامنة تلقائية عبر webman-scout")]
     end

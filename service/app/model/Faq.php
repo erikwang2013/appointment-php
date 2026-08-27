@@ -9,7 +9,7 @@ use support\Model;
 
 class Faq extends Model
 {
-    protected $table = 'erik_faq';
+    protected $table = 'appointment_faq';
     public $incrementing = false;
     protected $keyType = 'string';
     public $timestamps = true;

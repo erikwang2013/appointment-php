@@ -221,7 +221,7 @@ class PriceCalculator
      */
     private static function matchCardServices(UserMemberCard $userCard, array $items): array
     {
-        // services 存储为对象数组：[{"service_id":..,"times":..}]（见迁移 erik_member_card.services 注释与种子数据），
+        // services 存储为对象数组：[{"service_id":..,"times":..}]（见迁移 appointment_member_card.services 注释与种子数据），
         // 统一用 array_column 取 service_id；兼容历史标量数组 [sid1, sid2]
         $cardServices = (array) ($userCard->card->services ?? []);
         if (is_array(reset($cardServices))) {
@@ -289,7 +289,7 @@ class PriceCalculator
             }
             $coupon = $userCoupon->coupon;
         } elseif ($couponId !== null) {
-            // M4: 禁用 coupon_id 直通路径——券必须先领取（erik_user_coupon 领券记录），
+            // M4: 禁用 coupon_id 直通路径——券必须先领取（appointment_user_coupon 领券记录），
             // 直通路径不校验有效期/状态且 consume() 不消费，可被无限复用
             throw new \InvalidArgumentException('请先领取优惠券', 422);
         }

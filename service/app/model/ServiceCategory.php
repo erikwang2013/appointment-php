@@ -9,7 +9,7 @@ use support\Model;
 
 class ServiceCategory extends Model
 {
-    protected $table = 'erik_service_category';
+    protected $table = 'appointment_service_category';
     public $incrementing = false;
     protected $keyType = 'string';
     public $timestamps = true;

@@ -17,9 +17,9 @@ use support\Log;
  * 分销返佣服务
  *
  * 被推荐人首单完成（订单进入 completed）时，给推荐人钱包发放返佣，
- * 金额 = 该单 paid_amount × 返佣比例（erik_system_config group=referral key=reward_rate，默认 0.05）。
+ * 金额 = 该单 paid_amount × 返佣比例（appointment_system_config group=referral key=reward_rate，默认 0.05）。
  *
- * 幂等：erik_user_referral 行锁 lockForUpdate + rewarded_at 判空，同一推荐记录只发一次；
+ * 幂等：appointment_user_referral 行锁 lockForUpdate + rewarded_at 判空，同一推荐记录只发一次；
  * 仅首单：锁内复查该被推荐人已无其他已完成订单。
  *
  * 注意：本服务不管理事务，必须在调用方事务内调用（钱包行锁依赖事务）。
@@ -95,9 +95,9 @@ class ReferralRewardService
     }
 
     /**
-     * 二级返佣：查一级推荐人自己的推荐人（erik_user_referral 中 referred_user_id = 一级推荐人 id），
+     * 二级返佣：查一级推荐人自己的推荐人（appointment_user_referral 中 referred_user_id = 一级推荐人 id），
      * 存在且非同一人时发放 paid_amount × level2_rate。幂等由
-     * erik_referral_level2_reward 唯一键 (order_id, referred_user_id) + 行锁复验保证。
+     * appointment_referral_level2_reward 唯一键 (order_id, referred_user_id) + 行锁复验保证。
      * 仅在被推荐人首单（一级返佣本次发放成功）时到达，失败仅告警不阻塞一级发放。
      */
     private static function payLevel2Reward(Order $order, string $level1ReferrerId, float $paidAmount): void
@@ -178,7 +178,7 @@ class ReferralRewardService
     }
 
     /**
-     * 返佣比例：erik_system_config (group=referral, key=reward_rate)，缺省 0.05
+     * 返佣比例：appointment_system_config (group=referral, key=reward_rate)，缺省 0.05
      */
     public static function getRewardRate(): float
     {
@@ -186,7 +186,7 @@ class ReferralRewardService
     }
 
     /**
-     * 二级返佣比例：erik_system_config (group=referral, key=level2_rate)，缺省 0.02
+     * 二级返佣比例：appointment_system_config (group=referral, key=level2_rate)，缺省 0.02
      */
     public static function getLevel2Rate(): float
     {
@@ -196,7 +196,7 @@ class ReferralRewardService
     private static function getConfigRate(string $key, float $default): float
     {
         try {
-            $rate = (float) Db::table('erik_system_config')
+            $rate = (float) Db::table('appointment_system_config')
                 ->where('group', self::CONFIG_GROUP)
                 ->where('key', $key)
                 ->value('value');

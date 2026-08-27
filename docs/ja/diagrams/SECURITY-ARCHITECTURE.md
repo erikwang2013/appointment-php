@@ -189,10 +189,10 @@ flowchart LR
     end
 
     subgraph DB存储["DB層ストレージ"]
-        D1["erik_user.phone<br/>平文保存<br/>ログイン/重複チェックは平文クエリ依存"]
-        D2["erik_technician_profile<br/>.id_card VARCHAR(500)<br/>encryptable 暗号化"]
-        D3["erik_user.wx_openid<br/>平文保存"]
-        D4["erik_user.real_name<br/>encryptable 暗号化"]
+        D1["appointment_user.phone<br/>平文保存<br/>ログイン/重複チェックは平文クエリ依存"]
+        D2["appointment_technician_profile<br/>.id_card VARCHAR(500)<br/>encryptable 暗号化"]
+        D3["appointment_user.wx_openid<br/>平文保存"]
+        D4["appointment_user.real_name<br/>encryptable 暗号化"]
     end
 
     subgraph ID处理["ID処理 (hashids + snowflake)"]

@@ -45,9 +45,9 @@ class ReferralRewardTest extends TestCase
     {
         if ($this->rateChanged) {
             if ($this->priorRate === null) {
-                Db::table('erik_system_config')->where('group', 'referral')->where('key', 'reward_rate')->delete();
+                Db::table('appointment_system_config')->where('group', 'referral')->where('key', 'reward_rate')->delete();
             } else {
-                Db::table('erik_system_config')->where('group', 'referral')->where('key', 'reward_rate')->update([
+                Db::table('appointment_system_config')->where('group', 'referral')->where('key', 'reward_rate')->update([
                     'value' => $this->priorRate,
                     'updated_at' => date('Y-m-d H:i:s'),
                 ]);
@@ -72,16 +72,16 @@ class ReferralRewardTest extends TestCase
         $this->priorRate = null;
     }
 
-    /** 覆盖 erik_system_config 返佣比例（tearDown 恢复原值） */
+    /** 覆盖 appointment_system_config 返佣比例（tearDown 恢复原值） */
     private function setRate(string $rate): void
     {
         if (!$this->rateChanged) {
-            $this->priorRate = Db::table('erik_system_config')
+            $this->priorRate = Db::table('appointment_system_config')
                 ->where('group', 'referral')->where('key', 'reward_rate')
                 ->value('value');
             $this->rateChanged = true;
         }
-        Db::table('erik_system_config')->where('group', 'referral')->where('key', 'reward_rate')
+        Db::table('appointment_system_config')->where('group', 'referral')->where('key', 'reward_rate')
             ->update(['value' => $rate, 'updated_at' => date('Y-m-d H:i:s')]);
     }
 

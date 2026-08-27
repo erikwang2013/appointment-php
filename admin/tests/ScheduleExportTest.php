@@ -58,7 +58,7 @@ class ScheduleExportTest extends TestCase
         }
 
         // 自足 Eloquent 连接：Capsule 静态单例可能被其他测试类覆盖，
-        // 这里显式重建 —— 模型 $table 已内嵌 erik_ 前缀，prefix 必须留空
+        // 这里显式重建 —— 模型 $table 已内嵌 appointment_ 前缀，prefix 必须留空
         $this->bootEloquent();
 
         Db::beginTransaction();
@@ -112,7 +112,7 @@ class ScheduleExportTest extends TestCase
         }
     }
 
-    /** 重建全局 Eloquent 连接（prefix 空，模型 $table 已内嵌 erik_ 前缀） */
+    /** 重建全局 Eloquent 连接（prefix 空，模型 $table 已内嵌 appointment_ 前缀） */
     private function bootEloquent(): void
     {
         $dbConfig = config('database.connections.default');

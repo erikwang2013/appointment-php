@@ -41,7 +41,7 @@ class BrowseHistoryTest extends TestCase
             BrowseHistory::where('user_id', $id)->delete();
         }
         foreach ($this->serviceIds as $id) {
-            Db::table('erik_service')->where('id', $id)->delete();
+            Db::table('appointment_service')->where('id', $id)->delete();
         }
         foreach ($this->userIds as $id) {
             User::where('id', $id)->forceDelete();
@@ -68,7 +68,7 @@ class BrowseHistoryTest extends TestCase
     {
         $id = Service::generateId();
         $now = date('Y-m-d H:i:s');
-        Db::table('erik_service')->insert([
+        Db::table('appointment_service')->insert([
             'id'             => $id,
             'name'           => $name,
             'cover_image'    => 'https://example.com/cover.jpg',

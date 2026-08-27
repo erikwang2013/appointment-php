@@ -306,7 +306,7 @@ Al establecer una como predeterminada, las demás predeterminadas se cancelan au
 | GET | `/api/user/referral/referred-users` | Lista de usuarios recomendados |
 | GET | `/api/user/referral/earnings` | Detalle de comisiones de distribución (paginado: apodo/avatar del recomendado/número de pedido/importe/hora de emisión) |
 
-**Comisión de distribución**: se emite tras el primer pedido completed del recomendado, importe = paid_amount × reward_rate (erik_system_config referral.reward_rate, por defecto 0.05, los valores inválidos retroceden a la constante). Triple idempotencia con bloqueo de fila + comprobación de rewarded_at vacío + re-verificación del primer pedido; ingreso en WalletTxn type=referral_reward.
+**Comisión de distribución**: se emite tras el primer pedido completed del recomendado, importe = paid_amount × reward_rate (appointment_system_config referral.reward_rate, por defecto 0.05, los valores inválidos retroceden a la constante). Triple idempotencia con bloqueo de fila + comprobación de rewarded_at vacío + re-verificación del primer pedido; ingreso en WalletTxn type=referral_reward.
 
 #### 2.6 Transferencia de puntos (Ronda 19)
 
@@ -324,7 +324,7 @@ Al establecer una como predeterminada, las demás predeterminadas se cancelan au
 | GET | `/api/user/notify-settings` | Consultar los interruptores de notificación (los 5 tipos completos) |
 | PUT | `/api/user/notify-settings` | Actualizar interruptores por lotes (types: {service_reminder: 0/1, ...}) |
 
-**Interruptores de notificación**: tabla erik_user_notify_setting (clave compuesta única user_id+type, fila ausente = activado por defecto). 5 tipos: service_reminder recordatorio de servicio / card_expiry recordatorio de caducidad (tarjetas + cupones bajo el mismo paraguas) / points_expiry caducidad de puntos / marketing marketing (reservado) / system sistema (no se puede desactivar, PUT lo fuerza a 1). Control: notifySettingEnabled enganchado a los 3 procesos de temporizador ServiceReminderTimer/ExpiryReminderTimer/PointsExpiryTimer + mapeo de escenarios de eventos de suscripción (PAY/REFUND/VERIFIED/RESCHEDULE→system siempre se envía, REMINDER→service_reminder, EXPIRY→card_expiry); cuando el tipo está desactivado, se omiten tanto las notificaciones internas como los mensajes de suscripción.
+**Interruptores de notificación**: tabla appointment_user_notify_setting (clave compuesta única user_id+type, fila ausente = activado por defecto). 5 tipos: service_reminder recordatorio de servicio / card_expiry recordatorio de caducidad (tarjetas + cupones bajo el mismo paraguas) / points_expiry caducidad de puntos / marketing marketing (reservado) / system sistema (no se puede desactivar, PUT lo fuerza a 1). Control: notifySettingEnabled enganchado a los 3 procesos de temporizador ServiceReminderTimer/ExpiryReminderTimer/PointsExpiryTimer + mapeo de escenarios de eventos de suscripción (PAY/REFUND/VERIFIED/RESCHEDULE→system siempre se envía, REMINDER→service_reminder, EXPIRY→card_expiry); cuando el tipo está desactivado, se omiten tanto las notificaciones internas como los mensajes de suscripción.
 
 ---
 
@@ -403,7 +403,7 @@ Reglas: retiro disponible el día 20 de cada mes, T+1 llega a la cuenta, importe
 
 **Al crear el pedido**: Redis SETNX bloquea al técnico 3 minutos, se libera al salir de la página o al expirar.
 
-**Anti-manipulación de precios (2026-08-26)**: los importes de los ítems del pedido siempre se basan en los registros de la base de datos (target_type=service consulta erik_service, product consulta erik_product), los precios enviados por el cliente no participan en el cálculo; target_type desconocido 422; target_id debe enviarse con valor codificado en hashid (enviar el id raw lo decodifica a 0 → 422 «el producto no existe o se ha retirado»); los precios de compra grupal/flash también según DB.
+**Anti-manipulación de precios (2026-08-26)**: los importes de los ítems del pedido siempre se basan en los registros de la base de datos (target_type=service consulta appointment_service, product consulta appointment_product), los precios enviados por el cliente no participan en el cálculo; target_type desconocido 422; target_id debe enviarse con valor codificado en hashid (enviar el id raw lo decodifica a 0 → 422 «el producto no existe o se ha retirado»); los precios de compra grupal/flash también según DB.
 
 **Reglas de reembolso**: dentro de los 15 min del pedido o >6 h antes del inicio reembolso 100% / ≤6 h 90% / iniciado 80% / tras confirmar el inicio no se reembolsa.
 
@@ -411,7 +411,7 @@ Reglas: retiro disponible el día 20 de cada mes, T+1 llega a la cuenta, importe
 
 **Pago con saldo y reembolso**: pasar `pay_channel: "balance"` en el cuerpo de la solicitud de pago usa el saldo de la billetera; tanto el reembolso de WeChat como el de saldo recargan el importe en el saldo de la billetera.
 
-**Descuento con puntos**: el cuerpo de la solicitud de pago puede pasar opcionalmente `use_points` (entero). Validación del saldo de puntos con agregación SUM (la columna balance de erik_user_points es una instantánea del incremento individual, no se puede usar directamente como saldo), importe del descuento = floor(use_points / config('app.points_rate', 100)) yuanes, importe a pagar real = original a pagar − descuento (mínimo 0.01; si supera el a pagar, se aplica el descuento máximo sobre el a pagar sin desperdiciar puntos). Al tener éxito escribe historial de consumo type=consume/source=points_offset (idempotente, los reintentos no descuentan de nuevo). Saldo insuficiente 422.
+**Descuento con puntos**: el cuerpo de la solicitud de pago puede pasar opcionalmente `use_points` (entero). Validación del saldo de puntos con agregación SUM (la columna balance de appointment_user_points es una instantánea del incremento individual, no se puede usar directamente como saldo), importe del descuento = floor(use_points / config('app.points_rate', 100)) yuanes, importe a pagar real = original a pagar − descuento (mínimo 0.01; si supera el a pagar, se aplica el descuento máximo sobre el a pagar sin desperdiciar puntos). Al tener éxito escribe historial de consumo type=consume/source=points_offset (idempotente, los reintentos no descuentan de nuevo). Saldo insuficiente 422.
 
 **Recuperación de puntos**: al cancelar/reembolsar se devuelven los puntos consumidos con points_offset (type=earn/source=points_refund): cancelación completa, reembolso proporcional, 5 puntos de enganche idempotentes (refundOffsetPoints).
 
@@ -419,7 +419,7 @@ Reglas: retiro disponible el día 20 de cada mes, T+1 llega a la cuenta, importe
 
 **Pedido flash (Ronda 18, retirado)**: ~~al crear el pedido pasar `promotion_id` (tipo flash_sale)~~ — desde 2026-08 el antiguo canal de promoción FLASH_SALE se ha eliminado, la rama promocional de store() solo conserva GROUP_BUY (promotion no grupal 422); las ofertas flash usan el canal `/api/seckill` de la Ronda 24 (seckill_id inyectado en store con reducción de stock por bloqueo de fila dentro de la transacción), PromotionController::index filtra flash_sale, show/join le devuelven 400, la constante `Promotion::TYPE_FLASH_SALE` se conserva para compatibilidad con datos históricos.
 
-**Reprogramación de reserva (Ronda 17)**: `POST /api/order/reschedule/{id}` pasando new_service_time (obligatorio) + reason (opcional), cambia de hora con el mismo técnico. Reglas: solo pedidos propios (404 si no es propio), solo tipo appointment con estado pending/paid/confirmed (resto 422), ≥ 6 horas antes del inicio del servicio original (alineado con la ventana de reembolso completo) para poder reprogramar. Protección de concurrencia: B1 order_lock (misma familia de exclusión mutua que pay/cancel/refund) → bloqueo del técnico en el nuevo horario con Redis SETNX EX 180 (contra sobreventa en reprogramación concurrente) → re-lectura con bloqueo de fila dentro de la transacción + validación DB de conflicto de horarios B2 (excluyendo este pedido) → actualización de service_time + registro en erik_order_reschedule → liberación del bloqueo del horario original, el bloqueo del nuevo horario queda en manos de este pedido → mensaje de suscripción SCENE_RESCHEDULE (degradación a notificación interna si no está configurado). En la ruta de fallo, la transacción revierte y también libera el bloqueo del nuevo horario.
+**Reprogramación de reserva (Ronda 17)**: `POST /api/order/reschedule/{id}` pasando new_service_time (obligatorio) + reason (opcional), cambia de hora con el mismo técnico. Reglas: solo pedidos propios (404 si no es propio), solo tipo appointment con estado pending/paid/confirmed (resto 422), ≥ 6 horas antes del inicio del servicio original (alineado con la ventana de reembolso completo) para poder reprogramar. Protección de concurrencia: B1 order_lock (misma familia de exclusión mutua que pay/cancel/refund) → bloqueo del técnico en el nuevo horario con Redis SETNX EX 180 (contra sobreventa en reprogramación concurrente) → re-lectura con bloqueo de fila dentro de la transacción + validación DB de conflicto de horarios B2 (excluyendo este pedido) → actualización de service_time + registro en appointment_order_reschedule → liberación del bloqueo del horario original, el bloqueo del nuevo horario queda en manos de este pedido → mensaje de suscripción SCENE_RESCHEDULE (degradación a notificación interna si no está configurado). En la ruta de fallo, la transacción revierte y también libera el bloqueo del nuevo horario.
 
 **Seguimiento logístico (Ronda 19)**: `GET /api/order/logistics/{id}` — solo consultable por pedidos product propios (no propio/no producto/no enviado unificados en 404). Lee el JSON de order.remark (shipping_company/tracking_no/shipped_at, escrito por admin MallOrderController::ship() al enviar), parseShippingInfo/parseReceiver con doble análisis de respaldo al formato antiguo; teléfono del receptor desidentificado 138\*\*\*\*5678.
 
@@ -476,7 +476,7 @@ Reglas: retiro disponible el día 20 de cada mes, T+1 llega a la cuenta, importe
 
 **Reglas de puntos**: detalle paginado, filtro de tipo (earn/use/expire), filtro de fuente (order/referral/gift_card/check_in/admin). Puntos por registro diario (CheckIn, type=earn); puntos por consumo floor(paid_amount×1), emitidos al verificar e idempotentes; el reembolso recupera puntos proporcionalmente.
 
-**Caducidad de puntos (Ronda 17)**: columna erik_user_points.expires_at (configuración points.expiry_days, por defecto 365 días, ≤0 nunca caduca), todos los earn se guardan con período de validez; el proceso programado PointsExpiryTimer escanea cada 60 s con cursor las filas earn caducadas, escribe filas de deducción negativa type=expire (source=expiry + order_id rastrea el historial original, triple idempotencia) + notificación interna agregada «Tienes X puntos caducados»; el saldo disponible con criterio SUM incluye las filas negativas expire, los puntos caducados no pueden convertirse en efectivo ni canjearse.
+**Caducidad de puntos (Ronda 17)**: columna appointment_user_points.expires_at (configuración points.expiry_days, por defecto 365 días, ≤0 nunca caduca), todos los earn se guardan con período de validez; el proceso programado PointsExpiryTimer escanea cada 60 s con cursor las filas earn caducadas, escribe filas de deducción negativa type=expire (source=expiry + order_id rastrea el historial original, triple idempotencia) + notificación interna agregada «Tienes X puntos caducados»; el saldo disponible con criterio SUM incluye las filas negativas expire, los puntos caducados no pueden convertirse en efectivo ni canjearse.
 
 **Transferencia de cupones (Ronda 17)**: transfer valida que el cupón sea propio/available/la definición del cupón no haya caducado/no haya sido transferido antes, genera un código de transferencia único de 8 caracteres sin ambigüedad (índice único uk_code de respaldo), válido 7 días. claim con protección contra abuso: bloqueo Redis NX (coupon_transfer_claim:{code} 30 s) + re-verificación con bloqueo de fila contra doble gasto, índice único uk_user_coupon limita una transferencia por cupón, los cupones transferidos no se pueden volver a transferir (el cupón nuevo no tiene registro de transferencia y queda bloqueado de forma natural), no se puede recibir un cupón transferido por uno mismo 422, el receptor no puede ser el titular original; determinación diferida de caducidad → expired y restauración del cupón original a available. Dentro de la transacción de claim, el cupón original pasa a used + se crea un nuevo UserCoupon vinculado al receptor (coupon_id sin cambios, es decir, la validez no cambia) + el registro pasa a claimed.
 
@@ -522,7 +522,7 @@ Reglas: retiro disponible el día 20 de cada mes, T+1 llega a la cuenta, importe
 | GET | `/api/store-manager/technicians` | Lista de técnicos (incluye horarios de hoy) |
 | GET | `/api/store-manager/revenue` | Agregación de ingresos de los últimos 7 días |
 
-**Aislamiento por store_id**: requireStoreId() obliga a que el usuario actual esté vinculado a una tienda (erik_user.store_id), 403 sin tienda; todas las consultas se filtran por store_id.
+**Aislamiento por store_id**: requireStoreId() obliga a que el usuario actual esté vinculado a una tienda (appointment_user.store_id), 403 sin tienda; todas las consultas se filtran por store_id.
 
 ---
 
@@ -671,7 +671,7 @@ Entradas de navegación sin inicio de sesión que no requieren autenticación (s
 
 | Método | Ruta | Descripción |
 |------|------|------|
-| GET | `/api/seckill` | Lista de actividades de oferta flash (status=1 y dentro de la ventana de tiempo; incluye vendidos = pedidos con erik_order.seckill_id, stock restante) |
+| GET | `/api/seckill` | Lista de actividades de oferta flash (status=1 y dentro de la ventana de tiempo; incluye vendidos = pedidos con appointment_order.seckill_id, stock restante) |
 | GET | `/api/seckill/{id}` | Detalle de la actividad (state=not_started/ongoing/ended) |
 | POST | `/api/seckill/{id}/buy` | Pedido flash (idempotencia client_token + Redis NX 30 s contra concurrencia + validación de la actividad; ya no reserva stock de antemano) |
 
@@ -759,7 +759,7 @@ ID de permiso: 379.
 
 ID de permiso: 380.
 
-**Evaluación automática**: TierRatingService::evaluate calcula en tiempo real (pedidos completed de erik_order + puntuación media de evaluaciones, redondeo a 1 decimal) y escribe de vuelta en profile.order_count/rating, coincidiendo de mayor a menor según erik_technician_tier_config (min_orders/min_rating), sin coincidencia cae al nivel mínimo. Solo sube, no baja (la bajada afecta a la tasa de comisión y al coeficiente de precios, con respaldo manual del panel; allowDowngrade=true para re-evaluación manual); idempotente (si el nivel coincide solo sincroniza estadísticas); los cambios se registran en erik_technician_tier_log + notificación interna. Puntos de activación: WorkController::complete / escritura de evaluaciones en ReviewController / determinación diferida al ver el perfil en ProfileController.
+**Evaluación automática**: TierRatingService::evaluate calcula en tiempo real (pedidos completed de appointment_order + puntuación media de evaluaciones, redondeo a 1 decimal) y escribe de vuelta en profile.order_count/rating, coincidiendo de mayor a menor según appointment_technician_tier_config (min_orders/min_rating), sin coincidencia cae al nivel mínimo. Solo sube, no baja (la bajada afecta a la tasa de comisión y al coeficiente de precios, con respaldo manual del panel; allowDowngrade=true para re-evaluación manual); idempotente (si el nivel coincide solo sincroniza estadísticas); los cambios se registran en appointment_technician_tier_log + notificación interna. Puntos de activación: WorkController::complete / escritura de evaluaciones en ReviewController / determinación diferida al ver el perfil en ProfileController.
 
 ### Visualización de respuestas a evaluaciones (Ronda 18)
 
@@ -834,7 +834,7 @@ IDs de permiso: 396 lista / 397 crear / 398 editar / 399 alta y baja / 400 elimi
 |------|------|------|
 | GET | `/admin/profit-sharing` | Registros de reparto (leftJoin del número de pedido/apodo del técnico, ?status&order_no&technician_name&page=, codificación hashid) |
 
-ID de permiso: 394. Lógica del servidor: erik_system_config group=profit_sharing (enabled/receiver_ratio); no habilitado, degradación disabled solo con log; habilitado, tras el pago correcto se solicita automáticamente el reparto (importe = pago real × receiver_ratio por defecto 0.7, el mismo pedido pending/success salta por idempotencia); sin credenciales no ejecuta HTTP, la estructura de la solicitud se registra en el log.
+ID de permiso: 394. Lógica del servidor: appointment_system_config group=profit_sharing (enabled/receiver_ratio); no habilitado, degradación disabled solo con log; habilitado, tras el pago correcto se solicita automáticamente el reparto (importe = pago real × receiver_ratio por defecto 0.7, el mismo pedido pending/success salta por idempotencia); sin credenciales no ejecuta HTTP, la estructura de la solicitud se registra en el log.
 
 ### Gestión de la ruleta de puntos (Ronda 23)
 
@@ -857,7 +857,7 @@ IDs de permiso: 401-406. Las rutas estáticas `/lucky-wheel/records` y `/lucky-w
 | PUT | `/admin/return-customer/config` | Actualización de configuración (enabled in:0,1; ratio between:0.01,1) |
 | GET | `/admin/return-customer/rewards` | Lista de registros de recompensas (?keyword nombre del técnico/número de pedido/apodo del usuario, type=return_customer paginado) |
 
-IDs de permiso: 412-414. Regla de recompensa: la segunda compra del usuario al mismo técnico dentro de 30 días (pedido completado) emite un bono = pago real × ratio (por defecto 0.05), registrado en erik_technician_earnings (type=return_customer, status=pending) que se liquida junto con la cadena de liquidación de comisiones; idempotente por pedido, sin emisión duplicada.
+IDs de permiso: 412-414. Regla de recompensa: la segunda compra del usuario al mismo técnico dentro de 30 días (pedido completado) emite un bono = pago real × ratio (por defecto 0.05), registrado en appointment_technician_earnings (type=return_customer, status=pending) que se liquida junto con la cadena de liquidación de comisiones; idempotente por pedido, sin emisión duplicada.
 
 ### Gestión de actividades de oferta flash (Ronda 24)
 
@@ -871,7 +871,7 @@ IDs de permiso: 412-414. Regla de recompensa: la segunda compra del usuario al m
 | POST | `/admin/seckill/{id}/toggle-status` | Alta y baja |
 | GET | `/admin/seckill/{id}/orders` | Lista de pedidos flash |
 
-IDs de permiso: 407-411, 420. Vendidos = pedidos con erik_order.seckill_id; reducción de stock con bloqueo de fila, bloqueo por agotado.
+IDs de permiso: 407-411, 420. Vendidos = pedidos con appointment_order.seckill_id; reducción de stock con bloqueo de fila, bloqueo por agotado.
 
 ### Gestión de versiones de APP (Ronda 24)
 

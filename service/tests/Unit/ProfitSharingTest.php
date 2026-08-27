@@ -42,7 +42,7 @@ class ProfitSharingTest extends TestCase
         foreach ($this->userIds as $id) {
             User::where('id', $id)->forceDelete();
         }
-        Db::table('erik_system_config')->where('group', 'profit_sharing')->delete();
+        Db::table('appointment_system_config')->where('group', 'profit_sharing')->delete();
         $this->userIds  = [];
         $this->orderIds = [];
     }
@@ -81,14 +81,14 @@ class ProfitSharingTest extends TestCase
     private function setConfig(string $enabled, string $ratio): void
     {
         foreach (['enabled' => $enabled, 'receiver_ratio' => $ratio] as $key => $value) {
-            $exists = Db::table('erik_system_config')
+            $exists = Db::table('appointment_system_config')
                 ->where('group', 'profit_sharing')->where('key', $key)->exists();
             if ($exists) {
-                Db::table('erik_system_config')
+                Db::table('appointment_system_config')
                     ->where('group', 'profit_sharing')->where('key', $key)
                     ->update(['value' => $value]);
             } else {
-                Db::table('erik_system_config')->insert([
+                Db::table('appointment_system_config')->insert([
                     'id' => ProfitSharing::generateId(), 'group' => 'profit_sharing',
                     'key' => $key, 'value' => $value,
                 ]);

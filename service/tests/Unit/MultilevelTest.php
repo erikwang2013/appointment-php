@@ -59,7 +59,7 @@ class MultilevelTest extends TestCase
             User::where('id', $uid)->delete();
         }
         if ($this->configChanged) {
-            Db::table('erik_system_config')
+            Db::table('appointment_system_config')
                 ->where('group', 'referral')
                 ->where('key', 'level2_rate')
                 ->update(['value' => '0.02']);
@@ -200,7 +200,7 @@ class MultilevelTest extends TestCase
 
     #[Test] public function level2_rate_invalid_falls_back_to_default(): void
     {
-        Db::table('erik_system_config')
+        Db::table('appointment_system_config')
             ->where('group', 'referral')
             ->where('key', 'level2_rate')
             ->update(['value' => '0']);
@@ -222,7 +222,7 @@ class MultilevelTest extends TestCase
 
     #[Test] public function level2_rate_configurable(): void
     {
-        Db::table('erik_system_config')
+        Db::table('appointment_system_config')
             ->where('group', 'referral')
             ->where('key', 'level2_rate')
             ->update(['value' => '0.03']);

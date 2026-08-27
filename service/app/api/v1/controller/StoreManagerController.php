@@ -81,7 +81,7 @@ class StoreManagerController extends BaseController
 
         $verificationCount = OrderVerification::where('verified_at', '>=', $todayStart)
             ->whereIn('order_id', function ($q) use ($storeId) {
-                $q->select('id')->from('erik_order')->where('store_id', $storeId);
+                $q->select('id')->from('appointment_order')->where('store_id', $storeId);
             })
             ->count();
 
@@ -188,7 +188,7 @@ class StoreManagerController extends BaseController
 
         $startDate = date('Y-m-d', strtotime('-6 days'));
 
-        $rows = Db::table('erik_order')
+        $rows = Db::table('appointment_order')
             ->selectRaw('DATE(updated_at) AS date, COUNT(*) AS order_count, COALESCE(SUM(paid_amount), 0) AS revenue')
             ->where('store_id', $storeId)
             ->where('status', Order::STATUS_COMPLETED)

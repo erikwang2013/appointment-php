@@ -71,7 +71,7 @@ Cors → Security(31种攻击检测) → RateLimit → Auth(JWT+用户状态)
 
 ### Table Prefix
 
-Unified `erik_` prefix, configured in `config/database.php`. Models write the raw table name and the ORM adds the prefix automatically.
+Unified `appointment_` prefix, configured in `config/database.php`. Models write the raw table name and the ORM adds the prefix automatically.
 
 ### Sensitive Field Encryption
 
@@ -147,7 +147,7 @@ use Erikwang2013\WebmanScout\Searchable;
 class Service extends Model
 {
     use Searchable;
-    public function searchableAs(): string { return 'erik_services'; }
+    public function searchableAs(): string { return 'appointment_services'; }
 }
 ```
 

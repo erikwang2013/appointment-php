@@ -59,7 +59,7 @@ class TicketSatisfactionTest extends TestCase
         }
     }
 
-    /** 重建全局 Eloquent 连接（prefix 空，模型 $table 已内嵌 erik_ 前缀） */
+    /** 重建全局 Eloquent 连接（prefix 空，模型 $table 已内嵌 appointment_ 前缀） */
     private function bootEloquent(): void
     {
         $dbConfig = config('database.connections.default');

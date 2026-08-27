@@ -55,75 +55,75 @@
 
 ## 데이터베이스 핵심 테이블
 
-모든 테이블은 `erik_` 접두사, BIGINT 비자동증가 기본 키（Snowflake 생성). 민감 필드는 encryptable trait로 암복호화.
+모든 테이블은 `appointment_` 접두사, BIGINT 비자동증가 기본 키（Snowflake 생성). 민감 필드는 encryptable trait로 암복호화.
 
 ### 사용자와 신분 도메인
 
 | 테이블명 | 설명 | 핵심 필드 |
 |------|------|----------|
-| `erik_user` | 통일 사용자 테이블 | phone, password, wx_openid, wx_unionid, avatar, nickname, user_type(customer/technician), status。technician 사용자는 고객 기능도 동시 보유, 현재 활성 신분 자유 전환 가능 |
-| `erik_user_address` | 사용자 주소 | user_id, contact_name, contact_phone, province, city, district, detail, is_default |
-| `erik_technician_profile` | 기술자 프로필 | user_id, real_name, gender, id_card, id_card_front, id_card_back, avatar, rating, order_count, status(pending/approved/rejected), intro |
-| `erik_technician_schedule` | 기술자 배차 | technician_id, date, time_slots(JSON), status |
-| `erik_technician_service` | 기술자 서비스 가능 항목 | technician_id, service_id |
-| `erik_technician_earnings` | 기술자 수익 내역 | technician_id, order_id, type(commission/bonus/penalty), amount, status |
-| `erik_technician_withdrawal` | 기술자 출금 기록 | technician_id, amount, actual_amount, commission_fee, account_info, status, reviewed_at |
-| `erik_technician_attendance` | 기술자 근태 | technician_id, date, check_in_at, check_out_at, clean_photo |
-| `erik_technician_member_note` | 회원 프로필 | technician_id, user_id, content, written_at |
+| `appointment_user` | 통일 사용자 테이블 | phone, password, wx_openid, wx_unionid, avatar, nickname, user_type(customer/technician), status。technician 사용자는 고객 기능도 동시 보유, 현재 활성 신분 자유 전환 가능 |
+| `appointment_user_address` | 사용자 주소 | user_id, contact_name, contact_phone, province, city, district, detail, is_default |
+| `appointment_technician_profile` | 기술자 프로필 | user_id, real_name, gender, id_card, id_card_front, id_card_back, avatar, rating, order_count, status(pending/approved/rejected), intro |
+| `appointment_technician_schedule` | 기술자 배차 | technician_id, date, time_slots(JSON), status |
+| `appointment_technician_service` | 기술자 서비스 가능 항목 | technician_id, service_id |
+| `appointment_technician_earnings` | 기술자 수익 내역 | technician_id, order_id, type(commission/bonus/penalty), amount, status |
+| `appointment_technician_withdrawal` | 기술자 출금 기록 | technician_id, amount, actual_amount, commission_fee, account_info, status, reviewed_at |
+| `appointment_technician_attendance` | 기술자 근태 | technician_id, date, check_in_at, check_out_at, clean_photo |
+| `appointment_technician_member_note` | 회원 프로필 | technician_id, user_id, content, written_at |
 
 ### 서비스와 상품 도메인
 
 | 테이블명 | 설명 | 핵심 필드 |
 |------|------|----------|
-| `erik_service_category` | 서비스 분류 | name, icon, parent_id, sort, status |
-| `erik_service` | 서비스 항목 | category_id, name, description, cover_image, images(JSON), price, duration, sales_volume, specs(JSON), status |
-| `erik_product` | 상품 | category_id, name, cover_image, price, stock, sales_volume, type, status |
-| `erik_store` | 매장 | name, address, lat, lng, phone, business_hours(JSON), images, status |
+| `appointment_service_category` | 서비스 분류 | name, icon, parent_id, sort, status |
+| `appointment_service` | 서비스 항목 | category_id, name, description, cover_image, images(JSON), price, duration, sales_volume, specs(JSON), status |
+| `appointment_product` | 상품 | category_id, name, cover_image, price, stock, sales_volume, type, status |
+| `appointment_store` | 매장 | name, address, lat, lng, phone, business_hours(JSON), images, status |
 
 ### 주문 도메인
 
 | 테이블명 | 설명 | 핵심 필드 |
 |------|------|----------|
-| `erik_order` | 주문 메인 테이블 | order_no, user_id, technician_id, store_id, total_amount, discount_amount, paid_amount, status, service_time, cancel_reason, remark |
-| `erik_order_item` | 주문 상세 | order_id, service_id, product_id, type, name, price, quantity, spec_info |
-| `erik_order_payment` | 결제 기록 | order_id, pay_type(wechat), transaction_id, amount, status, paid_at |
-| `erik_order_refund` | 환불 기록 | order_id, payment_id, refund_no, amount, ratio, reason, status |
-| `erik_order_review` | 서비스 평가 | order_id, user_id, technician_id, rating, content, images |
-| `erik_order_verification` | 핵소 기록 | order_id, code, verified_at, verified_by, location |
+| `appointment_order` | 주문 메인 테이블 | order_no, user_id, technician_id, store_id, total_amount, discount_amount, paid_amount, status, service_time, cancel_reason, remark |
+| `appointment_order_item` | 주문 상세 | order_id, service_id, product_id, type, name, price, quantity, spec_info |
+| `appointment_order_payment` | 결제 기록 | order_id, pay_type(wechat), transaction_id, amount, status, paid_at |
+| `appointment_order_refund` | 환불 기록 | order_id, payment_id, refund_no, amount, ratio, reason, status |
+| `appointment_order_review` | 서비스 평가 | order_id, user_id, technician_id, rating, content, images |
+| `appointment_order_verification` | 핵소 기록 | order_id, code, verified_at, verified_by, location |
 
 ### 마케팅 도메인
 
 | 테이블명 | 설명 | 핵심 필드 |
 |------|------|----------|
-| `erik_coupon` | 쿠폰 정의 | name, type, amount, min_amount, total_qty, remain_qty, start_at, end_at, status |
-| `erik_user_coupon` | 사용자 쿠폰 | user_id, coupon_id, status(available/used/expired), used_at |
-| `erik_member_card` | 멤버십 카드 정의 | name, type(month/vip/times), price, duration_days, total_times, services(JSON) |
-| `erik_user_member_card` | 사용자 멤버십 카드 | user_id, card_id, start_at, end_at, total_times, used_times, status |
-| `erik_member_card_usage` | 횟수권 사용 기록 | user_card_id, order_id, service_id, used_at |
-| `erik_user_points` | 포인트 내역 | user_id, type(earn/use), points, source, order_id |
-| `erik_gift_card` | 기프트 카드 | code, type, amount_or_gift, status, used_by, used_at |
-| `erik_user_referral` | 사용자 홍보 | referrer_id, referred_user_id, reward_type, reward_amount, registered_at, first_order_at |
+| `appointment_coupon` | 쿠폰 정의 | name, type, amount, min_amount, total_qty, remain_qty, start_at, end_at, status |
+| `appointment_user_coupon` | 사용자 쿠폰 | user_id, coupon_id, status(available/used/expired), used_at |
+| `appointment_member_card` | 멤버십 카드 정의 | name, type(month/vip/times), price, duration_days, total_times, services(JSON) |
+| `appointment_user_member_card` | 사용자 멤버십 카드 | user_id, card_id, start_at, end_at, total_times, used_times, status |
+| `appointment_member_card_usage` | 횟수권 사용 기록 | user_card_id, order_id, service_id, used_at |
+| `appointment_user_points` | 포인트 내역 | user_id, type(earn/use), points, source, order_id |
+| `appointment_gift_card` | 기프트 카드 | code, type, amount_or_gift, status, used_by, used_at |
+| `appointment_user_referral` | 사용자 홍보 | referrer_id, referred_user_id, reward_type, reward_amount, registered_at, first_order_at |
 
 ### 콘텐츠와 알림 도메인
 
 | 테이블명 | 설명 | 핵심 필드 |
 |------|------|----------|
-| `erik_banner` | 캐러셀 | position, image, jump_type(url/detail/none), jump_value, sort, status |
-| `erik_announcement` | 공지 | content, status, published_at |
-| `erik_platform_agreement` | 플랫폼 약관 | type(user_agreement/privacy_policy/service_agreement), title, content, version |
-| `erik_faq` | 자주 묻는 질문 | title, content, sort |
-| `erik_feedback` | 의견 피드백 | user_id, content, images, handler_reply, status(pending/handled) |
-| `erik_moment` | 모먼트 동향 | content, images, published_at |
-| `erik_notification` | 메시지 알림 | user_id, type(order/system), title, content, is_read, created_at |
+| `appointment_banner` | 캐러셀 | position, image, jump_type(url/detail/none), jump_value, sort, status |
+| `appointment_announcement` | 공지 | content, status, published_at |
+| `appointment_platform_agreement` | 플랫폼 약관 | type(user_agreement/privacy_policy/service_agreement), title, content, version |
+| `appointment_faq` | 자주 묻는 질문 | title, content, sort |
+| `appointment_feedback` | 의견 피드백 | user_id, content, images, handler_reply, status(pending/handled) |
+| `appointment_moment` | 모먼트 동향 | content, images, published_at |
+| `appointment_notification` | 메시지 알림 | user_id, type(order/system), title, content, is_read, created_at |
 
 ### 재무 도메인（admin 측)
 
 | 테이블명 | 설명 | 핵심 필드 |
 |------|------|----------|
-| `erik_finance_transaction` | 수지 내역 | user_id, order_id, type, direction(income/expense), amount, actual_amount, commission, status |
-| `erik_technician_commission_config` | 수수료 구성 | technician_id, commission_rate, settlement_cycle |
-| `erik_withdrawal_account` | 출금 계좌 | user_id, type(wechat), account_name, account_no |
-| `erik_withdrawal_config` | 출금 제한 구성 | min_amount, reserve_amount, round_to_hundred |
+| `appointment_finance_transaction` | 수지 내역 | user_id, order_id, type, direction(income/expense), amount, actual_amount, commission, status |
+| `appointment_technician_commission_config` | 수수료 구성 | technician_id, commission_rate, settlement_cycle |
+| `appointment_withdrawal_account` | 출금 계좌 | user_id, type(wechat), account_name, account_no |
+| `appointment_withdrawal_config` | 출금 제한 구성 | min_amount, reserve_amount, round_to_hundred |
 
 ## Service API 모듈
 

@@ -15,7 +15,7 @@ use support\Model;
  */
 class WalletTxn extends Model
 {
-    protected $table = 'erik_wallet_txn';
+    protected $table = 'appointment_wallet_txn';
 
     // ── 流水类型常量 ──
     public const TYPE_RECHARGE  = 'recharge';

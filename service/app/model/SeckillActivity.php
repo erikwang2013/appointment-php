@@ -11,11 +11,11 @@ use support\Model;
  * 秒杀活动
  *
  * stock 为剩余库存：下单时行锁扣减，售罄后拦截（取消订单不回补）。
- * 已售量 = erik_order.seckill_id 订单数。
+ * 已售量 = appointment_order.seckill_id 订单数。
  */
 class SeckillActivity extends Model
 {
-    protected $table = 'erik_seckill_activity';
+    protected $table = 'appointment_seckill_activity';
     public $incrementing = false;
     protected $keyType = 'string';
     public $timestamps = true;

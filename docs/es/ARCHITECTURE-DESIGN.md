@@ -71,7 +71,7 @@ Cors → Security(detección de 31 tipos de ataques) → RateLimit → Auth(JWT+
 
 ### Prefijo de tablas
 
-Prefijo unificado `erik_`, configurado en `config/database.php`. Los modelos escriben el nombre de tabla original y el ORM añade el prefijo automáticamente.
+Prefijo unificado `appointment_`, configurado en `config/database.php`. Los modelos escriben el nombre de tabla original y el ORM añade el prefijo automáticamente.
 
 ### Cifrado de campos sensibles
 
@@ -147,7 +147,7 @@ use Erikwang2013\WebmanScout\Searchable;
 class Service extends Model
 {
     use Searchable;
-    public function searchableAs(): string { return 'erik_services'; }
+    public function searchableAs(): string { return 'appointment_services'; }
 }
 ```
 

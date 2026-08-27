@@ -352,7 +352,7 @@ stateDiagram-v2
 
     checked --> pending: 2回目消費<br/>(ボーナス=実払い×ratio<br/>同 order_id+type 冪等)
 
-    pending --> settled: 佣金決済チェーンで一括決済<br/>(erik_technician_earnings<br/>type=return_customer)
+    pending --> settled: 佣金決済チェーンで一括決済<br/>(appointment_technician_earnings<br/>type=return_customer)
 
     settled --> [*]
     none --> [*]

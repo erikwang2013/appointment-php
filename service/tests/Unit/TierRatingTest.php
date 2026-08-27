@@ -104,7 +104,7 @@ class TierRatingTest extends TestCase
             ];
             $this->orderIds[] = $id;
         }
-        Db::table('erik_order')->insert($rows);
+        Db::table('appointment_order')->insert($rows);
     }
 
     /** 造技师评价（批量 insert，参与评分均值计算） */
@@ -128,7 +128,7 @@ class TierRatingTest extends TestCase
             ];
             $this->reviewIds[] = $id;
         }
-        Db::table('erik_order_review')->insert($rows);
+        Db::table('appointment_order_review')->insert($rows);
     }
 
     private function tierBySlug(string $slug): TechnicianTierConfig

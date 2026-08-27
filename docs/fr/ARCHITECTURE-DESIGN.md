@@ -71,7 +71,7 @@ Cors → Security(31 types d'attaques) → RateLimit → Auth(JWT+état utilisat
 
 ### Préfixe de table
 
-Préfixe unifié `erik_`, configuré dans `config/database.php`. Le Model écrit le nom de table brut, l'ORM ajoute le préfixe automatiquement.
+Préfixe unifié `appointment_`, configuré dans `config/database.php`. Le Model écrit le nom de table brut, l'ORM ajoute le préfixe automatiquement.
 
 ### Chiffrement des champs sensibles
 
@@ -147,7 +147,7 @@ use Erikwang2013\WebmanScout\Searchable;
 class Service extends Model
 {
     use Searchable;
-    public function searchableAs(): string { return 'erik_services'; }
+    public function searchableAs(): string { return 'appointment_services'; }
 }
 ```
 

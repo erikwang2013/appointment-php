@@ -9,7 +9,7 @@ use support\Model;
 
 class ProfitSharing extends Model
 {
-    protected $table = 'erik_profit_sharing';
+    protected $table = 'appointment_profit_sharing';
     public $incrementing = false;
     protected $keyType = 'string';
     public $timestamps = true;

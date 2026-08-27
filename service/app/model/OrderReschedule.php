@@ -15,7 +15,7 @@ use support\Model;
  */
 class OrderReschedule extends Model
 {
-    protected $table = 'erik_order_reschedule';
+    protected $table = 'appointment_order_reschedule';
     public $incrementing = false;
     protected $keyType = 'string';
     public $timestamps = false;

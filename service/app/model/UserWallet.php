@@ -15,7 +15,7 @@ use support\Model;
  */
 class UserWallet extends Model
 {
-    protected $table = 'erik_user_wallet';
+    protected $table = 'appointment_user_wallet';
 
     protected $fillable = [
         'user_id', 'balance', 'total_recharge', 'total_consume',

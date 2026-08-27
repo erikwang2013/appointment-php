@@ -48,7 +48,7 @@ class OrderVerificationControllerTest extends TestCase
             'password'  => env('DB_PASSWORD', ''),
             'charset'   => 'utf8mb4',
             'collation' => 'utf8mb4_unicode_ci',
-            // 表前缀已内嵌在模型 $table（如 erik_order_verification），与 admin/config/database.php 一致，此处不再配置 prefix
+            // 表前缀已内嵌在模型 $table（如 appointment_order_verification），与 admin/config/database.php 一致，此处不再配置 prefix
             'prefix'    => '',
         ]);
         $capsule->setAsGlobal();

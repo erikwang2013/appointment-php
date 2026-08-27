@@ -9,7 +9,7 @@ use support\Model;
 
 class PointsExchangeGoods extends Model
 {
-    protected $table = 'erik_points_exchange_goods';
+    protected $table = 'appointment_points_exchange_goods';
     public $incrementing = false;
     protected $keyType = 'string';
     public $timestamps = true;

@@ -9,7 +9,7 @@ use support\Model;
 
 class GiftCard extends Model
 {
-    protected $table = 'erik_gift_card';
+    protected $table = 'appointment_gift_card';
     public $incrementing = false;
     protected $keyType = 'string';
     public $timestamps = true;

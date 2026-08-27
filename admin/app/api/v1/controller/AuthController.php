@@ -268,7 +268,7 @@ class AuthController
 
     /**
      * 系统是否已完成初始化（与 InstallController::isInstalled 同一判定口径）：
-     * erik_system_config 中 key='installed' value='1'，或已存在管理员账号。
+     * appointment_system_config 中 key='installed' value='1'，或已存在管理员账号。
      * 数据库不可达时按 fail-closed 处理（视为已初始化），避免公开注册接口被滥用。
      * 可通过 ADMIN_REGISTER_ENABLED=1 在安装向导阶段显式临时开启注册（默认关闭）。
      */
@@ -284,11 +284,11 @@ class AuthController
             return true; // 数据库不可达 → 拒绝开放注册
         }
         try {
-            $stmt = $pdo->query("SELECT COUNT(*) FROM `erik_system_config` WHERE `key`='installed' AND `value`='1'");
+            $stmt = $pdo->query("SELECT COUNT(*) FROM `appointment_system_config` WHERE `key`='installed' AND `value`='1'");
             if ((int) $stmt->fetchColumn() > 0) {
                 return true;
             }
-            $stmt = $pdo->query("SELECT COUNT(*) FROM `erik_admin_user`");
+            $stmt = $pdo->query("SELECT COUNT(*) FROM `appointment_admin_user`");
             return (int) $stmt->fetchColumn() > 0;
         } catch (\Throwable $e) {
             return true; // 表不存在或查询失败 → 拒绝开放注册

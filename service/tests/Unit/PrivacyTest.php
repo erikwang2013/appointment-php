@@ -34,14 +34,14 @@ class PrivacyTest extends TestCase
     protected function tearDown(): void
     {
         foreach ($this->userIds as $id) {
-            Db::table('erik_order_review')->where('user_id', $id)->delete();
-            Db::table('erik_wallet_txn')->where('user_id', $id)->delete();
-            Db::table('erik_user_points')->where('user_id', $id)->delete();
-            Db::table('erik_user_address')->where('user_id', $id)->delete();
-            Db::table('erik_invoice')->where('user_id', $id)->delete();
-            Db::table('erik_order')->where('user_id', $id)->delete();
-            Db::table('erik_ticket')->where('user_id', $id)->delete();
-            Db::table('erik_user_wallet')->where('user_id', $id)->delete();
+            Db::table('appointment_order_review')->where('user_id', $id)->delete();
+            Db::table('appointment_wallet_txn')->where('user_id', $id)->delete();
+            Db::table('appointment_user_points')->where('user_id', $id)->delete();
+            Db::table('appointment_user_address')->where('user_id', $id)->delete();
+            Db::table('appointment_invoice')->where('user_id', $id)->delete();
+            Db::table('appointment_order')->where('user_id', $id)->delete();
+            Db::table('appointment_ticket')->where('user_id', $id)->delete();
+            Db::table('appointment_user_wallet')->where('user_id', $id)->delete();
             User::where('id', $id)->forceDelete();
         }
         $this->userIds = [];
@@ -91,7 +91,7 @@ class PrivacyTest extends TestCase
 
     private function seedOrder(string $userId, string $status): void
     {
-        Db::table('erik_order')->insert([
+        Db::table('appointment_order')->insert([
             'id'              => Model::generateId(),
             'order_no'        => 'T' . Model::generateId(),
             'user_id'         => $userId,
@@ -112,29 +112,29 @@ class PrivacyTest extends TestCase
         $user = $this->makeUser();
         $this->seedOrder($user->id, Order::STATUS_COMPLETED);
 
-        Db::table('erik_user_points')->insert([
+        Db::table('appointment_user_points')->insert([
             'id' => Model::generateId(), 'user_id' => $user->id, 'type' => 'earn',
             'points' => 100, 'balance' => 100, 'source' => 'order', 'description' => '消费赠送',
             'created_at' => $this->now(), 'updated_at' => $this->now(),
         ]);
-        Db::table('erik_wallet_txn')->insert([
+        Db::table('appointment_wallet_txn')->insert([
             'id' => Model::generateId(), 'user_id' => $user->id, 'type' => 'recharge',
             'amount' => 50.00, 'balance_after' => 50.00, 'remark' => '充值',
             'created_at' => $this->now(),
         ]);
-        Db::table('erik_order_review')->insert([
+        Db::table('appointment_order_review')->insert([
             'id' => Model::generateId(), 'order_id' => Model::generateId(),
             'user_id' => $user->id, 'rating' => 5, 'content' => '服务很好',
             'status' => 1, 'created_at' => $this->now(), 'updated_at' => $this->now(),
         ]);
-        Db::table('erik_user_address')->insert([
+        Db::table('appointment_user_address')->insert([
             'id' => Model::generateId(), 'user_id' => $user->id,
             'contact_name' => '张三', 'contact_phone' => '13900000000',
             'province' => '广东省', 'city' => '深圳市', 'district' => '南山区',
             'detail' => '科技园', 'is_default' => 1,
             'created_at' => $this->now(), 'updated_at' => $this->now(),
         ]);
-        Db::table('erik_invoice')->insert([
+        Db::table('appointment_invoice')->insert([
             'id' => Model::generateId(), 'user_id' => $user->id,
             'order_id' => Model::generateId(), 'order_type' => 'service',
             'title_type' => 'personal', 'invoice_title' => '个人',
@@ -161,7 +161,7 @@ class PrivacyTest extends TestCase
     public function closeRequestRejectedWhenBalanceNotZero(): void
     {
         $user = $this->makeUser();
-        Db::table('erik_user_wallet')->insert([
+        Db::table('appointment_user_wallet')->insert([
             'id' => Model::generateId(), 'user_id' => $user->id,
             'balance' => 100.00, 'total_recharge' => 100.00, 'total_consume' => 0,
             'created_at' => $this->now(), 'updated_at' => $this->now(),
@@ -182,8 +182,8 @@ class PrivacyTest extends TestCase
         $response = $this->controller()->closeRequest($this->makeRequest('POST', $user->id));
         $this->assertSame(422, $this->body($response)['code']);
 
-        Db::table('erik_order')->where('user_id', $user->id)->delete();
-        Db::table('erik_ticket')->insert([
+        Db::table('appointment_order')->where('user_id', $user->id)->delete();
+        Db::table('appointment_ticket')->insert([
             'id' => Model::generateId(), 'user_id' => $user->id,
             'category' => '售后', 'description' => '进行中', 'status' => 'processing',
             'created_at' => $this->now(), 'updated_at' => $this->now(),

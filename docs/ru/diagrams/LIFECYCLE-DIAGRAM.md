@@ -351,7 +351,7 @@ stateDiagram-v2
 
     checked --> pending: Вторая покупка<br/>(бонус = оплаченное × ratio<br/>идемпотентность по order_id+type)
 
-    pending --> settled: Расчёт в единой цепочке комиссионных<br/>(erik_technician_earnings<br/>type=return_customer)
+    pending --> settled: Расчёт в единой цепочке комиссионных<br/>(appointment_technician_earnings<br/>type=return_customer)
 
     settled --> [*]
     none --> [*]

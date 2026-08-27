@@ -21,7 +21,7 @@ $capsule->addConnection([
     'password'  => env('DB_PASSWORD', ''),
     'charset'   => 'utf8mb4',
     'collation' => 'utf8mb4_unicode_ci',
-    'prefix'    => 'erik_',
+    'prefix'    => 'appointment_',
 ]);
 $capsule->setAsGlobal();
 $capsule->bootEloquent();

@@ -35,25 +35,25 @@ class AttendanceController extends BaseController
         $limit = min(100, max(1, (int)$request->input('limit', 15)));
 
         $query = TechnicianAttendance::query()
-            ->leftJoin('erik_technician_profile as tp', 'erik_technician_attendance.technician_id', '=', 'tp.id')
+            ->leftJoin('appointment_technician_profile as tp', 'appointment_technician_attendance.technician_id', '=', 'tp.id')
             ->select([
-                'erik_technician_attendance.id',
-                'erik_technician_attendance.technician_id',
-                'erik_technician_attendance.date',
-                'erik_technician_attendance.check_in_at',
-                'erik_technician_attendance.check_out_at',
-                'erik_technician_attendance.status',
-                'erik_technician_attendance.remark',
+                'appointment_technician_attendance.id',
+                'appointment_technician_attendance.technician_id',
+                'appointment_technician_attendance.date',
+                'appointment_technician_attendance.check_in_at',
+                'appointment_technician_attendance.check_out_at',
+                'appointment_technician_attendance.status',
+                'appointment_technician_attendance.remark',
                 'tp.real_name',
             ])
-            ->where('erik_technician_attendance.date', 'like', $date . '%');
+            ->where('appointment_technician_attendance.date', 'like', $date . '%');
         if ($name !== '') {
             $query->where('tp.real_name', 'like', "%{$name}%");
         }
 
         $total = $query->count();
-        $list = $query->orderBy('erik_technician_attendance.date', 'desc')
-            ->orderBy('erik_technician_attendance.id', 'desc')
+        $list = $query->orderBy('appointment_technician_attendance.date', 'desc')
+            ->orderBy('appointment_technician_attendance.id', 'desc')
             ->offset(($page - 1) * $limit)
             ->limit($limit)
             ->get()
@@ -79,8 +79,8 @@ class AttendanceController extends BaseController
             return $this->fail('月份格式错误，应为 YYYY-MM', 422);
         }
 
-        $rows = Db::table('erik_technician_attendance as a')
-            ->leftJoin('erik_technician_profile as tp', 'a.technician_id', '=', 'tp.id')
+        $rows = Db::table('appointment_technician_attendance as a')
+            ->leftJoin('appointment_technician_profile as tp', 'a.technician_id', '=', 'tp.id')
             ->select('a.technician_id', 'tp.real_name')
             ->selectRaw('COUNT(*) AS work_days')
             ->selectRaw('SUM(TIMESTAMPDIFF(MINUTE, a.check_in_at, a.check_out_at)) AS total_minutes')

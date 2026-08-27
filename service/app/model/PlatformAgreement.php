@@ -9,7 +9,7 @@ use support\Model;
 
 class PlatformAgreement extends Model
 {
-    protected $table = 'erik_platform_agreement';
+    protected $table = 'appointment_platform_agreement';
     public $incrementing = false;
     protected $keyType = 'string';
     public $timestamps = true;

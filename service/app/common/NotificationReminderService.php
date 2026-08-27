@@ -18,12 +18,12 @@ use support\Log;
  * 预约前提醒服务（站内通知闭环）
  *
  * 扫描「服务开始前 2 小时 ~ 1 小时」窗口内的已支付预约单，
- * 为每个订单生成一条站内通知（erik_notification，type=order，
+ * 为每个订单生成一条站内通知（appointment_notification，type=order，
  * 标题固定「预约即将开始」），并挂接可配置降级的微信订阅消息钩子
  * （未配置 WECHAT_SUBSCRIBE_* 时仅站内通知）。
  *
  * 幂等方案选 DB 查重而非 Redis key（数据一致性更强）：
- * - 已提醒标记以 erik_notification 表本身为准（order_id + type=order
+ * - 已提醒标记以 appointment_notification 表本身为准（order_id + type=order
  *   + 标题「预约即将开始」），与通知写入同库同事务，天然一致；
  * - 处理时对订单行 lockForUpdate 加锁，并发扫描（多进程/多实例）
  *   后到者重读订单行后仍走查重分支，不会重复插入；
@@ -130,7 +130,7 @@ class NotificationReminderService
     ];
 
     /**
-     * 用户是否开启某类通知（erik_user_notify_setting 开关）
+     * 用户是否开启某类通知（appointment_user_notify_setting 开关）
      *
      * 未插入行视为开启（默认开）；system 类型强制开启不可关闭。
      * 本服务内写入路径与定时进程（ServiceReminderTimer/ExpiryReminderTimer/
@@ -236,7 +236,7 @@ class NotificationReminderService
             $notificationId = Notification::generateId();
 
             // 写站内通知（与 AutoCancelTimer 同模式：Db::table 直插含 id）
-            Db::table('erik_notification')->insert([
+            Db::table('appointment_notification')->insert([
                 'id'         => $notificationId,
                 'user_id'    => $order->user_id,
                 'type'       => self::REMINDER_TYPE,
@@ -261,10 +261,10 @@ class NotificationReminderService
      * 发送链路：WechatTemplateMessageService::sendSubscribeMessage（小程序
      * subscribe/send，独立 access_token）。前置条件：
      * 1) WECHAT_SUBSCRIBE_TEMPLATE_ID/APP_ID/APP_SECRET 三件套齐全；
-     * 2) 用户 erik_user.wx_openid 非空（订阅消息按 openid 投递）；
+     * 2) 用户 appointment_user.wx_openid 非空（订阅消息按 openid 投递）；
      * 3) 用户已在小程序内订阅过该模板（未订阅微信返回 43101）。
      *
-     * 幂等：推送成功（微信 errcode=0）才写 erik_notification.push_sent_at；
+     * 幂等：推送成功（微信 errcode=0）才写 appointment_notification.push_sent_at；
      * 已写入则跳过，防止 60s 定时扫描重复推送。失败不写标记（下次扫描
      * 可重试，扫描查重上限 60s 一次，可接受）。异常不影响主流程。
      *
@@ -322,7 +322,7 @@ class NotificationReminderService
             if (($result['errcode'] ?? -1) === 0) {
                 // 推送成功才写"已推送"标记；失败不写（下次扫描可重试）
                 if ($notificationId !== '') {
-                    Db::table('erik_notification')
+                    Db::table('appointment_notification')
                         ->where('id', $notificationId)
                         ->update(['push_sent_at' => date('Y-m-d H:i:s')]);
                 }
@@ -345,7 +345,7 @@ class NotificationReminderService
      *
      * 与 sendSubscribeReminder 同一发送链路（WechatTemplateMessageService::
      * sendSubscribeMessage，独立小程序 access_token）与幂等约定：
-     * - 站内通知行（erik_notification，order_id + type + 场景标题）始终确保存在；
+     * - 站内通知行（appointment_notification，order_id + type + 场景标题）始终确保存在；
      *   缺失时补建（内容与主路径 writeRefundNotification/notifyVerified 一致），
      *   主路径已写则复用，不双写；
      * - 微信订阅消息为可配置降级：模板 env key（或 APP_ID/APP_SECRET）未配置、
@@ -429,7 +429,7 @@ class NotificationReminderService
 
             if (($result['errcode'] ?? -1) === 0) {
                 // 推送成功才写"已推送"标记；失败不写（日志可追踪，不阻塞主流程）
-                Db::table('erik_notification')
+                Db::table('appointment_notification')
                     ->where('id', $notificationId)
                     ->update(['push_sent_at' => date('Y-m-d H:i:s')]);
                 Log::info('[NotificationReminder] 订阅消息发送成功 order=' . $order->id . ' scene=' . $scene);
@@ -512,7 +512,7 @@ class NotificationReminderService
 
             if (($result['errcode'] ?? -1) === 0) {
                 // 推送成功才写"已推送"标记；失败不写（日志可追踪，不阻塞主流程）
-                Db::table('erik_notification')
+                Db::table('appointment_notification')
                     ->where('id', $notificationId)
                     ->update(['push_sent_at' => date('Y-m-d H:i:s')]);
                 Log::info('[NotificationReminder] 订阅消息发送成功 notification=' . $notificationId . ' scene=' . $scene);

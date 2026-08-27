@@ -104,7 +104,7 @@ cd ../service/ && cp .env.docker .env && docker-compose up -d
 | 계층 | 기술 | 설명 |
 |------|------|------|
 | 백엔드 프레임워크 | webman v2 (PHP 8.3+) | 고성능 상주 메모리 HTTP 서비스 |
-| 데이터베이스 | MySQL 8.0 | 테이블 접두사 `erik_` |
+| 데이터베이스 | MySQL 8.0 | 테이블 접두사 `appointment_` |
 | 캐시 | Redis | 캐시/속도 제한/Session/대기열 |
 | 검색 | Elasticsearch | 전문 검색(via webman-scout) |
 | 관리 백엔드 프런트엔드 | Flutter Web | PC 관리 백엔드 스타일 |
@@ -159,60 +159,60 @@ cd ../service/ && cp .env.docker .env && docker-compose up -d
 | 쿠폰 차감 | PriceCalculator: applyCoupon 읽기 전용 금액 계산 / consume 결제 시 used 처리 / restoreCouponAndCard 환불 멱등 반환; fixed/percent + min_amount 문턱 |
 | 선물 카드 | redeem 시 cash 타입을 지갑에 충전(행 잠금 이중 입금 방지, WalletTxn type='gift_card'), gift 타입은 표시만 |
 | 포인트 체계 | 출석체크 포인트 지급; 검증 소비 시 floor(paid×1) 포인트 지급(order_id 멱등, balance 스냅샷); 환불 시 비율대로 회수; 명세 페이징 + type/source 필터 |
-| 멤버십 관리 | erik_user.member_level 컬럼(마이그레이션 000008); 관리단말 멤버십 카드 전체 CRUD(권한 365-369) |
+| 멤버십 관리 | appointment_user.member_level 컬럼(마이그레이션 000008); 관리단말 멤버십 카드 전체 CRUD(권한 365-369) |
 | 미니프로그램 주문 체인 | 서비스 상세 → 주문 확인(쿠폰 선택/문턱 회색 처리/클라이언트 예상 금액) → POST /order → 위챗/잔액 결제; 미니프로그램 총 20개 페이지 |
 | 공동구매 클로즈드 루프 | join 중복 참여 422 + 인원 만원 잠금 + 만료 시 지연 종료; 결성 후 주문 시 store에 promotion_id 전달해 공동구매가(discount_percent)로 주문, 쿠폰/횟수권/포인트 중첩 금지, 결성 실패 시 주문 자동 취소 + 기술자 잠금 해제(기존 FLASH_SALE 프로모션 채널 폐지, 번개세일은 별도 채널) |
 | 매장장 작업대 | service /api/store-manager 4개 API(overview/orders/technicians/revenue) store_id 강제 격리(매장 없음 403); admin 매장 작업대 개요 + 주문 store_id 필터 + Flutter 페이지 + 권한 372 |
 | 유통 수수료 | 추천인의 첫 주문 completed 후 paid_amount × reward_rate(시스템 설정, 기본 0.05)를 추천인 지갑에 수수료 입금(WalletTxn referral_reward); 행 잠금+빈값 확인+첫 주문 재검증 3중 멱등; earnings 명세 + admin 기록 조회(권한 379) |
 | 포인트 교환 몰 | 교환 상품/교환 기록 2개 테이블; 교환 API Redis NX + 행 잠금 초과 교환 방지 + uk_user_goods 동일 사용자 1회 제한; coupon 발권 / wallet 입금 / gift_card 카드 키 3가지 결과; admin CRUD + 상/하품 + 기록(권한 373-378) |
-| 예약 일정 변경 | POST /api/order/reschedule/{id} 동일 기술자 시간 변경; pending/paid/confirmed 상태이며 원래 서비스 시작까지 ≥6h일 때만 가능; order_lock + 새 시간대 기술자 잠금 SETNX(180s) 동시성 초과 판매 방지 + B2 스케줄 충돌 검증; erik_order_reschedule + SCENE_RESCHEDULE 구독 메시지 기록 |
+| 예약 일정 변경 | POST /api/order/reschedule/{id} 동일 기술자 시간 변경; pending/paid/confirmed 상태이며 원래 서비스 시작까지 ≥6h일 때만 가능; order_lock + 새 시간대 기술자 잠금 SETNX(180s) 동시성 초과 판매 방지 + B2 스케줄 충돌 검증; appointment_order_reschedule + SCENE_RESCHEDULE 구독 메시지 기록 |
 | 쿠폰 양도 | 8자리 고유 양도 코드(uk_code 폴백, 7일 유효); claim 남용 방지: Redis NX 잠금 + 행 잠금 재검증 이중 사용 방지, uk_user_coupon 양도 1회 제한, 양도받은 쿠폰 재양도 불가, 자기 자신 수령 불가; 지연 만료 시 원래 쿠폰 복원 |
 | 포인트 만료 | expires_at(기본 365일, points.expiry_days 설정); PointsExpiryTimer 60초 커서 스캔으로 type=expire 음수 차감(3중 멱등) + 집계 사이트 내 알림; 만료 포인트는 현금 전환/교환 불가 |
-| 기술자 등급 자동 평가 | TierRatingService 실시간 주문량+평균 평점 집계 후 profile에 기록, tier_config에 따라 높은 등급부터 매칭; 승급만 지원(allowDowngrade는 수동 재평가용); 변경 시 erik_technician_tier_log + 사이트 내 알림; admin 로그 조회(권한 380) |
+| 기술자 등급 자동 평가 | TierRatingService 실시간 주문량+평균 평점 집계 후 profile에 기록, tier_config에 따라 높은 등급부터 매칭; 승급만 지원(allowDowngrade는 수동 재평가용); 변경 시 appointment_technician_tier_log + 사이트 내 알림; admin 로그 조회(권한 380) |
 | 번개세일 주문 클로즈드 루프 | /api/seckill 행사 + buy 멱등/동시성 방지, 주문 시 seckill_id 주입해 store() 재사용, 재고는 트랜잭션 내 행 잠금으로 일괄 차감(번개세일가 = seckill_price DB 기준), 매진 시 422 "품절", 취소 시 재고 미복원; 기존 promotion flash_sale 채널 폐지 |
 | 서비스 시작 전 알림 | ServiceReminderTimer 60초 스캔으로 1시간 내 시작되는 confirmed/serving 주문 → SCENE_REMINDER 구독 메시지 + 사이트 내 알림(order_id+type 중복 방지, 3중 멱등); 템플릿 미설정 시 사이트 내 알림으로 자동 대체 |
 | 만료 알림 | ExpiryReminderTimer 6시간 스캔으로 3일 내 만료되는 멤버십 카드/쿠폰 → type=card_expiry/coupon_expiry + SCENE_EXPIRY 구독 메시지(order_id로 출처 기록, 중복 방지) |
-| 기술자 평가 답글 | POST /api/technician/review/reply/{order_id}: 본인 아님 404, 중복 답글 422, 답글 성공 시 사이트 내 알림; erik_order_review에 replied_at 추가; admin 답글 상세(권한 381) |
+| 기술자 평가 답글 | POST /api/technician/review/reply/{order_id}: 본인 아님 404, 중복 답글 422, 답글 성공 시 사이트 내 알림; appointment_order_review에 replied_at 추가; admin 답글 상세(권한 381) |
 | 충전 입금 알림 | 위챗 충전 콜백 트랜잭션 내 사이트 내 알림 type='wallet_recharge' 작성(콜백 멱등 재사용, 동일 트랜잭션 원자 커밋, 실패해도 메인 흐름 차단 안 함) |
 | 잔액 이체 | POST /api/wallet/transfer 사용자 간 이체: 건당 0.01-1000 + 일일 5000 한도; Redis NX 잠금 + 양쪽 지갑 행 잠금(user_id 오름차순 데드락 방지) + client_token 24시간 멱등; WalletTxn transfer_out/transfer_in 이중 거래 내역에 balance_after 스냅샷 포함; 수신자 사이트 내 알림 type='balance_received' |
 | 포인트 양도 | POST /api/user/points/transfer 사용자 간 양도: 1-10000 포인트 + 일일 누적 10000 한도; Redis NX 잠금 + 양쪽 마지막 거래 내역 lockForUpdate(오름차순 데드락 방지) + 잠금 내 재검증; 송신자 consume/수신자 earn 이중 거래 내역(수신에는 expires_at 포함, 정상 만료 가능); 수신자 사이트 내 알림 type='points_received' |
-| 평가 추평 | POST /api/order/review/{order_id}/append: 본인 아님 404/중복 422/빈 내용 422/비-completed 422, 성공 시 기술자 사이트 내 알림 type='review_append'; erik_order_review에 append_content/append_images(JSON)/append_at 추가; 회원 평가 제출 라우트 등록(기존 store 라우트 없음) 및 잠복 TypeError 수정 |
+| 평가 추평 | POST /api/order/review/{order_id}/append: 본인 아님 404/중복 422/빈 내용 422/비-completed 422, 성공 시 기술자 사이트 내 알림 type='review_append'; appointment_order_review에 append_content/append_images(JSON)/append_at 추가; 회원 평가 제출 라우트 등록(기존 store 라우트 없음) 및 잠복 TypeError 수정 |
 | 사용자 물류 추적 | GET /api/order/logistics/{id}: 본인 product 주문만(아님 404/상품 아님/발송 안 함); order.remark JSON 파싱(shipping_company/tracking_no/shipped_at, admin 발송 시 기록); 수령인 휴대폰번호 마스킹 138****5678 |
-| 알림 수신 설정 | erik_user_notify_setting 테이블(uk_user_type 고유 키, 기본 행 없음 = 기본 켜짐); GET/PUT /api/user/notify-settings; 5개 스위치 service_reminder/card_expiry/points_expiry/marketing/system(system은 항상 켜짐, 끌 수 없음); notifySettingEnabled로 3개 타이머 + 구독 이벤트 게이트, 끄면 사이트 내 알림과 구독 메시지를 모두 건너뜀 |
-| 예약 월력 | GET /api/calendar/technician/{id}(월 보기) + /day(일 보기): time_slots JSON으로 시간 슬롯 전개, erik_order의 예약된 시간대 제외; 매장 스케줄을 시각적으로 선택 |
-| 사용자 성장 등급 | erik_user_growth + erik_growth_level(브론즈0/실버100/골드500/플래티넘2000/다이아5000); 출석 +10, 평가 +20, 소비 1원당 1포인트(기존 상태 재검증 재사용, 자연 멱등); GET /api/growth(개요/records/levels 공개 등급) |
+| 알림 수신 설정 | appointment_user_notify_setting 테이블(uk_user_type 고유 키, 기본 행 없음 = 기본 켜짐); GET/PUT /api/user/notify-settings; 5개 스위치 service_reminder/card_expiry/points_expiry/marketing/system(system은 항상 켜짐, 끌 수 없음); notifySettingEnabled로 3개 타이머 + 구독 이벤트 게이트, 끄면 사이트 내 알림과 구독 메시지를 모두 건너뜀 |
+| 예약 월력 | GET /api/calendar/technician/{id}(월 보기) + /day(일 보기): time_slots JSON으로 시간 슬롯 전개, appointment_order의 예약된 시간대 제외; 매장 스케줄을 시각적으로 선택 |
+| 사용자 성장 등급 | appointment_user_growth + appointment_growth_level(브론즈0/실버100/골드500/플래티넘2000/다이아5000); 출석 +10, 평가 +20, 소비 1원당 1포인트(기존 상태 재검증 재사용, 자연 멱등); GET /api/growth(개요/records/levels 공개 등급) |
 | 전자 세금계산서 | POST/GET /api/invoices(신청/목록/상세): uk_order_type(order_id,order_type) 중복 신청 방지, 금액은 서버에서 산출; admin 발행/반려(권한 382-384) |
 | 고객센터 티켓 | POST/GET /api/tickets + /{id}/close: 사용자 제출/목록/상세/종료; admin 답변(권한 385/387) |
 | 다단계 유통-2단계 수수료 | 주문 결제 후 1단계 추천인의 추천인에게 paid×level2_rate(설정 0.02) 지급: 트랜잭션 행 잠금 + uk_order_referred 멱등 중복 지급 방지; WalletTxn TYPE_REFERRAL_LEVEL2; admin 기록 조회(권한 386) |
 | 성장 등급 혜택 | GrowthLevel.benefits 실체화: 주문 시 등급 discount_rate 할인(일반 주문만, 쿠폰/횟수권→등급 할인 중첩, 할인액은 discount_amount + 메모에 기록, 하한 보호로 0 절사); 결제 콜백 성장값 floor(paid×points_multiplier) 배율 입금(결제 시점 등급 기준, 등급 올리지 않음) |
-| 세금계산서 발행자 관리 | erik_invoice_title 자주 쓰는 발행자 라이브러리: 저장/수정/삭제/기본 설정(첫 항목 자동 기본, 기본 삭제 시 자동 이전, 기본 설정 트랜잭션 초기화); 신청 시 title_id 선택 반영, 수동 입력 호환 유지 |
+| 세금계산서 발행자 관리 | appointment_invoice_title 자주 쓰는 발행자 라이브러리: 저장/수정/삭제/기본 설정(첫 항목 자동 기본, 기본 삭제 시 자동 이전, 기본 설정 트랜잭션 초기화); 신청 시 title_id 선택 반영, 수동 입력 호환 유지 |
 | 티켓 만족도 | 종료 티켓 1-5점 평가(범위 초과 422, 미제공 시 NULL 호환); admin 만족도 집계: 평균/1-5성 분포/평가·미평가 카운트(권한 388) |
 | 평가 이미지 심사 | admin ReviewAuditController: 이미지 포함 평가 목록(JSON_LENGTH 필터 + 사용자/기술자 이름 join), 숨김/복원(hide는 visible만, restore는 hidden만, 422 양방향 검증); 숨긴 후 기술자 평가 목록에서 자동 비노출(권한 389-391) |
-| 조회 이력 | erik_browse_history(uk_user_item 중복 조회는 viewed_at만 갱신): 서비스 상세 연결 기록(try/catch로 메인 흐름 차단 안 함, 비로그인 스킵); 목록 서비스 정보 join + hashid; 단건 삭제/전체 삭제는 본인만 |
+| 조회 이력 | appointment_browse_history(uk_user_item 중복 조회는 viewed_at만 갱신): 서비스 상세 연결 기록(try/catch로 메인 흐름 차단 안 함, 비로그인 스킵); 목록 서비스 정보 join + hashid; 단건 삭제/전체 삭제는 본인만 |
 
 > 8차 라운드 운영성 수정: Poster::verify 잠복 fatal 12곳 제거; DashboardController 통계를 Capsule Manager 쿼리로 변경.
 >
 > Round-15 보충: 포인트 회수(취소/환불 시 points_offset 포인트 반환, refundOffsetPoints 5개 연결점 멱등); PromotionParticipant 상태를 정수 상수로 변경(엄격 모드에서 join 1366 손상 수정).
 >
-> Round-16 보충: 포인트 교환(PointsExchangeController, 타입 consume/source=exchange); 공동구매 주문(erik_order에 promotion_id/participant_id 컬럼 추가); 유통 수수료(ReferralRewardService를 WorkController::complete에 연결).
+> Round-16 보충: 포인트 교환(PointsExchangeController, 타입 consume/source=exchange); 공동구매 주문(appointment_order에 promotion_id/participant_id 컬럼 추가); 유통 수수료(ReferralRewardService를 WorkController::complete에 연결).
 >
-> Round-17 보충: 예약 일정 변경(erik_order_reschedule + reschedule API); 쿠폰 양도(erik_user_coupon_transfer + transfer/claim/transfers); 포인트 만료(expires_at + PointsExpiryTimer 프로세스); 기술자 등급 자동 평가(TierRatingService + erik_technician_tier_log, 권한 380).
+> Round-17 보충: 예약 일정 변경(appointment_order_reschedule + reschedule API); 쿠폰 양도(appointment_user_coupon_transfer + transfer/claim/transfers); 포인트 만료(expires_at + PointsExpiryTimer 프로세스); 기술자 등급 자동 평가(TierRatingService + appointment_technician_tier_log, 권한 380).
 >
 > Round-17 수정: AutoCancelTimer 알림 삽입을 \support\Model::generateId()로 변경(기존에는 존재하지 않는 Snowflake::generate() 호출로 자동 취소 알림이 조용히 실패).
 >
 > Round-18 보충: 번개세일 주문(store()가 flash_sale 번개세일가 지원); 서비스 시작 전 알림(ServiceReminderTimer + SCENE_REMINDER); 멤버십 카드/쿠폰 만료 알림(ExpiryReminderTimer + SCENE_EXPIRY); 기술자 평가 답글(review reply API + replied_at 컬럼 + 권한 381); 충전 입금 알림(콜백 트랜잭션 내 type='wallet_recharge').
 >
-> Round-19 보충: 잔액 이체(erik_wallet_transfer + WalletTransferController, 권한 내 이중 행 잠금 + client_token 멱등); 포인트 양도(erik_user_points_transfer + PointsTransferController, 일일 한도 + 양방향 거래 내역); 평가 추평(erik_order_review append 3컬럼 + append API + store 라우트 등록); 사용자 물류 추적(logistics API + remark JSON 파싱 + 휴대폰번호 마스킹); 알림 수신 설정(erik_user_notify_setting + NotifySettingController + 3개 타이머 게이트).
+> Round-19 보충: 잔액 이체(appointment_wallet_transfer + WalletTransferController, 권한 내 이중 행 잠금 + client_token 멱등); 포인트 양도(appointment_user_points_transfer + PointsTransferController, 일일 한도 + 양방향 거래 내역); 평가 추평(appointment_order_review append 3컬럼 + append API + store 라우트 등록); 사용자 물류 추적(logistics API + remark JSON 파싱 + 휴대폰번호 마스킹); 알림 수신 설정(appointment_user_notify_setting + NotifySettingController + 3개 타이머 게이트).
 >
-> Round-20 보충: 예약 월력(CalendarController 월/일 보기 + 예약 제외); 사용자 성장 등급(erik_user_growth + erik_growth_level 5등급 + 출석/평가/소비 연결); 전자 세금계산서(erik_invoice + uk_order_type 중복 방지 + 백엔드 발행/반려, 권한 382-384); 고객센터 티켓(erik_ticket 제출/목록/상세/종료 + 백엔드 답변, 권한 385/387); 다단계 유통-2단계 수수료(payLevel2Reward 트랜잭션 행 잠금 + uk_order_referred 멱등, 권한 386).
+> Round-20 보충: 예약 월력(CalendarController 월/일 보기 + 예약 제외); 사용자 성장 등급(appointment_user_growth + appointment_growth_level 5등급 + 출석/평가/소비 연결); 전자 세금계산서(appointment_invoice + uk_order_type 중복 방지 + 백엔드 발행/반려, 권한 382-384); 고객센터 티켓(appointment_ticket 제출/목록/상세/종료 + 백엔드 답변, 권한 385/387); 다단계 유통-2단계 수수료(payLevel2Reward 트랜잭션 행 잠금 + uk_order_referred 멱등, 권한 386).
 >
-> Round-21 보충: 성장 등급 혜택 실체화(주문 discount_rate 할인 + 결제 points_multiplier 포인트 배율, 마이그레이션 시드 5등급 benefits); 세금계산서 발행자 관리(erik_invoice_title 발행자 라이브러리 + 신청 title_id 연동); 티켓 만족도(종료 평가 rating/rated_at + admin 집계 통계, 권한 388); 평가 이미지 심사(ReviewAuditController 숨김/복원, 권한 389-391); 사용자 조회 이력(erik_browse_history + 상세 연결 + 목록/삭제/전체 삭제).
+> Round-21 보충: 성장 등급 혜택 실체화(주문 discount_rate 할인 + 결제 points_multiplier 포인트 배율, 마이그레이션 시드 5등급 benefits); 세금계산서 발행자 관리(appointment_invoice_title 발행자 라이브러리 + 신청 title_id 연동); 티켓 만족도(종료 평가 rating/rated_at + admin 집계 통계, 권한 388); 평가 이미지 심사(ReviewAuditController 숨김/복원, 권한 389-391); 사용자 조회 이력(appointment_browse_history + 상세 연결 + 목록/삭제/전체 삭제).
 >
-> Round-22 보충: 만 N 원 할인 행사(erik_full_reduction 자동 할인 + 문턱 검증, 권한 396-400); ICS 캘린더 내보내기(RFC5545 내 예약); 기술자 체크인 근태(erik_technician_attendance 출퇴근 체크인 + 지각 표시 + admin 통계, 권한 392-393); APP 푸시 서비스(설정 기반 추상화 + 5곳 이벤트 연결, erik_push_log); 위챗 공식 분배금(erik_profit_sharing_log 설정 기반 + 대체, 권한 394); 개인정보 컴플라이언스(데이터 내보내기 + 계정 탈퇴 72h 상태 머신 close_status).
+> Round-22 보충: 만 N 원 할인 행사(appointment_full_reduction 자동 할인 + 문턱 검증, 권한 396-400); ICS 캘린더 내보내기(RFC5545 내 예약); 기술자 체크인 근태(appointment_technician_attendance 출퇴근 체크인 + 지각 표시 + admin 통계, 권한 392-393); APP 푸시 서비스(설정 기반 추상화 + 5곳 이벤트 연결, appointment_push_log); 위챗 공식 분배금(appointment_profit_sharing_log 설정 기반 + 대체, 권한 394); 개인정보 컴플라이언스(데이터 내보내기 + 계정 탈퇴 72h 상태 머신 close_status).
 >
-> Round-23 보충: 사용자 건강 프로필(erik_user_health_profile); 지갑 결제 비밀번호(erik_user_wallet pay_password 설정/검증); 기술자 일괄 스케줄(batch 가져오기 + 중복 충돌 탐지); 주문 상태 타임라인(erik_order_status_log 8개 상태 로그 + 사용자단말/백엔드 표시); 포인트 행운의 룰렛(erik_lucky_wheel + erik_wheel_record 가중치 추첨, 권한 401-406); 포인트 유효기간(points.expiry_days 설정 + 신규 earn 거래 내역에 expires_at 포함).
+> Round-23 보충: 사용자 건강 프로필(appointment_user_health_profile); 지갑 결제 비밀번호(appointment_user_wallet pay_password 설정/검증); 기술자 일괄 스케줄(batch 가져오기 + 중복 충돌 탐지); 주문 상태 타임라인(appointment_order_status_log 8개 상태 로그 + 사용자단말/백엔드 표시); 포인트 행운의 룰렛(appointment_lucky_wheel + appointment_wheel_record 가중치 추첨, 권한 401-406); 포인트 유효기간(points.expiry_days 설정 + 신규 earn 거래 내역에 expires_at 포함).
 >
-> Round-24 보충: 게스트 모드(/api/guest/* 비로그인 읽기 전용 조회 + Redis 캐시); 번개세일(erik_seckill_activity + Redis NX 행 잠금 선착 + erik_order.seckill_id 주입 주문, 권한 407-411/420); APP 버전 관리와 업데이트 탐지(erik_app_version + /api/app/version, 권한 416-419); 재방문 고객 보상(30일 내 2차 소비 보너스 type=return_customer, 권한 412-414); 스케줄 CSV 내보내기(UTF-8 BOM + 시간 슬롯 명세, 권한 415).
+> Round-24 보충: 게스트 모드(/api/guest/* 비로그인 읽기 전용 조회 + Redis 캐시); 번개세일(appointment_seckill_activity + Redis NX 행 잠금 선착 + appointment_order.seckill_id 주입 주문, 권한 407-411/420); APP 버전 관리와 업데이트 탐지(appointment_app_version + /api/app/version, 권한 416-419); 재방문 고객 보상(30일 내 2차 소비 보너스 type=return_customer, 권한 412-414); 스케줄 CSV 내보내기(UTF-8 BOM + 시간 슬롯 명세, 권한 415).
 >
 > 2026-08-26 보안 강화: 주문 API의 주문 항목 가격은 모두 데이터베이스 기록 기준(클라이언트 가격 신뢰 불가, 알 수 없는 target_type 422, target_id는 hashid 필수), 공동구매/번개세일가도 DB 기준; 번개세일 재고는 /api/order store() 트랜잭션 내 행 잠금으로 일괄 차감(SeckillController::buy가 선차감하지 않고, Redis 활동 잠금 + client_token 멱등 유지); 기술자 출금 신청 시 진행 중 예약, 승인 이체 전 재확인, 동시 승인 이중 출금 방지; 위챗페이 콜백 total_fee와 주문 결제 금액 엄격 비교, 알리페이 콜백 로그 마스킹; /install 설치 성공 시 .install.lock 이중 검증으로 재설치 방지; 의존성 버전 수렴(webman-scout 2.0.5 / opensearch-php ^2.6 / dompdf, security-php, webman-database 정밀 고정); 두 앱 phpstan.neon 수리 완료(php -d memory_limit=2G 실행 가능).
 

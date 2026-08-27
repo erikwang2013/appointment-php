@@ -42,7 +42,7 @@ class CommonController extends BaseController
         }
 
         // 获取系统配置中的关于信息
-        $aboutConfig = Db::table('erik_system_config')
+        $aboutConfig = Db::table('appointment_system_config')
             ->whereIn('key', ['about_us', 'contact_phone', 'app_version'])
             ->pluck('value', 'key')
             ->toArray();
@@ -67,7 +67,7 @@ class CommonController extends BaseController
     public function area(Request $request)
     {
         // 从系统配置获取区域数据
-        $areaConfig = Db::table('erik_system_config')
+        $areaConfig = Db::table('appointment_system_config')
             ->where('key', 'area_list')
             ->value('value');
 

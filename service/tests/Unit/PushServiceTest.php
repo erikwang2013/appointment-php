@@ -15,7 +15,7 @@ use support\Db;
  * APP 推送服务测试（真实 DB + tearDown 清理）
  *
  * 覆盖：
- * - 未启用（push.enabled=0）返回 false 且不写 erik_push_log
+ * - 未启用（push.enabled=0）返回 false 且不写 appointment_push_log
  * - 启用后写 status=sent 记录且 payload 结构正确（含 provider）
  * - isEnabled 跟随配置开关变化
  * - 异常场景（超大 payload 触发落库异常）不抛出
@@ -33,7 +33,7 @@ class PushServiceTest extends TestCase
         foreach ($this->userIds as $id) {
             PushLog::where('user_id', $id)->delete();
         }
-        Db::table('erik_system_config')->where('group', self::CONFIG_GROUP)->delete();
+        Db::table('appointment_system_config')->where('group', self::CONFIG_GROUP)->delete();
         $this->userIds = [];
     }
 
@@ -49,7 +49,7 @@ class PushServiceTest extends TestCase
     private function setConfig(string $key, string $value): void
     {
         $ids = ['enabled' => 91000000000000025, 'provider' => 91000000000000026];
-        Db::table('erik_system_config')->upsert(
+        Db::table('appointment_system_config')->upsert(
             [[
                 'id'          => $ids[$key],
                 'group'       => self::CONFIG_GROUP,

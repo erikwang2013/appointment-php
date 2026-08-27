@@ -159,7 +159,7 @@ Kunci placeholder di `.env.docker` harus diganti dengan nilai acak sebelum deplo
 
 | Item | Isi perbaikan |
 |----|---------|
-| Anti-manipulasi pemesanan | Harga item pesanan OrderController::store() selalu mengacu catatan database (service→erik_service、product→erik_product), harga klien tidak ikut dihitung; target_type tidak dikenal 422; target_id wajib hashid (raw id terdekode 0 → 422「Produk tidak ada atau sudah tidak aktif」); harga belanja bersama/flash sale sama mengacu DB |
+| Anti-manipulasi pemesanan | Harga item pesanan OrderController::store() selalu mengacu catatan database (service→appointment_service、product→appointment_product), harga klien tidak ikut dihitung; target_type tidak dikenal 422; target_id wajib hashid (raw id terdekode 0 → 422「Produk tidak ada atau sudah tidak aktif」); harga belanja bersama/flash sale sama mengacu DB |
 | Pengurangan stok flash sale terpadu | Stok seragam dikurangi dengan row lock di dalam transaksi /api/order store(); SeckillController::buy tidak lagi mengurangi stok di muka (tetap mempertahankan kunci aktivitas Redis + idempotensi client_token); langsung memanggil /api/order dengan seckill_id juga mengurangi stok |
 | Penarikan dana teknisi | Saldo dipotong dan diarsipkan sebagai dana dalam perjalanan (pending/approved) saat pengajuan; tinjauan ulang sebelum persetujuan transfer: settled−withdrawn−dalam perjalanan ≥ jumlah penarikan; persetujuan bersamaan tidak akan membayar ganda |
 | Callback pembayaran | total_fee callback WeChat diperiksa ketat dengan jumlah pembayaran pesanan, tidak cocok ditolak; log callback Alipay di-redaksi (tidak memuat buyer_id/seller_id, dll.) |

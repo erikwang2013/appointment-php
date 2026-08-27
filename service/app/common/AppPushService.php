@@ -12,13 +12,13 @@ use support\Log;
 /**
  * APP 推送服务（厂商占位层，配置驱动）
  *
- * 系统通知链：站内通知（erik_notification）+ 微信订阅消息（SCENE_*）+ APP 推送（本服务）。
- * 本服务对接极光（jpush）/ 个推（getui）/ UniPush 等厂商，配置读 erik_system_config
+ * 系统通知链：站内通知（appointment_notification）+ 微信订阅消息（SCENE_*）+ APP 推送（本服务）。
+ * 本服务对接极光（jpush）/ 个推（getui）/ UniPush 等厂商，配置读 appointment_system_config
  * group=push：
  * - push.enabled：总开关，0=关闭（pushToUser 静默降级返回 false 仅记日志），1=启用；
  * - push.provider：厂商标识（jpush/getui/placeholder），空表示未配置凭据。
  *
- * 无凭据时（本环境）仅构造推送请求结构并写 erik_push_log 便于排查，
+ * 无凭据时（本环境）仅构造推送请求结构并写 appointment_push_log 便于排查，
  * 不实际调用厂商 SDK——真实对接在 pushToUser 的 TODO 处按 provider 分发。
  * 调用方约定：try/catch 包裹本服务调用，失败仅记日志，绝不影响主流程。
  */
@@ -49,7 +49,7 @@ class AppPushService
      *
      * 未启用（push.enabled != 1）→ 记降级日志返回 false，不写记录；
      * 启用 → 构造推送请求结构（平台/标题/内容/自定义字段）记日志、写
-     * erik_push_log 并返回 true。
+     * appointment_push_log 并返回 true。
      * status 语义：有厂商凭据（provider 非空且非 placeholder）→ sent（已发送）；
      * 凭据缺失占位 → skipped（仅构造与记录，未实际发送）。
      *
@@ -116,7 +116,7 @@ class AppPushService
      */
     private static function config(): array
     {
-        return Db::table('erik_system_config')
+        return Db::table('appointment_system_config')
             ->where('group', self::CONFIG_GROUP)
             ->pluck('value', 'key')
             ->toArray();

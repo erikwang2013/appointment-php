@@ -10,7 +10,7 @@ use support\Model;
 
 class UserAddress extends Model
 {
-    protected $table = 'erik_user_address';
+    protected $table = 'appointment_user_address';
     public $incrementing = false;
     protected $keyType = 'string';
     public $timestamps = true;

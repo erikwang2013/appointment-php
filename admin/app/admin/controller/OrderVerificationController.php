@@ -15,8 +15,8 @@ use support\Response;
  * 核销记录管理
  *
  * 只读列表 + 详情：按订单号 / 技师 / 核销方式 / 核销日期筛选。
- * 核销码 64 位随机串（erik_order_verification.code，UK），核销时校验；
- * verified_by 为核销技师 user_id，核销人归属的订单技师以 erik_order.technician_id 为准。
+ * 核销码 64 位随机串（appointment_order_verification.code，UK），核销时校验；
+ * verified_by 为核销技师 user_id，核销人归属的订单技师以 appointment_order.technician_id 为准。
  */
 class OrderVerificationController extends BaseController
 {

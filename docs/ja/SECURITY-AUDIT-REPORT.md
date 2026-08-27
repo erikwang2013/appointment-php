@@ -157,7 +157,7 @@
 
 | 項 | 修正内容 |
 |----|---------|
-| 注文改ざん防止 | OrderController::store() の注文項目価格は一律データベース記録に従う（service→erik_service、product→erik_product）、クライアント価格は計算に参加しない；不明な target_type 422；target_id は hashid 必須（raw id は 0 にデコード → 422「商品不存在或已下架」）；拼团/秒殺価格も同様に DB 基準 |
+| 注文改ざん防止 | OrderController::store() の注文項目価格は一律データベース記録に従う（service→appointment_service、product→appointment_product）、クライアント価格は計算に参加しない；不明な target_type 422；target_id は hashid 必須（raw id は 0 にデコード → 422「商品不存在或已下架」）；拼团/秒殺価格も同様に DB 基準 |
 | 秒殺在庫の引き落とし統一 | 在庫は統一して /api/order store() トランザクション内の行ロックで引き落とし；SeckillController::buy は在庫を事前引き落とししない（Redis 活動ロック + client_token 冪等を保持）；/api/order に直接 seckill_id を渡しても同様に在庫を引き落とす |
 | スタッフ出金 | 申請時に残高から在途（pending/approved）分を差し引いて予約；審査・振込前に settled−withdrawn−在途 ≥ 出金額を再検証；並行審査でも二重入金なし |
 | 支払いコールバック | 微信コールバックの total_fee と注文支払額を厳密に比較、不一致は拒否；支付宝コールバックのログはマスキング（buyer_id/seller_id などを含めない） |

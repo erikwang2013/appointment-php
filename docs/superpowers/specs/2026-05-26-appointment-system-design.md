@@ -55,75 +55,75 @@
 
 ## 数据库核心表
 
-所有表使用 `erik_` 前缀，BIGINT 非自增主键（Snowflake生成）。敏感字段使用 encryptable trait 加解密。
+所有表使用 `appointment_` 前缀，BIGINT 非自增主键（Snowflake生成）。敏感字段使用 encryptable trait 加解密。
 
 ### 用户与身份域
 
 | 表名 | 说明 | 核心字段 |
 |------|------|----------|
-| `erik_user` | 统一用户表 | phone, password, wx_openid, wx_unionid, avatar, nickname, user_type(customer/technician), status。technician用户同时拥有客户功能，可自由切换当前活跃身份 |
-| `erik_user_address` | 用户地址 | user_id, contact_name, contact_phone, province, city, district, detail, is_default |
-| `erik_technician_profile` | 技师档案 | user_id, real_name, gender, id_card, id_card_front, id_card_back, avatar, rating, order_count, status(pending/approved/rejected), intro |
-| `erik_technician_schedule` | 技师排班 | technician_id, date, time_slots(JSON), status |
-| `erik_technician_service` | 技师可服务项目 | technician_id, service_id |
-| `erik_technician_earnings` | 技师收益流水 | technician_id, order_id, type(commission/bonus/penalty), amount, status |
-| `erik_technician_withdrawal` | 技师提现记录 | technician_id, amount, actual_amount, commission_fee, account_info, status, reviewed_at |
-| `erik_technician_attendance` | 技师考勤 | technician_id, date, check_in_at, check_out_at, clean_photo |
-| `erik_technician_member_note` | 会员档案 | technician_id, user_id, content, written_at |
+| `appointment_user` | 统一用户表 | phone, password, wx_openid, wx_unionid, avatar, nickname, user_type(customer/technician), status。technician用户同时拥有客户功能，可自由切换当前活跃身份 |
+| `appointment_user_address` | 用户地址 | user_id, contact_name, contact_phone, province, city, district, detail, is_default |
+| `appointment_technician_profile` | 技师档案 | user_id, real_name, gender, id_card, id_card_front, id_card_back, avatar, rating, order_count, status(pending/approved/rejected), intro |
+| `appointment_technician_schedule` | 技师排班 | technician_id, date, time_slots(JSON), status |
+| `appointment_technician_service` | 技师可服务项目 | technician_id, service_id |
+| `appointment_technician_earnings` | 技师收益流水 | technician_id, order_id, type(commission/bonus/penalty), amount, status |
+| `appointment_technician_withdrawal` | 技师提现记录 | technician_id, amount, actual_amount, commission_fee, account_info, status, reviewed_at |
+| `appointment_technician_attendance` | 技师考勤 | technician_id, date, check_in_at, check_out_at, clean_photo |
+| `appointment_technician_member_note` | 会员档案 | technician_id, user_id, content, written_at |
 
 ### 服务与产品域
 
 | 表名 | 说明 | 核心字段 |
 |------|------|----------|
-| `erik_service_category` | 服务分类 | name, icon, parent_id, sort, status |
-| `erik_service` | 服务项目 | category_id, name, description, cover_image, images(JSON), price, duration, sales_volume, specs(JSON), status |
-| `erik_product` | 产品 | category_id, name, cover_image, price, stock, sales_volume, type, status |
-| `erik_store` | 门店 | name, address, lat, lng, phone, business_hours(JSON), images, status |
+| `appointment_service_category` | 服务分类 | name, icon, parent_id, sort, status |
+| `appointment_service` | 服务项目 | category_id, name, description, cover_image, images(JSON), price, duration, sales_volume, specs(JSON), status |
+| `appointment_product` | 产品 | category_id, name, cover_image, price, stock, sales_volume, type, status |
+| `appointment_store` | 门店 | name, address, lat, lng, phone, business_hours(JSON), images, status |
 
 ### 订单域
 
 | 表名 | 说明 | 核心字段 |
 |------|------|----------|
-| `erik_order` | 订单主表 | order_no, user_id, technician_id, store_id, total_amount, discount_amount, paid_amount, status, service_time, cancel_reason, remark |
-| `erik_order_item` | 订单明细 | order_id, service_id, product_id, type, name, price, quantity, spec_info |
-| `erik_order_payment` | 支付记录 | order_id, pay_type(wechat), transaction_id, amount, status, paid_at |
-| `erik_order_refund` | 退款记录 | order_id, payment_id, refund_no, amount, ratio, reason, status |
-| `erik_order_review` | 服务评价 | order_id, user_id, technician_id, rating, content, images |
-| `erik_order_verification` | 核销记录 | order_id, code, verified_at, verified_by, location |
+| `appointment_order` | 订单主表 | order_no, user_id, technician_id, store_id, total_amount, discount_amount, paid_amount, status, service_time, cancel_reason, remark |
+| `appointment_order_item` | 订单明细 | order_id, service_id, product_id, type, name, price, quantity, spec_info |
+| `appointment_order_payment` | 支付记录 | order_id, pay_type(wechat), transaction_id, amount, status, paid_at |
+| `appointment_order_refund` | 退款记录 | order_id, payment_id, refund_no, amount, ratio, reason, status |
+| `appointment_order_review` | 服务评价 | order_id, user_id, technician_id, rating, content, images |
+| `appointment_order_verification` | 核销记录 | order_id, code, verified_at, verified_by, location |
 
 ### 营销域
 
 | 表名 | 说明 | 核心字段 |
 |------|------|----------|
-| `erik_coupon` | 优惠券定义 | name, type, amount, min_amount, total_qty, remain_qty, start_at, end_at, status |
-| `erik_user_coupon` | 用户优惠券 | user_id, coupon_id, status(available/used/expired), used_at |
-| `erik_member_card` | 会员卡定义 | name, type(month/vip/times), price, duration_days, total_times, services(JSON) |
-| `erik_user_member_card` | 用户会员卡 | user_id, card_id, start_at, end_at, total_times, used_times, status |
-| `erik_member_card_usage` | 次卡使用记录 | user_card_id, order_id, service_id, used_at |
-| `erik_user_points` | 积分流水 | user_id, type(earn/use), points, source, order_id |
-| `erik_gift_card` | 礼品卡 | code, type, amount_or_gift, status, used_by, used_at |
-| `erik_user_referral` | 用户推广 | referrer_id, referred_user_id, reward_type, reward_amount, registered_at, first_order_at |
+| `appointment_coupon` | 优惠券定义 | name, type, amount, min_amount, total_qty, remain_qty, start_at, end_at, status |
+| `appointment_user_coupon` | 用户优惠券 | user_id, coupon_id, status(available/used/expired), used_at |
+| `appointment_member_card` | 会员卡定义 | name, type(month/vip/times), price, duration_days, total_times, services(JSON) |
+| `appointment_user_member_card` | 用户会员卡 | user_id, card_id, start_at, end_at, total_times, used_times, status |
+| `appointment_member_card_usage` | 次卡使用记录 | user_card_id, order_id, service_id, used_at |
+| `appointment_user_points` | 积分流水 | user_id, type(earn/use), points, source, order_id |
+| `appointment_gift_card` | 礼品卡 | code, type, amount_or_gift, status, used_by, used_at |
+| `appointment_user_referral` | 用户推广 | referrer_id, referred_user_id, reward_type, reward_amount, registered_at, first_order_at |
 
 ### 内容与通知域
 
 | 表名 | 说明 | 核心字段 |
 |------|------|----------|
-| `erik_banner` | 轮播图 | position, image, jump_type(url/detail/none), jump_value, sort, status |
-| `erik_announcement` | 公告 | content, status, published_at |
-| `erik_platform_agreement` | 平台协议 | type(user_agreement/privacy_policy/service_agreement), title, content, version |
-| `erik_faq` | 常见问题 | title, content, sort |
-| `erik_feedback` | 意见反馈 | user_id, content, images, handler_reply, status(pending/handled) |
-| `erik_moment` | 朋友圈动态 | content, images, published_at |
-| `erik_notification` | 消息通知 | user_id, type(order/system), title, content, is_read, created_at |
+| `appointment_banner` | 轮播图 | position, image, jump_type(url/detail/none), jump_value, sort, status |
+| `appointment_announcement` | 公告 | content, status, published_at |
+| `appointment_platform_agreement` | 平台协议 | type(user_agreement/privacy_policy/service_agreement), title, content, version |
+| `appointment_faq` | 常见问题 | title, content, sort |
+| `appointment_feedback` | 意见反馈 | user_id, content, images, handler_reply, status(pending/handled) |
+| `appointment_moment` | 朋友圈动态 | content, images, published_at |
+| `appointment_notification` | 消息通知 | user_id, type(order/system), title, content, is_read, created_at |
 
 ### 财务域（admin侧）
 
 | 表名 | 说明 | 核心字段 |
 |------|------|----------|
-| `erik_finance_transaction` | 收支流水 | user_id, order_id, type, direction(income/expense), amount, actual_amount, commission, status |
-| `erik_technician_commission_config` | 佣金配置 | technician_id, commission_rate, settlement_cycle |
-| `erik_withdrawal_account` | 提现账号 | user_id, type(wechat), account_name, account_no |
-| `erik_withdrawal_config` | 提现限制配置 | min_amount, reserve_amount, round_to_hundred |
+| `appointment_finance_transaction` | 收支流水 | user_id, order_id, type, direction(income/expense), amount, actual_amount, commission, status |
+| `appointment_technician_commission_config` | 佣金配置 | technician_id, commission_rate, settlement_cycle |
+| `appointment_withdrawal_account` | 提现账号 | user_id, type(wechat), account_name, account_no |
+| `appointment_withdrawal_config` | 提现限制配置 | min_amount, reserve_amount, round_to_hundred |
 
 ## Service API 模块
 

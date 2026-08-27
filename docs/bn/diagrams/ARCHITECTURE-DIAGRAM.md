@@ -36,7 +36,7 @@ graph TB
     end
 
     subgraph 数据层["ডেটা লেয়ার"]
-        MySQL[("MySQL 8.0<br/>55+ টেবিল · erik_ প্রিফিক্স<br/>BIGINT Snowflake প্রাইমারি কি")]
+        MySQL[("MySQL 8.0<br/>55+ টেবিল · appointment_ প্রিফিক্স<br/>BIGINT Snowflake প্রাইমারি কি")]
         Redis[("Redis<br/>ক্যাশ/রেট লিমিট/Session<br/>কিউ/টেকনিশিয়ান লক<br/>svc:* তালিকা ক্যাশ")]
         ES[("Elasticsearch<br/>ফুল-টেক্সট সার্চ<br/>webman-scout স্বয়ংক্রিয় সিঙ্ক")]
     end

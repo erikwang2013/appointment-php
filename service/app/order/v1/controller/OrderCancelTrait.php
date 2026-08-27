@@ -183,7 +183,7 @@ trait OrderCancelTrait
                         $refundRecord->status = OrderRefund::STATUS_FAILED;
                         $refundRecord->save();
                         $order->status = Order::STATUS_PAID;
-                        $order->cancel_reason = ''; // erik_order.cancel_reason 为 NOT NULL，置空串而非 null
+                        $order->cancel_reason = ''; // appointment_order.cancel_reason 为 NOT NULL，置空串而非 null
                         $order->cancel_at = null;
                         $order->save();
                         Db::commit();

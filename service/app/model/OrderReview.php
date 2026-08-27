@@ -12,7 +12,7 @@ use support\Model;
  */
 class OrderReview extends Model
 {
-    protected $table = 'erik_order_review';
+    protected $table = 'appointment_order_review';
     public $incrementing = false;
     protected $keyType = 'string';
     public $timestamps = true;

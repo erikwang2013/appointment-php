@@ -20,12 +20,12 @@ use support\Log;
  * 技师查看个人资料（ProfileController::show）时调用 evaluate()。
  *
  * 评定数据实时统计（不依赖手工维护的字段）：
- *   订单量 = erik_order 中该技师 status=completed 的订单数；
- *   评分   = erik_order_review 中该技师可见评价的平均分（四舍五入 1 位小数）。
- * 评定后把 order_count/rating 回写 erik_technician_profile，保持 admin 端进度数据新鲜。
+ *   订单量 = appointment_order 中该技师 status=completed 的订单数；
+ *   评分   = appointment_order_review 中该技师可见评价的平均分（四舍五入 1 位小数）。
+ * 评定后把 order_count/rating 回写 appointment_technician_profile，保持 admin 端进度数据新鲜。
  *
  * 升降级规则：
- *   应得等级从高到低匹配 erik_technician_tier_config（order_count >= min_orders 且 rating >= min_rating），
+ *   应得等级从高到低匹配 appointment_technician_tier_config（order_count >= min_orders 且 rating >= min_rating），
  *   无任何匹配则归入最低等级。应得等级高于当前等级 → 自动升级；
  *   应得等级低于当前等级 → 触发降级，但默认被降级保护拦截（仅升级不降级），
  *   保护原因：等级绑定佣金率与价格系数，自动降级直接影响技师收入且易引发纠纷，
@@ -33,7 +33,7 @@ use support\Log;
  *   传入 $allowDowngrade=true（如后台人工重评）时才执行降级。
  *
  * 幂等：应得等级与 profile.tier_id 一致时只同步统计、不写日志不发通知。
- * 变更：每次升级/降级写 erik_technician_tier_log 并给技师发站内通知（type='tier'）。
+ * 变更：每次升级/降级写 appointment_technician_tier_log 并给技师发站内通知（type='tier'）。
  */
 class TierRatingService
 {
@@ -69,11 +69,11 @@ class TierRatingService
         }
 
         // 1. 实时统计
-        $orderCount = (int) Db::table('erik_order')
+        $orderCount = (int) Db::table('appointment_order')
             ->where('technician_id', $technicianId)
             ->where('status', Order::STATUS_COMPLETED)
             ->count();
-        $avgRating = Db::table('erik_order_review')
+        $avgRating = Db::table('appointment_order_review')
             ->where('technician_id', $technicianId)
             ->avg('rating');
         $rating = round((float) $avgRating, 1);
@@ -152,7 +152,7 @@ class TierRatingService
     }
 
     /**
-     * 等级变更落日志（erik_technician_tier_log）
+     * 等级变更落日志（appointment_technician_tier_log）
      */
     private static function recordChange(TechnicianProfile $profile, ?string $oldTierId, ?string $newTierId, string $reason): void
     {

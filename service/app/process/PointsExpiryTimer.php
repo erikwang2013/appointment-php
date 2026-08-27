@@ -141,7 +141,7 @@ class PointsExpiryTimer
             return;
         }
         try {
-            Db::table('erik_notification')->insert([
+            Db::table('appointment_notification')->insert([
                 'id'         => Notification::generateId(),
                 'user_id'    => $userId,
                 'type'       => 'points_expiry',

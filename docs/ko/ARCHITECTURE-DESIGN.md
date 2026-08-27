@@ -71,7 +71,7 @@ Cors → Security(31종 공격 탐지) → RateLimit → Auth(JWT+사용자 상�
 
 ### 테이블 접두사
 
-통일 `erik_` 접두사, `config/database.php`에서 설정. Model은 원본 테이블명을 쓰고 ORM이 자동으로 접두사를 추가합니다.
+통일 `appointment_` 접두사, `config/database.php`에서 설정. Model은 원본 테이블명을 쓰고 ORM이 자동으로 접두사를 추가합니다.
 
 ### 민감 필드 암호화
 
@@ -147,7 +147,7 @@ use Erikwang2013\WebmanScout\Searchable;
 class Service extends Model
 {
     use Searchable;
-    public function searchableAs(): string { return 'erik_services'; }
+    public function searchableAs(): string { return 'appointment_services'; }
 }
 ```
 

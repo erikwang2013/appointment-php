@@ -78,7 +78,7 @@ class TechnicianWithdrawalServiceTest extends TestCase
             'phone'    => '199' . substr((string) random_int(10000000, 99999999), 0, 8),
             'wx_openid' => $openid,
             'user_type' => 'user',
-            'status'    => 1, // erik_user.status 为 tinyint
+            'status'    => 1, // appointment_user.status 为 tinyint
         ]);
         $this->userIds[] = $user->id;
         return $user;

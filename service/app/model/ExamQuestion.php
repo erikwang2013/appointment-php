@@ -10,11 +10,11 @@ use support\Model;
 /**
  * 考试题目模型
  *
- * 表: erik_exam_question
+ * 表: appointment_exam_question
  */
 class ExamQuestion extends Model
 {
-    protected $table = 'erik_exam_question';
+    protected $table = 'appointment_exam_question';
     public $incrementing = false;
     protected $keyType = 'string';
     public $timestamps = true;

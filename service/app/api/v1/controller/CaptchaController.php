@@ -53,7 +53,7 @@ class CaptchaController extends BaseController
 
         if (!$result['success']) {
             // 短信发送失败时保留 Redis 中的验证码供测试/降级使用
-            // 生产环境需配置 erik_system_config 中 group='sms' 的短信服务商信息
+            // 生产环境需配置 appointment_system_config 中 group='sms' 的短信服务商信息
             // 注意：日志中禁止出现验证码明文，防止日志泄露导致验证码可被利用
             error_log("[SMS] 验证码发送失败 ({$phone}): {$result['message']}");
         }

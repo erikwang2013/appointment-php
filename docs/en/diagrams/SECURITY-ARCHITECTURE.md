@@ -189,10 +189,10 @@ flowchart LR
     end
 
     subgraph DB存储["DB layer storage"]
-        D1["erik_user.phone<br/>stored plaintext<br/>login/dedupe rely on plaintext queries"]
-        D2["erik_technician_profile<br/>.id_card VARCHAR(500)<br/>encryptable encrypted"]
-        D3["erik_user.wx_openid<br/>stored plaintext"]
-        D4["erik_user.real_name<br/>encryptable encrypted"]
+        D1["appointment_user.phone<br/>stored plaintext<br/>login/dedupe rely on plaintext queries"]
+        D2["appointment_technician_profile<br/>.id_card VARCHAR(500)<br/>encryptable encrypted"]
+        D3["appointment_user.wx_openid<br/>stored plaintext"]
+        D4["appointment_user.real_name<br/>encryptable encrypted"]
     end
 
     subgraph ID处理["ID handling (hashids + snowflake)"]

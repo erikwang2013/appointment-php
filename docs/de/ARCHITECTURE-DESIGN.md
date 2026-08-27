@@ -73,7 +73,7 @@ Cors → Security(31 Angriffserkennungen) → RateLimit → Auth(JWT+Benutzersta
 
 ### Tabellenpräfix
 
-Einheitliches `erik_`-Präfix, konfiguriert in `config/database.php`. Modelle schreiben den ursprünglichen Tabellennamen, das ORM fügt das Präfix automatisch hinzu.
+Einheitliches `appointment_`-Präfix, konfiguriert in `config/database.php`. Modelle schreiben den ursprünglichen Tabellennamen, das ORM fügt das Präfix automatisch hinzu.
 
 ### Verschlüsselung sensibler Felder
 
@@ -149,7 +149,7 @@ use Erikwang2013\WebmanScout\Searchable;
 class Service extends Model
 {
     use Searchable;
-    public function searchableAs(): string { return 'erik_services'; }
+    public function searchableAs(): string { return 'appointment_services'; }
 }
 ```
 

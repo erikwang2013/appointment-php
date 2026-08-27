@@ -9,7 +9,7 @@ use support\Model;
 
 class Banner extends Model
 {
-    protected $table = 'erik_banner';
+    protected $table = 'appointment_banner';
     public $incrementing = false;
     protected $keyType = 'string';
     public $timestamps = true;

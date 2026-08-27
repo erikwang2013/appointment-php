@@ -351,7 +351,7 @@ stateDiagram-v2
 
     checked --> pending: दूसरा उपभोग<br/>(बोनस=भुगतान×ratio<br/>समान order_id+type इडेम्पोटेंट)
 
-    pending --> settled: कमीशन निपटान श्रृंखला में एकीकृत निपटान<br/>(erik_technician_earnings<br/>type=return_customer)
+    pending --> settled: कमीशन निपटान श्रृंखला में एकीकृत निपटान<br/>(appointment_technician_earnings<br/>type=return_customer)
 
     settled --> [*]
     none --> [*]

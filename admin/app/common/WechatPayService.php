@@ -40,7 +40,7 @@ class WechatPayService
 
     public function __construct()
     {
-        $configs = Db::table('erik_system_config')
+        $configs = Db::table('appointment_system_config')
             ->where('group', 'wechat_pay')
             ->pluck('value', 'key')
             ->toArray();
@@ -52,8 +52,8 @@ class WechatPayService
         $this->certPath  = $configs['cert_path'] ?? '';
         $this->keyPath   = $configs['key_path'] ?? '';
 
-        // B1: 支付宝验签配置 —— erik_system_config group=alipay_pay 优先，缺省回落 config/alipay.php（.env ALIPAY_* 键）
-        $alipayConfigs = Db::table('erik_system_config')
+        // B1: 支付宝验签配置 —— appointment_system_config group=alipay_pay 优先，缺省回落 config/alipay.php（.env ALIPAY_* 键）
+        $alipayConfigs = Db::table('appointment_system_config')
             ->where('group', 'alipay_pay')
             ->pluck('value', 'key')
             ->toArray();

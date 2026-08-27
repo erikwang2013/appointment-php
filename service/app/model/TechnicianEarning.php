@@ -9,7 +9,7 @@ use support\Model;
 
 class TechnicianEarning extends Model
 {
-    protected $table = 'erik_technician_earnings';
+    protected $table = 'appointment_technician_earnings';
     public $incrementing = false;
     protected $keyType = 'string';
     public $timestamps = true;

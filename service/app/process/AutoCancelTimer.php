@@ -237,7 +237,7 @@ class AutoCancelTimer
 
             // 写入通知
             try {
-                Db::table('erik_notification')->insert([
+                Db::table('appointment_notification')->insert([
                     'id'         => \support\Model::generateId(),
                     'user_id'    => $order->user_id,
                     'type'       => 'order_auto_cancel',

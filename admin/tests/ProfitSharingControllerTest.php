@@ -54,7 +54,7 @@ class ProfitSharingControllerTest extends TestCase
         }
     }
 
-    /** 重建全局 Eloquent 连接（prefix 空，模型 $table 已内嵌 erik_ 前缀） */
+    /** 重建全局 Eloquent 连接（prefix 空，模型 $table 已内嵌 appointment_ 前缀） */
     private function bootEloquent(): void
     {
         $dbConfig = config('database.connections.default');
@@ -83,17 +83,17 @@ class ProfitSharingControllerTest extends TestCase
         $sharingNo = $orderNo ?: 'PS' . $id . random_int(1000, 9999);
 
         $now = date('Y-m-d H:i:s');
-        Db::table('erik_user')->insertOrIgnore([
+        Db::table('appointment_user')->insertOrIgnore([
             'id' => $userId, 'phone' => '138' . substr((string) random_int(10000000, 99999999), 0, 8),
             'nickname' => $techName ?: '分账技师', 'user_type' => 'technician',
             'status' => 1, 'created_at' => $now, 'updated_at' => $now,
         ]);
-        Db::table('erik_order')->insertOrIgnore([
+        Db::table('appointment_order')->insertOrIgnore([
             'id' => $orderId, 'order_no' => $sharingNo, 'user_id' => $userId, 'technician_id' => $userId,
             'order_type' => 'service', 'total_amount' => 100, 'paid_amount' => 100,
             'status' => 'paid', 'created_at' => $now, 'updated_at' => $now,
         ]);
-        Db::table('erik_profit_sharing')->insertOrIgnore([
+        Db::table('appointment_profit_sharing')->insertOrIgnore([
             'id' => $id, 'user_id' => $userId, 'order_id' => $orderId, 'sharing_no' => $sharingNo,
             'amount' => 70.00, 'ratio' => 0.7000, 'status' => $status,
             'created_at' => $now, 'updated_at' => $now,
@@ -116,7 +116,7 @@ class ProfitSharingControllerTest extends TestCase
     public function index_returns_paginated_list_with_join(): void
     {
         $id      = $this->makeSharing('pending', 'PSLIST' . random_int(100000, 999999), '联查技师');
-        $orderNo = Db::table('erik_profit_sharing')->where('id', $id)->value('sharing_no');
+        $orderNo = Db::table('appointment_profit_sharing')->where('id', $id)->value('sharing_no');
 
         $data = $this->fetch();
 

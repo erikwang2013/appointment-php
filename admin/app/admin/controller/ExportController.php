@@ -318,7 +318,7 @@ class ExportController extends BaseController
 
     /**
      * 调度定期报表导出
-     * 配置保存到 erik_system_config
+     * 配置保存到 appointment_system_config
      * @Apidoc\Param("type", type="string", require=true, desc="报表类型")
      * @Apidoc\Param("frequency", type="string", require=true, desc="频率: daily/weekly/monthly")
      * @Apidoc\Param("recipients", type="array", require=true, desc="接收人邮箱列表")
