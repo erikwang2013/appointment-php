@@ -23,7 +23,7 @@ class SalesStatsController extends BaseController
     {
         $dateStart = $request->input('date_start', date('Y-m-d', strtotime('-30 days')));
         $dateEnd   = $request->input('date_end', date('Y-m-d'));
-        $cacheKey  = "sales_stats:{$dateStart}_{$dateEnd}";
+        $cacheKey  = "svc:sales_stats:{$dateStart}_{$dateEnd}";
         $cached    = Redis::get($cacheKey);
         if ($cached) {
             return $this->success(json_decode($cached, true));

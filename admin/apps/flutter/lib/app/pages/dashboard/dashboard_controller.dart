@@ -13,6 +13,14 @@ class DashboardController extends GetxController {
   final stats = <Map<String, dynamic>>[].obs;
   final trends = <String, dynamic>{}.obs;
   final recentLogs = <Map<String, dynamic>>[].obs;
+  final distribution = <String, dynamic>{}.obs;
+
+  static const pieColors = [
+    Color(0xFF1677FF),
+    Color(0xFF52C41A),
+    Color(0xFFFA8C16),
+    Color(0xFF722ED1),
+  ];
 
   List<List<FlSpot>> get trendSpots {
     final allSeries = trends['series'] as List<dynamic>? ?? [];
@@ -23,10 +31,16 @@ class DashboardController extends GetxController {
   }
 
   List<PieChartSectionData> get pieSections {
-    return [
-      PieChartSectionData(color: const Color(0xFF1677FF), value: 265, title: '', radius: 30),
-      PieChartSectionData(color: const Color(0xFF52C41A), value: 35, title: '', radius: 30),
-    ];
+    final list = distribution['user_status'] as List<dynamic>? ?? [];
+    return list.asMap().entries.map((e) {
+      final value = (e.value['value'] as num?)?.toDouble() ?? 0;
+      return PieChartSectionData(
+        color: pieColors[e.key % pieColors.length],
+        value: value,
+        title: '',
+        radius: 30,
+      );
+    }).toList();
   }
 
   @override
@@ -45,6 +59,7 @@ class DashboardController extends GetxController {
         stats.value = List<Map<String, dynamic>>.from(data['stats'] ?? []);
         trends.value = Map<String, dynamic>.from(data['trends'] ?? {});
         recentLogs.value = List<Map<String, dynamic>>.from(data['recent_logs'] ?? []);
+        distribution.value = Map<String, dynamic>.from(data['distribution'] ?? {});
       }
     } catch (e) {
       // 开发环境使用模拟数据
@@ -61,6 +76,12 @@ class DashboardController extends GetxController {
             'name': '累计用户',
             'data': List.generate(30, (i) => 800 + i * 15 + (i > 20 ? 20 : 0)),
           },
+        ],
+      };
+      distribution.value = {
+        'user_status': [
+          {'name': '启用', 'value': 265},
+          {'name': '禁用', 'value': 35},
         ],
       };
     } finally {

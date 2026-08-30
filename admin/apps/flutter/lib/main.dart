@@ -22,8 +22,10 @@ import 'app/pages/service_card/service_card_list_page.dart';
 import 'app/pages/announcement/announcement_list_page.dart';
 import 'app/pages/faq/faq_list_page.dart';
 import 'app/pages/withdrawal/withdrawal_list_page.dart';
+import 'app/pages/aftersale/aftersale_list_page.dart';
 import 'app/pages/review/review_list_page.dart';
 import 'app/pages/report/report_page.dart';
+import 'app/pages/store_manager/store_manager_page.dart';
 
 void main() {
   runApp(const AdminApp());
@@ -65,8 +67,10 @@ class AdminApp extends StatelessWidget {
         GetPage(name: '/announcements', page: () => const AdminLayout(initialIndex: 13, child: AnnouncementListPage())),
         GetPage(name: '/faqs', page: () => const AdminLayout(initialIndex: 14, child: FaqListPage())),
         GetPage(name: '/withdrawals', page: () => const AdminLayout(initialIndex: 15, child: WithdrawalListPage())),
-        GetPage(name: '/reviews', page: () => const AdminLayout(initialIndex: 16, child: ReviewListPage())),
-        GetPage(name: '/reports', page: () => const AdminLayout(initialIndex: 17, child: ReportPage())),
+        GetPage(name: '/aftersales', page: () => const AdminLayout(initialIndex: 16, child: AftersaleListPage())),
+        GetPage(name: '/reviews', page: () => const AdminLayout(initialIndex: 17, child: ReviewListPage())),
+        GetPage(name: '/reports', page: () => const AdminLayout(initialIndex: 18, child: ReportPage())),
+        GetPage(name: '/store-manager', page: () => const AdminLayout(initialIndex: 19, child: StoreManagerPage())),
         GetPage(name: '/profile', page: () => const ProfilePage()),
       ],
       initialRoute: '/login',

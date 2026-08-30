@@ -36,7 +36,7 @@ class DashboardController extends BaseController
     public function index(Request $request): Response
     {
         // Redis 缓存 5 分钟，避免每次请求跑 5+ 条 SQL
-        $cacheKey = 'dashboard:data';
+        $cacheKey = 'svc:dashboard:data';
         $cached = Redis::get($cacheKey);
         if ($cached) {
             return $this->success(json_decode($cached, true));
@@ -72,7 +72,7 @@ class DashboardController extends BaseController
         $todayAppointments = Order::where('order_type', 'appointment')
             ->whereDate('created_at', $today)->count();
         $pendingWithdrawals = TechnicianWithdrawal::where('status', 'pending')->count();
-        $newTechnicians = TechnicianProfile::where('status', 0)->count();
+        $newTechnicians = TechnicianProfile::where('status', 'pending')->count();
 
         return [
             [
@@ -297,7 +297,7 @@ class DashboardController extends BaseController
      */
     private function getTechnicianRanking(): array
     {
-        $ranking = TechnicianProfile::where('status', 1)
+        $ranking = TechnicianProfile::where('status', 'approved')
             ->orderBy('rating', 'desc')
             ->orderBy('order_count', 'desc')
             ->limit(10)

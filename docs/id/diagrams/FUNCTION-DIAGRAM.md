@@ -1,253 +1,253 @@
 # Diagram Fungsi Sistem
 > **Languages**: [中文](../../diagrams/FUNCTION-DIAGRAM.md) · [English](../../en/diagrams/FUNCTION-DIAGRAM.md) · [한국어](../../ko/diagrams/FUNCTION-DIAGRAM.md) · [Русский](../../ru/diagrams/FUNCTION-DIAGRAM.md) · [Deutsch](../../de/diagrams/FUNCTION-DIAGRAM.md) · [Français](../../fr/diagrams/FUNCTION-DIAGRAM.md) · [Español](../../es/diagrams/FUNCTION-DIAGRAM.md) · [Português](../../pt/diagrams/FUNCTION-DIAGRAM.md) · [हिन्दी](../../hi/diagrams/FUNCTION-DIAGRAM.md) · [العربية](../../ar/diagrams/FUNCTION-DIAGRAM.md) · [বাংলা](../../bn/diagrams/FUNCTION-DIAGRAM.md) · [日本語](../../ja/diagrams/FUNCTION-DIAGRAM.md)
 
-> Terjemahan bahasa Indonesia · Asli: [中文](../../docs/diagrams/FUNCTION-DIAGRAM.md)
+> Terjemahan bahasa Indonesia · Asli: [中文](../../diagrams/FUNCTION-DIAGRAM.md)
 
 ```mermaid
 mindmap
-  root((预约服务系统))
-    用户端
-      认证
-        手机号注册/登录
-        验证码登录
-        微信授权登录
-        游客模式
-        忘记密码
-        用户/隐私协议
-      首页
-        LBS定位与城市切换
-        轮播图/公告
-        服务类别入口
-        新用户优惠券
-      服务预约
-        门店选择 含导航
-        技师选择 含评分
-        服务时间选择
-        低峰9折 / 提前预约95折
-        优惠券使用
-        备注与服务协议
-      产品商城
-        商品搜索与筛选
-        商品详情与收藏
-        购物车管理
-        立即购买
-      订单管理
-        全部订单 Tab查看
-        待支付/待发货/待收货
-        取消/催发货/确认收货
-        退款申请
-        售后申请 退/换货 状态跟踪
-        积分抵现 支付时抵扣
-        拼团下单 参与活动后以拼团价下单
-        秒杀下单 以秒杀价下单 售罄拦截
-        预约改期 同技师换时间 距开始≥6h
-        预约月历 排班月/日视图 已约排除
-        服务开始前提醒 1h前订阅消息+站内
-        文字+图片评价
-        评价追评 追加内容/图片 一次
-        物流跟踪 发货状态/脱敏收件人
-        电子发票 申请/列表/详情 防重复
-        ICS日历导出 90天内预约导出iCal
-        订单时间线 状态变更记录/仅本人
-        发票抬头 常用抬头库/默认
-        消息偏好设置 通知开关/定时器门控
-      技师模块
-        技师列表 距离排序
-        技师详情与收藏
-        入驻申请
-        批量排班 日期段≤7天/重叠冲突检测
-      营销中心
-        优惠券 领取/下单抵扣
-        优惠券转赠 8位转赠码/防双花/7天有效
-        会员卡 月卡/VIP/次卡
-        次卡核销 my/use
-        积分获取与兑换/消费回扣
-        积分过期 365天有效期/定时扣减
-        积分兑换商城 兑换券/余额/礼品卡
-        拼团/秒杀 参与/满员锁定/成团下单
-        卡券到期提醒 3天内到期通知
-        礼品卡 现金/实物/兑换入账
-        积分转赠 用户间/单日限额/双向流水
-        二级返佣 二级推荐人 2%返佣
-        满减活动 满X减Y/下单自动叠加
-        积分转盘 权重抽奖/积分余额优惠券/lose
-      钱包
-        余额查询
-        充值 到账站内通知
-        余额支付
-        退款回充
-        余额转账 用户间/双行锁/转账记录
-        支付密码 6位数字设置/校验/修改
-      个人中心
-        头像/昵称/手机号
-        身份切换 客户↔技师
-        消息通知
-        我的收藏
-        浏览足迹 最近浏览服务
-        健康档案 过敏史/偏好技师
-        关注公众号
-        用户推广 二维码海报/返佣明细
-        成长等级 签到/评价/消费 5档
-        等级权益 下单折扣/积分倍率
-        客服工单 提交/列表/详情/关闭
-        工单满意度 关闭打分/后台汇总
-        意见反馈
-      设置
-        修改密码
-        换绑手机
-        查看协议
-        检测更新
-        隐私合规 数据导出/注销72h闭环
-        账号注销
+  root((Sistem Layanan Janji Temu))
+    Sisi pengguna
+      Otentikasi
+        Registrasi nomor ponsel / login
+        Login kode verifikasi
+        Login WeChat
+        Mode tamu
+        Lupa kata sandi
+        Perjanjian pengguna / privasi
+      Beranda
+        Lokasi LBS & ganti kota
+        Banner / pengumuman
+        Pintu masuk kategori layanan
+        Kupon pengguna baru
+      Janji temu layanan
+        Pilih toko termasuk navigasi
+        Pilih teknisi termasuk penilaian
+        Pilih waktu layanan
+        Non-puncak diskon 10% / pesan awal diskon 5%
+        Penggunaan kupon
+        Catatan & perjanjian layanan
+      Mal produk
+        Cari & filter produk
+        Detail produk & favorit
+        Manajemen keranjang
+        Beli sekarang
+      Manajemen pesanan
+        Semua pesanan lihat Tab
+        Belum dibayar / belum dikirim / menunggu diterima
+        Batalkan / desak kirim / konfirmasi terima
+        Ajukan pengembalian dana
+        Ajukan after-sales  retur/tukar pelacakan status
+        Poin potong tunai  potong saat bayar
+        Pesan grup  pesan dengan harga grup setelah ikut aktivitas
+        Pesan seckill  pesan dengan harga seckill, cegah saat habis
+        Ubah jadwal  ganti waktu dengan teknisi sama jarak mulai ≥6 jam
+        Kalender janji  tampilan bulan/hari jadwal, sudah dijanjikan dikecualikan
+        Pengingat sebelum layanan  1 jam sebelum pesan langganan + situs
+        Ulasan teks + gambar
+        Ulasan lanjutan  tambah konten/gambar sekali
+        Lacak logistik  status kirim/penerima disamarkan
+        E-invoice  ajukan/daftar/detail cegah duplikat
+        Ekspor kalender ICS  ekspor janji 90 hari sebagai iCal
+        Linimasa pesanan  catatan perubahan status/hanya sendiri
+        Judul invoice  pustaka judul umum/default
+        Pengaturan preferensi pesan  saklar notifikasi/pintu pengatur waktu
+      Modul teknisi
+        Daftar teknisi  urut jarak
+        Detail teknisi & favorit
+        Permohonan bergabung
+        Jadwal massal  rentang tanggal ≤7 hari/deteksi konflik tumpang tindih
+      Pusat pemasaran
+        Kupon  klaim/potongan saat pesan
+        Transfer kupon  kode transfer 8 digit/cegah pakai ganda/berlaku 7 hari
+        Kartu member  bulanan/VIP/kartu kunjungan
+        Verifikasi kartu kunjungan  my/use
+        Dapatkan & tukar poin/rabat belanja
+        Poin kedaluwarsa  berlaku 365 hari/potong terjadwal
+        Mal tukar poin  tukar kupon/saldo/kartu hadiah
+        Grup/seckill  ikut/kunci penuh/pesan setelah terbentuk
+        Pengingat kedaluwarsa kartu  notifikasi dalam 3 hari
+        Kartu hadiah  tunai/fisik/kredit tukar
+        Transfer poin  antar pengguna/batas harian/transaksi dua arah
+        Komisi level-2  referrer level-2 komisi 2%
+        Aktivitas potongan penuh  belanja X potong Y/otomatis menumpuk saat pesan
+        Roda poin  undian berbobot/kupon saldo poin/kalah
+      Dompet
+        Cek saldo
+        Isi ulang  notifikasi situs saat masuk
+        Bayar dengan saldo
+        Isi kembali dana refund
+        Transfer saldo  antar pengguna/kunci dua baris/catatan transfer
+        Kata sandi bayar  6 digit atur/verifikasi/ubah
+      Pusat pribadi
+        Avatar/nama panggilan/nomor ponsel
+        Alih identitas  pelanggan↔teknisi
+        Notifikasi pesan
+        Favorit saya
+        Jejak kunjungan  layanan yang baru dilihat
+        Arsip kesehatan  riwayat alergi/teknisi pilihan
+        Ikuti akun resmi
+        Promosi pengguna  poster QR/rincian komisi
+        Level pertumbuhan  check-in/ulasan/belanja 5 tingkat
+        Hak level  diskon pesan/pengganda poin
+        Tiket layanan  kirim/daftar/detail/tutup
+        Kepuasan tiket  nilai saat tutup/rangkuman panel admin
+        Masukan
+      Pengaturan
+        Ubah kata sandi
+        Ganti ikatan ponsel
+        Lihat perjanjian
+        Cek pembaruan
+        Kepatuhan privasi  ekspor data/penutupan 72 jam loop
+        Tutup akun
 
-    技师工作台
-      考勤打卡
-        上班打卡 迟到标记
-        下班打卡
-      工作台闭环
-        today 今日订单
-        records 服务记录
-        start 开始服务
-        complete 完成核销
-      今日概况
-        今日订单数
-        收入总览
-      排班管理
-        按日设置时间段
-        可预约时间发布
-      订单处理
-        已约未核销列表
-        已完成列表
-        扫码核销
-      会员管理
-        服务过的会员
-        耗课数据
-        次卡记录
-        会员档案编辑
-      评价互动
-        回复用户评价 404/重复422/站内通知
-      收益管理
-        今日收入
-        结算中金额
-        钱包余额
-        在途资金 3天自动确认
-      提现
-        每月20号申请
-        T+1到账微信零钱
-        最低/保留/整百限制
-      回头客奖励
-        30天内二次消费奖金
-      专业培训
-        视频课程
-        图文课程
+    Workbench teknisi
+      Absensi check-in
+        Check-in kerja  tandai terlambat
+        Check-out
+      Loop workbench
+        today  pesanan hari ini
+        records  catatan layanan
+        start  mulai layanan
+        complete  selesaikan verifikasi
+      Ringkasan hari ini
+        Jumlah pesanan hari ini
+        Ringkasan pendapatan
+      Manajemen jadwal
+        Atur slot waktu per hari
+        Terbitkan waktu yang bisa dijanjikan
+      Penanganan pesanan
+        Daftar dijanjikan belum diverifikasi
+        Daftar selesai
+        Pindai QR untuk verifikasi
+      Manajemen member
+        Member yang dilayani
+        Data pemakaian kelas
+        Catatan kartu kunjungan
+        Edit arsip member
+      Interaksi ulasan
+        Balas ulasan pengguna  404/duplikat 422/notifikasi situs
+      Manajemen pendapatan
+        Pendapatan hari ini
+        Jumlah dalam penyelesaian
+        Saldo dompet
+        Dana perjalanan  konfirmasi otomatis setelah 3 hari
+      Penarikan dana
+        Ajukan setiap tanggal 20
+        T+1 masuk ke WeChat Pay
+        Batas minimum/sisihkan/kelipatan 100
+      Hadiah pelanggan kembali
+        Bonus belanja kedua dalam 30 hari
+      Pelatihan profesional
+        Kursus video
+        Kursus teks + gambar
 
-    管理后台
-      仪表盘
-        实时统计面板
-        订单/金额趋势图
-        新增用户/活跃度
-        快速导航
-        站内消息
-      技师管理
-        技师列表与搜索
-        新增/导出
-        审核入驻申请
-        排班/服务项设置
-        课程进度追踪
-        技师等级自动评定 订单量+均分/只升不降/变更日志
-        考勤统计 按月/技师分组/迟到
-      用户管理
-        会员列表与搜索
-        详情/等级设置
-        修改上级/密码/手机
-      门店管理
-        门店CRUD
-        启禁用控制
-        地图坐标配置
-        门店工作台 概览/订单筛选
-      服务与产品
-        服务项目CRUD
-        产品CRUD
-        分类树形管理
-        卡项设计 项目+产品组合
-      商城管理
-        商城订单/发货/物流
-        售后订单审核
-        评价管理
-        评价图片审核 隐藏/恢复 权限389-391
-        支付流水
-        销售统计
-      预约订单
-        多条件搜索
-        平台取消/确认完成
-        详情查看
-      优惠券活动
-        优惠券CRUD
-        上下架控制
-        领取统计
-      满减活动
-        满X减Y CRUD
-        上下架控制
-      积分转盘
-        奖品CRUD
-        上下架控制
-        抽奖记录查看
-      秒杀活动
-        活动CRUD
-        上下架控制
-        秒杀订单查看
-      积分兑换
-        兑换商品CRUD
-        上下架控制
-        兑换记录查看
-      会员卡管理
-        会员卡定义CRUD
-        次卡/月卡/VIP
-      售后管理
-        售后列表 状态/用户/订单筛选
-        审核 通过/拒绝 备注
-      评价与报表
-        服务评价管理
-        数据报表统计
-      财务管理
-        订单分账
-        技师提现审核
-        佣金设置与奖罚
-        收支流水
-        提现账号/限制配置
-        退款两级审批
-        分销返佣记录
-        二级返佣记录 权限386
-        分账记录 微信分账/状态筛选
-        发票审核 开票/驳回 权限382-384
-        回头客奖励 开关/比例/奖励记录 权限412-414
-      内容管理
-        轮播图CRUD
-        公告CRUD与发布
-        协议编辑
-        常见问题CRUD
-        意见反馈处理
-        客服工单回复 权限385/387
-        工单满意度统计 权限388
-        朋友圈审核
-        关于我们设置
-      系统设置
-        平台协议管理
-        技师统一佣金
-        系统消息模板
-        APP推送 配置驱动/5事件接入
-        订阅消息 订单事件3场景
-        APP版本管理 版本CRUD/强制更新
-        子账号权限 RBAC
-      扩展功能
-        系统监控 CPU/内存/Redis/MySQL
-        IP黑名单管理
-        数据库备份/恢复
-        客户画像 360视图
-        批量消息推送
-        定时任务管理
-        短信双通道配置
-        存储配置 本地/OSS/COS
-        排班Excel导出
-        店长账号 store_id隔离
+    Panel admin
+      Dashboard
+        Panel statistik real-time
+        Grafik tren pesanan/jumlah
+        Akun baru/aktivitas
+        Navigasi cepat
+        Pesan situs
+      Manajemen teknisi
+        Daftar & cari teknisi
+        Tambah/ekspor
+        Tinjau permohonan bergabung
+        Pengaturan jadwal/item layanan
+        Lacak kemajuan kursus
+        Penilaian otomatis level teknisi  jumlah pesanan + rata-rata/hanya naik/catatan perubahan
+        Statistik absensi  per bulan/kelompok teknisi/terlambat
+      Manajemen pengguna
+        Daftar & cari member
+        Detail/pengaturan level
+        Ubah atasan/kata sandi/ponsel
+      Manajemen toko
+        Toko CRUD
+        Kontrol aktif/nonaktif
+        Konfigurasi koordinat peta
+        Workbench toko  ringkasan/filter pesanan
+      Layanan & produk
+        Item layanan CRUD
+        Produk CRUD
+        Manajemen pohon kategori
+        Desain kartu  kombinasi item+produk
+      Manajemen mal
+        Pesanan mal/kirim/logistik
+        Tinjau pesanan after-sales
+        Manajemen ulasan
+        Audit gambar ulasan  sembunyikan/pulihkan izin 389-391
+        Transaksi pembayaran
+        Statistik penjualan
+      Pesanan janji temu
+        Cari multi kondisi
+        Batalkan platform/konfirmasi selesai
+        Lihat detail
+      Aktivitas kupon
+        Kupon CRUD
+        Kontrol terbit/tarik
+        Statistik klaim
+      Aktivitas potongan penuh
+        Belanja X potong Y CRUD
+        Kontrol terbit/tarik
+      Roda poin
+        Hadiah CRUD
+        Kontrol terbit/tarik
+        Lihat catatan undian
+      Aktivitas seckill
+        Aktivitas CRUD
+        Kontrol terbit/tarik
+        Lihat pesanan seckill
+      Tukar poin
+        Barang tukar CRUD
+        Kontrol terbit/tarik
+        Lihat catatan tukar
+      Manajemen kartu member
+        Definisi kartu member CRUD
+        Kartu kunjungan/bulanan/VIP
+      Manajemen after-sales
+        Daftar after-sales  filter status/pengguna/pesanan
+        Tinjau  setujui/tolak catatan
+      Ulasan & laporan
+        Manajemen ulasan layanan
+        Statistik laporan data
+      Manajemen keuangan
+        Pembagian pesanan
+        Tinjau penarikan teknisi
+        Pengaturan komisi & hadiah/denda
+        Transaksi masuk/keluar
+        Konfigurasi akun/batas penarikan
+        Persetujuan refund dua level
+        Catatan komisi distribusi
+        Catatan komisi level-2  izin 386
+        Catatan pembagian  pembagian WeChat/filter status
+        Tinjau invoice  terbit/tolak izin 382-384
+        Hadiah pelanggan kembali  saklar/rasio/catatan hadiah izin 412-414
+      Manajemen konten
+        Banner CRUD
+        Pengumuman CRUD & terbitkan
+        Edit perjanjian
+        FAQ CRUD
+        Tangani masukan
+        Balas tiket layanan  izin 385/387
+        Statistik kepuasan tiket  izin 388
+        Tinjau momen
+        Pengaturan tentang kami
+      Pengaturan sistem
+        Manajemen perjanjian platform
+        Komisi seragam teknisi
+        Template pesan sistem
+        Push APP  didorong konfigurasi/5 event terhubung
+        Pesan langganan  3 skenario event pesanan
+        Manajemen versi APP  versi CRUD/paksa perbarui
+        Izin sub-akun  RBAC
+      Fitur tambahan
+        Monitor sistem  CPU/memori/Redis/MySQL
+        Manajemen daftar hitam IP
+        Cadangan/pulihkan database
+        Profil pelanggan  tampilan 360
+        Push pesan massal
+        Manajemen tugas terjadwal
+        Konfigurasi SMS dua kanal
+        Konfigurasi penyimpanan  lokal/OSS/COS
+        Ekspor jadwal Excel
+        Akun manajer toko  isolasi store_id
 ```

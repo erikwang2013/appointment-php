@@ -25,6 +25,19 @@ Banner → unggah + atur tautan | Pengumuman → terbitkan pengumuman berjalan |
 
 ---
 
+## Operasi Harian Panel Admin
+
+### Dashboard
+Setelah login, halaman beranda menampilkan statistik real-time (jumlah pengguna/jumlah pesanan/jumlah teknisi/jumlah pesanan layanan) dan grafik garis tren (tren jumlah pesanan/tren jumlah/akun baru/aktivitas), navigasi cepat langsung ke modul menunggu diproses, pesan situs menerima notifikasi pesanan baru/refund.
+
+### Laporan Data
+Halaman laporan menampilkan 3 jenis laporan (sesuai `GET /admin/reports/orders|technicians|distribution`, cache Redis 300 detik):
+- **Statistik pesanan** — statistik jumlah pesanan/jumlah sesuai rentang tanggal
+- **Kinerja teknisi** — ringkasan jumlah pesanan layanan dan kinerja per teknisi
+- **Distribusi toko** — ringkasan distribusi pesanan per toko
+
+---
+
 ## Alur Sisi Pengguna
 
 ### Registrasi & Login

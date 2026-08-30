@@ -15,6 +15,19 @@
 | [USAGE.md](USAGE.md) | 使用说明：管理后台 / 用户端 / 技师端操作（API 接口见 [API.md](API.md)） |
 | [API.md](API.md) | API文档：业务API + 管理后台API，含请求响应示例 + OpenAPI端点 |
 
+## 快速安装
+
+推荐使用 **Web 安装向导**（详细步骤见 [INSTALL.md](INSTALL.md)）：
+
+```bash
+cd admin/
+cp .env.example .env
+composer install --no-dev --optimize-autoloader
+php start.php start -d     # 默认端口 8787
+```
+
+浏览器打开 `http://localhost:8787/install`，按 4 步完成：**环境检查** → **数据库配置** → **管理员账号** → **执行安装**（自动导入 SQL + 创建管理员 + 写入 .env）。安装成功后访问 `http://localhost:8787` 登录管理后台（默认 `admin` / `admin123`，首次登录请立即改密）。也支持手动安装（`mysql < install.sql`）与 Docker 部署，见 [INSTALL.md](INSTALL.md)。
+
 ## 测试与安全
 
 | 文档 | 说明 |
@@ -57,3 +70,21 @@
 | বাংলা | [docs/bn/README.md](bn/README.md) |
 | Bahasa Indonesia | [docs/id/README.md](id/README.md) |
 | 日本語 | [docs/ja/README.md](ja/README.md) |
+
+### 虚拟币打赏 (Crypto Donation)
+
+如果这个项目对你有帮助，欢迎扫描二维码打赏支持，谢谢！
+
+| 主网 (Network) | 二维码 (QR Code) | 钱包地址 (Wallet Address) |
+|---|---|---|
+| BNB Smart Chain (BEP20) | [<img src="./coin/1.jpg" width="150" alt="BNB Smart Chain (BEP20)">](./coin/1.jpg) | `0x355d429f97511897ccb4e271ec888205f9ab6629` |
+| Tron (TRC20) | [<img src="./coin/2.jpg" width="150" alt="Tron (TRC20)">](./coin/2.jpg) | `TEdDHWLajt1XvqtPDWmQctdrJaC3pzZZzz` |
+| Ethereum (ERC20) | [<img src="./coin/3.jpg" width="150" alt="Ethereum (ERC20)">](./coin/3.jpg) | `0x355d429f97511897ccb4e271ec888205f9ab6629` |
+| Aptos | [<img src="./coin/4.jpg" width="150" alt="Aptos">](./coin/4.jpg) | `0x836e3780edfc3f7b2372b39e2a1a3a5d7adfaccd96c726f21cfde1b50dd68030` |
+| Plasma | [<img src="./coin/5.jpg" width="150" alt="Plasma">](./coin/5.jpg) | `0x355d429f97511897ccb4e271ec888205f9ab6629` |
+| Polygon POS | [<img src="./coin/6.jpg" width="150" alt="Polygon POS">](./coin/6.jpg) | `0x355d429f97511897ccb4e271ec888205f9ab6629` |
+| Solana | [<img src="./coin/7.jpg" width="150" alt="Solana">](./coin/7.jpg) | `2hfhboHdmdrYsY25XfQSsEWxq5ip4EQsR7f4AzSRMUyr` |
+| The Open Network (TON) | [<img src="./coin/8.jpg" width="150" alt="The Open Network (TON)">](./coin/8.jpg) | `UQB9kFQohzmXUir9QSSZq01iwl9aQZIDdBpNmDklljRtCoGK` |
+| Arbitrum One | [<img src="./coin/9.jpg" width="150" alt="Arbitrum One">](./coin/9.jpg) | `0x355d429f97511897ccb4e271ec888205f9ab6629` |
+| AVAX C-Chain | [<img src="./coin/10.jpg" width="150" alt="AVAX C-Chain">](./coin/10.jpg) | `0x355d429f97511897ccb4e271ec888205f9ab6629` |
+

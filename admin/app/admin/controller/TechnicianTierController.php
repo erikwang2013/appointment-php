@@ -71,7 +71,7 @@ class TechnicianTierController extends BaseController
         $tiers = TechnicianTierConfig::orderBy('sort', 'desc')
             ->get();
 
-        $technicians = TechnicianProfile::where('status', 1)
+        $technicians = TechnicianProfile::where('status', 'approved')
             ->get();
 
         $results = [];

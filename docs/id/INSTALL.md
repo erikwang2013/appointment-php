@@ -28,7 +28,7 @@ Setelah panel admin dimulai, akses `/install` di browser untuk masuk ke wizard i
 cd admin/
 cp .env.example .env
 composer install --no-dev --optimize-autoloader
-php start.php start -d     # 默认端口 8787
+php start.php start -d     # Port default 8787
 ```
 
 Buka `http://localhost:8787/install` di browser, selesaikan dalam 4 langkah:
@@ -70,29 +70,29 @@ composer install --no-dev --optimize-autoloader
 Edit `service/.env` (API bisnis) dan `admin/.env` (panel admin), ubah konfigurasi kunci berikut:
 
 ```bash
-# 数据库连接
+# Koneksi database
 DB_HOST=127.0.0.1
 DB_PORT=3306
-DB_DATABASE=appointment          # service 用 appointment，admin 用 open_admin
+DB_DATABASE=appointment          # service pakai appointment, admin pakai open_admin
 DB_USERNAME=root
 DB_PASSWORD=your-password
 
-# Redis 连接
+# Koneksi Redis
 REDIS_HOST=127.0.0.1
 REDIS_PORT=6379
 REDIS_PASSWORD=
 
-# JWT 密钥 — 生产环境务必修改为 64 位随机字符串
+# Kunci JWT — wajib ganti dengan string acak 64 karakter di produksi
 JWT_SECRET_KEY=your-64-char-random-string
 
-# 加密密钥 — 生产环境务必修改
+# Kunci enkripsi — wajib ganti di produksi
 ENCRYPTION_KEY=your-32-byte-key
 ENCRYPTABLE_KEY=your-32-byte-key
 
-# Hashids 盐值 — 生产环境务必修改
+# Salt Hashids — wajib ganti di produksi
 HASHIDS_SALT=your-random-salt
 
-# 调试模式 — 生产环境必须设为 false
+# Mode debug — di produksi wajib false
 APP_DEBUG=false
 ```
 
@@ -101,11 +101,11 @@ APP_DEBUG=false
 ### 1.4 Buat Database dan Impor
 
 ```bash
-# 创建数据库（service 和 admin 可使用同一数据库，也可分开）
+# Buat database (service dan admin bisa pakai database sama atau terpisah)
 mysql -u root -p -e "CREATE DATABASE IF NOT EXISTS appointment DEFAULT CHARSET utf8mb4 COLLATE utf8mb4_unicode_ci;"
 mysql -u root -p -e "CREATE DATABASE IF NOT EXISTS open_admin DEFAULT CHARSET utf8mb4 COLLATE utf8mb4_unicode_ci;"
 
-# 导入统一安装脚本（包含全部 54+ 张表 + 权限数据 + 演示数据）
+# Impor skrip instalasi terpadu (semua 54+ tabel + data izin + data demo)
 mysql -u root -p appointment < docs/install.sql
 mysql -u root -p open_admin < docs/install.sql
 ```
@@ -115,11 +115,11 @@ mysql -u root -p open_admin < docs/install.sql
 ### 1.5 Mulai Layanan
 
 ```bash
-# 启动业务 API 服务（默认端口 8787）
+# Mulai layanan API bisnis (port default 8787)
 cd service/
 php start.php start -d
 
-# 启动管理后台（默认端口 8787）
+# Mulai panel admin (port default 8787)
 cd ../admin/
 php start.php start -d
 ```
@@ -127,13 +127,13 @@ php start.php start -d
 ### 1.6 Verifikasi Instalasi
 
 ```bash
-# 业务 API
+# API bisnis
 curl http://localhost:8787/api/common/config
 
-# 管理后台健康检查
+# Pemeriksaan kesehatan panel admin
 curl http://localhost:8787/health
 
-# 管理后台登录（默认账号密码见下方）
+# Login panel admin (akun dan sandi default lihat di bawah)
 curl -X POST http://localhost:8787/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"username":"admin","password":"admin123"}'
@@ -156,7 +156,7 @@ curl -X POST http://localhost:8787/api/auth/login \
 ```bash
 cd service/
 cp .env.docker .env
-# 编辑 .env，修改密钥和密码
+# Edit .env, ganti kunci dan sandi
 docker-compose up -d
 ```
 
@@ -173,7 +173,7 @@ docker-compose up -d
 ### 2.3 Impor Database di Lingkungan Docker
 
 ```bash
-# 将 install.sql 复制到容器中执行
+# Salin install.sql ke kontainer lalu jalankan
 docker cp docs/install.sql appointment-svc-mysql:/tmp/
 docker exec -it appointment-svc-mysql mysql -u root -p appointment < /tmp/install.sql
 ```
@@ -206,18 +206,18 @@ Semua tabel memakai prefiks `appointment_`, primary key `id` adalah BIGINT non-a
 ## V. Menjalankan Pengujian
 
 ```bash
-# 业务 API 测试（21 tests）
+# Pengujian API bisnis (21 tests)
 cd service/
 php vendor/bin/phpunit
 
-# 管理后台测试（59 tests）
+# Pengujian panel admin (59 tests)
 cd admin/
 php vendor/bin/phpunit
 
-# 静态分析
+# Analisis statis
 php vendor/bin/phpstan analyse --level=5 app/
 
-# 代码风格检查
+# Pemeriksaan gaya kode
 php vendor/bin/php-cs-fixer fix --dry-run --diff
 ```
 
@@ -266,30 +266,30 @@ A: ES adalah komponen opsional, pastikan konfigurasi `SCOUT_HOSTS` benar dan lay
 
 ```
 appointment-php/
-├── admin/                    # 管理后台 (webman v2)
-│   ├── app/                  # 控制器 / 模型 / 中间件
-│   ├── config/               # 路由 / 数据库 / 中间件配置
-│   ├── database/             # 备份脚本（表结构与种子数据统一见 docs/install.sql）
-│   ├── tests/                # PHPUnit 测试 (59 tests)
-│   ├── .env.example          # 环境变量模板
-│   ├── .env.docker           # Docker 环境变量
-│   ├── Dockerfile            # Docker 构建文件
-│   └── docker-compose.yml    # Docker 编排
-├── service/                  # 业务 API 服务 (webman v2)
-│   ├── app/                  # 控制器 / 模型 / 中间件
-│   ├── config/               # 安全 / 路由 / 数据库配置
-│   ├── seed.php              # 演示数据种子运行器（读取 docs/install.sql 演示数据段）
-│   ├── tests/                # PHPUnit 测试 (21 tests)
-│   ├── .env.example          # 环境变量模板
-│   ├── .env.docker           # Docker 环境变量
-│   ├── Dockerfile            # Docker 构建文件
-│   └── docker-compose.yml    # Docker 编排
-├── docs/                     # 文档
-│   ├── INSTALL.md            # 本安装指南
-│   ├── install.sql           # 统一数据库安装脚本（2723 行）
-│   ├── ARCHITECTURE.md       # 架构设计文档
-│   ├── API.md                # API 参考文档
-│   └── AUDIT-REPORT.md       # 审查报告
-└── .github/workflows/        # CI/CD 流水线
+├── admin/                    # Panel admin (webman v2)
+│   ├── app/                  # Kontroler / Model / Middleware
+│   ├── config/               # Konfigurasi rute / database / middleware
+│   ├── database/             # Skrip cadangan (struktur tabel & data seed terpadu di docs/install.sql)
+│   ├── tests/                # Pengujian PHPUnit (59 tests)
+│   ├── .env.example          # Templat variabel lingkungan
+│   ├── .env.docker           # Variabel lingkungan Docker
+│   ├── Dockerfile            # File build Docker
+│   └── docker-compose.yml    # Orkestrasi Docker
+├── service/                  # Layanan API bisnis (webman v2)
+│   ├── app/                  # Kontroler / Model / Middleware
+│   ├── config/               # Konfigurasi keamanan / rute / database
+│   ├── seed.php              # Penjalankan seed data demo (membaca segmen data demo docs/install.sql)
+│   ├── tests/                # Pengujian PHPUnit (21 tests)
+│   ├── .env.example          # Templat variabel lingkungan
+│   ├── .env.docker           # Variabel lingkungan Docker
+│   ├── Dockerfile            # File build Docker
+│   └── docker-compose.yml    # Orkestrasi Docker
+├── docs/                     # Dokumentasi
+│   ├── INSTALL.md            # Panduan instalasi ini
+│   ├── install.sql           # Skrip instalasi database terpadu (2723 baris)
+│   ├── ARCHITECTURE.md       # Dokumen desain arsitektur
+│   ├── API.md                # Dokumen referensi API
+│   └── AUDIT-REPORT.md       # Laporan audit
+└── .github/workflows/        # Pipeline CI/CD
     └── ci.yml
 ```

@@ -24,11 +24,11 @@ Copyright (c) 2026 erik <erik@erik.xyz> — https://erik.xyz
 ম্যানেজমেন্ট ব্যাকএন্ড চালু করার পর ব্রাউজারে `/install` খুললে ওয়ান-ক্লিক ইনস্টল উইজার্ড:
 
 ```bash
-# 1. 安装依赖并启动
+# 1. ডিপেন্ডেন্সি ইনস্টল করে চালু করুন
 cd admin/
 cp .env.example .env
 composer install --no-dev --optimize-autoloader
-php start.php start -d     # 默认端口 8787
+php start.php start -d     # ডিফল্ট পোর্ট 8787
 ```
 
 ব্রাউজারে `http://localhost:8787/install` খুলুন, ৪ ধাপে সম্পন্ন:
@@ -54,12 +54,12 @@ cd appointment-php
 ### 1.2 PHP ডিপেন্ডেন্সি ইনস্টল
 
 ```bash
-# 业务 API 服务
+# বিজনেস API সার্ভিস
 cd service/
 cp .env.example .env
 composer install --no-dev --optimize-autoloader
 
-# 管理后台
+# ম্যানেজমেন্ট ব্যাকএন্ড
 cd ../admin/
 cp .env.example .env
 composer install --no-dev --optimize-autoloader
@@ -70,29 +70,29 @@ composer install --no-dev --optimize-autoloader
 `service/.env` (বিজনেস API) এবং `admin/.env` (ম্যানেজমেন্ট ব্যাকএন্ড) এডিট করুন, নিচের মূল কনফিগ পরিবর্তন:
 
 ```bash
-# 数据库连接
+# ডেটাবেস কানেকশন
 DB_HOST=127.0.0.1
 DB_PORT=3306
-DB_DATABASE=appointment          # service 用 appointment，admin 用 open_admin
+DB_DATABASE=appointment          # service-এর জন্য appointment, admin-এর জন্য open_admin
 DB_USERNAME=root
 DB_PASSWORD=your-password
 
-# Redis 连接
+# Redis কানেকশন
 REDIS_HOST=127.0.0.1
 REDIS_PORT=6379
 REDIS_PASSWORD=
 
-# JWT 密钥 — 生产环境务必修改为 64 位随机字符串
+# JWT সিক্রেট — প্রোডাকশনে অবশ্যই ৬৪ অক্ষরের র্যান্ডম স্ট্রিংয়ে পরিবর্তন করুন
 JWT_SECRET_KEY=your-64-char-random-string
 
-# 加密密钥 — 生产环境务必修改
+# এনক্রিপশন কী — প্রোডাকশনে অবশ্যই পরিবর্তন করুন
 ENCRYPTION_KEY=your-32-byte-key
 ENCRYPTABLE_KEY=your-32-byte-key
 
-# Hashids 盐值 — 生产环境务必修改
+# Hashids সল্ট — প্রোডাকশনে অবশ্যই পরিবর্তন করুন
 HASHIDS_SALT=your-random-salt
 
-# 调试模式 — 生产环境必须设为 false
+# ডিবাগ মোড — প্রোডাকশনে অবশ্যই false করতে হবে
 APP_DEBUG=false
 ```
 
@@ -101,11 +101,11 @@ APP_DEBUG=false
 ### 1.4 ডেটাবেস তৈরি ও ইমপোর্ট
 
 ```bash
-# 创建数据库（service 和 admin 可使用同一数据库，也可分开）
+# ডেটাবেস তৈরি করুন (service এবং admin একই ডেটাবেস ব্যবহার করতে পারে, আলাদাও হতে পারে)
 mysql -u root -p -e "CREATE DATABASE IF NOT EXISTS appointment DEFAULT CHARSET utf8mb4 COLLATE utf8mb4_unicode_ci;"
 mysql -u root -p -e "CREATE DATABASE IF NOT EXISTS open_admin DEFAULT CHARSET utf8mb4 COLLATE utf8mb4_unicode_ci;"
 
-# 导入统一安装脚本（包含全部 54+ 张表 + 权限数据 + 演示数据）
+# ইউনিফাইড ইনস্টল স্ক্রিপ্ট ইমপোর্ট করুন (সব ৫৪+ টেবিল + পারমিশন ডেটা + ডেমো ডেটা)
 mysql -u root -p appointment < docs/install.sql
 mysql -u root -p open_admin < docs/install.sql
 ```
@@ -115,11 +115,11 @@ mysql -u root -p open_admin < docs/install.sql
 ### 1.5 সার্ভিস চালু
 
 ```bash
-# 启动业务 API 服务（默认端口 8787）
+# বিজনেস API সার্ভিস চালু করুন (ডিফল্ট পোর্ট 8787)
 cd service/
 php start.php start -d
 
-# 启动管理后台（默认端口 8787）
+# ম্যানেজমেন্ট ব্যাকএন্ড চালু করুন (ডিফল্ট পোর্ট 8787)
 cd ../admin/
 php start.php start -d
 ```
@@ -127,13 +127,13 @@ php start.php start -d
 ### 1.6 ইনস্টল যাচাই
 
 ```bash
-# 业务 API
+# বিজনেস API
 curl http://localhost:8787/api/common/config
 
-# 管理后台健康检查
+# ম্যানেজমেন্ট ব্যাকএন্ড হেলথ চেক
 curl http://localhost:8787/health
 
-# 管理后台登录（默认账号密码见下方）
+# ম্যানেজমেন্ট ব্যাকএন্ড লগইন (ডিফল্ট অ্যাকাউন্ট/পাসওয়ার্ড নিচে দেখুন)
 curl -X POST http://localhost:8787/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"username":"admin","password":"admin123"}'
@@ -156,7 +156,7 @@ curl -X POST http://localhost:8787/api/auth/login \
 ```bash
 cd service/
 cp .env.docker .env
-# 编辑 .env，修改密钥和密码
+# .env এডিট করুন, সিক্রেট ও পাসওয়ার্ড পরিবর্তন করুন
 docker-compose up -d
 ```
 
@@ -173,7 +173,7 @@ docker-compose up -d
 ### 2.3 Docker পরিবেশে ডেটাবেস ইমপোর্ট
 
 ```bash
-# 将 install.sql 复制到容器中执行
+# install.sql কন্টেইনারে কপি করে এক্সিকিউট করুন
 docker cp docs/install.sql appointment-svc-mysql:/tmp/
 docker exec -it appointment-svc-mysql mysql -u root -p appointment < /tmp/install.sql
 ```
@@ -206,18 +206,18 @@ docker exec -it appointment-svc-mysql mysql -u root -p appointment < /tmp/instal
 ## 五、টেস্ট চালানো
 
 ```bash
-# 业务 API 测试（21 tests）
+# বিজনেস API টেস্ট (২১ টেস্ট)
 cd service/
 php vendor/bin/phpunit
 
-# 管理后台测试（59 tests）
+# ম্যানেজমেন্ট ব্যাকএন্ড টেস্ট (৫৯ টেস্ট)
 cd admin/
 php vendor/bin/phpunit
 
-# 静态分析
+# স্ট্যাটিক অ্যানালাইসিস
 php vendor/bin/phpstan analyse --level=5 app/
 
-# 代码风格检查
+# কোড স্টাইল চেক
 php vendor/bin/php-cs-fixer fix --dry-run --diff
 ```
 
@@ -266,30 +266,30 @@ php vendor/bin/php-cs-fixer fix --dry-run --diff
 
 ```
 appointment-php/
-├── admin/                    # 管理后台 (webman v2)
-│   ├── app/                  # 控制器 / 模型 / 中间件
-│   ├── config/               # 路由 / 数据库 / 中间件配置
-│   ├── database/             # 备份脚本（表结构与种子数据统一见 docs/install.sql）
-│   ├── tests/                # PHPUnit 测试 (59 tests)
-│   ├── .env.example          # 环境变量模板
-│   ├── .env.docker           # Docker 环境变量
-│   ├── Dockerfile            # Docker 构建文件
-│   └── docker-compose.yml    # Docker 编排
-├── service/                  # 业务 API 服务 (webman v2)
-│   ├── app/                  # 控制器 / 模型 / 中间件
-│   ├── config/               # 安全 / 路由 / 数据库配置
-│   ├── seed.php              # 演示数据种子运行器（读取 docs/install.sql 演示数据段）
-│   ├── tests/                # PHPUnit 测试 (21 tests)
-│   ├── .env.example          # 环境变量模板
-│   ├── .env.docker           # Docker 环境变量
-│   ├── Dockerfile            # Docker 构建文件
-│   └── docker-compose.yml    # Docker 编排
-├── docs/                     # 文档
-│   ├── INSTALL.md            # 本安装指南
-│   ├── install.sql           # 统一数据库安装脚本（2723 行）
-│   ├── ARCHITECTURE.md       # 架构设计文档
-│   ├── API.md                # API 参考文档
-│   └── AUDIT-REPORT.md       # 审查报告
-└── .github/workflows/        # CI/CD 流水线
+├── admin/                    # ম্যানেজমেন্ট ব্যাকএন্ড (webman v2)
+│   ├── app/                  # কন্ট্রোলার / মডেল / মিডলওয়্যার
+│   ├── config/               # রাউট / ডেটাবেস / মিডলওয়্যার কনফিগ
+│   ├── database/             # ব্যাকআপ স্ক্রিপ্ট (টেবিল স্ট্রাকচার ও সিড ডেটা docs/install.sql-এ)
+│   ├── tests/                # PHPUnit টেস্ট (৫৯ টেস্ট)
+│   ├── .env.example          # এনভায়রনমেন্ট ভেরিয়েবল টেমপ্লেট
+│   ├── .env.docker           # Docker এনভায়রনমেন্ট ভেরিয়েবল
+│   ├── Dockerfile            # Docker বিল্ড ফাইল
+│   └── docker-compose.yml    # Docker অর্কেস্ট্রেশন
+├── service/                  # বিজনেস API সার্ভিস (webman v2)
+│   ├── app/                  # কন্ট্রোলার / মডেল / মিডলওয়্যার
+│   ├── config/               # নিরাপত্তা / রাউট / ডেটাবেস কনফিগ
+│   ├── seed.php              # ডেমো ডেটা সিড রানার (docs/install.sql-এর ডেমো ডেটা সেগমেন্ট পড়ে)
+│   ├── tests/                # PHPUnit টেস্ট (২১ টেস্ট)
+│   ├── .env.example          # এনভায়রনমেন্ট ভেরিয়েবল টেমপ্লেট
+│   ├── .env.docker           # Docker এনভায়রনমেন্ট ভেরিয়েবল
+│   ├── Dockerfile            # Docker বিল্ড ফাইল
+│   └── docker-compose.yml    # Docker অর্কেস্ট্রেশন
+├── docs/                     # ডকুমেন্টেশন
+│   ├── INSTALL.md            # এই ইনস্টল গাইড
+│   ├── install.sql           # ইউনিফাইড ডেটাবেস ইনস্টল স্ক্রিপ্ট (২৭২৩ লাইন)
+│   ├── ARCHITECTURE.md       # আর্কিটেকচার ডিজাইন ডকুমেন্ট
+│   ├── API.md                # API রেফারেন্স ডকুমেন্ট
+│   └── AUDIT-REPORT.md       # অডিট রিপোর্ট
+└── .github/workflows/        # CI/CD পাইপলাইন
     └── ci.yml
 ```

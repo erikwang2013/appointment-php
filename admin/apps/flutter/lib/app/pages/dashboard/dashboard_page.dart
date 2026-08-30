@@ -71,7 +71,7 @@ class DashboardPage extends GetView<DashboardController> {
             crossAxisSpacing: 16,
             mainAxisSpacing: 16,
           ),
-          itemCount: 4,
+          itemCount: controller.stats.length,
           itemBuilder: (context, index) {
             final stat = controller.stats[index];
             final color = Color(int.parse('0xFF${stat['color'].replaceFirst('#', '')}'));
@@ -149,6 +149,8 @@ class DashboardPage extends GetView<DashboardController> {
   }
 
   Widget _buildDistributionChart(BuildContext context) {
+    final items = (controller.distribution['user_status'] as List<dynamic>? ?? [])
+        .cast<Map<String, dynamic>>();
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(24),
@@ -157,25 +159,33 @@ class DashboardPage extends GetView<DashboardController> {
           children: [
             const Text('用户状态分布', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
             const SizedBox(height: 16),
-            SizedBox(
-              height: 200,
-              child: PieChart(
-                PieChartData(
-                  sections: controller.pieSections,
-                  centerSpaceRadius: 40,
-                  sectionsSpace: 2,
+            if (items.isEmpty)
+              Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Text('暂无数据', style: TextStyle(color: Colors.grey[500])))
+            else ...[
+              SizedBox(
+                height: 200,
+                child: PieChart(
+                  PieChartData(
+                    sections: controller.pieSections,
+                    centerSpaceRadius: 40,
+                    sectionsSpace: 2,
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(height: 12),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                _buildLegend(const Color(0xFF1677FF), '启用'),
-                const SizedBox(width: 24),
-                _buildLegend(const Color(0xFF52C41A), '禁用'),
-              ],
-            ),
+              const SizedBox(height: 12),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  for (var i = 0; i < items.length; i++) ...[
+                    _buildLegend(DashboardController.pieColors[i % DashboardController.pieColors.length],
+                        items[i]['name']),
+                    if (i < items.length - 1) const SizedBox(width: 24),
+                  ],
+                ],
+              ),
+            ],
           ],
         ),
       ),
@@ -242,6 +252,9 @@ class DashboardPage extends GetView<DashboardController> {
       case 'people': return Icons.people;
       case 'person_add': return Icons.person_add;
       case 'bolt': return Icons.bolt;
+      case 'event': return Icons.event;
+      case 'account_balance_wallet': return Icons.account_balance_wallet;
+      case 'engineering': return Icons.engineering;
       default: return Icons.description;
     }
   }

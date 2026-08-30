@@ -5,249 +5,249 @@
 
 ```mermaid
 mindmap
-  root((预约服务系统))
-    用户端
-      认证
-        手机号注册/登录
-        验证码登录
-        微信授权登录
-        游客模式
-        忘记密码
-        用户/隐私协议
-      首页
-        LBS定位与城市切换
-        轮播图/公告
-        服务类别入口
-        新用户优惠券
-      服务预约
-        门店选择 含导航
-        技师选择 含评分
-        服务时间选择
-        低峰9折 / 提前预约95折
-        优惠券使用
-        备注与服务协议
-      产品商城
-        商品搜索与筛选
-        商品详情与收藏
-        购物车管理
-        立即购买
-      订单管理
-        全部订单 Tab查看
-        待支付/待发货/待收货
-        取消/催发货/确认收货
-        退款申请
-        售后申请 退/换货 状态跟踪
-        积分抵现 支付时抵扣
-        拼团下单 参与活动后以拼团价下单
-        秒杀下单 以秒杀价下单 售罄拦截
-        预约改期 同技师换时间 距开始≥6h
-        预约月历 排班月/日视图 已约排除
-        服务开始前提醒 1h前订阅消息+站内
-        文字+图片评价
-        评价追评 追加内容/图片 一次
-        物流跟踪 发货状态/脱敏收件人
-        电子发票 申请/列表/详情 防重复
-        ICS日历导出 90天内预约导出iCal
-        订单时间线 状态变更记录/仅本人
-        发票抬头 常用抬头库/默认
-        消息偏好设置 通知开关/定时器门控
-      技师模块
-        技师列表 距离排序
-        技师详情与收藏
-        入驻申请
-        批量排班 日期段≤7天/重叠冲突检测
-      营销中心
-        优惠券 领取/下单抵扣
-        优惠券转赠 8位转赠码/防双花/7天有效
-        会员卡 月卡/VIP/次卡
-        次卡核销 my/use
-        积分获取与兑换/消费回扣
-        积分过期 365天有效期/定时扣减
-        积分兑换商城 兑换券/余额/礼品卡
-        拼团/秒杀 参与/满员锁定/成团下单
-        卡券到期提醒 3天内到期通知
-        礼品卡 现金/实物/兑换入账
-        积分转赠 用户间/单日限额/双向流水
-        二级返佣 二级推荐人 2%返佣
-        满减活动 满X减Y/下单自动叠加
-        积分转盘 权重抽奖/积分余额优惠券/lose
-      钱包
-        余额查询
-        充值 到账站内通知
-        余额支付
-        退款回充
-        余额转账 用户间/双行锁/转账记录
-        支付密码 6位数字设置/校验/修改
-      个人中心
-        头像/昵称/手机号
-        身份切换 客户↔技师
-        消息通知
-        我的收藏
-        浏览足迹 最近浏览服务
-        健康档案 过敏史/偏好技师
-        关注公众号
-        用户推广 二维码海报/返佣明细
-        成长等级 签到/评价/消费 5档
-        等级权益 下单折扣/积分倍率
-        客服工单 提交/列表/详情/关闭
-        工单满意度 关闭打分/后台汇总
-        意见反馈
-      设置
-        修改密码
-        换绑手机
-        查看协议
-        检测更新
-        隐私合规 数据导出/注销72h闭环
-        账号注销
+  root((Sistema de Serviços de Agendamento))
+    Lado do utilizador
+      Autenticação
+        Registo / início de sessão por número de telemóvel
+        Início de sessão por código de verificação
+        Início de sessão via autorização WeChat
+        Modo convidado
+        Palavra-passe esquecida
+        Acordo do utilizador / política de privacidade
+      Página inicial
+        Localização LBS e mudança de cidade
+        Carrossel / anúncios
+        Entradas das categorias de serviços
+        Cupão de novo utilizador
+      Reserva de serviço
+        Escolha da loja com navegação
+        Escolha do técnico com avaliação
+        Escolha do horário de serviço
+        10% de desconto fora de horas / 5% de desconto por reserva antecipada
+        Utilização de cupões
+        Observações e acordo de serviço
+      Loja de produtos
+        Pesquisa e filtros de produtos
+        Detalhes e favoritos dos produtos
+        Gestão do carrinho de compras
+        Comprar agora
+      Gestão de encomendas
+        Consulta de todas as encomendas por separador
+        Por pagar / por expedir / por receber
+        Cancelar / urgir expedição / confirmar receção
+        Pedido de reembolso
+        Pedido pós-venda  devolução/troca com acompanhamento do estado
+        Pontos como pagamento  dedução no pagamento
+        Encomenda em grupo  encomenda ao preço de grupo após participação
+        Encomenda flash  encomenda ao preço relâmpago, bloqueio quando esgotado
+        Reagendamento  nova hora com o mesmo técnico ≥6h antes do início
+        Calendário de reservas  vistas mensal/diária do horário, reservados excluídos
+        Lembrete antes do início do serviço  subscrição + interno 1h antes
+        Avaliação com texto + imagens
+        Avaliação complementar  conteúdo/imagens adicionais, uma vez
+        Seguimento logístico  estado de envio/destinatário mascarado
+        Fatura eletrónica  pedido/lista/detalhes anti-duplicação
+        Exportação de calendário ICS  exportar reservas de 90 dias em iCal
+        Linha temporal da encomenda  registo de alterações de estado/visível apenas ao dono
+        Títulos de fatura  biblioteca de títulos habituais/definição
+        Preferências de notificação  interruptores/gating por temporizador
+      Módulo do técnico
+        Lista de técnicos  ordenação por distância
+        Detalhes do técnico e favoritos
+        Pedido de adesão
+        Agendamento em massa  período ≤7 dias/deteção de conflitos
+      Centro de marketing
+        Cupões  obtenção/dedução na encomenda
+        Oferta de cupão  código de oferta de 8 dígitos/anti-dupla utilização/válido 7 dias
+        Cartões de membro  mensal/VIP/por vezes
+        Verificação de cartão de vezes  os meus/usar
+        Ganho e troca de pontos/reembolso de consumo
+        Expiração de pontos  validade de 365 dias/dedução agendada
+        Centro de troca de pontos  troca por cupões/saldo/cartões-presente
+        Compra em grupo/flash  participação/bloqueio por lotação/encomenda após formação
+        Lembretes de expiração  notificação 3 dias antes da expiração
+        Cartões-presente  valor/físico/entrada por troca
+        Transferência de pontos  entre utilizadores/limite diário/movimentos duplos
+        Comissão de nível 2  recomendador de nível 2 com comissão de 2%
+        Promoções por valor mínimo  gastar X poupar Y/acumulação automática na encomenda
+        Roleta de pontos  sorteio ponderado/cupões de saldo de pontos/perder
+      Carteira
+        Consulta de saldo
+        Carregamento  notificação interna à chegada
+        Pagamento com saldo
+        Devolução de reembolso
+        Transferência de saldo  entre utilizadores/bloqueios duplos de linha/registos
+        Palavra-passe de pagamento  definir/verificar/alterar 6 dígitos
+      Centro pessoal
+        Avatar/nome de utilizador/número de telemóvel
+        Mudança de identidade  cliente↔técnico
+        Notificações
+        Os meus favoritos
+        Histórico de navegação  serviços vistos recentemente
+        Perfil de saúde  alergias/técnico preferido
+        Seguir conta oficial
+        Promoção do utilizador  cartaz QR/detalhes de comissão
+        Níveis de crescimento  registo diário/avaliação/consumo 5 níveis
+        Benefícios de nível  desconto na encomenda/multiplicador de pontos
+        Bilhetes de apoio  submeter/lista/detalhes/fechar
+        Satisfação do bilhete  classificação ao fechar/resumo no painel
+        Feedback
+      Definições
+        Alterar palavra-passe
+        Reassociar número de telemóvel
+        Ver acordos
+        Verificar atualizações
+        Conformidade de privacidade  exportação de dados/ciclo de encerramento em 72h
+        Encerramento de conta
 
-    技师工作台
-      考勤打卡
-        上班打卡 迟到标记
-        下班打卡
-      工作台闭环
-        today 今日订单
-        records 服务记录
-        start 开始服务
-        complete 完成核销
-      今日概况
-        今日订单数
-        收入总览
-      排班管理
-        按日设置时间段
-        可预约时间发布
-      订单处理
-        已约未核销列表
-        已完成列表
-        扫码核销
-      会员管理
-        服务过的会员
-        耗课数据
-        次卡记录
-        会员档案编辑
-      评价互动
-        回复用户评价 404/重复422/站内通知
-      收益管理
-        今日收入
-        结算中金额
-        钱包余额
-        在途资金 3天自动确认
-      提现
-        每月20号申请
-        T+1到账微信零钱
-        最低/保留/整百限制
-      回头客奖励
-        30天内二次消费奖金
-      专业培训
-        视频课程
-        图文课程
+    Bancada de trabalho do técnico
+      Registo de assiduidade
+        Marcar entrada  marcação de atraso
+        Marcar saída
+      Ciclo da bancada de trabalho
+        today  encomendas de hoje
+        records  registos de serviço
+        start  iniciar serviço
+        complete  concluir verificação
+      Resumo de hoje
+        Número de encomendas de hoje
+        Visão geral do rendimento
+      Gestão de horários
+        Definir horários por dia
+        Publicar horários reserváveis
+      Processamento de encomendas
+        Lista de reservadas não verificadas
+        Lista de concluídas
+        Verificação por código QR
+      Gestão de membros
+        Membros servidos
+        Dados de aulas consumidas
+        Registos de cartões de vezes
+        Edição do perfil do membro
+      Interação de avaliações
+        Responder a avaliações de utilizadores  404/duplicação 422/notificação interna
+      Gestão de rendimentos
+        Rendimento de hoje
+        Montante em liquidação
+        Saldo da carteira
+        Fundos em trânsito  confirmação automática após 3 dias
+      Levantamento
+        Pedido no dia 20 de cada mês
+        T+1 para o saldo WeChat
+        Limites mínimos/retidos/múltiplos de 100
+      Recompensa por cliente recorrente
+        Bónus por segundo consumo em 30 dias
+      Formação profissional
+        Cursos em vídeo
+        Cursos com texto e imagens
 
-    管理后台
-      仪表盘
-        实时统计面板
-        订单/金额趋势图
-        新增用户/活跃度
-        快速导航
-        站内消息
-      技师管理
-        技师列表与搜索
-        新增/导出
-        审核入驻申请
-        排班/服务项设置
-        课程进度追踪
-        技师等级自动评定 订单量+均分/只升不降/变更日志
-        考勤统计 按月/技师分组/迟到
-      用户管理
-        会员列表与搜索
-        详情/等级设置
-        修改上级/密码/手机
-      门店管理
-        门店CRUD
-        启禁用控制
-        地图坐标配置
-        门店工作台 概览/订单筛选
-      服务与产品
-        服务项目CRUD
-        产品CRUD
-        分类树形管理
-        卡项设计 项目+产品组合
-      商城管理
-        商城订单/发货/物流
-        售后订单审核
-        评价管理
-        评价图片审核 隐藏/恢复 权限389-391
-        支付流水
-        销售统计
-      预约订单
-        多条件搜索
-        平台取消/确认完成
-        详情查看
-      优惠券活动
-        优惠券CRUD
-        上下架控制
-        领取统计
-      满减活动
-        满X减Y CRUD
-        上下架控制
-      积分转盘
-        奖品CRUD
-        上下架控制
-        抽奖记录查看
-      秒杀活动
-        活动CRUD
-        上下架控制
-        秒杀订单查看
-      积分兑换
-        兑换商品CRUD
-        上下架控制
-        兑换记录查看
-      会员卡管理
-        会员卡定义CRUD
-        次卡/月卡/VIP
-      售后管理
-        售后列表 状态/用户/订单筛选
-        审核 通过/拒绝 备注
-      评价与报表
-        服务评价管理
-        数据报表统计
-      财务管理
-        订单分账
-        技师提现审核
-        佣金设置与奖罚
-        收支流水
-        提现账号/限制配置
-        退款两级审批
-        分销返佣记录
-        二级返佣记录 权限386
-        分账记录 微信分账/状态筛选
-        发票审核 开票/驳回 权限382-384
-        回头客奖励 开关/比例/奖励记录 权限412-414
-      内容管理
-        轮播图CRUD
-        公告CRUD与发布
-        协议编辑
-        常见问题CRUD
-        意见反馈处理
-        客服工单回复 权限385/387
-        工单满意度统计 权限388
-        朋友圈审核
-        关于我们设置
-      系统设置
-        平台协议管理
-        技师统一佣金
-        系统消息模板
-        APP推送 配置驱动/5事件接入
-        订阅消息 订单事件3场景
-        APP版本管理 版本CRUD/强制更新
-        子账号权限 RBAC
-      扩展功能
-        系统监控 CPU/内存/Redis/MySQL
-        IP黑名单管理
-        数据库备份/恢复
-        客户画像 360视图
-        批量消息推送
-        定时任务管理
-        短信双通道配置
-        存储配置 本地/OSS/COS
-        排班Excel导出
-        店长账号 store_id隔离
+    Painel de administração
+      Dashboard
+        Painel de estatísticas em tempo real
+        Gráficos de tendência de encomendas/montantes
+        Novos utilizadores/atividade
+        Navegação rápida
+        Mensagens internas
+      Gestão de técnicos
+        Lista e pesquisa de técnicos
+        Adicionar/exportar
+        Aprovação de pedidos de adesão
+        Definições de horários/itens de serviço
+        Acompanhamento do progresso dos cursos
+        Avaliação automática do nível do técnico  volume de encomendas+média/sobe apenas/registo de alterações
+        Estatísticas de assiduidade  mensal/agrupado por técnico/atrasos
+      Gestão de utilizadores
+        Lista e pesquisa de membros
+        Detalhes/definição de nível
+        Alterar superior/palavra-passe/telemóvel
+      Gestão de lojas
+        CRUD de lojas
+        Controlo de ativação/desativação
+        Configuração de coordenadas no mapa
+        Bancada de trabalho da loja  resumo/filtro de encomendas
+      Serviços e produtos
+        CRUD de itens de serviço
+        CRUD de produtos
+        Gestão de árvore de categorias
+        Design de cartões  combinação item+produto
+      Gestão da loja online
+        Encomendas da loja/envio/logística
+        Aprovação de encomendas pós-venda
+        Gestão de avaliações
+        Auditoria de imagens de avaliações  ocultar/restaurar permissões 389-391
+        Movimentos de pagamento
+        Estatísticas de vendas
+      Encomendas de reserva
+        Pesquisa multicondicional
+        Cancelamento pela plataforma/confirmação de conclusão
+        Consulta de detalhes
+      Atividades de cupões
+        CRUD de cupões
+        Controlo de publicação/retirada
+        Estatísticas de obtenção
+      Promoções por valor mínimo
+        CRUD de gastar X poupar Y
+        Controlo de publicação/retirada
+      Roleta de pontos
+        CRUD de prémios
+        Controlo de publicação/retirada
+        Consulta de registos de sorteios
+      Promoções relâmpago
+        CRUD de atividades
+        Controlo de publicação/retirada
+        Consulta de encomendas flash
+      Troca de pontos
+        CRUD de produtos de troca
+        Controlo de publicação/retirada
+        Consulta de registos de troca
+      Gestão de cartões de membro
+        CRUD de definição de cartões de membro
+        Por vezes/mensal/VIP
+      Gestão de pós-venda
+        Lista pós-venda  filtro por estado/utilizador/encomenda
+        Aprovação  aprovar/rejeitar com observações
+      Avaliações e relatórios
+        Gestão de avaliações de serviço
+        Estatísticas de relatórios de dados
+      Gestão financeira
+        Repartição de encomendas
+        Aprovação de levantamentos de técnicos
+        Configuração de comissões e prémios/multas
+        Movimentos de receitas e despesas
+        Configuração de contas/limites de levantamento
+        Aprovação de reembolsos em dois níveis
+        Registos de comissão de distribuição
+        Registos de comissão de nível 2  permissão 386
+        Registos de repartição  repartição WeChat/filtro por estado
+        Aprovação de faturas  emissão/rejeição permissões 382-384
+        Recompensa por cliente recorrente  interruptor/proporção/registos de recompensa permissões 412-414
+      Gestão de conteúdo
+        CRUD de carrossel
+        CRUD e publicação de anúncios
+        Edição de acordos
+        CRUD de FAQ
+        Tratamento de feedback
+        Respostas a bilhetes de apoio  permissões 385/387
+        Estatísticas de satisfação de bilhetes  permissão 388
+        Moderação do Moments
+        Definições de Sobre nós
+      Definições do sistema
+        Gestão de acordos da plataforma
+        Comissão unificada dos técnicos
+        Modelos de mensagens do sistema
+        Push do APP  configurável/5 eventos ligados
+        Mensagens de subscrição  3 cenários de eventos de encomenda
+        Gestão de versões do APP  CRUD de versões/atualização forçada
+        Permissões de subcontas  RBAC
+      Funcionalidades alargadas
+        Monitorização do sistema  CPU/memória/Redis/MySQL
+        Gestão de lista negra de IP
+        Cópia de segurança/restauro da base de dados
+        Perfil do cliente  vista 360°
+        Envio de mensagens em massa
+        Gestão de tarefas agendadas
+        Configuração de SMS de dois canais
+        Configuração de armazenamento  local/OSS/COS
+        Exportação de horários em Excel
+        Contas de gerente de loja  isolamento store_id
 ```

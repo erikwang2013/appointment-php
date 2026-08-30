@@ -118,6 +118,8 @@ cd ../service/ && cp .env.docker .env && docker-compose up -d
 |---------|-------------|
 | Wallet & Prepaid | user_wallet / wallet_recharge / wallet_txn tables; balance + transactions, WeChat recharge (callback with R-prefixed order no.), balance order payment (pay_channel=balance), auto top-up on WeChat/balance refunds |
 | Admin UI Complete | Flutter Web, 20 pages: dashboard/users/roles/config/logs/verify/schedule/services/technicians/orders/coupons/members/visit-cards/announcements/FAQ/withdrawals/reviews/reports/profile |
+| Dashboard Real-time Stats | Admin home real-time stats (users / total orders / technicians / service orders) + trend charts (order volume / amount / new users / activity), Redis 5m cache |
+| Data Reports | ReportController 3 endpoints: order statistics / technician performance / store distribution (GET /admin/reports/orders\|technicians\|distribution), Redis cache 300s |
 | Mini Program Subscribe Messages | 3 order scenarios (payment success / refund arrival / verified); push_sent_at idempotency; automatic fallback to in-app notification when template unconfigured |
 | Technician Withdrawal | Admin review; two-level approval (store → finance) for amounts ≥500; state machine pending→approved→completed (rejected/failed) |
 | Visit Card Redemption | My cards with real-time used_up/expired; Redis NX idempotency + row lock, directly creates completed order + OrderItem + OrderPayment(pay_type='card') |
@@ -252,6 +254,23 @@ Global bank transfer donations are welcome (HKD / CNY / USD / other currencies).
 >
 > - For HKD / CNY / USD: **Citibank N.A. Hong Kong** — SWIFT Code: CITIHKHXXXX, Bank Code: 006, Branch: Hong Kong Branch, Branch Code: 391, Address: Citibank Tower, Citibank Plaza, 3 Garden Road, Central, Hong Kong
 > - For other currencies: **The Bank of New York Mellon** — SWIFT Code: IRVTUS3NXXX, Address: 240 Greenwich Street, New York, United States
+
+### Crypto Donation
+
+If this project helps you, donations are welcome. Thank you!
+
+| Network | QR Code | Wallet Address |
+|---|---|---|
+| BNB Smart Chain (BEP20) | [<img src="docs/coin/1.jpg" width="150" alt="BNB Smart Chain (BEP20)">](docs/coin/1.jpg) | `0x355d429f97511897ccb4e271ec888205f9ab6629` |
+| Tron (TRC20) | [<img src="docs/coin/2.jpg" width="150" alt="Tron (TRC20)">](docs/coin/2.jpg) | `TEdDHWLajt1XvqtPDWmQctdrJaC3pzZZzz` |
+| Ethereum (ERC20) | [<img src="docs/coin/3.jpg" width="150" alt="Ethereum (ERC20)">](docs/coin/3.jpg) | `0x355d429f97511897ccb4e271ec888205f9ab6629` |
+| Aptos | [<img src="docs/coin/4.jpg" width="150" alt="Aptos">](docs/coin/4.jpg) | `0x836e3780edfc3f7b2372b39e2a1a3a5d7adfaccd96c726f21cfde1b50dd68030` |
+| Plasma | [<img src="docs/coin/5.jpg" width="150" alt="Plasma">](docs/coin/5.jpg) | `0x355d429f97511897ccb4e271ec888205f9ab6629` |
+| Polygon POS | [<img src="docs/coin/6.jpg" width="150" alt="Polygon POS">](docs/coin/6.jpg) | `0x355d429f97511897ccb4e271ec888205f9ab6629` |
+| Solana | [<img src="docs/coin/7.jpg" width="150" alt="Solana">](docs/coin/7.jpg) | `2hfhboHdmdrYsY25XfQSsEWxq5ip4EQsR7f4AzSRMUyr` |
+| The Open Network (TON) | [<img src="docs/coin/8.jpg" width="150" alt="The Open Network (TON)">](docs/coin/8.jpg) | `UQB9kFQohzmXUir9QSSZq01iwl9aQZIDdBpNmDklljRtCoGK` |
+| Arbitrum One | [<img src="docs/coin/9.jpg" width="150" alt="Arbitrum One">](docs/coin/9.jpg) | `0x355d429f97511897ccb4e271ec888205f9ab6629` |
+| AVAX C-Chain | [<img src="docs/coin/10.jpg" width="150" alt="AVAX C-Chain">](docs/coin/10.jpg) | `0x355d429f97511897ccb4e271ec888205f9ab6629` |
 
 ## License
 

@@ -34,8 +34,8 @@
 
 | ドキュメント | 説明 |
 |------|------|
-| [superpowers/specs/2026-05-26-appointment-system-design.md](superpowers/specs/2026-05-26-appointment-system-design.md) | システム設計仕様 |
-| [superpowers/plans/2026-05-26-appointment-system-plan.md](superpowers/plans/2026-05-26-appointment-system-plan.md) | 実装計画 |
+| [superpowers/specs/2026-05-26-appointment-system-design.md](specs/2026-05-26-appointment-system-design.md) | システム設計仕様 |
+| [superpowers/plans/2026-05-26-appointment-system-plan.md](plans/2026-05-26-appointment-system-plan.md) | 実装計画 |
 
 ## 管理バックエンドドキュメント
 

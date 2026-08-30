@@ -36,8 +36,8 @@
 
 | ডকুমেন্ট | বিবরণ |
 |------|------|
-| [superpowers/specs/2026-05-26-appointment-system-design.md](superpowers/specs/2026-05-26-appointment-system-design.md) | সিস্টেম ডিজাইন স্পেসিফিকেশন |
-| [superpowers/plans/2026-05-26-appointment-system-plan.md](superpowers/plans/2026-05-26-appointment-system-plan.md) | ইমপ্লিমেন্টেশন প্ল্যান |
+| [superpowers/specs/2026-05-26-appointment-system-design.md](specs/2026-05-26-appointment-system-design.md) | সিস্টেম ডিজাইন স্পেসিফিকেশন |
+| [superpowers/plans/2026-05-26-appointment-system-plan.md](plans/2026-05-26-appointment-system-plan.md) | ইমপ্লিমেন্টেশন প্ল্যান |
 
 ## অ্যাডমিন ব্যাকএন্ড ডকুমেন্টেশন
 

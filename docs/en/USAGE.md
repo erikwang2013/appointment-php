@@ -25,6 +25,19 @@ Banner → upload + set redirect | Announcements → publish scrolling notices |
 
 ---
 
+## Admin Dashboard Operations
+
+### Dashboard
+After login, the home page shows real-time stats (users / total orders / technicians / service orders) and trend charts (order volume / amount / new users / activity), with quick navigation to pending modules and in-app messages for new orders / refunds.
+
+### Data Reports
+The Reports page offers 3 report types (backed by `GET /admin/reports/orders|technicians|distribution`, Redis cache 300s):
+- **Order Statistics** — order volume/amount by date range
+- **Technician Performance** — service count and revenue per technician
+- **Store Distribution** — order distribution per store
+
+---
+
 ## User-Side Flows
 
 ### Register & Login
