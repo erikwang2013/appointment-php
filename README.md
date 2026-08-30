@@ -24,7 +24,7 @@
 
 **成熟的技术底座**
 
-基于 PHP 8.3 + webman 高性能常驻框架，MySQL 8.0 + Redis + Elasticsearch 支撑；95 张数据表、388 个接口、285 个细粒度权限点，722 项自动化测试全部通过，并有完善的中英文架构文档与一键安装脚本，开箱即用、易于二次开发。
+基于 PHP 8.3 + webman 高性能常驻框架，MySQL 8.0 + Redis + Elasticsearch 支撑；95 张数据表、388 个接口、285 个细粒度权限点，722 项自动化测试全部通过，并有完善的中英文架构文档与一键安装向导，开箱即用、易于二次开发。
 
 无论是单店预约还是多门店连锁，预约服务系统都能为您提供稳定、安全、可扩展的一体化解决方案。
 
@@ -148,9 +148,9 @@ cd ../service/ && cp .env.docker .env && docker-compose up -d
 | 功能 | 说明 |
 |------|------|
 | 储值钱包 | user_wallet / wallet_recharge / wallet_txn 表；余额+流水、微信支付充值（回调 R 前缀单号）、订单余额支付（pay_channel=balance）、微信/余额退款自动回充余额 |
-| 管理后台 UI 完整补齐 | Flutter Web 20 页面：dashboard/用户/角色/配置/日志/核销/排班/服务/技师/订单/优惠券/会员/次卡/公告/FAQ/提现/评价/报表/个人中心 |
-| 仪表盘实时统计 | 管理后台首页实时统计（用户数/订单总数/技师数/服务订单数）+ 订单量/金额/新增用户/活跃度折线趋势，Redis 5m 缓存 |
-| 数据报表 | ReportController 3 端点：订单统计 / 技师业绩 / 门店分布（GET /admin/reports/orders\|technicians\|distribution），Redis 缓存 300s |
+| 管理后台 UI 完整补齐 | Flutter Web 21 页面：仪表盘/用户/角色/配置/日志/核销/排班/服务/技师/订单/优惠券/会员/次卡/公告/FAQ/提现/评价/报表/售后/门店工作台/个人中心 |
+| 仪表盘实时统计 | 管理后台首页统计卡 7 项动态渲染（用户总数/今日新增/活跃用户/操作日志/今日预约/待审核提现/待审技师）+ 近30天趋势图（订单量/金额/新增用户/活跃度）+ 用户状态分布饼图 + 最近操作日志，Redis svc:dashboard 缓存 300s |
+| 数据报表 | ReportController 3 端点：订单统计 / 技师TOP10业绩 / 渠道分布（GET /admin/reports/orders\|technicians\|distribution，7/30 天范围，Redis 缓存 300s）+ 销售统计（svc:sales_stats 区间汇总）+ 财务统计（svc:finance_stats 收入/退款/提现/佣金） |
 | 小程序订阅消息 | 订单 3 场景订阅推送（支付成功/退款到账/核销成功）；push_sent_at 幂等；未配置模板自动降级站内通知 |
 | 技师提现 | 管理端审核；金额 ≥500 两级审批（店长→财务）；状态机 pending→approved→completed（rejected/failed） |
 | 次卡核销闭环 | 我的次卡实时计算 used_up/expired；核销 Redis NX 幂等 + 行锁扣次，直建 completed 订单 + OrderItem + OrderPayment(pay_type='card') |

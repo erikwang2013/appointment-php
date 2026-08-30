@@ -144,14 +144,16 @@ cd ../service/ && cp .env.docker .env && docker-compose up -d
 
 <img src="../../docs/diagrams/ko-security-defense.svg" alt="ko-security-defense.svg" width="100%">
 
-> 더 많은 상세 그림: [흐름도](ARCHITECTURE-DIAGRAM.md)(기술자 출금/신원 전환 포함) | [기능 마인드맵](FUNCTION-DIAGRAM.md) | [전체 생애주기](LIFECYCLE-DIAGRAM.md) | [전체 보안 아키텍처](SECURITY-ARCHITECTURE.md)
+> 더 많은 상세 그림: [흐름도](diagrams/ARCHITECTURE-DIAGRAM.md)(기술자 출금/신원 전환 포함) | [기능 마인드맵](diagrams/FUNCTION-DIAGRAM.md) | [전체 생애주기](diagrams/LIFECYCLE-DIAGRAM.md) | [전체 보안 아키텍처](diagrams/SECURITY-ARCHITECTURE.md)
 
 ## 핵심 기능 하이라이트(6-24차 라운드)
 
 | 기능 | 설명 |
 |------|------|
 | 적립 지갑 | user_wallet / wallet_recharge / wallet_txn 테이블; 잔액+거래 내역, 위챗페이 충전(콜백 R 접두사 주문번호), 주문 잔액 결제(pay_channel=balance), 위챗/잔액 환불 시 잔액 자동 환충 |
-| 관리 백엔드 UI 완비 | Flutter Web 20개 페이지: dashboard/사용자/역할/설정/로그/검증/스케줄/서비스/기술자/주문/쿠폰/멤버십/횟수권/공지/FAQ/출금/평가/리포트/마이페이지 |
+| 관리 백엔드 UI 완비 | Flutter Web 21개 페이지: dashboard/사용자/역할/설정/로그/검증/스케줄/서비스/기술자/주문/쿠폰/멤버십/횟수권/공지/FAQ/출금/평가/리포트/애프터서비스/매장 작업대/마이페이지 |
+| 대시보드 실시간 통계 | 관리단말 홈 통계 카드 7개 동적 렌더링(총 사용자/오늘 신규/활성 사용자/작업 로그/오늘 예약/출금 대기/기술자 심사 대기) + 30일 추이 차트(주문량/금액/신규 사용자/활성도) + 사용자 상태 분포 파이 차트 + 최근 작업 로그, Redis svc:dashboard 캐시 300s |
+| 데이터 리포트 | ReportController 3개 엔드포인트: 주문 통계 / 기술자 TOP10 / 채널 분포(GET /admin/reports/orders\|technicians\|distribution, 7/30일 범위, Redis 캐시 300s) + 판매 통계(svc:sales_stats) + 재무 통계(svc:finance_stats 수익/환불/출금/수수료) |
 | 미니프로그램 구독 메시지 | 주문 3개 시나리오 구독 푸시(결제 성공/환불 입금/검증 성공); push_sent_at 멱등; 템플릿 미설정 시 사이트 내 알림으로 자동 대체 |
 | 기술자 출금 | 관리단말 심사; 금액 ≥500은 2단계 승인(매장장→재무); 상태 머신 pending→approved→completed(rejected/failed) |
 | 횟수권 검증 클로즈드 루프 | 내 횟수권 실시간 used_up/expired 계산; 검증 Redis NX 멱등 + 행 잠금 차감, completed 주문 + OrderItem + OrderPayment(pay_type='card') 직접 생성 |

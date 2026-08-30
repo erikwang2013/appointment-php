@@ -117,9 +117,9 @@ cd ../service/ && cp .env.docker .env && docker-compose up -d
 | Feature | Description |
 |---------|-------------|
 | Wallet & Prepaid | user_wallet / wallet_recharge / wallet_txn tables; balance + transactions, WeChat recharge (callback with R-prefixed order no.), balance order payment (pay_channel=balance), auto top-up on WeChat/balance refunds |
-| Admin UI Complete | Flutter Web, 20 pages: dashboard/users/roles/config/logs/verify/schedule/services/technicians/orders/coupons/members/visit-cards/announcements/FAQ/withdrawals/reviews/reports/profile |
-| Dashboard Real-time Stats | Admin home real-time stats (users / total orders / technicians / service orders) + trend charts (order volume / amount / new users / activity), Redis 5m cache |
-| Data Reports | ReportController 3 endpoints: order statistics / technician performance / store distribution (GET /admin/reports/orders\|technicians\|distribution), Redis cache 300s |
+| Admin UI Complete | Flutter Web, 21 pages: dashboard/users/roles/config/logs/verification/schedule/services/technicians/orders/coupons/members/session cards/announcements/FAQ/withdrawals/reviews/reports/after-sales/store manager/profile |
+| Dashboard Real-time Stats | Admin home dynamically renders 7 stat cards (total users / new today / active users / operation logs / appointments today / pending withdrawals / pending technicians) + 30-day trend charts (order volume / amount / new users / activity) + user-status distribution pie + recent operation logs, Redis svc:dashboard cache 300s |
+| Data Reports | ReportController 3 endpoints: order statistics / technician TOP10 performance / channel distribution (GET /admin/reports/orders\|technicians\|distribution, 7/30-day ranges, Redis cache 300s) + sales stats (svc:sales_stats range summary) + finance stats (svc:finance_stats revenue/refunds/withdrawals/commissions) |
 | Mini Program Subscribe Messages | 3 order scenarios (payment success / refund arrival / verified); push_sent_at idempotency; automatic fallback to in-app notification when template unconfigured |
 | Technician Withdrawal | Admin review; two-level approval (store → finance) for amounts ≥500; state machine pending→approved→completed (rejected/failed) |
 | Visit Card Redemption | My cards with real-time used_up/expired; Redis NX idempotency + row lock, directly creates completed order + OrderItem + OrderPayment(pay_type='card') |

@@ -151,7 +151,9 @@ cd ../service/ && cp .env.docker .env && docker-compose up -d
 | Feature | Description |
 |------|------|
 | Stored-value wallet | `user_wallet` / `wallet_recharge` / `wallet_txn` tables; balance + transaction log, WeChat Pay top-up (callback uses R-prefixed order numbers), order balance payment (`pay_channel=balance`), WeChat/balance refunds automatically top up the wallet |
-| Admin UI completed | Flutter Web 20 pages: dashboard/users/roles/config/logs/verification/schedule/services/technicians/orders/coupons/members/session cards/announcements/FAQ/withdrawals/reviews/reports/profile |
+| Admin UI completed | Flutter Web 21 pages: dashboard/users/roles/config/logs/verification/schedule/services/technicians/orders/coupons/members/session cards/announcements/FAQ/withdrawals/reviews/reports/after-sales/store manager/profile |
+| Dashboard real-time stats | Admin home dynamically renders 7 stat cards (total users/new today/active users/operation logs/appointments today/pending withdrawals/pending technicians) + 30-day trend charts (order volume/amount/new users/activity) + user-status distribution pie + recent operation logs, Redis svc:dashboard cache 300s |
+| Data reports | ReportController 3 endpoints: order stats / technician TOP10 / channel distribution (GET /admin/reports/orders\|technicians\|distribution, 7/30-day range, Redis cache 300s) + sales stats (svc:sales_stats) + finance stats (svc:finance_stats revenue/refunds/withdrawals/commissions) |
 | Mini Program subscribe messages | Order 3-scenario subscribe pushes (payment success/refund received/verification success); `push_sent_at` idempotent; auto fallback to in-app notification when template not configured |
 | Technician withdrawals | Admin review; two-level approval for amounts ≥500 (store manager → finance); state machine pending→approved→completed (rejected/failed) |
 | Session-card verification loop | "My session cards" computes used_up/expired in real time; verification uses Redis NX idempotency + row lock to deduct times, directly creating a completed order + OrderItem + OrderPayment(pay_type='card') |

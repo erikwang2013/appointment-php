@@ -141,9 +141,10 @@ mindmap
 
     Back-office de gestion
       Tableau de bord
-        Panneau de statistiques en temps réel
-        Graphique de tendance des commandes / montants
-        Nouveaux utilisateurs / activité
+        7 cartes de statistiques  total utilisateurs/nouveaux aujourd'hui/actifs/journal des opérations/rendez-vous du jour/retraits en attente/techniciens en attente de validation
+        Graphiques de tendance 30 jours  volume de commandes/montant/nouveaux utilisateurs/activité
+        Camembert de répartition des statuts utilisateur  activé/désactivé
+        Derniers journaux d'opérations 10
         Navigation rapide
         Messages internes
       Gestion des techniciens
@@ -206,12 +207,14 @@ mindmap
         Examen : approbation / rejet avec remarque
       Évaluations et rapports
         Gestion des évaluations de service
-        Statistiques des rapports de données
+        Rapports de données  statistiques de commandes/TOP10 techniciens/répartition des canaux plage de 7-30 jours Redis 300s
+        Statistiques de ventes  résumé des commandes sur la période/magasin/type de service
       Gestion financière
         Répartition des commandes
         Examen des retraits des techniciens
         Paramétrage des commissions, récompenses et pénalités
         Flux d'entrées et de sorties
+        Statistiques financières  revenus/remboursements/retraits/commissions résumé sur la période
         Comptes de retrait / configuration des limites
         Approbation à deux niveaux des remboursements
         Historique des commissions de distribution

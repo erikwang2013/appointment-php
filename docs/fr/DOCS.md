@@ -36,8 +36,8 @@
 
 | Document | Description |
 |------|------|
-| [superpowers/specs/2026-05-26-appointment-system-design.md](superpowers/specs/2026-05-26-appointment-system-design.md) | Spécifications du système |
-| [superpowers/plans/2026-05-26-appointment-system-plan.md](superpowers/plans/2026-05-26-appointment-system-plan.md) | Plan d'implémentation |
+| [superpowers/specs/2026-05-26-appointment-system-design.md](specs/2026-05-26-appointment-system-design.md) | Spécifications du système |
+| [superpowers/plans/2026-05-26-appointment-system-plan.md](plans/2026-05-26-appointment-system-plan.md) | Plan d'implémentation |
 
 ## Documentation du back-office
 

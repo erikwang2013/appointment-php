@@ -14,15 +14,28 @@ Copyright (c) 2026 erik <erik@erik.xyz> — https://erik.xyz
 
 | 域 | 功能 |
 |----|------|
-| 认证 | 登录/注册/刷新/登出 + 验证码 + 账号锁定 + 会话限制 |
-| 仪表盘 | 实时统计/趋势/分布/日志（Redis 5m 缓存）|
-| 用户 | CRUD + 批量删除/启禁用 + Excel 导入 |
-| 角色权限 | CRUD + 权限树 + RBAC method.path 鉴权 |
-| 系统配置 | 键值对 CRUD |
+| 认证 | 登录/刷新/登出 + 验证码 + 账号锁定 + 会话限制 + 个人中心 |
+| 仪表盘 | 7 统计卡（用户总数/今日新增/活跃用户/操作日志/今日预约/待审核提现/待审技师）+ 30 天趋势图 + 用户状态分布饼图 + 最近操作日志（Redis `svc:dashboard` 300s）|
+| 数据报表 | 订单统计（汇总+按天趋势）/ 技师TOP10业绩 / 渠道分布（支付渠道+订单状态），`GET /admin/reports/orders\|technicians\|distribution`，7/30 天范围，Redis 300s |
+| 销售统计 | 日期区间订单汇总/门店/服务类型维度（`svc:sales_stats`）|
+| 财务统计 | 收入/退款/提现/佣金区间汇总（`svc:finance_stats`）|
+| 用户 | CRUD + 批量删除/启禁用 + Excel 导入 + 等级/上级/密码/手机修改 |
+| 角色权限 | CRUD + 权限树 + RBAC method.path 鉴权（Redis 60s 缓存）|
+| 技师 | 列表/搜索/新增/导出 + 入驻审核 + 排班/服务项 + 等级自动评定 + 考勤统计 + 培训课程 |
+| 门店 | CRUD/启禁用/地图坐标 + 门店工作台（store_id 隔离）|
+| 服务与产品 | 服务/产品/分类 CRUD + 卡项（次卡）设计 |
+| 预约订单 | 多条件搜索/取消/确认完成 + 扫码核销 + 退款两级审批 |
+| 商城 | 订单/发货/物流 + 售后审核 + 评价/评价图片审核 + 支付流水 |
+| 营销 | 优惠券/满减/秒杀/积分转盘/积分兑换/会员卡（月卡/VIP/次卡）|
+| 内容 | 轮播/公告/协议/FAQ/反馈/客服工单/朋友圈/视频审核/关于我们 |
+| 分销 | 二级返佣/推荐奖励/佣金设置/分账记录/回头客奖励 |
+| 财务 | 收支流水/技师提现审核/提现账号与限制配置/发票审核 |
+| 系统设置 | 系统配置键值 + 短信双通道 + 存储（本地/OSS/COS）+ 平台协议 + 消息模板 + 订阅消息 + APP 推送 + 版本管理 |
+| 扩展 | 系统监控（CPU/内存/Redis/MySQL）+ IP 黑名单 + 数据库备份/恢复 + 定时任务 + 批量消息推送 + 客户画像 |
 | 操作审计 | 日志查询 + 8 平台来源端自动检测 |
 | 文件 | 上传 + Excel/PDF 导出（敏感数据脱敏）|
 | 安全 | 18 层纵深防御（XSS/SQL注入/CSRF/限流/CSP...）|
-| 运维 | 健康检查/Prometheus 指标/API 文档/security.txt + Docker + CI/CD |
+| 运维 | 安装向导 + 健康检查/Prometheus 指标/API 文档/security.txt + Docker + CI/CD |
 
 ## 技术栈
 
@@ -36,21 +49,26 @@ Copyright (c) 2026 erik <erik@erik.xyz> — https://erik.xyz
 - 数据库敏感字段加解密: `erikwang2013/encryptable`
 - ES 同步与查询: `erikwang2013/webman-scout`
 - 国家旗帜: `erikwang2013/season`
+- 海报生成: `erikwang2013/poster-php`
+- 攻击检测: `erikwang2013/security-php`
 
 ### 前端
-- Flutter 3.x，源码目录 `apps/flutter/`
-- Web 端按 PC 管理后台风格设计（非移动端 App 风格）
-- 支持客户端和管理员端
-- HarmonyOS ArkTS，源码目录 `apps/harmonyos/`
+- Flutter 3.x 管理后台，源码目录 `apps/flutter/`（`lib/app/pages/` 22 个页面目录）
+- Web 端按 PC 管理后台风格设计（侧边栏 + 顶栏 + 内容区，非移动端 App 风格）
+- 微信小程序版管理端，源码目录 `apps/weixin/`（7 个页面）
+- HarmonyOS ArkTS 客户端，源码目录 `apps/harmonyos/`
 
 ## 项目结构
 
 ```
 open-admin/
 ├── app/
-│   ├── admin/controller/       # 管理端控制器 (14 个)
+│   ├── admin/controller/       # 管理端控制器 (72 个)
 │   │   ├── BaseController.php      # 基础控制器
-│   │   ├── DashboardController.php # 仪表盘（Redis 缓存）
+│   │   ├── DashboardController.php # 仪表盘 7 统计卡（Redis svc:dashboard 缓存）
+│   │   ├── ReportController.php    # 数据报表：订单统计/技师TOP10/渠道分布
+│   │   ├── SalesStatsController.php# 销售统计（svc:sales_stats）
+│   │   ├── FinanceController.php   # 财务统计（svc:finance_stats）
 │   │   ├── UserController.php      # 用户 CRUD + 批量操作
 │   │   ├── RoleController.php      # 角色 CRUD
 │   │   ├── PermissionController.php# 权限 CRUD
@@ -62,46 +80,66 @@ open-admin/
 │   │   ├── UploadController.php    # 文件上传
 │   │   ├── HealthController.php    # 健康检查
 │   │   ├── DocsController.php      # OpenAPI 文档
-│   │   └── MetricsController.php   # Prometheus 监控指标
+│   │   ├── MetricsController.php   # Prometheus 监控指标
+│   │   ├── InstallController.php   # Web 安装向导
+│   │   ├── TechnicianController.php      # 技师管理
+│   │   ├── StoreController.php           # 门店管理
+│   │   ├── StoreManagerController.php    # 门店工作台（store_id 隔离）
+│   │   ├── ServiceController.php         # 服务项目管理
+│   │   ├── ProductController.php         # 产品管理
+│   │   ├── AppointmentOrderController.php# 预约订单
+│   │   ├── CouponController.php          # 优惠券
+│   │   ├── MemberCardController.php      # 会员卡（月卡/VIP/次卡）
+│   │   ├── WithdrawalController.php      # 技师提现审核
+│   │   ├── AftersaleController.php       # 售后审核
+│   │   ├── ReviewController.php          # 评价管理
+│   │   ├── SystemMonitorController.php   # 系统监控
+│   │   └── ...                           # 其余 42 个（营销/内容/分销/扩展等，见功能清单）
 │   ├── api/v1/controller/      # API v1 控制器（版本头控制）
 │   │   ├── CaptchaController.php
 │   │   └── AuthController.php
-│   ├── common/                 # 公共工具类
-│   │   ├── HashidsService.php
-│   │   ├── SnowflakeService.php
-│   │   ├── EncryptionService.php
-│   │   ├── TechnicianWithdrawalService.php
-│   │   └── WechatPayService.php
-│   ├── common/                 # 公共定义（含 Apidoc Definitions）
+│   ├── common/                 # 公共工具类（Hashids/Snowflake/Encryption/WechatPay 等）
+│   ├── functions.php           # 公共函数
 │   ├── middleware/             # 中间件（8 个）
 │   │   ├── Cors.php            # 跨域（全局）
-│   │   └── (已迁移至 erikwang2013/security-php 包)  # 31种攻击检测
+│   │   ├── Locale.php          # Accept-Language 语言
+│   │   ├── StaticFile.php      # 静态文件（未启用，config/static.php 中注释）
 │   │   ├── RateLimit.php       # Redis 限流（全局，Lua 原子化）
 │   │   ├── ApiVersion.php      # API 版本校验
 │   │   ├── AdminAuth.php       # JWT 认证 + 黑名单
 │   │   ├── AdminPermission.php # RBAC 权限校验（Redis 60s 缓存）
-│   │   └── OperationLog.php    # 操作日志自动记录（含来源端检测）
-│   ├── model/                  # 数据模型（仅 6 个特有模型：AdminPermission/AdminRole/AdminUser/OperationLog/OperationLogDetail/SystemConfig；其余经 psr-4 共享 service 版）
+│   │   └── OperationLog.php    # 操作日志自动记录（含来源端检测；攻击检测已迁移至 erikwang2013/security-php 包）
+│   ├── model/                  # 数据模型（6 个特有模型：AdminPermission/AdminRole/AdminUser/OperationLog/OperationLogDetail/SystemConfig；其余经 psr-4 共享 service 版）
 │   ├── queue/                  # 队列任务
 │   └── process/                # 进程 (Http, Monitor)
 ├── apps/
 │   ├── flutter/                # Flutter Web 管理后台
 │   │   └── lib/app/
-│   │       ├── pages/          # 6 个完整页面
-│   │       │   ├── dashboard/  # 仪表盘
+│   │       ├── pages/          # 22 个页面目录（登录 + 21 个管理页面）
+│   │       │   ├── dashboard/  # 仪表盘（7 统计卡/趋势/饼图/日志）
 │   │       │   ├── login/      # 登录
 │   │       │   ├── user/       # 用户管理
 │   │       │   ├── role/       # 角色权限
 │   │       │   ├── config/     # 系统配置
 │   │       │   ├── log/        # 操作日志
-│   │       │   └── profile/    # 个人中心
+│   │       │   ├── profile/    # 个人中心
+│   │       │   ├── technician/ # 技师管理
+│   │       │   ├── service/    # 服务管理
+│   │       │   ├── order/      # 预约订单
+│   │       │   ├── report/     # 数据报表
+│   │       │   ├── aftersale/  # 售后管理
+│   │       │   ├── store_manager/ # 门店工作台
+│   │       │   └── ...         # 其余 9 个（优惠券/会员/排班/核销/评价/公告/FAQ/次卡/提现）
+│   │       ├── routes/         # GetPage 路由表
 │   │       ├── services/       # ApiService + AuthService
 │   │       ├── layouts/        # 响应式布局
 │   │       └── theme/          # Material 3 主题
+│   ├── weixin/                 # 微信小程序版管理端（7 个页面）
+│   │   └── pages/              # dashboard/login/user/role/config/log/profile
 │   └── harmonyos/              # HarmonyOS 客户端
 ├── config/                     # 配置文件
-│   ├── route.php               # 路由 + API 版本策略
-│   └── middleware.php           # 全局中间件注册
+│   ├── route.php               # 路由（/admin 组挂 AdminAuth/AdminPermission/OperationLog）
+│   └── middleware.php          # 全局中间件注册
 ├── database/
 │   └── backup/                 # 数据库备份脚本（表结构与种子数据统一收敛于 docs/install.sql）
 │       ├── backup.sh           # mysqldump+gzip，30天保留
@@ -117,6 +155,7 @@ open-admin/
 │       ├── specs/              # 设计规范
 │       └── plans/              # 实现计划
 ├── public/                     # 公共入口
+├── resource/                   # 静态资源
 ├── runtime/                    # 运行时文件
 ├── tests/                      # 测试
 ├── vendor/                     # Composer 依赖

@@ -143,9 +143,10 @@ mindmap
 
     Painel de administração
       Dashboard
-        Painel de estatísticas em tempo real
-        Gráficos de tendência de encomendas/montantes
-        Novos utilizadores/atividade
+        7 cartões de estatísticas  total de utilizadores/novos hoje/ativos/registo de operações/marcações de hoje/levantamentos pendentes/técnicos pendentes de análise
+        Gráficos de tendência de 30 dias  volume de encomendas/montante/novos utilizadores/atividade
+        Gráfico circular de estado de utilizadores  ativado/desativado
+        Últimos registos de operações 10
         Navegação rápida
         Mensagens internas
       Gestão de técnicos
@@ -208,12 +209,14 @@ mindmap
         Aprovação  aprovar/rejeitar com observações
       Avaliações e relatórios
         Gestão de avaliações de serviço
-        Estatísticas de relatórios de dados
+        Relatórios de dados  estatísticas de encomendas/TOP10 técnicos/distribuição de canais intervalo de 7-30 dias Redis 300s
+        Estatísticas de vendas  resumo de encomendas do período/loja/tipo de serviço
       Gestão financeira
         Repartição de encomendas
         Aprovação de levantamentos de técnicos
         Configuração de comissões e prémios/multas
         Movimentos de receitas e despesas
+        Estatísticas financeiras  receitas/reembolsos/levantamentos/comissões resumo do período
         Configuração de contas/limites de levantamento
         Aprovação de reembolsos em dois níveis
         Registos de comissão de distribuição

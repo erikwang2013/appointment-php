@@ -141,9 +141,10 @@ mindmap
 
     Panel de administración
       Panel de control
-        Panel de estadísticas en tiempo real
-        Gráfico de tendencias de pedidos/importes
-        Nuevos usuarios/actividad
+        7 tarjetas de estadísticas  total usuarios/nuevos hoy/activos/registro de operaciones/reservas de hoy/retiros pendientes/técnicos pendientes de revisión
+        Gráficos de tendencia de 30 días  volumen de pedidos/importe/nuevos usuarios/actividad
+        Diagrama circular de estado de usuarios  activado/desactivado
+        Últimos registros de operaciones 10
         Navegación rápida
         Mensajes internos
       Gestión de técnicos
@@ -206,12 +207,14 @@ mindmap
         Auditoría, aprobar/rechazar, con notas
       Evaluaciones e informes
         Gestión de evaluaciones de servicio
-        Estadísticas de informes de datos
+        Informes de datos  estadísticas de pedidos/TOP10 técnicos/distribución de canales rango 7-30 días Redis 300s
+        Estadísticas de ventas  resumen de pedidos por período/tienda/tipo de servicio
       Gestión financiera
         Reparto de pedidos
         Auditoría de retiros de técnicos
         Configuración de comisiones y premios/multas
         Historial de ingresos y gastos
+        Estadísticas financieras  ingresos/reembolsos/retiros/comisiones resumen del período
         Configuración de cuentas/límites de retiro
         Aprobación de reembolsos de dos niveles
         Registros de comisión de distribución

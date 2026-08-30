@@ -1,13 +1,13 @@
 # 管理后台 Flutter Web 应用（admin_app）
 
-> **多语言**：[English](../../../../README_EN.md) · [한국어](../../../../docs/ko/README.md) · [Русский](../../../../docs/ru/README.md) · [Deutsch](../../../../docs/de/README.md) · [Français](../../../../docs/fr/README.md) · [Español](../../../../docs/es/README.md) · [Português](../../../../docs/pt/README.md) · [हिन्दी](../../../../docs/hi/README.md) · [العربية](../../../../docs/ar/README.md) · [বাংলা](../../../../docs/bn/README.md) · [Bahasa Indonesia](../../../../docs/id/README.md) · [日本語](../../../../docs/ja/README.md)
+> **多语言**：[English](../../../README_EN.md) · [한국어](../../../docs/ko/README.md) · [Русский](../../../docs/ru/README.md) · [Deutsch](../../../docs/de/README.md) · [Français](../../../docs/fr/README.md) · [Español](../../../docs/es/README.md) · [Português](../../../docs/pt/README.md) · [हिन्दी](../../../docs/hi/README.md) · [العربية](../../../docs/ar/README.md) · [বাংলা](../../../docs/bn/README.md) · [Bahasa Indonesia](../../../docs/id/README.md) · [日本語](../../../docs/ja/README.md)
 
-本目录是预约服务系统 **PC 管理后台前端**：Flutter Web 单页应用（Material 3 + GetX，PC 管理后台风格），与 webman 后端（`admin/`，端口 :8787）配套使用。用户端三端（微信小程序 / Flutter APP / HarmonyOS APP）详见根 [README](../../../../README.md) 与 [docs/FEATURES.md](../../../../docs/FEATURES.md)。
+本目录是预约服务系统 **PC 管理后台前端**：Flutter Web 单页应用（Material 3 + GetX，PC 管理后台风格），与 webman 后端（`admin/`，端口 :8787）配套使用。用户端三端（微信小程序 / Flutter APP / HarmonyOS APP）详见根 [README](../../../README.md) 与 [docs/FEATURES.md](../../../docs/FEATURES.md)。
 
 ## 功能概览
 
-- **仪表盘**：实时统计（用户数 / 订单总数 / 技师数 / 服务订单数）+ 折线趋势（订单量 / 金额 / 新增用户 / 活跃度）+ 快速导航与站内消息
-- **数据报表**：3 个报表端点——订单统计、技师业绩、门店分布（后端 Redis 缓存 300s）
+- **仪表盘**：统计卡 7 项动态渲染（用户总数 / 今日新增 / 活跃用户 / 操作日志 / 今日预约 / 待审核提现 / 待审技师）+ 近 30 天折线趋势（订单量 / 金额 / 新增用户 / 活跃度）+ 用户状态分布饼图 + 最近操作日志 + 快速导航与站内消息
+- **数据报表**：3 个报表端点——订单统计（汇总 + 按天趋势）、技师业绩 TOP10、渠道分布（支付渠道 + 订单状态），7/30 天范围，后端 Redis 缓存 300s
 - **页面规模**：21 个页面——仪表盘 / 用户 / 角色 / 配置 / 日志 / 核销 / 排班 / 服务 / 技师 / 订单 / 优惠券 / 会员 / 次卡 / 公告 / FAQ / 提现 / 评价 / 报表 / 售后 / 门店工作台 / 个人中心
 
 ## 一键安装
@@ -28,7 +28,7 @@ php start.php start -d     # 默认端口 8787
 3. **管理员账号** — 设置应用名称、管理员用户名和密码
 4. **执行安装** — 自动导入 SQL → 创建管理员 → 写入 .env 配置
 
-安装完成后访问 `http://localhost:8787` 即可登录管理后台（默认管理员 `admin` / `admin123`，首次登录后请立即修改密码）。详细步骤见 [docs/INSTALL.md](../../../../docs/INSTALL.md)。
+安装完成后访问 `http://localhost:8787` 即可登录管理后台（默认管理员 `admin` / `admin123`，首次登录后请立即修改密码）。详细步骤见 [docs/INSTALL.md](../../../docs/INSTALL.md)。
 
 ## Flutter Web 构建
 
@@ -54,8 +54,8 @@ flutter run -d chrome --web-port 8080
 ## 使用说明
 
 1. **登录**：打开 `http://localhost:8787` → 输入管理员账号密码（含验证码，连续 5 次失败锁定 15 分钟）
-2. **仪表盘**：首页查看实时统计与趋势图，快速导航直达待处理模块
-3. **数据报表**：报表页查看 3 类报表——订单统计（`GET /admin/reports/orders`）、技师业绩（`GET /admin/reports/technicians`）、门店分布（`GET /admin/reports/distribution`）
+2. **仪表盘**：首页查看 7 张统计卡、近 30 天趋势图与用户状态分布饼图，快速导航直达待处理模块
+3. **数据报表**：报表页切换 7/30 天范围查看 3 类报表——订单统计（`GET /admin/reports/orders`）、技师业绩 TOP10（`GET /admin/reports/technicians`）、渠道分布（`GET /admin/reports/distribution`）
 4. **日常运营**：用户 / 技师 / 门店 / 服务 / 订单 / 核销 / 排班 / 优惠券 / 会员 / 次卡 / 提现 / 评价 / 售后等管理页面
 
 ## 功能图
@@ -64,13 +64,14 @@ flutter run -d chrome --web-port 8080
 mindmap
   root((管理后台))
     仪表盘
-      实时统计 用户/订单/技师/服务订单
-      趋势图 订单量/金额/新增用户
-      快速导航与站内消息
+      统计卡7项 用户/今日新增/活跃/日志/预约/提现/技师
+      近30天趋势图 订单量/金额/新增用户/活跃度
+      用户状态分布饼图
+      最近操作日志
     数据报表
-      订单统计
-      技师业绩
-      门店分布
+      订单统计 汇总+按天趋势
+      技师业绩 TOP10 单量/营收/评分
+      渠道分布 支付渠道/订单状态
     用户与技师
       用户/会员管理
       技师管理 入驻审核/排班/考勤/等级
@@ -90,12 +91,12 @@ mindmap
       系统监控/数据库备份
 ```
 
-> 完整功能图见 [docs/diagrams/FUNCTION-DIAGRAM.md](../../../../docs/diagrams/FUNCTION-DIAGRAM.md)
+> 完整功能图见 [docs/diagrams/FUNCTION-DIAGRAM.md](../../../docs/diagrams/FUNCTION-DIAGRAM.md)
 
 ## 相关文档
 
 - 管理后台后端（webman）：`admin/` 下 ARCHITECTURE.md / DESIGN.md / SECURITY.md / API.md
-- 项目文档索引：[docs/README.md](../../../../docs/README.md)
+- 项目文档索引：[docs/README.md](../../../docs/README.md)
 
 ## 版权
 

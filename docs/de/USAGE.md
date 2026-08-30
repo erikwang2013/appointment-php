@@ -27,6 +27,21 @@ Karussell → Upload + Sprungziele setzen | Ankündigungen → laufende Ankündi
 
 ---
 
+## Täglicher Betrieb im Verwaltungsbackend
+
+### Dashboard
+Nach der Anmeldung zeigt die Startseite 7 dynamisch gerenderte Statistik-Karten (Gesamtbenutzer / heute neu / aktive Benutzer / Betriebsprotokolle / heutige Buchungen / ausstehende Auszahlungen / ausstehende Techniker), 30-Tage-Trenddiagramme (Bestellvolumen / Betrag / neue Benutzer / Aktivität), ein Kreisdiagramm zur Benutzerstatus-Verteilung (aktiv/deaktiviert) und die letzten 10 Betriebsprotokolle (Redis-`svc:dashboard`-Cache 300 s); die Schnellnavigation führt direkt zu offenen Modulen, und In-App-Nachrichten liefern Benachrichtigungen über neue Bestellungen/Rückerstattungen.
+
+### Datenberichte
+Die Berichtsseite bietet 3 Berichtsarten (7/30-Tage-Bereich, über `GET /admin/reports/orders|technicians|distribution`, Redis-Cache 300 s):
+- **Bestellstatistik** — Zusammenfassung (Bestellanzahl/bezahlter Betrag/Rückerstattungen/Nettoumsatz) + Tagesverlauf
+- **Techniker-Leistung** — TOP-10-Techniker (Bestellanzahl/Umsatz/Bewertung, maskierte Namen, sortierbar nach Anzahl oder Umsatz)
+- **Kanalverteilung** — Verteilung der Zahlungskanäle (WeChat/Alipay/Guthaben) + Verteilung der Bestellstatus
+
+Außerdem verfügbar: Verkaufsstatistik (`svc:sales_stats`: Zeitraum-Zusammenfassung der Bestellungen nach Filiale/Dienstleistungstyp) und Finanzstatistik (`svc:finance_stats`: Zusammenfassung von Einnahmen/Rückerstattungen/Auszahlungen/Provisionen).
+
+---
+
 ## Ablauf auf der Kundenseite
 
 ### Registrierung und Login

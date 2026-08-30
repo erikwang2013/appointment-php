@@ -143,9 +143,10 @@ mindmap
 
     Verwaltungsbackend
       Dashboard
-        Echtzeit-Statistikpanel
-        Bestell-/Betragstrenddiagramme
-        Neue Benutzer/Aktivität
+        7 Statistik-Karten  Gesamtnutzer/neue heute/aktive Nutzer/Operationsprotokoll/heutige Buchungen/ausstehende Auszahlungen/ausstehende Technikerprüfung
+        30-Tage-Trenddiagramme  Bestellvolumen/Betrag/neue Nutzer/Aktivität
+        Benutzerstatus-Verteilungsdiagramm  aktiviert/deaktiviert
+        Letzte Operationsprotokolle 10
         Schnellnavigation
         Interne Nachrichten
       Technikerverwaltung
@@ -208,12 +209,14 @@ mindmap
         Prüfung genehmigen/ablehnen Bemerkung
       Bewertungen und Berichte
         Leistungsbewertungsverwaltung
-        Datenbericht-Statistik
+        Datenberichte  Bestellstatistik/Techniker-TOP10/Kanalverteilung 7-30-Tage-Bereich Redis 300s
+        Verkaufsstatistik  Zeitraum-Bestellübersicht/Standort/Servicetyp
       Finanzverwaltung
         Bestell-Umsatzbeteiligung
         Techniker-Auszahlungsprüfung
         Provisionsfestlegung und Belohnung/Strafe
         Einnahmen-Ausgaben-Transaktionen
+        Finanzstatistik  Einnahmen/Erstattungen/Auszahlungen/Provisionen Zeitraumübersicht
         Auszahlungskonto/Limit-Konfiguration
         Rückerstattungs-Zweistufenfreigabe
         Distributions-Provisionsprotokoll

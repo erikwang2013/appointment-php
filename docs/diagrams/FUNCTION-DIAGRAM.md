@@ -1,5 +1,5 @@
 # 系统功能图
-> **多语言**：[English](en/diagrams/FUNCTION-DIAGRAM.md) · [한국어](ko/diagrams/FUNCTION-DIAGRAM.md) · [Русский](ru/diagrams/FUNCTION-DIAGRAM.md) · [Deutsch](de/diagrams/FUNCTION-DIAGRAM.md) · [Français](fr/diagrams/FUNCTION-DIAGRAM.md) · [Español](es/diagrams/FUNCTION-DIAGRAM.md) · [Português](pt/diagrams/FUNCTION-DIAGRAM.md) · [हिन्दी](hi/diagrams/FUNCTION-DIAGRAM.md) · [العربية](ar/diagrams/FUNCTION-DIAGRAM.md) · [বাংলা](bn/diagrams/FUNCTION-DIAGRAM.md) · [Bahasa Indonesia](id/diagrams/FUNCTION-DIAGRAM.md) · [日本語](ja/diagrams/FUNCTION-DIAGRAM.md)
+> **多语言**：[English](../en/diagrams/FUNCTION-DIAGRAM.md) · [한국어](../ko/diagrams/FUNCTION-DIAGRAM.md) · [Русский](../ru/diagrams/FUNCTION-DIAGRAM.md) · [Deutsch](../de/diagrams/FUNCTION-DIAGRAM.md) · [Français](../fr/diagrams/FUNCTION-DIAGRAM.md) · [Español](../es/diagrams/FUNCTION-DIAGRAM.md) · [Português](../pt/diagrams/FUNCTION-DIAGRAM.md) · [हिन्दी](../hi/diagrams/FUNCTION-DIAGRAM.md) · [العربية](../ar/diagrams/FUNCTION-DIAGRAM.md) · [বাংলা](../bn/diagrams/FUNCTION-DIAGRAM.md) · [Bahasa Indonesia](../id/diagrams/FUNCTION-DIAGRAM.md) · [日本語](../ja/diagrams/FUNCTION-DIAGRAM.md)
 
 ```mermaid
 mindmap
@@ -141,9 +141,10 @@ mindmap
 
     管理后台
       仪表盘
-        实时统计面板
-        订单/金额趋势图
-        新增用户/活跃度
+        统计卡 7项 用户总数/今日新增/活跃用户/操作日志/今日预约/待审核提现/待审技师
+        近30天趋势图 订单量/金额/新增用户/活跃度
+        用户状态分布饼图 启用/禁用
+        最近操作日志 10条
         快速导航
         站内消息
       技师管理
@@ -206,12 +207,14 @@ mindmap
         审核 通过/拒绝 备注
       评价与报表
         服务评价管理
-        数据报表统计
+        数据报表 订单统计/技师TOP10/渠道分布 7-30天范围 Redis 300s
+        销售统计 日期区间订单汇总/门店/服务类型
       财务管理
         订单分账
         技师提现审核
         佣金设置与奖罚
         收支流水
+        财务统计 收入/退款/提现/佣金 区间汇总
         提现账号/限制配置
         退款两级审批
         分销返佣记录

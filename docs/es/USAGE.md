@@ -25,6 +25,21 @@ Banners → cargar + configurar el salto | Anuncios → publicar anuncios de not
 
 ---
 
+## Operación diaria del panel de administración
+
+### Panel
+Tras iniciar sesión, la página de inicio muestra 7 tarjetas de estadísticas renderizadas dinámicamente (total de usuarios / nuevos hoy / usuarios activos / registros de operaciones / reservas de hoy / retiros pendientes / técnicos pendientes), gráficos de tendencia de 30 días (volumen de pedidos / importe / nuevos usuarios / actividad), un gráfico circular de distribución del estado de los usuarios (activado/desactivado) y los últimos 10 registros de operaciones (caché Redis `svc:dashboard` 300 s); la navegación rápida conduce directamente a los módulos pendientes, y los mensajes internos entregan notificaciones de nuevos pedidos/reembolsos.
+
+### Informes de datos
+La página de informes ofrece 3 tipos de informes (rango de 7/30 días, respaldado por `GET /admin/reports/orders|technicians|distribution`, caché Redis 300 s):
+- **Estadísticas de pedidos** — resumen (número de pedidos/importe pagado/reembolsos/ingresos netos) + tendencia diaria
+- **Rendimiento de técnicos** — TOP 10 de técnicos (número de pedidos/ingresos/valoración, nombres enmascarados, ordenable por número o ingresos)
+- **Distribución de canales** — distribución de canales de pago (WeChat/Alipay/saldo) + distribución de estados de pedido
+
+También están disponibles las estadísticas de ventas (`svc:sales_stats`: resumen de pedidos por período por tienda/tipo de servicio) y las estadísticas financieras (`svc:finance_stats`: resumen de ingresos/reembolsos/retiros/comisiones por período).
+
+---
+
 ## Flujo del extremo de usuario
 
 ### Registro e inicio de sesión

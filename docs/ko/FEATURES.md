@@ -279,7 +279,7 @@
 | 기능 | 설명 |
 |------|------|
 | API | POST /api/order에 promotion_id(flash_sale 유형) 전달: 번개세일가 = round(total × (100 − discount_percent)/100, 2), PromotionController 번개세일가와 동일 기준 |
-| 검증 | 유형 화이트리스트 [group_buy, flash_sale](그 외 422); 활동 진행 중; 호출자는 참여자; 주문 서비스와 활동 일치; 매진 participants_count ≥ max_people 422 "품절"; 쿠폰/횟수권/포인트 중첩 금지 422 |
+| 검증 | 유형 화이트리스트 [group_buy, flash_sale]（그 외 422）; 활동 진행 중; 호출자는 참여자; 주문 서비스와 활동 일치; 매진 participants_count ≥ max_people 422 "품절"; 쿠폰/횟수권/포인트 중첩 금지 422 |
 | 만료 | pay()에서 지연 판정 isFlashSaleClosed(isGroupBuyClosed와 같은 패턴): 번개세일 만료 → 활동 0 처리 + 해당 활동 pending 주문 일괄 취소 + 본 주문 자동 취소 + 기술자 잠금 해제 422 |
 
 ### 28. 서비스 알림 + 만료 알림(18차 라운드)

@@ -23,6 +23,15 @@ class SalesStatsController extends BaseController
     {
         $dateStart = $request->input('date_start', date('Y-m-d', strtotime('-30 days')));
         $dateEnd   = $request->input('date_end', date('Y-m-d'));
+
+        // 校验日期格式，防止非法输入拼入 Redis key 造成键膨胀
+        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', (string) $dateStart)) {
+            $dateStart = date('Y-m-d', strtotime('-30 days'));
+        }
+        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', (string) $dateEnd)) {
+            $dateEnd = date('Y-m-d');
+        }
+
         $cacheKey  = "svc:sales_stats:{$dateStart}_{$dateEnd}";
         $cached    = Redis::get($cacheKey);
         if ($cached) {

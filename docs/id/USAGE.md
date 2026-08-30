@@ -28,13 +28,15 @@ Banner → unggah + atur tautan | Pengumuman → terbitkan pengumuman berjalan |
 ## Operasi Harian Panel Admin
 
 ### Dashboard
-Setelah login, halaman beranda menampilkan statistik real-time (jumlah pengguna/jumlah pesanan/jumlah teknisi/jumlah pesanan layanan) dan grafik garis tren (tren jumlah pesanan/tren jumlah/akun baru/aktivitas), navigasi cepat langsung ke modul menunggu diproses, pesan situs menerima notifikasi pesanan baru/refund.
+Setelah login, halaman beranda menampilkan 7 kartu statistik yang dirender dinamis (total pengguna/baru hari ini/aktif/log operasi/booking hari ini/penarikan tertunda/teknisi tertunda), grafik tren 30 hari (volume pesanan/jumlah/pengguna baru/aktivitas), diagram lingkaran status pengguna (aktif/nonaktif) dan 10 log operasi terbaru (cache Redis `svc:dashboard` 300 detik); navigasi cepat langsung ke modul menunggu diproses, pesan situs menerima notifikasi pesanan baru/refund.
 
 ### Laporan Data
-Halaman laporan menampilkan 3 jenis laporan (sesuai `GET /admin/reports/orders|technicians|distribution`, cache Redis 300 detik):
-- **Statistik pesanan** — statistik jumlah pesanan/jumlah sesuai rentang tanggal
-- **Kinerja teknisi** — ringkasan jumlah pesanan layanan dan kinerja per teknisi
-- **Distribusi toko** — ringkasan distribusi pesanan per toko
+Halaman laporan menampilkan 3 jenis laporan (rentang 7/30 hari, sesuai `GET /admin/reports/orders|technicians|distribution`, cache Redis 300 detik):
+- **Statistik pesanan** — ringkasan (jumlah pesanan/jumlah dibayar/refund/pendapatan bersih) + tren harian
+- **Kinerja teknisi** — TOP10 teknisi (jumlah pesanan/pendapatan/rating, nama disamarkan, urut berdasarkan jumlah atau pendapatan)
+- **Distribusi kanal** — distribusi kanal pembayaran (WeChat/Alipay/saldo) + distribusi status pesanan
+
+Statistik penjualan (`svc:sales_stats`: ringkasan pesanan periode/dimensi toko/jenis layanan) dan statistik keuangan (`svc:finance_stats`: ringkasan pendapatan/refund/penarikan/komisi periode) juga tersedia.
 
 ---
 

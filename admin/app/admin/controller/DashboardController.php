@@ -35,8 +35,14 @@ class DashboardController extends BaseController
      */
     public function index(Request $request): Response
     {
-        // Redis 缓存 5 分钟，避免每次请求跑 5+ 条 SQL
-        $cacheKey = 'svc:dashboard:data';
+        $range = (int) $request->input('range', 7);
+        // 校验范围（1-92 天），防止非法输入使 strtotime 落到 1970 日期
+        if ($range < 1 || $range > 92) {
+            $range = 7;
+        }
+
+        // Redis 缓存 5 分钟，避免每次请求跑 5+ 条 SQL；键含 range，防止门店对比数据串味
+        $cacheKey = "svc:dashboard:data:{$range}";
         $cached = Redis::get($cacheKey);
         if ($cached) {
             return $this->success(json_decode($cached, true));
@@ -50,7 +56,7 @@ class DashboardController extends BaseController
             'trends' => $this->getTrends($startOfRange),
             'distribution' => $this->getDistribution(),
             'recent_logs' => $this->getRecentLogs(),
-            'store_comparison' => $this->getStoreComparison($request),
+            'store_comparison' => $this->getStoreComparison($range),
             'service_ranking' => $this->getServiceRanking(),
             'technician_ranking' => $this->getTechnicianRanking(),
             'peak_hours' => $this->getPeakHours(),
@@ -235,9 +241,8 @@ class DashboardController extends BaseController
     /**
      * 门店对比：近7天各门店营收/订单数
      */
-    private function getStoreComparison(Request $request): array
+    private function getStoreComparison(int $range): array
     {
-        $range = $request->input('range', 7);
         $start = date('Y-m-d', strtotime("-{$range} days"));
 
         $stores = Store::where('status', 1)->get();

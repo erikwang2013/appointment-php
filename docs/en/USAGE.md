@@ -28,13 +28,15 @@ Banner → upload + set redirect | Announcements → publish scrolling notices |
 ## Admin Dashboard Operations
 
 ### Dashboard
-After login, the home page shows real-time stats (users / total orders / technicians / service orders) and trend charts (order volume / amount / new users / activity), with quick navigation to pending modules and in-app messages for new orders / refunds.
+After login, the home page shows 7 dynamically rendered stat cards (total users / new today / active users / operation logs / appointments today / pending withdrawals / pending technicians), 30-day trend charts (order volume / amount / new users / activity), a user-status distribution pie (enabled/disabled) and the latest 10 operation logs (Redis `svc:dashboard` cache 300s); quick navigation goes straight to pending modules, and in-app messages deliver new-order/refund notifications.
 
 ### Data Reports
-The Reports page offers 3 report types (backed by `GET /admin/reports/orders|technicians|distribution`, Redis cache 300s):
-- **Order Statistics** — order volume/amount by date range
-- **Technician Performance** — service count and revenue per technician
-- **Store Distribution** — order distribution per store
+The Reports page offers 3 report types (7/30-day range, backed by `GET /admin/reports/orders|technicians|distribution`, Redis cache 300s):
+- **Order Statistics** — summary (order count/paid amount/refunds/net revenue) + daily trend
+- **Technician Performance** — technician TOP10 (order count/revenue/rating, masked names, sortable by count or revenue)
+- **Channel Distribution** — payment channel distribution (WeChat/Alipay/balance) + order status distribution
+
+Sales stats (`svc:sales_stats`: range order summary/store/service-type dimensions) and finance stats (`svc:finance_stats`: revenue/refunds/withdrawals/commissions range summary) are also available.
 
 ---
 

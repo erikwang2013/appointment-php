@@ -218,6 +218,9 @@ Route::group('/admin', function () {
     // 佣金管理
     Route::resource('/commissions', app\admin\controller\CommissionController::class);
 
+    // 财务统计（报表，须在 resource 之前注册）
+    Route::get('/finances/stats', [app\admin\controller\FinanceController::class, 'stats']);
+
     // 财务管理
     Route::resource('/finances', app\admin\controller\FinanceController::class);
 

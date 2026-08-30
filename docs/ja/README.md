@@ -149,7 +149,9 @@ cd ../service/ && cp .env.docker .env && docker-compose up -d
 | 機能 | 説明 |
 |------|------|
 | チャージウォレット | user_wallet / wallet_recharge / wallet_txn テーブル；残高+取引履歴、微信決済チャージ（コールバック R プレフィックス注文番号）、注文の残高払い（pay_channel=balance）、微信/残高返金の残高自動回充 |
-| 管理バックエンド UI 完全整備 | Flutter Web 20 ページ：dashboard/ユーザー/ロール/設定/ログ/核销/シフト/サービス/スタッフ/注文/クーポン/会員/回数券/お知らせ/FAQ/出金/評価/レポート/マイページ |
+| 管理バックエンド UI 完全整備 | Flutter Web 21 ページ：dashboard/ユーザー/ロール/設定/ログ/核销/シフト/サービス/スタッフ/注文/クーポン/会員/回数券/お知らせ/FAQ/出金/評価/レポート/アフターセールス/店舗ワークスペース/マイページ |
+| ダッシュボードリアルタイム統計 | 管理ホームの統計カード7項目を動的レンダリング（ユーザー総数/今日の新規/アクティブユーザー/操作ログ/今日の予約/出金審査待ち/スタッフ審査待ち）+ 30日トレンド図（注文量/金額/新規ユーザー/アクティビティ）+ ユーザー状態分布円グラフ + 最近の操作ログ、Redis svc:dashboard キャッシュ 300s |
+| データレポート | ReportController 3 エンドポイント：注文統計 / スタッフTOP10 / チャネル分布（GET /admin/reports/orders\|technicians\|distribution、7/30日範囲、Redis キャッシュ 300s）+ 売上統計（svc:sales_stats）+ 財務統計（svc:finance_stats 収入/返金/出金/手数料） |
 | ミニプログラム購読メッセージ | 注文 3 シナリオの購読プッシュ（支払い成功/返金到着/核销成功）；push_sent_at 冪等；テンプレート未設定時は自動でサイト内通知にダウングレード |
 | スタッフ出金 | 管理端審査；金額 ≥500 は二段階承認（店長→財務）；ステートマシン pending→approved→completed（rejected/failed） |
 | 回数券核销クローズドループ | マイ回数券で used_up/expired をリアルタイム計算；核销は Redis NX 冪等 + 行ロックで回数減算、completed 注文 + OrderItem + OrderPayment(pay_type='card') を直接作成 |
@@ -227,8 +229,8 @@ cd ../service/ && cp .env.docker .env && docker-compose up -d
 | [使用説明](USAGE.md) | 管理バックエンド設定、ユーザー端/スタッフ端操作、返金ルール（API は API.md 参照） |
 | [プロジェクト構成](STRUCTURE.md) | 完全なディレクトリレイアウト、ミドルウェア実行チェーン、データベーステーブルリスト |
 | [テストレポート](TEST-REPORT.md) | 全量テストカバレッジ監査（558 ケース / 2508 アサーション） |
-| [設計仕様](superpowers/specs/2026-05-26-appointment-system-design.md) | システム設計仕様 |
-| [実装計画](superpowers/plans/2026-05-26-appointment-system-plan.md) | 段階的実装計画 |
+| [設計仕様](specs/2026-05-26-appointment-system-design.md) | システム設計仕様 |
+| [実装計画](plans/2026-05-26-appointment-system-plan.md) | 段階的実装計画 |
 
 ## プロジェクト支援 / Support
 

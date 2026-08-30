@@ -353,12 +353,14 @@ The Mini Program and APP have identical features. A unified account supports cus
 
 ## II. Admin Dashboard (PC Web)
 
-Flutter Web single-page app with 21 pages: dashboard/users/roles/config/logs/verification/schedule/services/technicians/orders/coupons/members/session cards/announcements/FAQ/withdrawals/reviews/reports/profile/store workbench.
+Flutter Web single-page app with 21 pages: dashboard/users/roles/config/logs/verification/schedule/services/technicians/orders/coupons/members/session cards/announcements/FAQ/withdrawals/reviews/reports/after-sales/store workbench/profile.
 
 ### 1. Home Dashboard
 
-- Realtime stats: user count/order total/technician count/service order count
-- Line charts: order volume trend/amount trend/new users/activity
+- 7 dynamically rendered stat cards: total users/new today/active users/operation logs/appointments today/pending withdrawals/pending technicians
+- 30-day trend charts: order volume/amount/new users/activity
+- User-status distribution pie: enabled/disabled
+- Latest 10 operation logs
 - Quick navigation: pending-module buttons
 - In-app messages: new order notifications/refund notifications
 
@@ -451,7 +453,7 @@ Flutter Web single-page app with 21 pages: dashboard/users/roles/config/logs/ver
 
 ### 13. Data Reports (Round 7)
 
-- ReportController 3 endpoints: order statistics / technician performance / store distribution
+- ReportController 3 endpoints: order statistics (summary + daily trend) / technician TOP10 / channel distribution (payment channels + order status)
 - Redis cache svc:admin_report:{type}:{start}:{end}, TTL 300
 
 ### 14. Member Card Management (Round 10)

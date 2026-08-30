@@ -1,5 +1,5 @@
 # 生命周期图
-> **多语言**：[English](en/diagrams/LIFECYCLE-DIAGRAM.md) · [한국어](ko/diagrams/LIFECYCLE-DIAGRAM.md) · [Русский](ru/diagrams/LIFECYCLE-DIAGRAM.md) · [Deutsch](de/diagrams/LIFECYCLE-DIAGRAM.md) · [Français](fr/diagrams/LIFECYCLE-DIAGRAM.md) · [Español](es/diagrams/LIFECYCLE-DIAGRAM.md) · [Português](pt/diagrams/LIFECYCLE-DIAGRAM.md) · [हिन्दी](hi/diagrams/LIFECYCLE-DIAGRAM.md) · [العربية](ar/diagrams/LIFECYCLE-DIAGRAM.md) · [বাংলা](bn/diagrams/LIFECYCLE-DIAGRAM.md) · [Bahasa Indonesia](id/diagrams/LIFECYCLE-DIAGRAM.md) · [日本語](ja/diagrams/LIFECYCLE-DIAGRAM.md)
+> **多语言**：[English](../en/diagrams/LIFECYCLE-DIAGRAM.md) · [한국어](../ko/diagrams/LIFECYCLE-DIAGRAM.md) · [Русский](../ru/diagrams/LIFECYCLE-DIAGRAM.md) · [Deutsch](../de/diagrams/LIFECYCLE-DIAGRAM.md) · [Français](../fr/diagrams/LIFECYCLE-DIAGRAM.md) · [Español](../es/diagrams/LIFECYCLE-DIAGRAM.md) · [Português](../pt/diagrams/LIFECYCLE-DIAGRAM.md) · [हिन्दी](../hi/diagrams/LIFECYCLE-DIAGRAM.md) · [العربية](../ar/diagrams/LIFECYCLE-DIAGRAM.md) · [বাংলা](../bn/diagrams/LIFECYCLE-DIAGRAM.md) · [Bahasa Indonesia](../id/diagrams/LIFECYCLE-DIAGRAM.md) · [日本語](../ja/diagrams/LIFECYCLE-DIAGRAM.md)
 
 ## 1. 订单生命周期（状态机）
 

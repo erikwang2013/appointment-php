@@ -144,14 +144,16 @@ cd ../service/ && cp .env.docker .env && docker-compose up -d
 
 <img src="id-security-defense.svg" alt="id-security-defense.svg" width="100%">
 
-> Diagram selengkapnya: [Diagram Alur](FLOWCHART.md) (termasuk penarikan dana teknisi/perpindahan identitas) | [Peta Pikiran Fungsi](FUNCTION-DIAGRAM.md) | [Semua Siklus Hidup](LIFECYCLE-DIAGRAM.md) | [Arsitektur Keamanan Lengkap](SECURITY-ARCHITECTURE.md)
+> Diagram selengkapnya: [Diagram Alur](diagrams/FLOWCHART.md) (termasuk penarikan dana teknisi/perpindahan identitas) | [Peta Pikiran Fungsi](diagrams/FUNCTION-DIAGRAM.md) | [Semua Siklus Hidup](diagrams/LIFECYCLE-DIAGRAM.md) | [Arsitektur Keamanan Lengkap](diagrams/SECURITY-ARCHITECTURE.md)
 
 ## Sorotan Fungsi Inti (Ronde 6-24)
 
 | Fitur | Keterangan |
 |------|------|
 | Dompet saldo | Tabel user_wallet / wallet_recharge / wallet_txn; saldo+transaksi, isi ulang pembayaran WeChat (callback nomor pesanan prefiks R), pembayaran saldo pesanan (pay_channel=balance), refund WeChat/saldo otomatis kembali ke saldo |
-| UI panel admin lengkap | Flutter Web 20 halaman: dashboard/pengguna/peran/konfigurasi/log/verifikasi/jadwal/layanan/teknisi/pesanan/kupon/member/kartu kunjungan/pengumuman/FAQ/penarikan/ulasan/laporan/profil |
+| UI panel admin lengkap | Flutter Web 21 halaman: dashboard/pengguna/peran/konfigurasi/log/verifikasi/jadwal/layanan/teknisi/pesanan/kupon/member/kartu kunjungan/pengumuman/FAQ/penarikan/ulasan/laporan/after-sales/manager toko/profil |
+| Statistik real-time dasbor | Beranda admin merender dinamis 7 kartu statistik (total pengguna/baru hari ini/aktif/log operasi/booking hari ini/penarikan tertunda/teknisi tertunda) + grafik tren 30 hari (volume pesanan/jumlah/pengguna baru/aktivitas) + diagram lingkaran status pengguna + log operasi terbaru, cache Redis svc:dashboard 300s |
+| Laporan data | 3 endpoint ReportController: statistik pesanan / TOP10 teknisi / distribusi kanal (GET /admin/reports/orders\|technicians\|distribution, rentang 7/30 hari, cache Redis 300s) + statistik penjualan (svc:sales_stats) + statistik keuangan (svc:finance_stats pendapatan/pengembalian/penarikan/komisi) |
 | Pesan langganan mini program | Push langganan 3 skenario pesanan (bayar sukses/refund masuk/verifikasi sukses); push_sent_at idempoten; template tak terkonfigurasi otomatis turun ke notifikasi internal |
 | Penarikan dana teknisi | Persetujuan di sisi admin; jumlah ≥500 persetujuan dua tingkat (pemilik toko→keuangan); state machine pending→approved→completed (rejected/failed) |
 | Penutupan verifikasi kartu kunjungan | Kartu kunjungan saya hitung real-time used_up/expired; verifikasi Redis NX idempoten + row lock kurangi kuota, langsung buat pesanan completed + OrderItem + OrderPayment(pay_type='card') |

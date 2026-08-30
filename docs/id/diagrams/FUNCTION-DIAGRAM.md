@@ -143,9 +143,10 @@ mindmap
 
     Panel admin
       Dashboard
-        Panel statistik real-time
-        Grafik tren pesanan/jumlah
-        Akun baru/aktivitas
+        7 kartu statistik  total pengguna/baru hari ini/aktif/log operasi/booking hari ini/penarikan tertunda/teknisi tertunda
+        Grafik tren 30 hari  volume pesanan/jumlah/pengguna baru/aktivitas
+        Diagram lingkaran status pengguna  aktif/nonaktif
+        Log operasi terbaru 10
         Navigasi cepat
         Pesan situs
       Manajemen teknisi
@@ -208,12 +209,14 @@ mindmap
         Tinjau  setujui/tolak catatan
       Ulasan & laporan
         Manajemen ulasan layanan
-        Statistik laporan data
+        Laporan data  statistik pesanan/TOP10 teknisi/distribusi kanal rentang 7-30 hari Redis 300s
+        Statistik penjualan  ringkasan pesanan periode/toko/jenis layanan
       Manajemen keuangan
         Pembagian pesanan
         Tinjau penarikan teknisi
         Pengaturan komisi & hadiah/denda
         Transaksi masuk/keluar
+        Statistik keuangan  pendapatan/pengembalian/penarikan/komisi ringkasan periode
         Konfigurasi akun/batas penarikan
         Persetujuan refund dua level
         Catatan komisi distribusi

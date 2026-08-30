@@ -23,7 +23,8 @@ use support\Response;
  * 覆盖 index() 返回结构：stats 卡片（待审技师/今日预约）/趋势序列/分布/时段分布/
  * 排行榜，以及缓存键 svc:dashboard:data 写入。
  *
- * 缓存键固定（svc:dashboard:data），setUp/tearDown 删除避免命中残留缓存。
+ * 缓存键含 range（svc:dashboard:data:{range}），setUp/tearDown 删除
+ * 用到的各 range 键避免命中残留缓存。
  */
 class DashboardControllerTest extends TestCase
 {
@@ -35,7 +36,9 @@ class DashboardControllerTest extends TestCase
 
     protected function setUp(): void
     {
-        Redis::del('svc:dashboard:data');
+        foreach (['svc:dashboard:data', 'svc:dashboard:data:1', 'svc:dashboard:data:7', 'svc:dashboard:data:30', 'svc:dashboard:data:92'] as $key) {
+            Redis::del($key);
+        }
 
         $capsule = new \Illuminate\Database\Capsule\Manager();
         $capsule->addConnection([
@@ -55,7 +58,9 @@ class DashboardControllerTest extends TestCase
 
     protected function tearDown(): void
     {
-        Redis::del('svc:dashboard:data');
+        foreach (['svc:dashboard:data', 'svc:dashboard:data:1', 'svc:dashboard:data:7', 'svc:dashboard:data:30', 'svc:dashboard:data:92'] as $key) {
+            Redis::del($key);
+        }
         foreach ($this->orderIds as $id) {
             Order::where('id', $id)->delete();
         }
@@ -146,8 +151,47 @@ class DashboardControllerTest extends TestCase
         $this->assertIsArray($data['service_ranking']);
         $this->assertIsArray($data['recent_logs']);
 
-        // 缓存键写入 svc:dashboard:data（clearSvcCache 可失效）
-        $this->assertNotEmpty(Redis::get('svc:dashboard:data'));
+        // 缓存键写入 svc:dashboard:data:7（默认 range），无固定键/无前缀缺失
+        $this->assertNotEmpty(Redis::get('svc:dashboard:data:7'));
+        $this->assertNull(Redis::get('svc:dashboard:data'));
         $this->assertNull(Redis::get('dashboard:data'));
+    }
+
+    #[Test] public function store_comparison_range_is_validated_and_keyed(): void
+    {
+        // 缓存键含 range，非法/越界 range 一律回退 7，避免 strtotime 落到 1970 日期
+        foreach (['0', '-5', '999', 'abc'] as $bad) {
+            Redis::del('svc:dashboard:data:7');
+            $resp = (new DashboardController())->index(new Request("GET /admin/dashboard?range={$bad} HTTP/1.1\r\nHost: localhost\r\n\r\n"));
+            $this->assertSame(0, $this->body($resp)['code']);
+            $this->assertSame('近7天', $this->body($resp)['data']['store_comparison']['range']);
+        }
+
+        // 边界值 1 与 92 正常透传，且各自写入独立缓存键
+        Redis::del('svc:dashboard:data:1');
+        $resp = (new DashboardController())->index(new Request("GET /admin/dashboard?range=1 HTTP/1.1\r\nHost: localhost\r\n\r\n"));
+        $this->assertSame('近1天', $this->body($resp)['data']['store_comparison']['range']);
+        $this->assertNotEmpty(Redis::get('svc:dashboard:data:1'));
+
+        Redis::del('svc:dashboard:data:92');
+        $resp = (new DashboardController())->index(new Request("GET /admin/dashboard?range=92 HTTP/1.1\r\nHost: localhost\r\n\r\n"));
+        $this->assertSame('近92天', $this->body($resp)['data']['store_comparison']['range']);
+        $this->assertNotEmpty(Redis::get('svc:dashboard:data:92'));
+
+        // 始终无固定键写入（range 不再依赖固定键缓存，杜绝串味）
+        $this->assertNull(Redis::get('svc:dashboard:data'));
+    }
+
+    #[Test] public function range_cache_keys_do_not_cross_contaminate(): void
+    {
+        // range=7 与 range=30 写各自缓存键，第二次请求不命中第一次的数据
+        (new DashboardController())->index(new Request("GET /admin/dashboard?range=7 HTTP/1.1\r\nHost: localhost\r\n\r\n"));
+        $this->assertNotEmpty(Redis::get('svc:dashboard:data:7'));
+        $this->assertNull(Redis::get('svc:dashboard:data:30'));
+
+        $resp = (new DashboardController())->index(new Request("GET /admin/dashboard?range=30 HTTP/1.1\r\nHost: localhost\r\n\r\n"));
+        $this->assertSame(0, $this->body($resp)['code']);
+        $this->assertSame('近30天', $this->body($resp)['data']['store_comparison']['range']);
+        $this->assertNotEmpty(Redis::get('svc:dashboard:data:30'));
     }
 }

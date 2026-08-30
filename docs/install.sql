@@ -2185,7 +2185,8 @@ INSERT IGNORE INTO `appointment_admin_permission` (`id`, `parent_id`, `name`, `s
 INSERT IGNORE INTO `appointment_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
 (21000000000000421, 0, '订单统计报表', 'get.admin/reports/orders', 3, '', '', 200, NOW(), NOW()),
 (21000000000000422, 0, '技师绩效报表', 'get.admin/reports/technicians', 3, '', '', 201, NOW(), NOW()),
-(21000000000000423, 0, '分布报表', 'get.admin/reports/distribution', 3, '', '', 202, NOW(), NOW());
+(21000000000000423, 0, '分布报表', 'get.admin/reports/distribution', 3, '', '', 202, NOW(), NOW()),
+(21000000000000424, 0, '财务统计', 'get.admin/finances/stats', 3, '', '', 203, NOW(), NOW());
 
 -- ============================================================
 -- [20260814_create_order_reschedule.sql]

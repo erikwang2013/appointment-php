@@ -27,6 +27,21 @@ Carrossel → carregar + definir redirecionamento | Anúncios → publicar anún
 
 ---
 
+## Operação diária do painel de administração
+
+### Painel de controlo
+Após o início de sessão, a página inicial mostra 7 cartões de estatísticas renderizados dinamicamente (total de utilizadores / novos hoje / utilizadores ativos / registos de operações / reservas de hoje / levantamentos pendentes / técnicos pendentes), gráficos de tendência de 30 dias (volume de encomendas / montante / novos utilizadores / atividade), um gráfico circular de distribuição do estado dos utilizadores (ativado/desativado) e os últimos 10 registos de operações (cache Redis `svc:dashboard` 300 s); a navegação rápida conduz diretamente aos módulos pendentes, e as mensagens internas entregam notificações de novas encomendas/reembolsos.
+
+### Relatórios de dados
+A página de relatórios oferece 3 tipos de relatórios (intervalo de 7/30 dias, suportado por `GET /admin/reports/orders|technicians|distribution`, cache Redis 300 s):
+- **Estatísticas de encomendas** — resumo (número de encomendas/montante pago/reembolsos/receita líquida) + tendência diária
+- **Desempenho dos técnicos** — TOP 10 de técnicos (número de encomendas/receita/avaliação, nomes mascarados, ordenável por número ou receita)
+- **Distribuição de canais** — distribuição dos canais de pagamento (WeChat/Alipay/saldo) + distribuição dos estados das encomendas
+
+Também estão disponíveis as estatísticas de vendas (`svc:sales_stats`: resumo de encomendas do período por loja/tipo de serviço) e as estatísticas financeiras (`svc:finance_stats`: resumo de receitas/reembolsos/levantamentos/comissões do período).
+
+---
+
 ## Fluxo do lado do utilizador
 
 ### Registo e início de sessão

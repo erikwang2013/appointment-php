@@ -141,9 +141,10 @@ mindmap
 
     Admin dashboard
       Dashboard
-        Real-time stats panel
-        Order/amount trend charts
-        New users/activity
+        7 stat cards  total users/new today/active users/operation logs/appointments today/pending withdrawals/pending technicians
+        30-day trend charts  order volume/amount/new users/activity
+        User-status distribution pie  enabled/disabled
+        Recent operation logs 10
         Quick navigation
         In-app messages
       Technician management
@@ -206,12 +207,14 @@ mindmap
         Review  approve/reject remarks
       Reviews & reports
         Service review management
-        Data report stats
+        Data reports  order stats/technician TOP10/channel distribution 7-30-day range Redis 300s
+        Sales stats  date-range order summary/store/service type
       Finance management
         Order profit sharing
         Technician withdrawal review
         Commission settings & rewards/penalties
         Income/expense transactions
+        Finance stats  revenue/refunds/withdrawals/commissions range summary
         Withdrawal account/limit config
         Two-level refund approval
         Distribution commission records
