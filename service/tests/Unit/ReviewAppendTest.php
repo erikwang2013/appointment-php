@@ -251,7 +251,7 @@ class ReviewAppendTest extends TestCase
         $this->assertNull($review->append_content);
     }
 
-    // ── 用户提交评价（POST /api/order/review/{order_id}，第 19 轮补注册路由）──
+    // ── 用户提交评价（POST /api/v1/order/review/{order_id}，第 19 轮补注册路由）──
 
     private function store(string $userId, Order $order, array $params = []): array
     {

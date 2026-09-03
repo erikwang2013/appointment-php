@@ -138,7 +138,6 @@ admin/
 │   ├── middleware/             # 中间件
 │   │   ├── Cors
 │   │   ├── RateLimit
-│   │   ├── ApiVersion
 │   │   ├── AdminAuth
 │   │   ├── AdminPermission
 │   │   └── OperationLog
@@ -289,7 +288,6 @@ service/
 │   │   └── NotificationController  # 通知列表/标记已读
 │   ├── common/                  # 公共能力（BaseController 等）
 │   ├── middleware/              # 中间件
-│   │   ├── ApiVersion              # API版本控制(API-Version头)
 │   │   ├── Auth                    # JWT认证+用户状态校验
 │   │   ├── Cors                    # 跨域处理
 │   │   ├── Security                # 安全检测(security-php)

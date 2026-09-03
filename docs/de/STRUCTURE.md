@@ -141,7 +141,6 @@ admin/
 │   ├── middleware/             # Middleware
 │   │   ├── Cors
 │   │   ├── RateLimit
-│   │   ├── ApiVersion
 │   │   ├── AdminAuth
 │   │   ├── AdminPermission
 │   │   └── OperationLog
@@ -292,7 +291,6 @@ service/
 │   │   └── NotificationController  # Benachrichtigungsliste/als gelesen markieren
 │   ├── common/                  # Gemeinsame Fähigkeiten (BaseController usw.)
 │   ├── middleware/              # Middleware
-│   │   ├── ApiVersion              # API-Versionskontrolle (API-Version-Header)
 │   │   ├── Auth                    # JWT-Authentifizierung + Benutzerstatusprüfung
 │   │   ├── Cors                    # Cross-Origin-Behandlung
 │   │   ├── Security                # Sicherheitsprüfung (security-php)

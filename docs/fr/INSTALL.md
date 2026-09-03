@@ -126,13 +126,13 @@ php start.php start -d
 
 ```bash
 # API métier
-curl http://localhost:8787/api/common/config
+curl http://localhost:8787/api/v1/common/config
 
 # Vérification de santé du back-office
 curl http://localhost:8787/health
 
 # Connexion au back-office (compte par défaut ci-dessous)
-curl -X POST http://localhost:8787/api/auth/login \
+curl -X POST http://localhost:8787/api/v1/auth/login \
   -H "Content-Type: application/json" \
   -d '{"username":"admin","password":"admin123"}'
 ```

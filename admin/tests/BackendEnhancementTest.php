@@ -17,12 +17,13 @@ class BackendEnhancementTest extends TestCase
     // 1. v() 辅助函数 — 逐源码验证（避免触发 webman 运行时）
     // ============================================================
 
-    public function test_v_helper_function_exists_in_route_file(): void
+    public function test_v_helper_binds_version_from_prefix_not_header(): void
     {
+        // URL 版本硬切换（API-Version 请求头 → /api/v1 URL 前缀）：v() 不再读请求头，版本由组前缀绑定默认 v1
         $source = file_get_contents(__DIR__ . '/../config/route.php');
         $this->assertStringContainsString('function v(', $source, 'route.php 应定义 v() 函数');
-        $this->assertStringContainsString('$request->apiVersion', $source, 'v() 应读取 apiVersion');
-        $this->assertStringContainsString('apiVersion ??', $source, 'v() 应有 apiVersion 默认值回退');
+        $this->assertStringContainsString("string \$version = 'v1'", $source, 'v() 应默认绑定 v1（URL 前缀版本）');
+        $this->assertStringNotContainsString('apiVersion', $source, 'v() 不应再从请求头读取版本');
         $this->assertStringContainsString('return (new $class)->', $source, 'v() 应实例化并调用控制器');
     }
 
@@ -108,10 +109,10 @@ class BackendEnhancementTest extends TestCase
 
         $refSensitive = $reflection->getProperty('sensitive');
         $sensitive = $refSensitive->getDefaultValue();
-        $this->assertArrayHasKey('/api/auth/login', $sensitive);
-        $this->assertEquals(10, $sensitive['/api/auth/login']['limit']);
-        $this->assertArrayHasKey('/api/auth/register', $sensitive);
-        $this->assertEquals(5, $sensitive['/api/auth/register']['limit']);
+        $this->assertArrayHasKey('/api/v1/auth/login', $sensitive);
+        $this->assertEquals(10, $sensitive['/api/v1/auth/login']['limit']);
+        $this->assertArrayHasKey('/api/v1/auth/register', $sensitive);
+        $this->assertEquals(5, $sensitive['/api/v1/auth/register']['limit']);
     }
 
     public function test_rate_limit_has_lua_script_for_atomicity(): void
@@ -181,10 +182,12 @@ class BackendEnhancementTest extends TestCase
         }
     }
 
-    public function test_route_file_has_api_version_middleware(): void
+    public function test_route_file_has_no_api_version_middleware(): void
     {
+        // ApiVersion 中间件已随"请求头携带版本"策略删除：版本固化 URL 前缀，URL 不带版本前缀即 404
         $content = file_get_contents(__DIR__ . '/../config/route.php');
-        $this->assertStringContainsString('ApiVersion::class', $content);
+        $this->assertStringNotContainsString('ApiVersion::class', $content, 'ApiVersion 中间件已删除，版本固化在 URL 前缀');
+        $this->assertStringContainsString("Route::group('/api/v1'", $content, '应注册 /api/v1 版本化路由组');
     }
 
     public function test_route_file_has_sensitive_batch_routes_after_resource(): void

@@ -138,7 +138,6 @@ admin/
 │   ├── middleware/             # मिडलवेयर
 │   │   ├── Cors
 │   │   ├── RateLimit
-│   │   ├── ApiVersion
 │   │   ├── AdminAuth
 │   │   ├── AdminPermission
 │   │   └── OperationLog
@@ -289,7 +288,6 @@ service/
 │   │   └── NotificationController  # नोटिफिकेशन सूची/पढ़ा हुआ चिह्नित करें
 │   ├── common/                  # सामान्य क्षमताएँ (BaseController आदि)
 │   ├── middleware/              # मिडलवेयर
-│   │   ├── ApiVersion              # API संस्करण नियंत्रण (API-Version हेडर)
 │   │   ├── Auth                    # JWT प्रमाणीकरण + उपयोगकर्ता स्थिति जाँच
 │   │   ├── Cors                    # क्रॉस-ओरिजिन हैंडलिंग
 │   │   ├── Security                # सुरक्षा जाँच (security-php)

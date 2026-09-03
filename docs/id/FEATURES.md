@@ -129,8 +129,8 @@ Fungsi Mini Program dan APP sisi pengguna sepenuhnya sama. Akun terpadu mendukun
 
 | Fitur | Keterangan |
 |------|------|
-| Saldo dompet | GET /api/wallet saldo + transaksi (tabel user_wallet/wallet_recharge/wallet_txn) |
-| Top-up | POST /api/wallet/recharge buat slip top-up; POST /api/wallet/recharge/{id}/pay bayar top-up WeChat, callback memakai nomor slip prefiks R |
+| Saldo dompet | GET /api/v1/wallet saldo + transaksi (tabel user_wallet/wallet_recharge/wallet_txn) |
+| Top-up | POST /api/v1/wallet/recharge buat slip top-up; POST /api/v1/wallet/recharge/{id}/pay bayar top-up WeChat, callback memakai nomor slip prefiks R |
 | Pembayaran saldo | pay_channel=balance kanal pembayaran pesanan |
 | Isi ulang refund | refund WeChat/saldo otomatis isi ulang ke saldo (refundToBalance / creditRefundToWallet) |
 
@@ -146,8 +146,8 @@ Fungsi Mini Program dan APP sisi pengguna sepenuhnya sama. Akun terpadu mendukun
 
 | Fitur | Keterangan |
 |------|------|
-| Kartu kunjungan saya | GET /api/marketing/cards/my hitung real-time used_up/expired |
-| Verifikasi potong kunjungan | POST /api/marketing/cards/use: Redis NX idempoten + lockForUpdate row lock, langsung buat pesanan completed + OrderItem + OrderPayment(pay_type='card') |
+| Kartu kunjungan saya | GET /api/v1/marketing/cards/my hitung real-time used_up/expired |
+| Verifikasi potong kunjungan | POST /api/v1/marketing/cards/use: Redis NX idempoten + lockForUpdate row lock, langsung buat pesanan completed + OrderItem + OrderPayment(pay_type='card') |
 
 ### 13. Potongan Kupon (ronde ke-9)
 
@@ -162,7 +162,7 @@ Fungsi Mini Program dan APP sisi pengguna sepenuhnya sama. Akun terpadu mendukun
 | Fitur | Keterangan |
 |------|------|
 | Tukar | redeem: tipe cash top-up ke dompet (row lock cegah double entry, WalletTxn type='gift_card'), tipe gift hanya tandai |
-| Kartu hadiah saya | GET /api/marketing/gift-cards/my |
+| Kartu hadiah saya | GET /api/v1/marketing/gift-cards/my |
 
 ### 15. Sistem Poin (ronde ke-9+10)
 
@@ -173,7 +173,7 @@ Fungsi Mini Program dan APP sisi pengguna sepenuhnya sama. Akun terpadu mendukun
 | Potongan refund | clawbackOrderPoints potong proporsional (3 titik pemasangan) |
 | Poin setara uang | kirim use_points saat bayar, 100 poin=1 yuan (config app.points_rate), validasi SUM agregat saldo, transaksi konsumsi source=points_offset idempoten |
 | Isi ulang poin (ronde ke-15) | batalkan/refund kembalikan poin points_offset: refundOffsetPoints 5 titik pemasangan (doCancel 3 jalur/doRefund transaksi WeChat/creditRefundToWallet/completeOneRefundCompensation), source=points_refund idempoten |
-| Detail poin | GET /api/marketing/points paginasi + filter type/source, type seragam earn |
+| Detail poin | GET /api/v1/marketing/points paginasi + filter type/source, type seragam earn |
 
 ### 16. Rantai Pemesanan Mini Program (ronde ke-10)
 
@@ -203,8 +203,8 @@ Fungsi Mini Program dan APP sisi pengguna sepenuhnya sama. Akun terpadu mendukun
 
 | Fitur | Keterangan |
 |------|------|
-| Ajukan purna jual | POST /api/aftersales: type=refund/exchange, validasi pesanan sendiri/paid+completed/deduplikasi pesanan sama |
-| Purna jual saya | GET /api/aftersales daftar paginasi + GET /api/aftersales/{id} detail |
+| Ajukan purna jual | POST /api/v1/aftersales: type=refund/exchange, validasi pesanan sendiri/paid+completed/deduplikasi pesanan sama |
+| Purna jual saya | GET /api/v1/aftersales daftar paginasi + GET /api/v1/aftersales/{id} detail |
 | Alur audit | sisi admin approve/reject (rejected wajib remark); approved hanya peralihan status, refund tetap memakai antarmuka refund pesanan |
 
 ### 20. Belanja Bersama/Flash Sale (ronde ke-15)
@@ -213,9 +213,9 @@ Fungsi Mini Program dan APP sisi pengguna sepenuhnya sama. Akun terpadu mendukun
 
 | Fitur | Keterangan |
 |------|------|
-| Daftar/detail aktivitas | GET /api/promotions + /api/promotions/{id}, filter type group_buy/flash_sale |
-| Ikut | POST /api/promotions/join/{id}: kunci Redis NX cegah oversold (flash_sale batas stok max_people), ikut ulang 422, group_buy penuh terkunci, kedaluwarsa belum penuh tutup malas (saat show/join status set 0) |
-| Daftar peserta | GET /api/promotions/{id}/participants |
+| Daftar/detail aktivitas | GET /api/v1/promotions + /api/v1/promotions/{id}, filter type group_buy/flash_sale |
+| Ikut | POST /api/v1/promotions/join/{id}: kunci Redis NX cegah oversold (flash_sale batas stok max_people), ikut ulang 422, group_buy penuh terkunci, kedaluwarsa belum penuh tutup malas (saat show/join status set 0) |
+| Daftar peserta | GET /api/v1/promotions/{id}/participants |
 | Perbaikan status | status PromotionParticipant diubah konstanta bilangan bulat 0/1/2/3 (perbaiki join 1366 rusak di mode strict) |
 
 ### 21. Pemesanan Setelah Belanja Bersama Terbentuk (ronde ke-16)
@@ -223,7 +223,7 @@ Fungsi Mini Program dan APP sisi pengguna sepenuhnya sama. Akun terpadu mendukun
 | Fitur | Keterangan |
 |------|------|
 | Harga belanja bersama | respons join mengembalikan discount_percent/original_price/group_price |
-| Pesan belanja bersama | POST /api/order kirim promotion_id: validasi hanya group_buy/aktivitas valid/pemanggil adalah peserta/belum penuh/layanan cocok; harga belanja bersama=harga asli×discount_percent/100, larang tumpuk kupon/kartu kunjungan/poin (422) |
+| Pesan belanja bersama | POST /api/v1/order kirim promotion_id: validasi hanya group_buy/aktivitas valid/pemanggil adalah peserta/belum penuh/layanan cocok; harga belanja bersama=harga asli×discount_percent/100, larang tumpuk kupon/kartu kunjungan/poin (422) |
 | Penanda pesanan | appointment_order tambah kolom promotion_id/participant_id + indeks |
 | Penanganan belum terbentuk | kedaluwarsa belum penuh→tutup aktivitas+batalkan massal pesanan pending aktivitas tersebut (idempoten); pay() malas menilai sudah tutup maka otomatis batalkan pesanan dan lepaskan kunci teknisi |
 
@@ -235,22 +235,22 @@ Fungsi Mini Program dan APP sisi pengguna sepenuhnya sama. Akun terpadu mendukun
 | Titik pemasangan | ReferralRewardService::handleOrderCompleted dipasang dalam transaksi WorkController::complete (serving→completed satu-satunya pintu masuk, verifikasi hanya sampai serving tidak memicu), gagal rollback menyeluruh bisa retry |
 | Idempoten | row lock appointment_user_referral lockForUpdate + cek kosong rewarded_at + periksa ulang pesanan pertama dalam kunci (panggilan bersamaan/duplikat hanya beri sekali) |
 | Pencatatan | row lock dompet akumulasi + WalletTxn type='referral_reward' (balance_after + nomor pesanan remark); catatan referral tulis reward_type/reward_amount/rewarded_at/first_order_at |
-| Detail | GET /api/user/referral/earnings paginasi (nama panggilan/avatar/nomor pesanan/jumlah/waktu ter-referral) |
+| Detail | GET /api/v1/user/referral/earnings paginasi (nama panggilan/avatar/nomor pesanan/jumlah/waktu ter-referral) |
 
 ### 23. Mall Tukar Poin (ronde ke-16)
 
 | Fitur | Keterangan |
 |------|------|
 | Barang tukar | appointment_points_exchange_goods: type=coupon/gift_card/wallet, points_cost/value (DECIMAL(25,2) cegah kehilangan presisi ID longsor)/stock/status |
-| Daftar barang | GET /api/marketing/points-exchange: barang terpasang + sisa stok real-time + jumlah sudah ditukar |
-| Tukar | POST /api/marketing/points-exchange/{id}: kunci Redis NX + row lock barang cegah overtrade; validasi SUM poin (kurang 422) + UserPoints type='consume' source='exchange' potong; coupon terbit kupon / wallet masuk saldo (WalletTxn points_exchange) / gift_card kembalikan kode |
+| Daftar barang | GET /api/v1/marketing/points-exchange: barang terpasang + sisa stok real-time + jumlah sudah ditukar |
+| Tukar | POST /api/v1/marketing/points-exchange/{id}: kunci Redis NX + row lock barang cegah overtrade; validasi SUM poin (kurang 422) + UserPoints type='consume' source='exchange' potong; coupon terbit kupon / wallet masuk saldo (WalletTxn points_exchange) / gift_card kembalikan kode |
 | Idempoten | indeks unik uk_user_goods batasi sekali per pengguna per barang + verifikasi ulang dalam kunci + fallback 1062; snapshot catatan tukar appointment_user_points_exchange |
 
 ### 24. Penggantian Jadwal Janji Temu (ronde ke-17)
 
 | Fitur | Keterangan |
 |------|------|
-| Antarmuka | POST /api/order/reschedule/{id}: new_service_time (wajib) + reason (opsional), ganti waktu teknisi sama |
+| Antarmuka | POST /api/v1/order/reschedule/{id}: new_service_time (wajib) + reason (opsional), ganti waktu teknisi sama |
 | Aturan | hanya pesanan sendiri (bukan sendiri 404); hanya tipe appointment dan status pending/paid/confirmed (lainnya 422); jarak mulai layanan asli ≥ 6 jam (selaras jendela refund penuh) |
 | Proteksi bersamaan | B1 order_lock (keluarga mutual exclusion sama dengan pay/cancel/refund) → kunci teknisi slot baru Redis SETNX EX 180 (cegah oversold pada ganti jadwal bersamaan) → row lock baca ulang dalam transaksi + validasi DB konflik jadwal B2 (kecuali pesanan ini) |
 | Penutup | perbarui service_time + tulis appointment_order_reschedule (termasuk reason) + lepaskan kunci slot lama/kunci slot baru milik pesanan ini; gagal rollback transaksi sekaligus lepaskan kunci slot baru |
@@ -260,7 +260,7 @@ Fungsi Mini Program dan APP sisi pengguna sepenuhnya sama. Akun terpadu mendukun
 
 | Fitur | Keterangan |
 |------|------|
-| Antarmuka | POST /api/marketing/coupons/transfer (user_coupon_id) hasilkan kode transfer 8 karakter unik anti-ambigu (fallback uk_code, berlaku 7 hari); POST /api/marketing/coupons/claim (code) klaim; GET /api/marketing/coupons/transfers terkirim(pending/claimed/expired)+diterima(claimed) paginasi |
+| Antarmuka | POST /api/v1/marketing/coupons/transfer (user_coupon_id) hasilkan kode transfer 8 karakter unik anti-ambigu (fallback uk_code, berlaku 7 hari); POST /api/v1/marketing/coupons/claim (code) klaim; GET /api/v1/marketing/coupons/transfers terkirim(pending/claimed/expired)+diterima(claimed) paginasi |
 | Validasi | kupon milik sendiri/available/definisi kupon belum kedaluwarsa/belum pernah ditransfer (422); tidak bisa klaim kupon yang ditransfer sendiri, penerima bukan pemegang asli |
 | Anti penyalahgunaan | kunci Redis NX coupon_transfer_claim:{code} (30s) + row lock verifikasi ulang dalam transaksi cegah double-spend; indeks unik uk_user_coupon batasi transfer kupon sama sekali; kupon ditransfer tidak bisa ditransfer lagi (kupon baru tanpa catatan transfer terblokir natural); malas menilai kedaluwarsa set expired + pulihkan kupon asli available |
 | Klaim | dalam transaksi kupon asli set used + buat UserCoupon baru ikat penerima (coupon_id tidak berubah artinya masa berlaku tidak berubah) + catatan transfer set claimed |
@@ -276,11 +276,11 @@ Fungsi Mini Program dan APP sisi pengguna sepenuhnya sama. Akun terpadu mendukun
 
 ### 27. Pemesanan Flash Sale (ronde ke-18, sudah dimatikan)
 
-> Sudah digantikan kanal `/api/seckill` ronde ke-24 (cabang promosi store() tinggal belanja bersama), lihat「43. Flash Sale」.
+> Sudah digantikan kanal `/api/v1/seckill` ronde ke-24 (cabang promosi store() tinggal belanja bersama), lihat「43. Flash Sale」.
 
 | Fitur | Keterangan |
 |------|------|
-| Antarmuka | POST /api/order kirim promotion_id (tipe flash_sale): harga flash sale = round(total × (100 − discount_percent)/100, 2), selaras standar harga flash sale PromotionController |
+| Antarmuka | POST /api/v1/order kirim promotion_id (tipe flash_sale): harga flash sale = round(total × (100 − discount_percent)/100, 2), selaras standar harga flash sale PromotionController |
 | Validasi | whitelist tipe [group_buy, flash_sale] (lainnya 422); aktivitas berlangsung; pemanggil adalah peserta; layanan pesanan cocok aktivitas; sold out participants_count ≥ max_people 422「Sudah habis」; larang tumpuk kupon/kartu kunjungan/poin 422 |
 | Kedaluwarsa | pay() malas menilai isFlashSaleClosed (pola sama isGroupBuyClosed): flash sale kedaluwarsa → aktivitas set 0 + batalkan massal pesanan pending aktivitas tersebut + pesanan ini otomatis batalkan + lepaskan kunci teknisi 422 |
 
@@ -297,7 +297,7 @@ Fungsi Mini Program dan APP sisi pengguna sepenuhnya sama. Akun terpadu mendukun
 
 | Fitur | Keterangan |
 |------|------|
-| Antarmuka | POST /api/technician/review/reply/{order_id} (middleware identitas teknisi): ulasan tidak ada/bukan sendiri seragam 404; sudah ada balasan 422 (tolak idempoten tanpa timpa); balasan kosong 422 |
+| Antarmuka | POST /api/v1/technician/review/reply/{order_id} (middleware identitas teknisi): ulasan tidak ada/bukan sendiri seragam 404; sudah ada balasan 422 (tolak idempoten tanpa timpa); balasan kosong 422 |
 | Setelah balas | notifikasi situs pengguna (type='review_reply', non-blocking try/catch + Log) |
 | Data | appointment_order_review idempoten tambah kolom replied_at (kolom reply sudah ada saat create table); list/show ulasan sisi admin lewat decorate()->toArray() tampilkan reply/replied_at |
 
@@ -313,33 +313,33 @@ Fungsi Mini Program dan APP sisi pengguna sepenuhnya sama. Akun terpadu mendukun
 
 | Fitur | Keterangan |
 |------|------|
-| Antarmuka | POST /api/wallet/transfer: decode hashid penerima + keberadaan 404, transfer ke diri sendiri 422, jumlah 0.01-1000/per transaksi 422 (perbandingan DECIMAL larang float), saldo kurang 422, akumulasi harian 5000 yuan 422 |
+| Antarmuka | POST /api/v1/wallet/transfer: decode hashid penerima + keberadaan 404, transfer ke diri sendiri 422, jumlah 0.01-1000/per transaksi 422 (perbandingan DECIMAL larang float), saldo kurang 422, akumulasi harian 5000 yuan 422 |
 | Bersamaan/idempoten | kunci Redis NX wallet_transfer:{from} 30s serialkan pengirim; dalam transaksi lockForUpdate baris dompet kedua pihak urutan ascending user_id (urutan tetap cegah deadlock); client_token sukses SETNX 24h cegah submit duplikat (permintaan gagal tidak tulis token bisa retry) |
 | Pencatatan | potong pengirim + tambah penerima + WalletTxn dua transaksi (transfer_out/transfer_in termasuk snapshot balance_after) + catatan transfer completed + notifikasi situs penerima type='balance_received' (gagal hanya catat log) |
-| Catatan | GET /api/wallet/transfers (direction=out/in paginasi) + GET /transfers/{id} (hanya kedua pihak terlihat 404) |
+| Catatan | GET /api/v1/wallet/transfers (direction=out/in paginasi) + GET /transfers/{id} (hanya kedua pihak terlihat 404) |
 
 ### 32. Transfer Poin (ronde ke-19)
 
 | Fitur | Keterangan |
 |------|------|
-| Antarmuka | POST /api/user/points/transfer: penerima ada 404, ke diri sendiri 422, jumlah poin 1-10000 422, saldo SUM agregat kurang 422, batas akumulasi harian 10000 422 |
+| Antarmuka | POST /api/v1/user/points/transfer: penerima ada 404, ke diri sendiri 422, jumlah poin 1-10000 422, saldo SUM agregat kurang 422, batas akumulasi harian 10000 422 |
 | Bersamaan/idempoten | kunci Redis NX points_transfer:{user} 30s; dalam transaksi lockForUpdate transaksi terakhir kedua pihak (ascending user_id cegah deadlock transfer timbal balik) + verifikasi ulang dalam kunci saldo/batas/penerima |
 | Standar transaksi | pengirim type=consume source=points_transfer negatif (balance=snapshot sebelumnya-berkurang, sama standar points_offset/exchange); penerima type=earn source=points_transfer positif termasuk expires_at (PointsExpiryTimer bisa kedaluwarsa normal); dalam transaksi tulis catatan transfer, setelah commit notifikasi situs penerima type='points_received' |
-| Catatan | GET /api/user/points/transfers (direction=sent/received paginasi, nama panggilan lawan) |
+| Catatan | GET /api/v1/user/points/transfers (direction=sent/received paginasi, nama panggilan lawan) |
 
 ### 33. Ulasan Susulan + Pelengkapan Rute Submit (ronde ke-19)
 
 | Fitur | Keterangan |
 |------|------|
-| Ulasan susulan | POST /api/order/review/{order_id}/append: ulasan tidak ada/bukan sendiri seragam 404, non-completed 422, ulasan susulan duplikat 422 (append_content/append_at salah satu tidak kosong tolak), konten kosong 422; sukses tulis append_content/append_images(JSON)/append_at + notifikasi situs teknisi type='review_append' |
-| Submit ulasan | lengkapi registrasi POST /api/order/review/{order_id} (ReviewController::store aslinya tanpa rute tidak dapat diakses); sekalian perbaiki TypeError laten: findByOrderId menerima int melanggar signature string (bandingkan konversi (string) append), registrasi lengkap langsung memperlihatkan 500 saat dipanggil |
+| Ulasan susulan | POST /api/v1/order/review/{order_id}/append: ulasan tidak ada/bukan sendiri seragam 404, non-completed 422, ulasan susulan duplikat 422 (append_content/append_at salah satu tidak kosong tolak), konten kosong 422; sukses tulis append_content/append_images(JSON)/append_at + notifikasi situs teknisi type='review_append' |
+| Submit ulasan | lengkapi registrasi POST /api/v1/order/review/{order_id} (ReviewController::store aslinya tanpa rute tidak dapat diakses); sekalian perbaiki TypeError laten: findByOrderId menerima int melanggar signature string (bandingkan konversi (string) append), registrasi lengkap langsung memperlihatkan 500 saat dipanggil |
 | Data | appointment_order_review tambah tiga kolom append_content TEXT/append_images JSON/append_at DATETIME (migrasi idempoten); respons tampilkan kolom append |
 
 ### 34. Pelacakan Logistik Sisi Pengguna (ronde ke-19)
 
 | Fitur | Keterangan |
 |------|------|
-| Antarmuka | GET /api/order/logistics/{id}: hanya pesanan product sendiri yang bisa dilihat (bukan sendiri/bukan barang/belum kirim seragam 404) |
+| Antarmuka | GET /api/v1/order/logistics/{id}: hanya pesanan product sendiri yang bisa dilihat (bukan sendiri/bukan barang/belum kirim seragam 404) |
 | Data | baca order.remark JSON (shipping_company/tracking_no/shipped_at, ditulis saat pengiriman oleh admin MallOrderController::ship()); parseShippingInfo/parseReceiver dua parsing fallback format lama |
 | Deidentifikasi | nomor ponsel penerima maskPhone (138****5678), cegah kebocoran |
 
@@ -348,7 +348,7 @@ Fungsi Mini Program dan APP sisi pengguna sepenuhnya sama. Akun terpadu mendukun
 | Fitur | Keterangan |
 |------|------|
 | Data | tabel appointment_user_notify_setting (kunci unik gabungan user_id+type uk_user_type, baris default kosong=default nyala); 5 jenis: service_reminder pengingat layanan / card_expiry pengingat kedaluwarsa (kartu+kupon payung seragam) / points_expiry kedaluwarsa poin / marketing pemasaran (cadangan) / system sistem (tidak bisa dimatikan, PUT paksa 1) |
-| Antarmuka | GET /api/user/notify-settings kembalikan 5 jenis saklar lengkap; PUT upsert massal tidak hasilkan baris duplikat |
+| Antarmuka | GET /api/v1/user/notify-settings kembalikan 5 jenis saklar lengkap; PUT upsert massal tidak hasilkan baris duplikat |
 | Gerbang | NotificationReminderService::notifySettingEnabled pasang 3 proses timer (ServiceReminderTimer/ExpiryReminderTimer kartu+kupon/PointsExpiryTimer, timer langsung tulis tabel appointment_notification tidak lewat jalur tulis layanan sehingga masing-masing tambah gerbang sama) + event subscription (pemetaan skenario sendSubscribeForOrderEvent/Notification PAY/REFUND/VERIFIED/RESCHEDULE→system selalu kirim, REMINDER→service_reminder, EXPIRY→card_expiry); jenis dimatikan notifikasi situs dan subscription message sama-sama dilewati |
 
 ---
@@ -470,7 +470,7 @@ Aplikasi satu halaman Flutter Web, total 21 halaman: dashboard/pengguna/peran/ko
 
 ### 16. Workbench Manajer Toko (ronde ke-15)
 
-- service /api/store-manager: overview (pesanan hari ini/pendapatan/berlangsung/jumlah teknisi/jumlah verifikasi) + orders (paginasi + filter status) + technicians (termasuk jadwal hari ini) + revenue (agregat 7 hari terakhir), requireStoreId() paksa isolasi store_id (tanpa toko 403)
+- service /api/v1/store-manager: overview (pesanan hari ini/pendapatan/berlangsung/jumlah teknisi/jumlah verifikasi) + orders (paginasi + filter status) + technicians (termasuk jadwal hari ini) + revenue (agregat 7 hari terakhir), requireStoreId() paksa isolasi store_id (tanpa toko 403)
 - admin StoreController::workbenchOverview (GET /admin/stores/workbench-overview?store_id=, standar sama service) + daftar pesanan AppointmentOrderController filter store_id (decode hashid)
 - Halaman workbench toko Flutter: dropdown toko + filter status + 5 kartu ringkasan + DataTable pesanan + paginasi (izin 372)
 
@@ -500,7 +500,7 @@ Aplikasi satu halaman Flutter Web, total 21 halaman: dashboard/pengguna/peran/ko
 
 ### 21. Kalender Bulanan Janji Temu (ronde ke-20)
 
-- CalendarController tampilan bulan/hari: GET /api/calendar/technician/{id} (tampilan bulan) + /day (tampilan hari)
+- CalendarController tampilan bulan/hari: GET /api/v1/calendar/technician/{id} (tampilan bulan) + /day (tampilan hari)
 - Sumber data: time_slots JSON technician_schedule diperluas per hari kerja ke slot jam, slot sudah dijanjikan hari itu appointment_order dikecualikan (status ∈ pending/paid/confirmed/serving), sisa slot bisa dijanjikan dioutput
 - Kegunaan: visualisasi pemilihan waktu jadwal toko, frontend scroll horizontal per hari + pilih titik grid waktu
 
@@ -508,20 +508,20 @@ Aplikasi satu halaman Flutter Web, total 21 halaman: dashboard/pengguna/peran/ko
 
 - appointment_user_growth (transaksi) + appointment_growth_level (seed tingkatan 5 level: Bronze0/Perak100/Emas500/Platinum2000/Berlian5000)
 - Titik masuk nilai pertumbuhan: check-in +10 (CheckInController); submit ulasan +20 (ReviewController::store, ulasan susulan tidak masuk); konsumsi floor(paid) setiap 1 yuan 1 poin (WechatPayService::markOrderPaid, pakai kembali verifikasi ulang status pembayaran yang ada natural idempoten, callback duplikat tidak masuk ulang)
-- Antarmuka: GET /api/growth (ringkasan level saat ini: balance/level/selisih tingkatan berikutnya); GET /api/growth/records (transaksi paginasi); GET /api/growth/levels (daftar tingkatan publik, tidak perlu login)
+- Antarmuka: GET /api/v1/growth (ringkasan level saat ini: balance/level/selisih tingkatan berikutnya); GET /api/v1/growth/records (transaksi paginasi); GET /api/v1/growth/levels (daftar tingkatan publik, tidak perlu login)
 - Strategi gagal: titik masuk mana pun try/catch catat log, tidak mempengaruhi alur utama
 
 ### 23. Faktur Elektronik (ronde ke-20)
 
 - appointment_invoice: uk_order_type(order_id,order_type) cegah pengajuan duplikat pesanan sama (pengajuan duplikat 422, termasuk tangkap MySQL 1062 fallback); idx_user_created/idx_status
-- Sisi pengguna: POST /api/invoices (pengajuan, jumlah/judul diambil server dari pesanan, tidak bisa diubah); GET /api/invoices (daftar); GET /api/invoices/{id} (detail)
+- Sisi pengguna: POST /api/v1/invoices (pengajuan, jumlah/judul diambil server dari pesanan, tidak bisa diubah); GET /api/v1/invoices (daftar); GET /api/v1/invoices/{id} (detail)
 - Sisi admin: InvoiceController issue (terbit faktur: tulis invoice_no + status=issued + issued_at) / reject (tolak: status=rejected + reject_reason), izin 382 daftar/383 terbit/384 tolak
 - State machine: pending → issued / rejected
 
 ### 24. Tiket Layanan Pelanggan (ronde ke-20)
 
 - appointment_ticket: pengguna submit tiket (title/content), backend balas tambah (reply_content/replied_at), pengguna bisa tutup (closed_at)
-- Sisi pengguna: POST /api/tickets (submit); GET /api/tickets (daftar); GET /api/tickets/{id} (detail, hanya sendiri); POST /api/tickets/{id}/close (tutup)
+- Sisi pengguna: POST /api/v1/tickets (submit); GET /api/v1/tickets (daftar); GET /api/v1/tickets/{id} (detail, hanya sendiri); POST /api/v1/tickets/{id}/close (tutup)
 - Sisi admin: TicketController index (daftar) / reply (balas), rute statis didefinisikan mendahului resource hindari shadow {id}; izin 385 balas tiket/387 lihat daftar tiket
 - State machine: open → replied (setelah balas kembali open bisa balas lagi) / closed
 
@@ -537,12 +537,12 @@ Aplikasi satu halaman Flutter Web, total 21 halaman: dashboard/pengguna/peran/ko
 - GrowthLevel.benefits JSON shell realisasi: seed migrasi 5 tingkatan (Bronze {"discount_rate":1.0,"points_multiplier":1.0}, Perak 0.98/1.1, Emas 0.95/1.2, Platinum 0.92/1.3, Berlian 0.9/1.5)
 - Diskon level: OrderController::store applyGrowthDiscount() — hanya pesanan standar (promotion_id kosong, belanja bersama/flash sale larang tumpuk); urutan: jumlah terutang setelah diskon kupon/kartu kunjungan × discount_rate; jumlah diskon masuk discount_amount, catatan pesanan tambah「Diskon level: Perak 9,8折, diskon ¥2.00」dapat ditelusuri; proteksi harga minimum: bayar aktual setelah diskon ≥0.01 yuan (basis sen ≥100), kurang maka diskon dipotong jadi 0
 - Pengali poin: WechatPayService::markOrderPaid nilai pertumbuhan dari floor(paid) ubah floor(paid × points_multiplier), pengali diambil sesuai level pada titik pembayaran (akumulasi sebelum masuk, pesanan ini tidak naik level); titik pemasangan try/catch R20 dipertahankan lengkap
-- Reuse kueri: GrowthLevel::levelForGrowth() ambil tingkatan sesuai nilai pertumbuhan kumulatif, dipakai ulang saat order/bayar; GET /api/growth sudah mengembalikan benefits dan next_gap (implementasi R20, tidak perlu ubah)
+- Reuse kueri: GrowthLevel::levelForGrowth() ambil tingkatan sesuai nilai pertumbuhan kumulatif, dipakai ulang saat order/bayar; GET /api/v1/growth sudah mengembalikan benefits dan next_gap (implementasi R20, tidak perlu ubah)
 
 ### 27. Manajemen Judul Faktur (ronde ke-21)
 
 - appointment_invoice_title (uk_user_title(user_id, title_type, invoice_title) cegah duplikat + idx_user_default)
-- Antarmuka: POST /api/invoice-titles (simpan, company wajib tax_no, duplikat 422); GET (daftar, default di atas); PUT /{id} (edit, hanya sendiri); DELETE /{id} (hapus, hanya sendiri); POST /{id}/default (set default, transaksi nolkan baris lain pengguna sama)
+- Antarmuka: POST /api/v1/invoice-titles (simpan, company wajib tax_no, duplikat 422); GET (daftar, default di atas); PUT /{id} (edit, hanya sendiri); DELETE /{id} (hapus, hanya sendiri); POST /{id}/default (set default, transaksi nolkan baris lain pengguna sama)
 - Aturan default: penyimpanan pertama otomatis default; hapus default otomatis tunjuk baris paling awal
 - Kaitan pengajuan: InvoiceController::store opsional title_id parse judul bawa masuk invoice_title/tax_no/title_type, tanpa title_id pertahankan jalur isi manual asli; logika anti duplikat uk_order_type tidak diubah
 
@@ -563,19 +563,19 @@ Aplikasi satu halaman Flutter Web, total 21 halaman: dashboard/pengguna/peran/ko
 
 - appointment_browse_history (uk_user_item(user_id, item_id) unik, jelajah duplikat hanya refresh viewed_at tidak insert ulang; idx_user_viewed urutkan)
 - Titik pemasangan catatan: ServiceController::detail() setelah sukses catat (try/catch + Log::warning tidak mempengaruhi alur utama; rute publik tanpa JWT, user_id kosong lewati anonim)
-- Antarmuka: GET /api/browse-history (join appointment_service nama/sampul/harga/harga asli, viewed_at urutan turun, per_page default 15 batas atas 50, item_id hashid); DELETE /{item_id} (hanya sendiri, ilegal/punya orang lain 404); DELETE / (kosongkan hanya sendiri)
+- Antarmuka: GET /api/v1/browse-history (join appointment_service nama/sampul/harga/harga asli, viewed_at urutan turun, per_page default 15 batas atas 50, item_id hashid); DELETE /{item_id} (hanya sendiri, ilegal/punya orang lain 404); DELETE / (kosongkan hanya sendiri)
 
 ### 31. Pemasaran Potongan (ronde ke-22)
 
 - appointment_full_reduction_activity (threshold/reduction/title/status/start_at/end_at + idx_status_status_time)
 - Tumpuk saat order: hanya pesanan standar (belanja bersama/flash sale lewati), ambang dinilai dari jumlah terutang setelah potongan kupon/kartu kunjungan, urutan **kupon/kartu kunjungan → potongan → diskon level**; ambil aktivitas pengurangan terbesar; jumlah diskon masuk discount_amount + catatan「Potongan: beli X potong Y」; batas bawah bayar aktual setelah potongan 0.01 yuan (basis sen)
-- Sisi pengguna GET /api/full-reduction-activities (publik, yang berlangsung urut pengurangan turun)
+- Sisi pengguna GET /api/v1/full-reduction-activities (publik, yang berlangsung urut pengurangan turun)
 - admin FullReductionController: CRUD + toggle-status tayang/tidak tayang (destroy dengan confirmPassword)
 - Izin: 396 daftar / 397 tambah / 398 edit / 399 tayang/tidak tayang / 400 hapus (satu catatan izin hanya sesuai satu slug method.path, 5 rute pecah 5 catatan)
 
 ### 32. Ekspor ICS Janji Temu Saya (ronde ke-22)
 
-- IcsController GET /api/order/ics: ekspor pesanan 90 hari pending/paid/confirmed/serving ke iCal (RFC5545), hanya sendiri
+- IcsController GET /api/v1/order/ics: ekspor pesanan 90 hari pending/paid/confirmed/serving ke iCal (RFC5545), hanya sendiri
 - VEVENT: UID=ID pesanan, DTSTAMP(UTC), TZID=Asia/Shanghai, durasi default 1 jam, ringkasan「Janji temu: nama layanan」(hilang degradasi「Janji temu」), keterangan teknisi/toko/alamat (hilang lewati), LOCATION; escape teks (\, \; \\ \n) + lipat baris 75 byte
 - Tanpa pesanan kembalikan kalender kosong legal (`BEGIN:VCALENDAR` kerangka)
 
@@ -601,59 +601,59 @@ Aplikasi satu halaman Flutter Web, total 21 halaman: dashboard/pengguna/peran/ko
 
 ### 36. Kepatuhan Privasi (ronde ke-22)
 
-- GET /api/privacy/data: ekspor data (kelompok personal/orders/points/wallet_txns/reviews/addresses/invoices; log hanya catat nomor ponsel deidentifikasi + jumlah)
+- GET /api/v1/privacy/data: ekspor data (kelompok personal/orders/points/wallet_txns/reviews/addresses/invoices; log hanya catat nomor ponsel deidentifikasi + jumlah)
 - Siklus tertutup penghapusan: close-request (saldo bukan 0 / pesanan belum selesai / tiket berlangsung 422 → close_status=1) → close-cancel (1→0) → close-confirm (genap 72 jam → close_status=2 + close_at + phone/nickname anonimisasi user{id} + status=0)
 - appointment_user tambah close_status/close_requested_at/close_at (migrasi ALTER idempoten); AuthController login/loginByCode untuk close_status=2 kembalikan 403「Akun telah dihapus」
 
 ### 37. Arsip Kesehatan Pengguna (ronde ke-23)
 
-- GET/PUT/DELETE /api/health-profile: satu orang satu (indeks unik uk_user), upsert hanya perbarui kolom yang diberikan
+- GET/PUT/DELETE /api/v1/health-profile: satu orang satu (indeks unik uk_user), upsert hanya perbarui kolom yang diberikan
 - allergies/health_notes batas atas 500 karakter, preferred_technician_id validasi keberadaan, respons encode hashid
 - Migrasi 000504_user_health_profile; HealthProfileTest 6 tests
 
 ### 38. Kata Sandi Pembayaran Dompet (ronde ke-23)
 
-- POST /api/wallet/pay-password/{set,verify,check}: validasi 6 digit angka, simpan password_hash + pay_password_set_at
+- POST /api/v1/wallet/pay-password/{set,verify,check}: validasi 6 digit angka, simpan password_hash + pay_password_set_at
 - Sudah diatur ubah perlu kata sandi lama 422; verify hanya validasi tidak tulis DB; check kembalikan apakah sudah diatur
 - Migrasi 000502 (INFORMATION_SCHEMA ALTER dua kolom idempoten); WalletPayPasswordTest 7 tests
 
 ### 39. Jadwal Massal Teknisi (ronde ke-23)
 
-- POST /api/technician/schedule/batch: rentang tanggal ≤7 hari + filter weekdays, hari sudah ada jadwal dilewati
+- POST /api/v1/technician/schedule/batch: rentang tanggal ≤7 hari + filter weekdays, hari sudah ada jadwal dilewati
 - Pengaturan satu entri juga aktifkan deteksi tumpang tindih slot waktu (422「Konflik waktu dengan jadwal yang ada: HH:MM-HH:MM」)
 - ScheduleConflictTest 5 tests
 
 ### 40. Garis Waktu Status Pesanan (ronde ke-23)
 
-- GET /api/order/{id}/timeline: hanya sendiri bisa lihat (punya orang lain 404), urutan turun kembalikan; detail pesanan admin gabung ke array timeline
+- GET /api/v1/order/{id}/timeline: hanya sendiri bisa lihat (punya orang lain 404), urutan turun kembalikan; detail pesanan admin gabung ke array timeline
 - OrderStatusLog::record() titik tanam statis 8 jenis perubahan: submit/pembayaran/batal/refund pengajuan/refund lulus/mulai layanan/selesai layanan/batal otomatis timeout/operasi backend (operator=admin)
 - markOrderPaid callback pembayaran adalah satu titik konsumsi; record() internal try/catch + Log::warning tidak pernah blokir alur utama
 - Migrasi 000501_order_status_log; OrderTimelineTest 4 tests
 
 ### 41. Roda Keberuntungan Poin (ronde ke-23)
 
-- GET /api/wheel/prizes (sembunyikan weight/stock); POST /api/wheel/spin: Redis NX + row lock cegah bersamaan, random_int undian berbobot, client_token idempoten
+- GET /api/v1/wheel/prizes (sembunyikan weight/stock); POST /api/v1/wheel/spin: Redis NX + row lock cegah bersamaan, random_int undian berbobot, client_token idempoten
 - Penetapan hadiah: poin→transaksi earn (termasuk waktu kedaluwarsa, bisa kedaluwarsa normal oleh PointsExpiryTimer), saldo→lockForUpdate, kupon→pending terbit manual, tanpa hadiah→lose
-- GET /api/wheel/records catatan saya paginasi; admin /admin/lucky-wheel CRUD + tayang/tidak tayang + catatan (izin 401-406)
+- GET /api/v1/wheel/records catatan saya paginasi; admin /admin/lucky-wheel CRUD + tayang/tidak tayang + catatan (izin 401-406)
 - Migrasi 000503 (appointment_lucky_wheel + appointment_wheel_record + seed demo w60/w40) + 000505 (seed izin); LuckyWheelTest admin 3 + service 6 tests
 
 ### 42. Mode Tamu (ronde ke-24)
 
-- GET /api/guest/{home,services,services/{id},stores,technicians}: pintu masuk jelajah tanpa login tanpa otentikasi (hanya middleware ApiVersion)
+- GET /api/v1/guest/{home,services,services/{id},stores,technicians}: pintu masuk jelajah tanpa login tanpa otentikasi (antarmuka publik)
 - home agregat banner/pengumuman/kategori layanan/layanan populer, cache Redis svc:guest:home 300s; services dukung filter kategori + urutkan newest/sales/price (page/per_page≤50); technicians hanya lolos audit, bisa filter service_id, rating urutan turun
 - GuestControllerTest tercakup
 
 ### 43. Flash Sale (ronde ke-24)
 
 - appointment_seckill_activity (name/service_id/seckill_price/original_price/stock/start_at/end_at/status); jumlah terjual = jumlah pesanan appointment_order.seckill_id
-- GET /api/seckill (status=1 + jendela waktu)、/{id} (state=not_started/ongoing/ended)、POST /{id}/buy: client_token (8-64 karakter, SETNX 24 jam) idempoten + Redis NX 30s cegah bersamaan + validasi aktivitas (mulai 2026-08-26 tidak lagi pre-deduct stok)
-- Pemesanan injeksi seckill_id pakai ulang OrderController::store; stok seragam dipotong row lock dalam transaksi store() (panggil langsung /api/order bawa seckill_id juga potong stok), harga flash sale = seckill_price (berdasarkan DB), tidak tumpuk kupon/poin/kartu member; pembatalan pesanan tidak isi ulang stok; kanal FLASH_SALE promosi lama sudah dihapus (cabang promosi store() tinggal belanja bersama, PromotionController index filter flash_sale, show/join 400), flash sale hanya lewat kanal ini
+- GET /api/v1/seckill (status=1 + jendela waktu)、/{id} (state=not_started/ongoing/ended)、POST /{id}/buy: client_token (8-64 karakter, SETNX 24 jam) idempoten + Redis NX 30s cegah bersamaan + validasi aktivitas (mulai 2026-08-26 tidak lagi pre-deduct stok)
+- Pemesanan injeksi seckill_id pakai ulang OrderController::store; stok seragam dipotong row lock dalam transaksi store() (panggil langsung /api/v1/order bawa seckill_id juga potong stok), harga flash sale = seckill_price (berdasarkan DB), tidak tumpuk kupon/poin/kartu member; pembatalan pesanan tidak isi ulang stok; kanal FLASH_SALE promosi lama sudah dihapus (cabang promosi store() tinggal belanja bersama, PromotionController index filter flash_sale, show/join 400), flash sale hanya lewat kanal ini
 - admin /admin/seckill CRUD + tayang/tidak tayang + daftar pesanan (izin 407-411、420); migrasi 000606 seed izin; SeckillTest service + admin
 
 ### 44. Manajemen Versi APP & Deteksi Pembaruan (ronde ke-24)
 
 - appointment_app_version (platform/version_code/version_name/force_update/changelog/download_url/status)
-- GET /api/app/version?platform=android|ios deteksi pembaruan publik (platform ilegal 422; status=1 ambil terbaru; tanpa ada objek kosong)
+- GET /api/v1/app/version?platform=android|ios deteksi pembaruan publik (platform ilegal 422; status=1 ambil terbaru; tanpa ada objek kosong)
 - admin /admin/versions CRUD (izin 416-419); migrasi 000609 seed izin; VersionTest service + admin
 
 ### 45. Bonus Pelanggan Berulang (ronde ke-24)

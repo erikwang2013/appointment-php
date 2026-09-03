@@ -8,7 +8,7 @@
 - **Business-API** (service/): `http://localhost:8787` — stellt die Geschäftsschnittstellen für MiniProgramm/APP bereit
 - **Verwaltungsbackend-API** (admin/): `http://localhost:8787` — stellt die Schnittstellen für das Flutter-Web-Verwaltungsbackend bereit
 - **Authentifizierung**: Bearer Token (JWT), Request-Header `Authorization: Bearer <token>`
-- **Versionskontrolle**: Die API-Version wird über den Request-Header `API-Version: v1` gesteuert, nicht in der URL. Standard v1
+- **Versionskontrolle**: Die Version ist fest im URL-Pfadpräfix `/api/v1` verankert (z. B. `POST /api/v1/auth/login`); URLs ohne Versionspräfix liefern 404
 - **ID-Codierung**: Alle ID-Felder in Anfragen/Antworten sind mit hashids codiert, die echten Datenbank-IDs werden nach außen verborgen
 - **OpenAPI-Dokumentation**: wird mit `hg/apidoc` generiert, Verwaltungsseite und Clientseite getrennt
 
@@ -52,7 +52,7 @@ Paginierte Antwort:
 
 #### 1.1 Verifizierungscode
 
-**`POST /api/captcha/send`** — SMS-Verifizierungscode senden
+**`POST /api/v1/captcha/send`** — SMS-Verifizierungscode senden
 
 Anfrage:
 ```json
@@ -68,7 +68,7 @@ Einschränkung: Maximal 1 Sendung pro 60 Sekunden, der Verifizierungscode ist 5 
 
 #### 1.2 Authentifizierung
 
-**`POST /api/auth/register`** — Registrierung mit Telefonnummer
+**`POST /api/v1/auth/register`** — Registrierung mit Telefonnummer
 
 Anfrage:
 ```json
@@ -101,7 +101,7 @@ Antwort:
 
 ---
 
-**`POST /api/auth/login`** — Passwort-Login
+**`POST /api/v1/auth/login`** — Passwort-Login
 
 Anfrage:
 ```json
@@ -114,7 +114,7 @@ Antwort: Wie bei der Registrierung, enthält token und user-Informationen.
 
 ---
 
-**`POST /api/auth/login-by-code`** — Verifizierungscode-Login
+**`POST /api/v1/auth/login-by-code`** — Verifizierungscode-Login
 
 Anfrage:
 ```json
@@ -127,7 +127,7 @@ Antwort: Wie beim Login. Nicht registrierte Benutzer erhalten automatisch ein Ko
 
 ---
 
-**`POST /api/auth/forget-password`** — Passwort vergessen
+**`POST /api/v1/auth/forget-password`** — Passwort vergessen
 
 Anfrage:
 ```json
@@ -141,7 +141,7 @@ Anfrage:
 
 ---
 
-**`POST /api/auth/refresh`** — Token aktualisieren
+**`POST /api/v1/auth/refresh`** — Token aktualisieren
 
 Request-Header: `Authorization: Bearer <altes Token>`
 Antwort: `{"code":0,"data":{"token":"eyJhbGciOi..."}}`
@@ -150,20 +150,20 @@ Antwort: `{"code":0,"data":{"token":"eyJhbGciOi..."}}`
 
 #### 1.3 WeChat
 
-**`POST /api/wechat/mini-login`** — MiniProgramm-Login
+**`POST /api/v1/wechat/mini-login`** — MiniProgramm-Login
 
 Anfrage: `{"code":"微信登录code"}`
-Hinweis: Beim ersten Login muss anschließend `/api/wechat/phone` aufgerufen werden, um die Telefonnummer zu binden.
+Hinweis: Beim ersten Login muss anschließend `/api/v1/wechat/phone` aufgerufen werden, um die Telefonnummer zu binden.
 
 ---
 
-**`POST /api/wechat/phone`** — Telefonnummer binden
+**`POST /api/v1/wechat/phone`** — Telefonnummer binden
 
 Anfrage: `{"code":"微信手机号组件code"}`
 
 ---
 
-**`POST /api/wechat/oa-login`** — Offizielles-Konto-Login
+**`POST /api/v1/wechat/oa-login`** — Offizielles-Konto-Login
 
 Anfrage: `{"code":"公众号授权code"}`
 
@@ -171,39 +171,39 @@ Anfrage: `{"code":"公众号授权code"}`
 
 #### 1.4 Allgemeine Dienste
 
-**`GET /api/common/config`** — Öffentliche Konfiguration
+**`GET /api/v1/common/config`** — Öffentliche Konfiguration
 
 Antwort: Enthält Vereinbarungstexte (Nutzungsvereinbarung/Datenschutzvereinbarung/Dienstleistungsvereinbarung), Über-uns-Informationen, Versionsnummer.
 
 ---
 
-**`GET /api/common/area`** — Städte-/Regionenliste
+**`GET /api/v1/common/area`** — Städte-/Regionenliste
 
 ---
 
 #### 1.5 Service-Abfrage
 
-**`GET /api/service/categories`** — Kategorienliste
+**`GET /api/v1/service/categories`** — Kategorienliste
 
 Parameter: `?parent_id=0`
 
 ---
 
-**`GET /api/service/items`** — Service-Leistungsliste
+**`GET /api/v1/service/items`** — Service-Leistungsliste
 
 Parameter: `?category_id=&page=1&per_page=10&sort=sales`
 
 ---
 
-**`GET /api/service/detail/{id}`** — Servicedetails
+**`GET /api/v1/service/detail/{id}`** — Servicedetails
 
 Die Antwort enthält: Bilder/Name/Preis/Spezifikationen/Dauer/Verkaufszahlen/Bewertungsliste.
 
 ---
 
-**`GET /api/service/products`** — Produktliste
+**`GET /api/v1/service/products`** — Produktliste
 
-**`GET /api/service/stores`** — Filialliste
+**`GET /api/v1/service/stores`** — Filialliste
 
 Parameter: `?lat=&lng=&city=`
 
@@ -211,20 +211,20 @@ Parameter: `?lat=&lng=&city=`
 
 #### 1.6 Techniker-Abfrage
 
-**`GET /api/technician/list`** — Technikerliste
+**`GET /api/v1/technician/list`** — Technikerliste
 
 Parameter: `?lat=&lng=&service_id=&page=1`
 Sortierung nach Entfernung von nah nach fern, Rückgabe: Avatar/Name/Bewertung/Anzahl Bestellungen/Anzahl Favoriten/Entfernung/Frühester verfügbarer Termin/Ob verfügbar.
 
 ---
 
-**`GET /api/technician/detail/{id}`** — Technikerdetails
+**`GET /api/v1/technician/detail/{id}`** — Technikerdetails
 
 Die Antwort enthält: Bilder/Name/Vorstellung/Bewertung/Entfernung/Liste der angebotenen Leistungen/Bewertungen.
 
 ---
 
-**`GET /api/technician/schedule/{id}`** — Techniker-Schichtplan
+**`GET /api/v1/technician/schedule/{id}`** — Techniker-Schichtplan
 
 Parameter: `?date=2026-05-26`
 Gibt die buchbaren Zeitfenster und den Verfügbarkeitsstatus für dieses Datum zurück.
@@ -233,25 +233,25 @@ Gibt die buchbaren Zeitfenster und den Verfügbarkeitsstatus für dieses Datum z
 
 #### 1.7 Inhalte
 
-**`GET /api/content/banners`** — Karussellbilder
+**`GET /api/v1/content/banners`** — Karussellbilder
 
 Parameter: `?position=home`
 
-**`GET /api/content/articles`** — Ankündigungs-/Artikel-Liste
+**`GET /api/v1/content/articles`** — Ankündigungs-/Artikel-Liste
 
 Parameter: `?type=announcement&page=1`
 
-**`GET /api/content/article/{id}`** — Artikeldetails
+**`GET /api/v1/content/article/{id}`** — Artikeldetails
 
 ---
 
 #### 1.8 LBS
 
-**`GET /api/lbs/nearby-stores`** — Filialen in der Nähe
+**`GET /api/v1/lbs/nearby-stores`** — Filialen in der Nähe
 
 Parameter: `?lat=&lng=&radius=5000`
 
-**`GET /api/lbs/geocode`** — Reverse-Geocodierung
+**`GET /api/v1/lbs/geocode`** — Reverse-Geocodierung
 
 Parameter: `?lat=&lng=`
 
@@ -265,13 +265,13 @@ Alle Schnittstellen führen im Request-Header `Authorization: Bearer <token>` mi
 
 | Methode | Pfad | Beschreibung |
 |------|------|------|
-| GET | `/api/user/profile` | Persönliche Informationen abrufen |
-| PUT | `/api/user/profile` | Nickname/Avatar/Geschlecht aktualisieren |
-| POST | `/api/user/change-password` | Passwort ändern (old_password/new_password/confirm_password) |
-| POST | `/api/user/change-phone` | Telefonnummer neu binden (old_code/new_phone/new_code) |
-| POST | `/api/user/cancel-account` | Konto löschen (Passwortverifizierung erforderlich) |
-| POST | `/api/user/logout` | Abmelden (Token wird auf die Blacklist gesetzt) |
-| POST | `/api/user/switch-role` | Identität wechseln (role: customer/technician) |
+| GET | `/api/v1/user/profile` | Persönliche Informationen abrufen |
+| PUT | `/api/v1/user/profile` | Nickname/Avatar/Geschlecht aktualisieren |
+| POST | `/api/v1/user/change-password` | Passwort ändern (old_password/new_password/confirm_password) |
+| POST | `/api/v1/user/change-phone` | Telefonnummer neu binden (old_code/new_phone/new_code) |
+| POST | `/api/v1/user/cancel-account` | Konto löschen (Passwortverifizierung erforderlich) |
+| POST | `/api/v1/user/logout` | Abmelden (Token wird auf die Blacklist gesetzt) |
+| POST | `/api/v1/user/switch-role` | Identität wechseln (role: customer/technician) |
 
 Für den Wechsel zu technician ist ein bereits mit Status approved vorliegendes Technikerprofil erforderlich.
 
@@ -279,11 +279,11 @@ Für den Wechsel zu technician ist ein bereits mit Status approved vorliegendes 
 
 | Methode | Pfad | Beschreibung |
 |------|------|------|
-| GET | `/api/user/addresses` | Adressliste |
-| POST | `/api/user/addresses` | Adresse hinzufügen (contact_name/contact_phone/province/city/district/detail/lat/lng/is_default) |
-| GET | `/api/user/addresses/{id}` | Adressdetails |
-| PUT | `/api/user/addresses/{id}` | Adresse aktualisieren |
-| DELETE | `/api/user/addresses/{id}` | Adresse löschen |
+| GET | `/api/v1/user/addresses` | Adressliste |
+| POST | `/api/v1/user/addresses` | Adresse hinzufügen (contact_name/contact_phone/province/city/district/detail/lat/lng/is_default) |
+| GET | `/api/v1/user/addresses/{id}` | Adressdetails |
+| PUT | `/api/v1/user/addresses/{id}` | Adresse aktualisieren |
+| DELETE | `/api/v1/user/addresses/{id}` | Adresse löschen |
 
 Beim Setzen als Standardadresse werden andere Standardadressen automatisch aufgehoben.
 
@@ -291,22 +291,22 @@ Beim Setzen als Standardadresse werden andere Standardadressen automatisch aufge
 
 | Methode | Pfad | Beschreibung |
 |------|------|------|
-| GET | `/api/user/favorites` | Favoritenliste (?type=service/technician) |
-| POST | `/api/user/favorites` | Favorit hinzufügen (target_type/target_id) |
-| DELETE | `/api/user/favorites/{id}` | Favorit entfernen |
+| GET | `/api/v1/user/favorites` | Favoritenliste (?type=service/technician) |
+| POST | `/api/v1/user/favorites` | Favorit hinzufügen (target_type/target_id) |
+| DELETE | `/api/v1/user/favorites/{id}` | Favorit entfernen |
 
 #### 2.4 Feedback
 
-`POST /api/user/feedback` — Feedback senden (content + images-Array)
+`POST /api/v1/user/feedback` — Feedback senden (content + images-Array)
 
 #### 2.5 Empfehlung und Provision
 
 | Methode | Pfad | Beschreibung |
 |------|------|------|
-| GET | `/api/user/referral` | Empfehlungsinformationen (Empfehlungscode/Anzahl empfohlener/Anzahl Erstbesteller/erhaltene Punkte) |
-| GET | `/api/user/referral/qrcode` | Empfehlungs-QR-Code (Empfehlungscode + Einladungslink) |
-| GET | `/api/user/referral/referred-users` | Liste der empfohlenen Benutzer |
-| GET | `/api/user/referral/earnings` | Provisionsdetails der Distribution (paginiert: Nickname/Avatar des Empfohlenen/Bestellnummer/Betrag/Auszahlungszeit) |
+| GET | `/api/v1/user/referral` | Empfehlungsinformationen (Empfehlungscode/Anzahl empfohlener/Anzahl Erstbesteller/erhaltene Punkte) |
+| GET | `/api/v1/user/referral/qrcode` | Empfehlungs-QR-Code (Empfehlungscode + Einladungslink) |
+| GET | `/api/v1/user/referral/referred-users` | Liste der empfohlenen Benutzer |
+| GET | `/api/v1/user/referral/earnings` | Provisionsdetails der Distribution (paginiert: Nickname/Avatar des Empfohlenen/Bestellnummer/Betrag/Auszahlungszeit) |
 
 **Distributionsprovision**: Wird nach der ersten completed-Bestellung des Empfohlenen ausgezahlt, Betrag = paid_amount × reward_rate (appointment_system_config referral.reward_rate, Standard 0.05, ungültige Werte fallen auf die Konstante zurück). Dreifache Idempotenz durch Zeilensperre + rewarded_at-Leerprüfung + Erstbestell-Recheck; Verbuchung in WalletTxn type=referral_reward.
 
@@ -314,8 +314,8 @@ Beim Setzen als Standardadresse werden andere Standardadressen automatisch aufge
 
 | Methode | Pfad | Beschreibung |
 |------|------|------|
-| POST | `/api/user/points/transfer` | Punkte übertragen (to_user_id hashid/points) |
-| GET | `/api/user/points/transfers` | Übertragungsprotokoll (?direction=sent/received&page=1) |
+| POST | `/api/v1/user/points/transfer` | Punkte übertragen (to_user_id hashid/points) |
+| GET | `/api/v1/user/points/transfers` | Übertragungsprotokoll (?direction=sent/received&page=1) |
 
 **Punkte-Übertragung**: hashid-Dekodierung + Existenzprüfung des Empfängers 404, Übertragung an sich selbst 422, Punkte 1-10000 422, unzureichendes Guthaben per SUM-Aggregation 422, Tageslimit 10000 kumuliert 422. Konkurrenzschutz: Redis-NX-Sperre points_transfer:{user} 30s → innerhalb der Transaktion beide Seiten mit dem letzten Eintrag lockForUpdate (user_id aufsteigend, verhindert Deadlocks bei gegenseitigen Übertragungen) → innerhalb der Sperre Guthaben/Limit/Empfänger erneut prüfen. Transaktionsprotokoll: Sender type=consume/source=points_transfer negativer Wert (balance=letzter Snapshot − diesmal), Empfänger type=earn/source=points_transfer positiver Wert inkl. expires_at (PointsExpiryTimer kann normal ablaufen); nach commit In-App-Benachrichtigung an den Empfänger type='points_received' (bei Fehler nur warn).
 
@@ -323,8 +323,8 @@ Beim Setzen als Standardadresse werden andere Standardadressen automatisch aufge
 
 | Methode | Pfad | Beschreibung |
 |------|------|------|
-| GET | `/api/user/notify-settings` | Benachrichtigungsschalter abfragen (alle 5 Kategorien) |
-| PUT | `/api/user/notify-settings` | Schalter batch-weise aktualisieren (types: {service_reminder: 0/1, ...}) |
+| GET | `/api/v1/user/notify-settings` | Benachrichtigungsschalter abfragen (alle 5 Kategorien) |
+| PUT | `/api/v1/user/notify-settings` | Schalter batch-weise aktualisieren (types: {service_reminder: 0/1, ...}) |
 
 **Benachrichtigungsschalter**: Tabelle appointment_user_notify_setting (user_id+type zusammengesetzter eindeutiger Schlüssel, fehlende Zeile = standardmäßig an). 5 Kategorien: service_reminder Service-Erinnerung / card_expiry Ablauf-Erinnerung (einheitlicher Dachschirm für Karten + Gutscheine) / points_expiry Punkte-Ablauf / marketing Marketing (reserviert) / system System (kann nicht ausgeschaltet werden, PUT erzwingt 1). Gating: notifySettingEnabled hängt an den 3 Timer-Prozessen ServiceReminderTimer/ExpiryReminderTimer/PointsExpiryTimer + Szenario-Zuordnung von Abonnement-Events (PAY/REFUND/VERIFIED/RESCHEDULE→system immer gesendet, REMINDER→service_reminder, EXPIRY→card_expiry); bei deaktiviertem Typ werden In-App-Benachrichtigungen und Abonnementnachrichten gleichermaßen übersprungen.
 
@@ -336,8 +336,8 @@ Beim Setzen als Standardadresse werden andere Standardadressen automatisch aufge
 
 | Methode | Pfad | Beschreibung |
 |------|------|------|
-| GET | `/api/technician/profile` | Technikerprofil abrufen |
-| PUT | `/api/technician/profile` | Profil aktualisieren (avatar/intro/real_name/gender/id_card/id_card_front/id_card_back) |
+| GET | `/api/v1/technician/profile` | Technikerprofil abrufen |
+| PUT | `/api/v1/technician/profile` | Profil aktualisieren (avatar/intro/real_name/gender/id_card/id_card_front/id_card_back) |
 
 Das erste vollständige Ausfüllen gilt als Aufnahmeantrag, status=pending wartet auf Prüfung.
 
@@ -345,37 +345,37 @@ Das erste vollständige Ausfüllen gilt als Aufnahmeantrag, status=pending warte
 
 | Methode | Pfad | Beschreibung |
 |------|------|------|
-| GET | `/api/technician/schedule` | Schichtplan-Abfrage (?start_date=&end_date=) |
-| PUT | `/api/technician/schedule` | Schichtplan festlegen (date/time_slots/status), Zeitfenster-Überschneidung 422 „与已有排班时间冲突" |
-| POST | `/api/technician/schedule/batch` | Schichtplan in Batch (Runde 23): Datumsbereich ≤7 Tage + weekdays-Filter, Tage mit vorhandenem Schichtplan werden übersprungen, Antwort created/skipped |
+| GET | `/api/v1/technician/schedule` | Schichtplan-Abfrage (?start_date=&end_date=) |
+| PUT | `/api/v1/technician/schedule` | Schichtplan festlegen (date/time_slots/status), Zeitfenster-Überschneidung 422 „与已有排班时间冲突" |
+| POST | `/api/v1/technician/schedule/batch` | Schichtplan in Batch (Runde 23): Datumsbereich ≤7 Tage + weekdays-Filter, Tage mit vorhandenem Schichtplan werden übersprungen, Antwort created/skipped |
 
 #### 3.3 Techniker-Bestellungen
 
-`GET /api/technician/orders` — Bestellliste (?status=&page=1)
+`GET /api/v1/technician/orders` — Bestellliste (?status=&page=1)
 
 #### 3.4 Einnahmen
 
-`GET /api/technician/earnings` — Einnahmenübersicht (today_income/pending_settlement/balance + Transaktionsliste)
+`GET /api/v1/technician/earnings` — Einnahmenübersicht (today_income/pending_settlement/balance + Transaktionsliste)
 
 #### 3.5 Auszahlung
 
-`POST /api/technician/withdraw` — Auszahlung beantragen (amount)
+`POST /api/v1/technician/withdraw` — Auszahlung beantragen (amount)
 Regeln: Auszahlung am 20. jedes Monats möglich, T+1 auf dem Konto, Mindestbetrag/Hunderter-Beschränkung über die Backend-Konfiguration.
 
 **Unterwegs-Reservierung (2026-08-26)**: Bei der Beantragung wird der unterwegs befindliche Betrag (pending/approved) vom Guthaben reserviert; vor der Freigabe-Überweisung erneute Prüfung settled − withdrawn − unterwegs ≥ Auszahlungsbetrag; parallele Freigaben verursachen keine Doppelauszahlung.
 
 #### 3.6 Bewertungsantwort (Runde 18)
 
-`POST /api/technician/review/reply/{order_id}` — Techniker antwortet auf Bewertung (reply). Bewertung nicht vorhanden/nicht eigene einheitlich 404 (keine Existenzpreisgabe); bereits vorhandene Antwort 422 (Idempotenz, keine Überschreibung); leere Antwort 422. Bei Erfolg In-App-Benachrichtigung an den Benutzer (type='review_reply').
+`POST /api/v1/technician/review/reply/{order_id}` — Techniker antwortet auf Bewertung (reply). Bewertung nicht vorhanden/nicht eigene einheitlich 404 (keine Existenzpreisgabe); bereits vorhandene Antwort 422 (Idempotenz, keine Überschreibung); leere Antwort 422. Bei Erfolg In-App-Benachrichtigung an den Benutzer (type='review_reply').
 
 #### 3.6 Arbeitsplatz
 
 | Methode | Pfad | Beschreibung |
 |------|------|------|
-| GET | `/api/technician/work/today` | Heutige Aufgabenliste |
-| GET | `/api/technician/work/records` | Abschlussprotokoll paginiert |
-| POST | `/api/technician/work/{id}/start` | Service beginnen |
-| POST | `/api/technician/work/{id}/complete` | Service abschließen |
+| GET | `/api/v1/technician/work/today` | Heutige Aufgabenliste |
+| GET | `/api/v1/technician/work/records` | Abschlussprotokoll paginiert |
+| POST | `/api/v1/technician/work/{id}/start` | Service beginnen |
+| POST | `/api/v1/technician/work/{id}/complete` | Service abschließen |
 
 **Heutige Aufgaben**: status ∈ [confirmed, serving], service_time heute oder leer, Rückgabe service_name/price/nickname/avatar.
 
@@ -389,17 +389,17 @@ Regeln: Auszahlung am 20. jedes Monats möglich, T+1 auf dem Konto, Mindestbetra
 
 | Methode | Pfad | Beschreibung |
 |------|------|------|
-| POST | `/api/order` | Bestellung erstellen (order_type/items/store_id/technician_id/service_time/coupon_id/user_coupon_id/promotion_id/remark) |
-| GET | `/api/order/list` | Bestellliste (?status=&page=1) |
-| GET | `/api/order/detail/{id}` | Bestelldetails |
-| POST | `/api/order/cancel/{id}` | Bestellung stornieren (reason) |
-| POST | `/api/order/pay/{id}` | Zahlung auslösen (pay_channel: wechat/balance, use_points: optionale Punkte-Anrechnung) |
-| POST | `/api/order/refund/{id}` | Rückerstattung beantragen |
-| POST | `/api/order/verify/{id}` | Verifizierung (code: QR-Code-Wert) |
-| POST | `/api/order/reschedule/{id}` | Termin verschieben (new_service_time Pflichtfeld/reason optional) |
-| GET | `/api/order/logistics/{id}` | Logistikverfolgung (Runde 19, product-Bestellungen) |
-| POST | `/api/order/review/{order_id}` | Bewertung abgeben (rating 1-5/content/images) (Runde 19 nachregistriert) |
-| POST | `/api/order/review/{order_id}/append` | Bewertung ergänzen (content/images kommasepariert) (Runde 19) |
+| POST | `/api/v1/order` | Bestellung erstellen (order_type/items/store_id/technician_id/service_time/coupon_id/user_coupon_id/promotion_id/remark) |
+| GET | `/api/v1/order/list` | Bestellliste (?status=&page=1) |
+| GET | `/api/v1/order/detail/{id}` | Bestelldetails |
+| POST | `/api/v1/order/cancel/{id}` | Bestellung stornieren (reason) |
+| POST | `/api/v1/order/pay/{id}` | Zahlung auslösen (pay_channel: wechat/balance, use_points: optionale Punkte-Anrechnung) |
+| POST | `/api/v1/order/refund/{id}` | Rückerstattung beantragen |
+| POST | `/api/v1/order/verify/{id}` | Verifizierung (code: QR-Code-Wert) |
+| POST | `/api/v1/order/reschedule/{id}` | Termin verschieben (new_service_time Pflichtfeld/reason optional) |
+| GET | `/api/v1/order/logistics/{id}` | Logistikverfolgung (Runde 19, product-Bestellungen) |
+| POST | `/api/v1/order/review/{order_id}` | Bewertung abgeben (rating 1-5/content/images) (Runde 19 nachregistriert) |
+| POST | `/api/v1/order/review/{order_id}/append` | Bewertung ergänzen (content/images kommasepariert) (Runde 19) |
 
 **Bestellstatus**: pending(ausstehende Zahlung) → paid(bezahlt) → confirmed(bestätigt) → serving(in Bearbeitung) → completed(abgeschlossen)
 
@@ -417,25 +417,25 @@ Regeln: Auszahlung am 20. jedes Monats möglich, T+1 auf dem Konto, Mindestbetra
 
 **Punkte-Rückerstattung**: Bei Stornierung/Rückerstattung werden die durch points_offset verbrauchten Punkte zurückgegeben (type=earn/source=points_refund): Stornierung in voller Höhe, Rückerstattung anteilig, 5 idempotente Anbindungspunkte (refundOffsetPoints).
 
-**Gruppenkauf-Bestellung (Runde 16)**: Beim Erstellen der Bestellung optional `promotion_id` (hashid) übergeben. Prüfung: nur Typ group_buy, Aktivität im gültigen Zeitraum, Aufrufer ist Teilnehmer, nicht voll (bereits als Gruppe geschlossen 422), Bestellservice passt zur Aktivität; Gruppenpreis = Originalpreis × discount_percent/100, Gutscheine/Stempelkarten/Punkte-Stapelung deaktiviert (Übergabe von einem davon 422). Bestellung speichert promotion_id/participant_id; Zahlung vollständig über `POST /api/order/pay/{id}` wiederverwendet, bei pay lazy-Prüfung ob die Aktivität geschlossen ist (abgelaufen ohne Gruppe) → Bestellung automatisch storniert und Technikersperre freigegeben.
+**Gruppenkauf-Bestellung (Runde 16)**: Beim Erstellen der Bestellung optional `promotion_id` (hashid) übergeben. Prüfung: nur Typ group_buy, Aktivität im gültigen Zeitraum, Aufrufer ist Teilnehmer, nicht voll (bereits als Gruppe geschlossen 422), Bestellservice passt zur Aktivität; Gruppenpreis = Originalpreis × discount_percent/100, Gutscheine/Stempelkarten/Punkte-Stapelung deaktiviert (Übergabe von einem davon 422). Bestellung speichert promotion_id/participant_id; Zahlung vollständig über `POST /api/v1/order/pay/{id}` wiederverwendet, bei pay lazy-Prüfung ob die Aktivität geschlossen ist (abgelaufen ohne Gruppe) → Bestellung automatisch storniert und Technikersperre freigegeben.
 
-**Blitzangebots-Bestellung (Runde 18, eingestellt)**: ~~Beim Erstellen der Bestellung `promotion_id` (Typ flash_sale) übergeben~~ — ab 2026-08 wurde der alte Promotionskanal FLASH_SALE entfernt, der store()-Promotionszweig kennt nur noch Gruppenkauf GROUP_BUY (nicht Gruppenkauf-Promotion 422); Blitzangebote laufen einheitlich über den /api/seckill-Kanal aus Runde 24 (seckill_id wird in der store-Transaktion per Zeilensperre in den Lagerbestand eingerechnet), PromotionController::index filtert flash_sale heraus, show/join geben dafür 400 zurück, die Konstante `Promotion::TYPE_FLASH_SALE` bleibt für die Kompatibilität historischer Daten erhalten.
+**Blitzangebots-Bestellung (Runde 18, eingestellt)**: ~~Beim Erstellen der Bestellung `promotion_id` (Typ flash_sale) übergeben~~ — ab 2026-08 wurde der alte Promotionskanal FLASH_SALE entfernt, der store()-Promotionszweig kennt nur noch Gruppenkauf GROUP_BUY (nicht Gruppenkauf-Promotion 422); Blitzangebote laufen einheitlich über den /api/v1/seckill-Kanal aus Runde 24 (seckill_id wird in der store-Transaktion per Zeilensperre in den Lagerbestand eingerechnet), PromotionController::index filtert flash_sale heraus, show/join geben dafür 400 zurück, die Konstante `Promotion::TYPE_FLASH_SALE` bleibt für die Kompatibilität historischer Daten erhalten.
 
-**Terminverschiebung (Runde 17)**: `POST /api/order/reschedule/{id}` mit new_service_time (Pflichtfeld) + reason (optional), Terminwechsel beim selben Techniker. Regeln: nur eigene Bestellungen (fremde 404), nur Typ appointment mit Status pending/paid/confirmed änderbar (sonst 422), mindestens 6 Stunden vor dem ursprünglichen Servicebeginn (identisch mit dem Vollrückerstattungsfenster). Konkurrenzschutz: B1 order_lock (gleiche Mutex-Familie wie pay/cancel/refund) → Technikersperre für den neuen Zeitraum per Redis SETNX EX 180 (verhindert Überbuchung bei parallelen Umbuchungen) → innerhalb der Transaktion Zeilensperre + erneutes Lesen + B2 Schichtkonflikt-DB-Prüfung (eigene Bestellung ausgeschlossen) → service_time aktualisieren + Datensatz in appointment_order_reschedule schreiben → Sperre des alten Zeitraums freigeben, Sperre des neuen Zeitraums wird von dieser Bestellung gehalten → SCENE_RESCHEDULE-Abonnementnachricht (ohne Konfiguration Degradation auf In-App-Benachrichtigung). Bei Fehlerpfad wird die Transaktion zurückgerollt und gleichzeitig die Sperre des neuen Zeitraums freigegeben.
+**Terminverschiebung (Runde 17)**: `POST /api/v1/order/reschedule/{id}` mit new_service_time (Pflichtfeld) + reason (optional), Terminwechsel beim selben Techniker. Regeln: nur eigene Bestellungen (fremde 404), nur Typ appointment mit Status pending/paid/confirmed änderbar (sonst 422), mindestens 6 Stunden vor dem ursprünglichen Servicebeginn (identisch mit dem Vollrückerstattungsfenster). Konkurrenzschutz: B1 order_lock (gleiche Mutex-Familie wie pay/cancel/refund) → Technikersperre für den neuen Zeitraum per Redis SETNX EX 180 (verhindert Überbuchung bei parallelen Umbuchungen) → innerhalb der Transaktion Zeilensperre + erneutes Lesen + B2 Schichtkonflikt-DB-Prüfung (eigene Bestellung ausgeschlossen) → service_time aktualisieren + Datensatz in appointment_order_reschedule schreiben → Sperre des alten Zeitraums freigeben, Sperre des neuen Zeitraums wird von dieser Bestellung gehalten → SCENE_RESCHEDULE-Abonnementnachricht (ohne Konfiguration Degradation auf In-App-Benachrichtigung). Bei Fehlerpfad wird die Transaktion zurückgerollt und gleichzeitig die Sperre des neuen Zeitraums freigegeben.
 
-**Logistikverfolgung (Runde 19)**: `GET /api/order/logistics/{id}` — nur eigene product-Bestellungen abrufbar (fremde/keine Produktbestellung/nicht versendet einheitlich 404). Liest order.remark JSON (shipping_company/tracking_no/shipped_at, wird von der Admin-Methode MallOrderController::ship() beim Versand geschrieben), parseShippingInfo/parseReceiver doppelte Parsing-Absicherung für das alte Format; Telefonnummer des Empfängers maskiert 138****5678.
+**Logistikverfolgung (Runde 19)**: `GET /api/v1/order/logistics/{id}` — nur eigene product-Bestellungen abrufbar (fremde/keine Produktbestellung/nicht versendet einheitlich 404). Liest order.remark JSON (shipping_company/tracking_no/shipped_at, wird von der Admin-Methode MallOrderController::ship() beim Versand geschrieben), parseShippingInfo/parseReceiver doppelte Parsing-Absicherung für das alte Format; Telefonnummer des Empfängers maskiert 138****5678.
 
-**Bewertung (Runde 19)**: `POST /api/order/review/{order_id}` Bewertung abgeben (rating Pflichtfeld 1-5, content/images optional): fremde 404, nicht completed 422, doppelte Bewertung 400. `POST /api/order/review/{order_id}/append` Bewertung ergänzen (content Pflichtfeld, images kommasepariert): Bewertung nicht vorhanden/fremde einheitlich 404, nicht completed 422, doppelte Ergänzung 422, leerer Inhalt 422; bei Erfolg append_content/append_images(JSON)/append_at schreiben und In-App-Benachrichtigung an den Techniker type='review_append', die Antwort enthält das append-Feld.
+**Bewertung (Runde 19)**: `POST /api/v1/order/review/{order_id}` Bewertung abgeben (rating Pflichtfeld 1-5, content/images optional): fremde 404, nicht completed 422, doppelte Bewertung 400. `POST /api/v1/order/review/{order_id}/append` Bewertung ergänzen (content Pflichtfeld, images kommasepariert): Bewertung nicht vorhanden/fremde einheitlich 404, nicht completed 422, doppelte Ergänzung 422, leerer Inhalt 422; bei Erfolg append_content/append_images(JSON)/append_at schreiben und In-App-Benachrichtigung an den Techniker type='review_append', die Antwort enthält das append-Feld.
 
 ### 4.1 After-Sales-Schnittstellen (JWT-Authentifizierung erforderlich)
 
 | Methode | Pfad | Beschreibung |
 |------|------|------|
-| POST | `/api/aftersales` | After-Sales beantragen (order_id hashid/type: refund\|exchange/reason), Prüfung eigene Bestellung 404, nur Status paid+completed beantragbar 422, laufender After-Sales zur selben Bestellung de-dupliziert 422 |
-| GET | `/api/aftersales` | Meine After-Sales-Liste (?status=&page=1&limit=) |
-| GET | `/api/aftersales/{id}` | After-Sales-Details (Zugehörigkeitsprüfung 404) |
+| POST | `/api/v1/aftersales` | After-Sales beantragen (order_id hashid/type: refund\|exchange/reason), Prüfung eigene Bestellung 404, nur Status paid+completed beantragbar 422, laufender After-Sales zur selben Bestellung de-dupliziert 422 |
+| GET | `/api/v1/aftersales` | Meine After-Sales-Liste (?status=&page=1&limit=) |
+| GET | `/api/v1/aftersales/{id}` | After-Sales-Details (Zugehörigkeitsprüfung 404) |
 
-**After-Sales-Status**: pending(ausstehende Prüfung) → approved(genehmigt) / rejected(abgelehnt). approved ist nur ein Statusübergang, der Rückerstattungsvorgang läuft weiterhin über `POST /api/order/refund/{id}`.
+**After-Sales-Status**: pending(ausstehende Prüfung) → approved(genehmigt) / rejected(abgelehnt). approved ist nur ein Statusübergang, der Rückerstattungsvorgang läuft weiterhin über `POST /api/v1/order/refund/{id}`.
 
 ---
 
@@ -443,10 +443,10 @@ Regeln: Auszahlung am 20. jedes Monats möglich, T+1 auf dem Konto, Mindestbetra
 
 | Methode | Pfad | Beschreibung |
 |------|------|------|
-| GET | `/api/promotions` | Aktivitätsliste (?type=group_buy; flash_sale wird gefiltert und nicht zurückgegeben) |
-| GET | `/api/promotions/{id}` | Aktivitätsdetails (inkl. Teilnehmerzahl/ob Gruppe geschlossen; Typ flash_sale 400) |
-| GET | `/api/promotions/{id}/participants` | Teilnehmerliste |
-| POST | `/api/promotions/join/{id}` | An Aktivität teilnehmen (Runde 15 vervollständigt: Antwort enthält discount_percent/original_price/group_price; Typ flash_sale 400) |
+| GET | `/api/v1/promotions` | Aktivitätsliste (?type=group_buy; flash_sale wird gefiltert und nicht zurückgegeben) |
+| GET | `/api/v1/promotions/{id}` | Aktivitätsdetails (inkl. Teilnehmerzahl/ob Gruppe geschlossen; Typ flash_sale 400) |
+| GET | `/api/v1/promotions/{id}/participants` | Teilnehmerliste |
+| POST | `/api/v1/promotions/join/{id}` | An Aktivität teilnehmen (Runde 15 vervollständigt: Antwort enthält discount_percent/original_price/group_price; Typ flash_sale 400) |
 
 **Teilnahmeregeln**: group_buy bei voller Gruppe (≥min_people) gesperrt, nach Gruppenschluss neue Teilnahme 422; bei Ablauf ohne volle Gruppe lazy-Deaktivierung (bei show/join wird status auf 0 gesetzt). Nach dem Beitritt Bestellung zum Gruppenpreis siehe „Gruppenkauf-Bestellung (Runde 16)". Blitzangebote laufen nicht mehr über diesen Kanal, siehe „24. 秒杀接口".
 
@@ -456,21 +456,21 @@ Regeln: Auszahlung am 20. jedes Monats möglich, T+1 auf dem Konto, Mindestbetra
 
 | Methode | Pfad | Beschreibung |
 |------|------|------|
-| GET | `/api/marketing/coupons` | Gutscheinliste (?status=available/used/expired) |
-| POST | `/api/marketing/coupons/receive` | Gutschein einlösen (coupon_id) |
-| GET | `/api/marketing/cards` | Mitgliederkartenliste |
-| POST | `/api/marketing/cards/buy` | Mitgliederkarte kaufen (card_id) |
-| GET | `/api/marketing/cards/my` | Meine Stempelkartenliste |
-| POST | `/api/marketing/cards/use` | Stempelkarte verifizieren (user_card_id/service_id/remark?) |
-| GET | `/api/marketing/gift-cards` | Geschenkkartenliste |
-| GET | `/api/marketing/gift-cards/my` | Meine Geschenkkarten (redeem-Protokoll) |
-| POST | `/api/marketing/gift-cards/redeem` | Geschenkkarte einlösen (Typ cash lädt nach Einlösung das Wallet-Guthaben auf) |
-| GET | `/api/marketing/points` | Punkte-Transaktionen (?type=earn/use/expire&source=order/referral/gift_card/check_in/admin) |
-| GET | `/api/marketing/points-exchange` | Liste der Punkte-Einlöseartikel (verfügbar + aktueller Restbestand + bereits eingelöste Anzahl) |
-| POST | `/api/marketing/points-exchange/{id}` | Einlösen (type=coupon Gutschein ausgeben / wallet Gutschrift / gift_card Rückgabe von Kartencode) |
-| POST | `/api/marketing/coupons/transfer` | Übertragungscode generieren (user_coupon_id: 8-stelliger eindeutiger Code/7 Tage gültig) |
-| POST | `/api/marketing/coupons/claim` | Übertragenen Gutschein beanspruchen (code) |
-| GET | `/api/marketing/coupons/transfers` | Übertragungsprotokoll (ausgehend pending/claimed/expired + erhalten claimed) |
+| GET | `/api/v1/marketing/coupons` | Gutscheinliste (?status=available/used/expired) |
+| POST | `/api/v1/marketing/coupons/receive` | Gutschein einlösen (coupon_id) |
+| GET | `/api/v1/marketing/cards` | Mitgliederkartenliste |
+| POST | `/api/v1/marketing/cards/buy` | Mitgliederkarte kaufen (card_id) |
+| GET | `/api/v1/marketing/cards/my` | Meine Stempelkartenliste |
+| POST | `/api/v1/marketing/cards/use` | Stempelkarte verifizieren (user_card_id/service_id/remark?) |
+| GET | `/api/v1/marketing/gift-cards` | Geschenkkartenliste |
+| GET | `/api/v1/marketing/gift-cards/my` | Meine Geschenkkarten (redeem-Protokoll) |
+| POST | `/api/v1/marketing/gift-cards/redeem` | Geschenkkarte einlösen (Typ cash lädt nach Einlösung das Wallet-Guthaben auf) |
+| GET | `/api/v1/marketing/points` | Punkte-Transaktionen (?type=earn/use/expire&source=order/referral/gift_card/check_in/admin) |
+| GET | `/api/v1/marketing/points-exchange` | Liste der Punkte-Einlöseartikel (verfügbar + aktueller Restbestand + bereits eingelöste Anzahl) |
+| POST | `/api/v1/marketing/points-exchange/{id}` | Einlösen (type=coupon Gutschein ausgeben / wallet Gutschrift / gift_card Rückgabe von Kartencode) |
+| POST | `/api/v1/marketing/coupons/transfer` | Übertragungscode generieren (user_coupon_id: 8-stelliger eindeutiger Code/7 Tage gültig) |
+| POST | `/api/v1/marketing/coupons/claim` | Übertragenen Gutschein beanspruchen (code) |
+| GET | `/api/v1/marketing/coupons/transfers` | Übertragungsprotokoll (ausgehend pending/claimed/expired + erhalten claimed) |
 
 **Stempelkarte**: cards/my gibt card_id/name/type/services/total_times/used_times/remaining_times/start_at/end_at/status zurück (in Echtzeit berechnet). Erfolgreiche Verifizierung gibt {order_id, usage_id, remaining_times} zurück; Fehlercodes: ungültiges hashid 422, unzureichende Anzahl 422, abgelaufen 400, fremde 404, Redis-Duplikatschutz 400.
 
@@ -488,9 +488,9 @@ Regeln: Auszahlung am 20. jedes Monats möglich, T+1 auf dem Konto, Mindestbetra
 
 | Methode | Pfad | Beschreibung |
 |------|------|------|
-| GET | `/api/notification` | Benachrichtigungsliste (?type=order/system&page=1) |
-| PUT | `/api/notification/read/{id}` | Als gelesen markieren |
-| PUT | `/api/notification/read-all` | Alle als gelesen markieren |
+| GET | `/api/v1/notification` | Benachrichtigungsliste (?type=order/system&page=1) |
+| PUT | `/api/v1/notification/read/{id}` | Als gelesen markieren |
+| PUT | `/api/v1/notification/read-all` | Alle als gelesen markieren |
 
 ---
 
@@ -498,20 +498,20 @@ Regeln: Auszahlung am 20. jedes Monats möglich, T+1 auf dem Konto, Mindestbetra
 
 | Methode | Pfad | Beschreibung |
 |------|------|------|
-| GET | `/api/wallet` | Wallet-Guthaben + Transaktionsseiten |
-| POST | `/api/wallet/recharge` | Aufladeauftrag erstellen (amount: Yuan) |
-| POST | `/api/wallet/recharge/{id}/pay` | Zahlung für Aufladeauftrag auslösen (WeChat) |
-| POST | `/api/wallet/transfer` | Guthabenübertragung (to_user_id hashid/amount/remark optional/client_token optional) (Runde 19) |
-| GET | `/api/wallet/transfers` | Übertragungsprotokoll (?direction=out/in&page=1) (Runde 19) |
-| GET | `/api/wallet/transfers/{id}` | Übertragungsdetails (nur für beide Parteien sichtbar, fremde 404) (Runde 19) |
+| GET | `/api/v1/wallet` | Wallet-Guthaben + Transaktionsseiten |
+| POST | `/api/v1/wallet/recharge` | Aufladeauftrag erstellen (amount: Yuan) |
+| POST | `/api/v1/wallet/recharge/{id}/pay` | Zahlung für Aufladeauftrag auslösen (WeChat) |
+| POST | `/api/v1/wallet/transfer` | Guthabenübertragung (to_user_id hashid/amount/remark optional/client_token optional) (Runde 19) |
+| GET | `/api/v1/wallet/transfers` | Übertragungsprotokoll (?direction=out/in&page=1) (Runde 19) |
+| GET | `/api/v1/wallet/transfers/{id}` | Übertragungsdetails (nur für beide Parteien sichtbar, fremde 404) (Runde 19) |
 
 **Transaktionen**: wallet_txn-Typen: recharge / consume / refund / gift_card / referral_reward (Distributionsprovision) / referral_level2 (Provisionsstufe 2) / points_exchange (Punkte-Einlösegutschrift), paginiert zurückgegeben.
 
-**Aufladen**: `POST /api/wallet/recharge` mit amount (Yuan) erstellt den Aufladeauftrag, Rückgabe der Aufladeauftrag-hashid. `POST /api/wallet/recharge/{id}/pay` löst die WeChat-Zahlung aus, Antwort enthält sign_params (wie beim Bestellzahlungsmodus); der Zahlungs-Callback unterscheidet Aufladeauftrag und Bestellung über die out_trade_no mit R-Präfix.
+**Aufladen**: `POST /api/v1/wallet/recharge` mit amount (Yuan) erstellt den Aufladeauftrag, Rückgabe der Aufladeauftrag-hashid. `POST /api/v1/wallet/recharge/{id}/pay` löst die WeChat-Zahlung aus, Antwort enthält sign_params (wie beim Bestellzahlungsmodus); der Zahlungs-Callback unterscheidet Aufladeauftrag und Bestellung über die out_trade_no mit R-Präfix.
 
 **Guthabenzahlung**: Im Bestellzahlungs-Body `pay_channel: "balance"` übergeben; WeChat-Rückerstattungen und Guthabenrückerstattungen schreiben den Betrag beide ins Wallet-Guthaben zurück.
 
-**Guthabenübertragung (Runde 19)**: `POST /api/wallet/transfer` — hashid-Dekodierung + Existenzprüfung des Empfängers 404, Übertragung an sich selbst 422, Betrag 0.01-1000 pro Vorgang 422 (DECIMAL-Vergleich, float verboten), unzureichendes Guthaben 422, Tageslimit 5000 Yuan kumuliert 422. Konkurrenz/Idempotenz: Redis-NX-Sperre wallet_transfer:{from} 30s serialisiert den Sender → innerhalb der Transaktion beide Wallet-Zeilen nach user_id aufsteigend lockForUpdate (feste Reihenfolge gegen Deadlocks) → Sender abbuchen + Empfänger gutschreiben + WalletTxn-Doppeltransaktionen (transfer_out/transfer_in inkl. balance_after-Schnappschuss) + Übertragungsprotokoll completed + In-App-Benachrichtigung an den Empfänger type='balance_received' (bei Fehler nur Log). client_token optional: bei Erfolg SETNX 24 h gegen doppeltes Absenden (fehlgeschlagene Anfragen setzen kein Token und können wiederholt werden).
+**Guthabenübertragung (Runde 19)**: `POST /api/v1/wallet/transfer` — hashid-Dekodierung + Existenzprüfung des Empfängers 404, Übertragung an sich selbst 422, Betrag 0.01-1000 pro Vorgang 422 (DECIMAL-Vergleich, float verboten), unzureichendes Guthaben 422, Tageslimit 5000 Yuan kumuliert 422. Konkurrenz/Idempotenz: Redis-NX-Sperre wallet_transfer:{from} 30s serialisiert den Sender → innerhalb der Transaktion beide Wallet-Zeilen nach user_id aufsteigend lockForUpdate (feste Reihenfolge gegen Deadlocks) → Sender abbuchen + Empfänger gutschreiben + WalletTxn-Doppeltransaktionen (transfer_out/transfer_in inkl. balance_after-Schnappschuss) + Übertragungsprotokoll completed + In-App-Benachrichtigung an den Empfänger type='balance_received' (bei Fehler nur Log). client_token optional: bei Erfolg SETNX 24 h gegen doppeltes Absenden (fehlgeschlagene Anfragen setzen kein Token und können wiederholt werden).
 
 ---
 
@@ -519,10 +519,10 @@ Regeln: Auszahlung am 20. jedes Monats möglich, T+1 auf dem Konto, Mindestbetra
 
 | Methode | Pfad | Beschreibung |
 |------|------|------|
-| GET | `/api/store-manager/overview` | Tagesübersicht (heutige Bestellanzahl/heutiger Umsatz/laufend/Technikeranzahl/Verifizierungsanzahl) |
-| GET | `/api/store-manager/orders` | Filialbestellliste (?status=&page=&limit=) |
-| GET | `/api/store-manager/technicians` | Technikerliste (inkl. heutigem Schichtplan) |
-| GET | `/api/store-manager/revenue` | Umsatzaggregation der letzten 7 Tage |
+| GET | `/api/v1/store-manager/overview` | Tagesübersicht (heutige Bestellanzahl/heutiger Umsatz/laufend/Technikeranzahl/Verifizierungsanzahl) |
+| GET | `/api/v1/store-manager/orders` | Filialbestellliste (?status=&page=&limit=) |
+| GET | `/api/v1/store-manager/technicians` | Technikerliste (inkl. heutigem Schichtplan) |
+| GET | `/api/v1/store-manager/revenue` | Umsatzaggregation der letzten 7 Tage |
 
 **store_id-Isolation**: requireStoreId() erzwingt, dass der aktuelle Benutzer an eine Filiale gebunden ist (appointment_user.store_id), ohne Filiale 403; alle Abfragen werden nach store_id gefiltert.
 
@@ -532,9 +532,9 @@ Regeln: Auszahlung am 20. jedes Monats möglich, T+1 auf dem Konto, Mindestbetra
 
 | Methode | Pfad | Beschreibung |
 |------|------|------|
-| GET | `/api/growth` | Aktuelle Wachstumsübersicht (balance/Stufe/Differenz zur nächsten Stufe/Stufenname) |
-| GET | `/api/growth/records` | Wachstumswert-Transaktionen paginiert (?page=&limit=) |
-| GET | `/api/growth/levels` | Stufenliste (öffentlich, ohne Login) |
+| GET | `/api/v1/growth` | Aktuelle Wachstumsübersicht (balance/Stufe/Differenz zur nächsten Stufe/Stufenname) |
+| GET | `/api/v1/growth/records` | Wachstumswert-Transaktionen paginiert (?page=&limit=) |
+| GET | `/api/v1/growth/levels` | Stufenliste (öffentlich, ohne Login) |
 
 **Wachstumswert-Gutschrift**: Check-in +10; Bewertung abgeben +20 (Ergänzungen zählen nicht); Konsum floor(paid) 1 Punkt pro Yuan (im Zahlungs-Callback mit Status-Neuprüfung idempotent, wiederholte Callbacks buchen nicht doppelt).
 
@@ -542,9 +542,9 @@ Regeln: Auszahlung am 20. jedes Monats möglich, T+1 auf dem Konto, Mindestbetra
 
 | Methode | Pfad | Beschreibung |
 |------|------|------|
-| POST | `/api/invoices` | Rechnung beantragen (order_id hashid/order_type: service=Leistung/points_exchange=Punkte-Einlösung/order_type Standard service; Betrag und Rechnungsanschrift werden serverseitig mitgeführt, nicht manipulierbar) |
-| GET | `/api/invoices` | Rechnungsliste (?status=&page=) |
-| GET | `/api/invoices/{id}` | Rechnungsdetails (nur eigene) |
+| POST | `/api/v1/invoices` | Rechnung beantragen (order_id hashid/order_type: service=Leistung/points_exchange=Punkte-Einlösung/order_type Standard service; Betrag und Rechnungsanschrift werden serverseitig mitgeführt, nicht manipulierbar) |
+| GET | `/api/v1/invoices` | Rechnungsliste (?status=&page=) |
+| GET | `/api/v1/invoices/{id}` | Rechnungsdetails (nur eigene) |
 
 **Duplikatschutz**: uk_order_type(order_id, order_type) eindeutiger Schlüssel, doppelter Antrag für dieselbe Bestellung und denselben Typ 422 (inkl. MySQL-1062-Fangnetz).
 
@@ -552,37 +552,37 @@ Regeln: Auszahlung am 20. jedes Monats möglich, T+1 auf dem Konto, Mindestbetra
 
 | Methode | Pfad | Beschreibung |
 |------|------|------|
-| POST | `/api/tickets` | Ticket einreichen (title/content Pflichtfelder) |
-| GET | `/api/tickets` | Ticketliste (?status=open/closed&page=) |
-| GET | `/api/tickets/{id}` | Ticketdetails (nur eigene, fremde 404) |
-| POST | `/api/tickets/{id}/close` | Ticket schließen (nur eigene/nur open; optional rating 1-5 Zufriedenheitsbewertung, außerhalb des Bereichs/keine Ganzzahl 422, nicht angegeben → NULL) |
+| POST | `/api/v1/tickets` | Ticket einreichen (title/content Pflichtfelder) |
+| GET | `/api/v1/tickets` | Ticketliste (?status=open/closed&page=) |
+| GET | `/api/v1/tickets/{id}` | Ticketdetails (nur eigene, fremde 404) |
+| POST | `/api/v1/tickets/{id}/close` | Ticket schließen (nur eigene/nur open; optional rating 1-5 Zufriedenheitsbewertung, außerhalb des Bereichs/keine Ganzzahl 422, nicht angegeben → NULL) |
 
 ### 12. Termin-Kalenderschnittstellen (JWT-Authentifizierung erforderlich, Runde 20)
 
 | Methode | Pfad | Beschreibung |
 |------|------|------|
-| GET | `/api/calendar/technician/{id}` | Monatsansicht (?month=YYYY-MM): time_slots des Schichtplans zu Stunden-Slots erweitert + bereits gebuchte ausgeschlossen |
-| GET | `/api/calendar/technician/{id}/day` | Tagesansicht (?date=YYYY-MM-DD): Details zu verfügbaren/gebuchten/nicht verfügbaren Slots des Tages |
+| GET | `/api/v1/calendar/technician/{id}` | Monatsansicht (?month=YYYY-MM): time_slots des Schichtplans zu Stunden-Slots erweitert + bereits gebuchte ausgeschlossen |
+| GET | `/api/v1/calendar/technician/{id}/day` | Tagesansicht (?date=YYYY-MM-DD): Details zu verfügbaren/gebuchten/nicht verfügbaren Slots des Tages |
 
 ### 13. Rechnungsanschriften-Schnittstellen (JWT-Authentifizierung erforderlich, Runde 21)
 
 | Methode | Pfad | Beschreibung |
 |------|------|------|
-| POST | `/api/invoice-titles` | Anschrift speichern (title_type: personal/company; company muss tax_no; doppelte Anschrift desselben Benutzers 422; erster Eintrag automatisch Standard) |
-| GET | `/api/invoice-titles` | Anschriftenliste (Standard zuerst) |
-| PUT | `/api/invoice-titles/{id}` | Anschrift bearbeiten (nur eigene) |
-| DELETE | `/api/invoice-titles/{id}` | Anschrift löschen (nur eigene; nach Löschen der Standardanschrift wird automatisch der älteste Eintrag zur Standardanschrift) |
-| POST | `/api/invoice-titles/{id}/default` | Als Standard festlegen (Transaktion setzt andere Zeilen desselben Benutzers zurück) |
+| POST | `/api/v1/invoice-titles` | Anschrift speichern (title_type: personal/company; company muss tax_no; doppelte Anschrift desselben Benutzers 422; erster Eintrag automatisch Standard) |
+| GET | `/api/v1/invoice-titles` | Anschriftenliste (Standard zuerst) |
+| PUT | `/api/v1/invoice-titles/{id}` | Anschrift bearbeiten (nur eigene) |
+| DELETE | `/api/v1/invoice-titles/{id}` | Anschrift löschen (nur eigene; nach Löschen der Standardanschrift wird automatisch der älteste Eintrag zur Standardanschrift) |
+| POST | `/api/v1/invoice-titles/{id}/default` | Als Standard festlegen (Transaktion setzt andere Zeilen desselben Benutzers zurück) |
 
-**Antrags-Verknüpfung**: POST /api/invoices unterstützt optionales title_id — Auflösung der Anschrift trägt automatisch invoice_title/tax_no/title_type ein, ohne title_id bleibt der bisherige manuelle Pfad.
+**Antrags-Verknüpfung**: POST /api/v1/invoices unterstützt optionales title_id — Auflösung der Anschrift trägt automatisch invoice_title/tax_no/title_type ein, ohne title_id bleibt der bisherige manuelle Pfad.
 
 ### 14. Browser-Verlaufs-Schnittstellen (JWT-Authentifizierung erforderlich, Runde 21)
 
 | Methode | Pfad | Beschreibung |
 |------|------|------|
-| GET | `/api/browse-history` | Zuletzt angesehene Leistungen (join mit Leistungsname/Cover/Preis/Originalpreis, viewed_at absteigend, per_page Standard 15, Maximum 50) |
-| DELETE | `/api/browse-history/{item_id}` | Einzelnen Eintrag löschen (nur eigene, ungültige/fremde 404) |
-| DELETE | `/api/browse-history` | Verlauf leeren (nur eigene) |
+| GET | `/api/v1/browse-history` | Zuletzt angesehene Leistungen (join mit Leistungsname/Cover/Preis/Originalpreis, viewed_at absteigend, per_page Standard 15, Maximum 50) |
+| DELETE | `/api/v1/browse-history/{item_id}` | Einzelnen Eintrag löschen (nur eigene, ungültige/fremde 404) |
+| DELETE | `/api/v1/browse-history` | Verlauf leeren (nur eigene) |
 
 **Erfassungszeitpunkt**: Wird nach erfolgreichem Aufruf der Servicedetails-Schnittstelle automatisch protokolliert (ohne Login übersprungen; erneutes Ansehen aktualisiert nur viewed_at, kein doppelter Eintrag).
 
@@ -590,7 +590,7 @@ Regeln: Auszahlung am 20. jedes Monats möglich, T+1 auf dem Konto, Mindestbetra
 
 | Methode | Pfad | Beschreibung |
 |------|------|------|
-| GET | `/api/full-reduction-activities` | Liste der aktiven Rabatt-ab-Mindestbetrag-Aktionen (status=1 und Zeit im gültigen Zeitraum, absteigend nach Rabattbetrag; öffentliche Schnittstelle) |
+| GET | `/api/v1/full-reduction-activities` | Liste der aktiven Rabatt-ab-Mindestbetrag-Aktionen (status=1 und Zeit im gültigen Zeitraum, absteigend nach Rabattbetrag; öffentliche Schnittstelle) |
 
 **Stapelungsregeln bei der Bestellung**: Rabatt-ab-Mindestbetrag gilt nur für Standardbestellungen (Gruppenkauf/Blitzangebot übersprungen), die Schwelle wird am fälligen Betrag nach Gutschein-/Stempelkarten-Anrechnung gemessen, Stapelungsreihenfolge **Gutschein/Stempelkarte → Mindestbetragsrabatt → Stufenrabatt**; die Aktion mit dem größten Rabattbetrag wird angewendet; der Rabattbetrag fließt in discount_amount ein, die Notiz wird um „满减：满X减Y" ergänzt; Untergrenze des tatsächlichen Zahlbetrags nach Rabatt 0.01 Yuan.
 
@@ -598,7 +598,7 @@ Regeln: Auszahlung am 20. jedes Monats möglich, T+1 auf dem Konto, Mindestbetra
 
 | Methode | Pfad | Beschreibung |
 |------|------|------|
-| GET | `/api/order/ics` | Gültige Bestellungen der letzten 90 Tage (pending/paid/confirmed/serving) als iCal exportieren (RFC5545) |
+| GET | `/api/v1/order/ics` | Gültige Bestellungen der letzten 90 Tage (pending/paid/confirmed/serving) als iCal exportieren (RFC5545) |
 
 **Ausgabe**: `Content-Type: text/calendar; charset=utf-8` + `Content-Disposition: attachment; filename="my-appointments.ics"`. VEVENT: UID=Bestell-ID, TZID=Asia/Shanghai, Zusammenfassung „预约：服务名" (bei Fehlen Degradation auf „预约"), Beschreibung (Techniker/Filiale/Adresse, bei Fehlen übersprungen), LOCATION Filialname; Text nach RFC5545 maskiert (\, \; \\ \n) + 75-Byte-Zeilenumbruch. Ohne Bestellungen wird ein gültiger leerer Kalender zurückgegeben; nur eigene Bestellungen werden exportiert.
 
@@ -606,18 +606,18 @@ Regeln: Auszahlung am 20. jedes Monats möglich, T+1 auf dem Konto, Mindestbetra
 
 | Methode | Pfad | Beschreibung |
 |------|------|------|
-| POST | `/api/technician/attendance/check-in` | Arbeitsbeginn stempeln (Wiederholung am selben Tag 422, eindeutiger Index sichert gegen Konkurrenz; >10:00 wird als Verspätung markiert) |
-| POST | `/api/technician/attendance/check-out` | Arbeitsende stempeln (nicht gestempelt/bereits beendet 422, Zeilensperre gegen Konkurrenz) |
-| GET | `/api/technician/attendance` | Anwesenheitsliste des Monats + Zusammenfassung Anwesenheitstage/Gesamtstunden/Durchschnittsstunden (?month=YYYY-MM, ungültig 422) |
+| POST | `/api/v1/technician/attendance/check-in` | Arbeitsbeginn stempeln (Wiederholung am selben Tag 422, eindeutiger Index sichert gegen Konkurrenz; >10:00 wird als Verspätung markiert) |
+| POST | `/api/v1/technician/attendance/check-out` | Arbeitsende stempeln (nicht gestempelt/bereits beendet 422, Zeilensperre gegen Konkurrenz) |
+| GET | `/api/v1/technician/attendance` | Anwesenheitsliste des Monats + Zusammenfassung Anwesenheitstage/Gesamtstunden/Durchschnittsstunden (?month=YYYY-MM, ungültig 422) |
 
 ### 18. Datenschutz-Compliance-Schnittstellen (JWT-Authentifizierung erforderlich, Runde 22)
 
 | Methode | Pfad | Beschreibung |
 |------|------|------|
-| GET | `/api/privacy/data` | Datencxport (nach personal/orders/points/wallet_txns/reviews/addresses/invoices gruppiertes JSON; Serverlog protokolliert nur maskierte Telefonnummer + Zeilenzahl) |
-| POST | `/api/privacy/close-request` | Löschung beantragen (Guthaben ungleich 0 / unfertige Bestellungen / laufende Tickets 422; setzt close_status=1 + close_requested_at) |
-| POST | `/api/privacy/close-cancel` | Löschungsantrag stornieren (close_status 1→0) |
-| POST | `/api/privacy/close-confirm` | Löschung bestätigen (erst nach 72 h möglich; close_status=2 + close_at + phone/nickname anonymisiert zu user{id} + status=0) |
+| GET | `/api/v1/privacy/data` | Datencxport (nach personal/orders/points/wallet_txns/reviews/addresses/invoices gruppiertes JSON; Serverlog protokolliert nur maskierte Telefonnummer + Zeilenzahl) |
+| POST | `/api/v1/privacy/close-request` | Löschung beantragen (Guthaben ungleich 0 / unfertige Bestellungen / laufende Tickets 422; setzt close_status=1 + close_requested_at) |
+| POST | `/api/v1/privacy/close-cancel` | Löschungsantrag stornieren (close_status 1→0) |
+| POST | `/api/v1/privacy/close-confirm` | Löschung bestätigen (erst nach 72 h möglich; close_status=2 + close_at + phone/nickname anonymisiert zu user{id} + status=0) |
 
 **Login-Sperre**: Konten mit close_status=2 erhalten beim Login 403 „账号已注销".
 
@@ -625,9 +625,9 @@ Regeln: Auszahlung am 20. jedes Monats möglich, T+1 auf dem Konto, Mindestbetra
 
 | Methode | Pfad | Beschreibung |
 |------|------|------|
-| GET | `/api/health-profile` | Mein Gesundheitsprofil abfragen (ohne Profil leeres Objekt) |
-| PUT | `/api/health-profile` | Erstellen/Aktualisieren (upsert, eine Person ein Profil; allergies/health_notes maximal 500 Zeichen, preferred_technician_id Existenzprüfung; nur übergebene Felder aktualisieren, Antwort hashid-codiert) |
-| DELETE | `/api/health-profile` | Mein Profil löschen (nur eigene) |
+| GET | `/api/v1/health-profile` | Mein Gesundheitsprofil abfragen (ohne Profil leeres Objekt) |
+| PUT | `/api/v1/health-profile` | Erstellen/Aktualisieren (upsert, eine Person ein Profil; allergies/health_notes maximal 500 Zeichen, preferred_technician_id Existenzprüfung; nur übergebene Felder aktualisieren, Antwort hashid-codiert) |
+| DELETE | `/api/v1/health-profile` | Mein Profil löschen (nur eigene) |
 
 Felder: allergies (Allergien)/health_notes (Gesundheitsnotizen)/preferred_technician_id (bevorzugter Techniker, nullable).
 
@@ -635,9 +635,9 @@ Felder: allergies (Allergien)/health_notes (Gesundheitsnotizen)/preferred_techni
 
 | Methode | Pfad | Beschreibung |
 |------|------|------|
-| POST | `/api/wallet/pay-password/set` | Zahlungspasswort festlegen (6-stellige Zahl `\d{6}`; wenn bereits festgelegt, muss das alte Passwort übergeben werden, sonst 422) |
-| POST | `/api/wallet/pay-password/verify` | Zahlungspasswort prüfen (richtig/falsch gibt Bool zurück, keine Speicherung) |
-| POST | `/api/wallet/pay-password/check` | Abfragen, ob festgelegt (set: true/false) |
+| POST | `/api/v1/wallet/pay-password/set` | Zahlungspasswort festlegen (6-stellige Zahl `\d{6}`; wenn bereits festgelegt, muss das alte Passwort übergeben werden, sonst 422) |
+| POST | `/api/v1/wallet/pay-password/verify` | Zahlungspasswort prüfen (richtig/falsch gibt Bool zurück, keine Speicherung) |
+| POST | `/api/v1/wallet/pay-password/check` | Abfragen, ob festgelegt (set: true/false) |
 
 Speicherung: password_hash()-Hash + pay_password_set_at, Klartext wird niemals gespeichert.
 
@@ -645,7 +645,7 @@ Speicherung: password_hash()-Hash + pay_password_set_at, Klartext wird niemals g
 
 | Methode | Pfad | Beschreibung |
 |------|------|------|
-| GET | `/api/order/{id}/timeline` | Zeitlinie der Bestellstatus-Änderungen (absteigend; nur eigene, fremde Bestellungen 404 ohne Existenzpreisgabe) |
+| GET | `/api/v1/order/{id}/timeline` | Zeitlinie der Bestellstatus-Änderungen (absteigend; nur eigene, fremde Bestellungen 404 ohne Existenzpreisgabe) |
 
 Tracker: Einreichung/Zahlung (WeChat-Callback markOrderPaid als einziger Verbrauchspunkt)/Stornierung/Technikerbestätigung/Rückerstattungsantrag/Rückerstattungsgenehmigung/Servicebeginn/Serviceabschluss/Timeout-automatische Stornierung/Backend-Operation (operator=admin) — insgesamt 8 Arten von Änderungen.
 
@@ -653,37 +653,37 @@ Tracker: Einreichung/Zahlung (WeChat-Callback markOrderPaid als einziger Verbrau
 
 | Methode | Pfad | Beschreibung |
 |------|------|------|
-| GET | `/api/wheel/prizes` | Rad-Preisliste (sensible Felder weight/stock ausgeblendet) |
-| POST | `/api/wheel/spin` | Einmal drehen (Redis NX + Zeilensperre gegen Konkurrenz; random_int-Gewichtszug; Punkte→earn-Transaktion inkl. Ablaufzeit, Guthaben→lockForUpdate-Gutschrift, Gutschein→pending manuelle Ausgabe, kein Gewinn→lose; client_token idempotent) |
-| GET | `/api/wheel/records` | Meine Drehprotokolle (paginiert) |
+| GET | `/api/v1/wheel/prizes` | Rad-Preisliste (sensible Felder weight/stock ausgeblendet) |
+| POST | `/api/v1/wheel/spin` | Einmal drehen (Redis NX + Zeilensperre gegen Konkurrenz; random_int-Gewichtszug; Punkte→earn-Transaktion inkl. Ablaufzeit, Guthaben→lockForUpdate-Gutschrift, Gutschein→pending manuelle Ausgabe, kein Gewinn→lose; client_token idempotent) |
+| GET | `/api/v1/wheel/records` | Meine Drehprotokolle (paginiert) |
 
 ### 23. Gastmodus-Schnittstellen (Runde 24)
 
 | Methode | Pfad | Beschreibung |
 |------|------|------|
-| GET | `/api/guest/home` | Startseiten-Aggregation (Karussell/Ankündigungen/Servicekategorien/beliebte Leistungen, Redis-Cache svc:guest:home 300s) |
-| GET | `/api/guest/services` | Service-Liste (?category_id=hashid&sort=newest\|sales\|price&page/per_page≤50) |
-| GET | `/api/guest/services/{id}` | Servicedetails (nicht vorhanden 404) |
-| GET | `/api/guest/stores` | Filialliste |
-| GET | `/api/guest/technicians` | Technikerliste (nur genehmigte; ?service_id=hashid-Filter; Bewertung absteigend) |
+| GET | `/api/v1/guest/home` | Startseiten-Aggregation (Karussell/Ankündigungen/Servicekategorien/beliebte Leistungen, Redis-Cache svc:guest:home 300s) |
+| GET | `/api/v1/guest/services` | Service-Liste (?category_id=hashid&sort=newest\|sales\|price&page/per_page≤50) |
+| GET | `/api/v1/guest/services/{id}` | Servicedetails (nicht vorhanden 404) |
+| GET | `/api/v1/guest/stores` | Filialliste |
+| GET | `/api/v1/guest/technicians` | Technikerliste (nur genehmigte; ?service_id=hashid-Filter; Bewertung absteigend) |
 
-Ohne Authentifizierung (nur ApiVersion-Middleware) nutzbarer Browsereinstieg für Nicht-Angemeldete.
+Öffentliche Schnittstellen (ohne Authentifizierung); dienen als Browsereinstieg für nicht angemeldete Benutzer.
 
 ### 24. Blitzangebots-Schnittstellen (JWT-Authentifizierung erforderlich, Runde 24)
 
 | Methode | Pfad | Beschreibung |
 |------|------|------|
-| GET | `/api/seckill` | Blitzangebots-Aktivitätsliste (status=1 und im Zeitfenster; enthält verkaufte Menge = Anzahl der appointment_order.seckill_id-Bestellungen, Restbestand) |
-| GET | `/api/seckill/{id}` | Aktivitätsdetails (state=not_started/ongoing/ended) |
-| POST | `/api/seckill/{id}/buy` | Blitzangebots-Bestellung (client_token idempotent + Redis NX 30s gegen Konkurrenz + Aktivitätsprüfung; kein vorheriges Reservieren des Lagerbestands mehr) |
+| GET | `/api/v1/seckill` | Blitzangebots-Aktivitätsliste (status=1 und im Zeitfenster; enthält verkaufte Menge = Anzahl der appointment_order.seckill_id-Bestellungen, Restbestand) |
+| GET | `/api/v1/seckill/{id}` | Aktivitätsdetails (state=not_started/ongoing/ended) |
+| POST | `/api/v1/seckill/{id}/buy` | Blitzangebots-Bestellung (client_token idempotent + Redis NX 30s gegen Konkurrenz + Aktivitätsprüfung; kein vorheriges Reservieren des Lagerbestands mehr) |
 
-**Bestellregeln (ab 2026-08-26)**: Der Lagerbestand wird einheitlich in der `/api/order store()`-Transaktion per Zeilensperre abgezogen, buy führt nur Einstiegsprüfung/Idempotenz durch; Blitzpreis = seckill_price (auf DB-Basis), keine Stapelung mit Gutscheinen/Punkten/Mitgliederkarten; Bestellstornierung füllt den Lagerbestand nicht auf; direkter `/api/order`-Aufruf mit seckill_id zieht den Lagerbestand ebenfalls ab.
+**Bestellregeln (ab 2026-08-26)**: Der Lagerbestand wird einheitlich in der `/api/v1/order store()`-Transaktion per Zeilensperre abgezogen, buy führt nur Einstiegsprüfung/Idempotenz durch; Blitzpreis = seckill_price (auf DB-Basis), keine Stapelung mit Gutscheinen/Punkten/Mitgliederkarten; Bestellstornierung füllt den Lagerbestand nicht auf; direkter `/api/v1/order`-Aufruf mit seckill_id zieht den Lagerbestand ebenfalls ab.
 
 ### 25. APP-Versionsprüf-Schnittstellen (Runde 24)
 
 | Methode | Pfad | Beschreibung |
 |------|------|------|
-| GET | `/api/app/version?platform=android|ios` | Prüfung der neuesten Version (ungültiges platform 422; ohne Version leeres Objekt; öffentliche Schnittstelle) |
+| GET | `/api/v1/app/version?platform=android|ios` | Prüfung der neuesten Version (ungültiges platform 422; ohne Version leeres Objekt; öffentliche Schnittstelle) |
 
 Antwort: id/platform/version_code/version_name/force_update (1=erzwungen)/changelog/download_url.
 
@@ -691,7 +691,7 @@ Antwort: id/platform/version_code/version_name/force_update (1=erzwungen)/change
 
 ## II. Verwaltungsbackend-API (admin/ :8787)
 
-Request-Header: `Authorization: Bearer <admin_token>`, `API-Version: v1`
+Request-Header: `Authorization: Bearer <admin_token>`; öffentliche Auth-Schnittstellen werden über das URL-Präfix `/api/v1` versioniert
 
 ### Dashboard
 
@@ -884,7 +884,7 @@ Berechtigungs-IDs: 407-411, 420. Verkaufte Menge = Anzahl der appointment_order.
 | PUT | `/admin/versions/{id}` | Bearbeiten |
 | DELETE | `/admin/versions/{id}` | Löschen |
 
-Berechtigungs-IDs: 416-419. Die Update-Prüf-Schnittstelle /api/app/version nimmt die neueste Version mit status=1 (größtes updated_at/id).
+Berechtigungs-IDs: 416-419. Die Update-Prüf-Schnittstelle /api/v1/app/version nimmt die neueste Version mit status=1 (größtes updated_at/id).
 
 ### Schichtplan-Export (Runde 24)
 

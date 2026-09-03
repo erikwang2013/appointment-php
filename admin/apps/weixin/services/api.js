@@ -16,7 +16,6 @@ function request(method, path, data = {}, silent = false) {
       data: data,
       header: {
         'Content-Type': 'application/json',
-        'API-Version': 'v1',
         ...(token ? { 'Authorization': 'Bearer ' + token } : {})
       },
       success(res) {
@@ -35,7 +34,6 @@ function request(method, path, data = {}, silent = false) {
                     data: data,
                     header: {
                       'Content-Type': 'application/json',
-                      'API-Version': 'v1',
                       'Authorization': 'Bearer ' + newToken
                     },
                     success(r2) {
@@ -81,7 +79,7 @@ function tryRefresh() {
 
   return new Promise((resolve) => {
     wx.request({
-      url: BASE_URL + '/api/auth/refresh',
+      url: BASE_URL + '/api/v1/auth/refresh',
       method: 'POST',
       data: { refresh_token: refreshToken },
       header: { 'Content-Type': 'application/json' },

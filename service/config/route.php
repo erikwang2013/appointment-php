@@ -8,11 +8,12 @@ use support\Request;
  * 业务API路由配置
  *
  * API 版本策略:
- * — 版本号通过请求头 API-Version 携带（如 "v1"、"v2"），不在 URL 中体现
- * — 缺失时默认使用 v1
- * — 由 ApiVersion 中间件校验，v() 闭包按版本解析对应控制器
+ * — 版本号固化在 URL 前缀中（/api/v1/...），不由请求头携带
+ * — v() 闭包按组前缀绑定的版本解析 app/{module}/{version}/controller/ 控制器
+ * — 顶层 /api/docs（OpenAPI 文档）、/payment/*（支付回调）、/health 为非版本化端点
  *
- * 新增版本只需创建 app/{module}/{version}/controller/ 目录
+ * 新增版本: 注册 Route::group('/api/v{n}', ...) 组 + 创建 app/{module}/v{n}/controller/
+ * 目录，v() 调用处传版本参数: v('module', 'Controller', 'action', 'v{n}')
  */
 
 /**
@@ -20,11 +21,11 @@ use support\Request;
  * @param string $module  模块名（api / user / technician / order / marketing / notification）
  * @param string $controller 控制器类名（如 AuthController）
  * @param string $action  方法名（如 login）
+ * @param string $version 版本号，默认 v1（与 /api/v1 组前缀绑定；新增版本时显式传入）
  */
-function v(string $module, string $controller, string $action): \Closure
+function v(string $module, string $controller, string $action, string $version = 'v1'): \Closure
 {
-    return function (Request $request) use ($module, $controller, $action) {
-        $version = $request->apiVersion ?? 'v1';
+    return function (Request $request) use ($module, $controller, $action, $version) {
         $class = "\\app\\{$module}\\{$version}\\controller\\{$controller}";
         $instance = new $class;
         $method = new ReflectionMethod($instance, $action);
@@ -45,12 +46,14 @@ function v(string $module, string $controller, string $action): \Closure
 }
 
 // ============================================================
-// 公开接口（ApiVersion 版本控制，无需认证）
+// API 文档（OpenAPI 3.0 JSON，非版本化基础设施端点，与 admin /api/docs 对齐）
 // ============================================================
-Route::group('/api', function () {
-    // ── API 文档 ──
-    Route::get('/docs', [app\api\v1\controller\DocsController::class, 'index']);
+Route::get('/api/docs', [app\api\v1\controller\DocsController::class, 'index']);
 
+// ============================================================
+// 公开接口（URL 版本 /api/v1，无需认证）
+// ============================================================
+Route::group('/api/v1', function () {
     // ── 短信验证码 ──
     Route::post('/captcha/send', v('api', 'CaptchaController', 'send'));
 
@@ -121,14 +124,12 @@ Route::group('/api', function () {
 
     // ── APP 检测更新（公开，登录前即可检查）──
     Route::get('/app/version', v('api', 'VersionController', 'index'));
-})->middleware([
-    app\middleware\ApiVersion::class,
-]);
+});
 
 // ============================================================
-// 用户接口（JWT认证 + ApiVersion）
+// 用户接口（JWT认证）
 // ============================================================
-Route::group('/api/user', function () {
+Route::group('/api/v1/user', function () {
     Route::get('/profile', v('user', 'ProfileController', 'show'));
     Route::put('/profile', v('user', 'ProfileController', 'update'));
     Route::post('/change-password', v('user', 'ProfileController', 'changePassword'));
@@ -171,87 +172,79 @@ Route::group('/api/user', function () {
     Route::post('/device/register', v('user', 'DeviceController', 'register'));
     Route::post('/device/unregister', v('user', 'DeviceController', 'unregister'));
 })->middleware([
-    app\middleware\ApiVersion::class,
     app\middleware\Auth::class,
 ]);
 
 // ============================================================
-// 积分幸运转盘（JWT + ApiVersion）——奖品 / 抽奖 / 记录
+// 积分幸运转盘（JWT）——奖品 / 抽奖 / 记录
 // ============================================================
-Route::group('/api/wheel', function () {
+Route::group('/api/v1/wheel', function () {
     Route::get('/prizes', v('api', 'WheelController', 'prizes'));
     Route::post('/spin', v('api', 'WheelController', 'spin'));
     Route::get('/records', v('api', 'WheelController', 'records'));
 })->middleware([
-    app\middleware\ApiVersion::class,
     app\middleware\Auth::class,
 ]);
 
 // ============================================================
-// 游客模式（只读 ApiVersion，无需认证）——未登录浏览
+// 游客模式（只读，无需认证）——未登录浏览
 // ============================================================
-Route::group('/api/guest', function () {
+Route::group('/api/v1/guest', function () {
     Route::get('/home', v('api', 'GuestController', 'home'));
     Route::get('/services', v('api', 'GuestController', 'services'));
     Route::get('/services/{id}', v('api', 'GuestController', 'serviceDetail'));
     Route::get('/stores', v('api', 'GuestController', 'stores'));
     Route::get('/technicians', v('api', 'GuestController', 'technicians'));
-})->middleware([
-    app\middleware\ApiVersion::class,
-]);
+});
 
 // ============================================================
-// 秒杀接口（JWT + ApiVersion）——活动列表 / 详情 / 抢购下单
+// 秒杀接口（JWT）——活动列表 / 详情 / 抢购下单
 // ============================================================
-Route::group('/api/seckill', function () {
+Route::group('/api/v1/seckill', function () {
     Route::get('/', v('api', 'SeckillController', 'index'));
     Route::get('/{id}', v('api', 'SeckillController', 'show'));
     Route::post('/{id}/buy', v('api', 'SeckillController', 'buy'));
 })->middleware([
-    app\middleware\ApiVersion::class,
     app\middleware\Auth::class,
 ]);
 
 // ============================================================
-// 隐私合规接口（JWT + ApiVersion）——数据导出 / 账号注销闭环
+// 隐私合规接口（JWT）——数据导出 / 账号注销闭环
 // ============================================================
-Route::group('/api/privacy', function () {
+Route::group('/api/v1/privacy', function () {
     Route::get('/data', v('api', 'PrivacyController', 'data'));
     Route::post('/close-request', v('api', 'PrivacyController', 'closeRequest'));
     Route::post('/close-cancel', v('api', 'PrivacyController', 'closeCancel'));
     Route::post('/close-confirm', v('api', 'PrivacyController', 'closeConfirm'));
 })->middleware([
-    app\middleware\ApiVersion::class,
     app\middleware\Auth::class,
 ]);
 
 // ============================================================
-// 成长体系接口（JWT认证 + ApiVersion）
+// 成长体系接口（JWT认证）
 // ============================================================
-Route::group('/api/growth', function () {
+Route::group('/api/v1/growth', function () {
     Route::get('/', v('user', 'GrowthController', 'index'));
     Route::get('/records', v('user', 'GrowthController', 'records'));
 })->middleware([
-    app\middleware\ApiVersion::class,
     app\middleware\Auth::class,
 ]);
 
 // ============================================================
-// 用户健康档案接口（JWT认证 + ApiVersion）
+// 用户健康档案接口（JWT认证）
 // ============================================================
-Route::group('/api/health-profile', function () {
+Route::group('/api/v1/health-profile', function () {
     Route::get('/', v('user', 'HealthProfileController', 'show'));
     Route::put('/', v('user', 'HealthProfileController', 'upsert'));
     Route::delete('/', v('user', 'HealthProfileController', 'destroy'));
 })->middleware([
-    app\middleware\ApiVersion::class,
     app\middleware\Auth::class,
 ]);
 
 // ============================================================
-// 技师接口（JWT + 技师身份 + ApiVersion）
+// 技师接口（JWT + 技师身份）
 // ============================================================
-Route::group('/api/technician', function () {
+Route::group('/api/v1/technician', function () {
     Route::get('/profile', v('technician', 'ProfileController', 'show'));
     Route::put('/profile', v('technician', 'ProfileController', 'update'));
     Route::get('/schedule', v('technician', 'ScheduleController', 'index'));
@@ -283,15 +276,14 @@ Route::group('/api/technician', function () {
     Route::post('/attendance/check-in', v('technician', 'AttendanceController', 'checkIn'));
     Route::post('/attendance/check-out', v('technician', 'AttendanceController', 'checkOut'));
 })->middleware([
-    app\middleware\ApiVersion::class,
     app\middleware\Auth::class,
     app\middleware\TechnicianAuth::class,
 ]);
 
 // ============================================================
-// 订单接口（JWT + ApiVersion）
+// 订单接口（JWT）
 // ============================================================
-Route::group('/api/order', function () {
+Route::group('/api/v1/order', function () {
     Route::post('/', v('order', 'OrderController', 'store'));
     Route::get('/list', v('order', 'OrderController', 'index'));
     // ── ICS 日历导出（我的预约，iCal 下载/导入手机日历）──
@@ -325,39 +317,36 @@ Route::group('/api/order', function () {
     Route::post('/cart', v('order', 'CartController', 'store'));
     Route::delete('/cart', v('order', 'CartController', 'destroy'));
 })->middleware([
-    app\middleware\ApiVersion::class,
     app\middleware\Auth::class,
 ]);
 
 // ============================================================
-// 售后（退换货）接口（JWT + ApiVersion）
+// 售后（退换货）接口（JWT）
 // ============================================================
-Route::group('/api/aftersales', function () {
+Route::group('/api/v1/aftersales', function () {
     Route::post('/', v('order', 'AftersaleController', 'store'));
     Route::get('/', v('order', 'AftersaleController', 'index'));
     Route::get('/{id}', v('order', 'AftersaleController', 'show'));
 })->middleware([
-    app\middleware\ApiVersion::class,
     app\middleware\Auth::class,
 ]);
 
 // ============================================================
-// 客服工单接口（JWT + ApiVersion）
+// 客服工单接口（JWT）
 // ============================================================
-Route::group('/api/tickets', function () {
+Route::group('/api/v1/tickets', function () {
     Route::post('/', v('user', 'TicketController', 'store'));
     Route::get('/', v('user', 'TicketController', 'index'));
     Route::get('/{id}', v('user', 'TicketController', 'show'));
     Route::post('/{id}/close', v('user', 'TicketController', 'close'));
 })->middleware([
-    app\middleware\ApiVersion::class,
     app\middleware\Auth::class,
 ]);
 
 // ============================================================
-// 钱包接口（JWT + ApiVersion）——储值支付余额体系
+// 钱包接口（JWT）——储值支付余额体系
 // ============================================================
-Route::group('/api/wallet', function () {
+Route::group('/api/v1/wallet', function () {
     Route::get('/', v('wallet', 'WalletController', 'index'));
     Route::post('/recharge', v('wallet', 'WalletController', 'recharge'));
     Route::post('/recharge/{id}/pay', v('wallet', 'WalletController', 'pay'));
@@ -369,14 +358,13 @@ Route::group('/api/wallet', function () {
     Route::get('/transfers', v('wallet', 'WalletTransferController', 'transfers'));
     Route::get('/transfers/{id}', v('wallet', 'WalletTransferController', 'show'));
 })->middleware([
-    app\middleware\ApiVersion::class,
     app\middleware\Auth::class,
 ]);
 
 // ============================================================
-// 营销接口（JWT + ApiVersion）
+// 营销接口（JWT）
 // ============================================================
-Route::group('/api/marketing', function () {
+Route::group('/api/v1/marketing', function () {
     Route::get('/coupons', v('marketing', 'CouponController', 'index'));
     Route::post('/coupons/receive', v('marketing', 'CouponController', 'receive'));
     Route::post('/coupons/transfer', v('marketing', 'CouponController', 'transfer'));
@@ -402,64 +390,59 @@ Route::group('/api/marketing', function () {
     Route::post('/member-cards/buy', v('marketing', 'MemberCardController', 'buy'));
     Route::get('/member-cards/my', v('marketing', 'MemberCardController', 'my'));
 })->middleware([
-    app\middleware\ApiVersion::class,
     app\middleware\Auth::class,
 ]);
 
 // ============================================================
-// 通知接口（JWT + ApiVersion）
+// 通知接口（JWT）
 // ============================================================
-Route::group('/api/notification', function () {
+Route::group('/api/v1/notification', function () {
     Route::get('/', v('notification', 'NotificationController', 'index'));
     Route::put('/read/{id}', v('notification', 'NotificationController', 'read'));
     Route::put('/read-all', v('notification', 'NotificationController', 'readAll'));
 })->middleware([
-    app\middleware\ApiVersion::class,
     app\middleware\Auth::class,
 ]);
 
 // ============================================================
-// 电子发票接口（JWT + ApiVersion）
+// 电子发票接口（JWT）
 // ============================================================
-Route::group('/api/invoices', function () {
+Route::group('/api/v1/invoices', function () {
     Route::post('/', v('user', 'InvoiceController', 'store'));
     Route::get('/', v('user', 'InvoiceController', 'index'));
     Route::get('/{id}', v('user', 'InvoiceController', 'show'));
 })->middleware([
-    app\middleware\ApiVersion::class,
     app\middleware\Auth::class,
 ]);
 
 // ============================================================
-// 常用发票抬头接口（JWT + ApiVersion）
+// 常用发票抬头接口（JWT）
 // ============================================================
-Route::group('/api/invoice-titles', function () {
+Route::group('/api/v1/invoice-titles', function () {
     Route::post('/', v('user', 'InvoiceTitleController', 'store'));
     Route::get('/', v('user', 'InvoiceTitleController', 'index'));
     Route::put('/{id}', v('user', 'InvoiceTitleController', 'update'));
     Route::delete('/{id}', v('user', 'InvoiceTitleController', 'destroy'));
     Route::post('/{id}/default', v('user', 'InvoiceTitleController', 'setDefault'));
 })->middleware([
-    app\middleware\ApiVersion::class,
     app\middleware\Auth::class,
 ]);
 
 // ============================================================
-// 浏览足迹接口（JWT + ApiVersion）——最近浏览服务
+// 浏览足迹接口（JWT）——最近浏览服务
 // ============================================================
-Route::group('/api/browse-history', function () {
+Route::group('/api/v1/browse-history', function () {
     Route::get('/', v('api', 'BrowseHistoryController', 'index'));
     Route::delete('/', v('api', 'BrowseHistoryController', 'clear'));
     Route::delete('/{item_id}', v('api', 'BrowseHistoryController', 'destroy'));
 })->middleware([
-    app\middleware\ApiVersion::class,
     app\middleware\Auth::class,
 ]);
 
 // ============================================================
-// 社区圈子接口（JWT + ApiVersion）
+// 社区圈子接口（JWT）
 // ============================================================
-Route::group('/api/community', function () {
+Route::group('/api/v1/community', function () {
     Route::post('/', v('api', 'CommunityController', 'store'));
     Route::post('/like/{id}', v('api', 'CommunityController', 'like'));
     Route::get('/my-posts', v('api', 'CommunityController', 'myPosts'));
@@ -467,42 +450,38 @@ Route::group('/api/community', function () {
     Route::post('/comment', v('api', 'CommunityCommentController', 'store'));
     Route::delete('/comment/{id}', v('api', 'CommunityCommentController', 'destroy'));
 })->middleware([
-    app\middleware\ApiVersion::class,
     app\middleware\Auth::class,
 ]);
 
 // ============================================================
-// 短视频接口（JWT + ApiVersion）
+// 短视频接口（JWT）
 // ============================================================
-Route::group('/api/video', function () {
+Route::group('/api/v1/video', function () {
     Route::post('/like/{id}', v('api', 'VideoController', 'like'));
 })->middleware([
-    app\middleware\ApiVersion::class,
     app\middleware\Auth::class,
 ]);
 
 // ============================================================
-// 门店排队叫号接口（JWT + ApiVersion）
+// 门店排队叫号接口（JWT）
 // ============================================================
-Route::group('/api/queue', function () {
+Route::group('/api/v1/queue', function () {
     Route::post('/take', v('api', 'QueueController', 'take'));
     Route::get('/current', v('api', 'QueueController', 'current'));
     Route::get('/store/{store_id}', v('api', 'QueueController', 'storeQueue'));
 })->middleware([
-    app\middleware\ApiVersion::class,
     app\middleware\Auth::class,
 ]);
 
 // ============================================================
-// 店长工作台接口（JWT + ApiVersion）——门店数据按登录用户 store_id 隔离
+// 店长工作台接口（JWT）——门店数据按登录用户 store_id 隔离
 // ============================================================
-Route::group('/api/store-manager', function () {
+Route::group('/api/v1/store-manager', function () {
     Route::get('/overview', v('api', 'StoreManagerController', 'overview'));
     Route::get('/orders', v('api', 'StoreManagerController', 'orders'));
     Route::get('/technicians', v('api', 'StoreManagerController', 'technicians'));
     Route::get('/revenue', v('api', 'StoreManagerController', 'revenue'));
 })->middleware([
-    app\middleware\ApiVersion::class,
     app\middleware\Auth::class,
 ]);
 
@@ -513,13 +492,12 @@ Route::any('/payment/wechat-notify', [app\api\v1\controller\PaymentNotifyControl
 Route::any('/payment/alipay-notify', [app\api\v1\controller\PaymentNotifyController::class, 'alipayNotify']);
 
 // ============================================================
-// 打印接口（JWT + ApiVersion）
+// 打印接口（JWT）
 // ============================================================
-Route::group('/api/print', function () {
+Route::group('/api/v1/print', function () {
     Route::get('/receipt/{order_id}', v('api', 'PrintController', 'receipt'));
     Route::get('/preview/{order_id}', v('api', 'PrintController', 'preview'));
 })->middleware([
-    app\middleware\ApiVersion::class,
     app\middleware\Auth::class,
 ]);
 

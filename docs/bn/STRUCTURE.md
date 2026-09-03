@@ -138,7 +138,6 @@ admin/
 │   ├── middleware/             # মিডলওয়্যার
 │   │   ├── Cors
 │   │   ├── RateLimit
-│   │   ├── ApiVersion
 │   │   ├── AdminAuth
 │   │   ├── AdminPermission
 │   │   └── OperationLog
@@ -289,7 +288,6 @@ service/
 │   │   └── NotificationController  # নোটিফিকেশন তালিকা/পড়া হয়েছে চিহ্নিত
 │   ├── common/                  # পাবলিক ক্ষমতা (BaseController ইত্যাদি)
 │   ├── middleware/              # মিডলওয়্যার
-│   │   ├── ApiVersion              # API ভার্সন কন্ট্রোল (API-Version হেডার)
 │   │   ├── Auth                    # JWT অথেনটিকেশন + ইউজার স্ট্যাটাস ভ্যালিডেশন
 │   │   ├── Cors                    # ক্রস-অরিজিন প্রসেসিং
 │   │   ├── Security                # সিকিউরিটি ডিটেকশন (security-php)

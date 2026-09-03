@@ -42,7 +42,7 @@ class LogisticsTrackingTest extends TestCase
         $head = "Host: localhost\r\n"
             . "Content-Type: application/x-www-form-urlencoded\r\n"
             . "Content-Length: 0\r\n";
-        return new Request("GET /api/order/logistics/1 HTTP/1.1\r\n" . $head . "\r\n");
+        return new Request("GET /api/v1/order/logistics/1 HTTP/1.1\r\n" . $head . "\r\n");
     }
 
     private function body(Response $response): array

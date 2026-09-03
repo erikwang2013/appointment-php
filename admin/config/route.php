@@ -10,23 +10,25 @@ use support\Request;
  * API 路由配置
  *
  * 路由分组说明:
- * - /admin/*  管理端接口，需要 JWT 认证 + 权限校验
- * - /api/*    客户端接口（部分白名单，部分需认证）
- * - /health   健康检查（无需认证）
+ * - /admin/*  管理端接口，需要 JWT 认证 + 权限校验（非版本化）
+ * - /api/v1/* 客户端接口（版本固化在 URL 前缀，不由请求头携带）
+ * - /health、/metrics、/api/docs  基础设施端点（非版本化，无需认证）
  *
  * API 版本策略:
- * - 版本号通过请求头 API-Version 携带（如 "v1"、"v2"），不在 URL 中体现
- * - 缺失时默认使用 v1
- * - 由 ApiVersion 中间件校验，路由闭包按版本解析对应控制器
+ * - 版本号固化在 URL 前缀中（/api/v1/...），不通过请求头携带
+ * - v() 闭包按组前缀绑定的版本解析 app/api/{version}/controller/ 控制器
+ *
+ * 新增版本: 注册 Route::group('/api/v{n}', ...) 组 + 创建 app/api/v{n}/controller/
+ * 目录，v() 调用处传版本参数: v('Controller', 'action', 'v{n}')
  */
 
 /**
  * 创建版本化 API 路由闭包
+ * @param string $version 版本号，默认 v1（与 /api/v1 组前缀绑定；新增版本时显式传入）
  */
-function v(string $controller, string $action): \Closure
+function v(string $controller, string $action, string $version = 'v1'): \Closure
 {
-    return function (Request $request) use ($controller, $action) {
-        $version = $request->apiVersion ?? 'v1';
+    return function (Request $request) use ($controller, $action, $version) {
         $class = "\\app\\api\\{$version}\\controller\\{$controller}";
         return (new $class)->{$action}($request);
     };
@@ -373,9 +375,9 @@ Route::group('/admin', function () {
 ]);
 
 // ============================================================
-// 公开接口（通过 API-Version 头路由到版本化控制器）
+// 公开接口（URL 版本 /api/v1，无需认证）
 // ============================================================
-Route::group('/api', function () {
+Route::group('/api/v1', function () {
     // 点击验证码
     Route::post('/captcha/generate', v('CaptchaController', 'generate'));
     Route::post('/captcha/verify', v('CaptchaController', 'verify'));
@@ -384,9 +386,7 @@ Route::group('/api', function () {
     Route::post('/auth/login', v('AuthController', 'login'));
     Route::post('/auth/register', v('AuthController', 'register'));
     Route::post('/auth/refresh', v('AuthController', 'refresh'));
-})->middleware([
-    app\middleware\ApiVersion::class,
-]);
+});
 
 // 关闭默认路由
 Route::disableDefaultRoute();

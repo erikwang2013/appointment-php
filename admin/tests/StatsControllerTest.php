@@ -255,4 +255,24 @@ class StatsControllerTest extends TestCase
         $this->assertSame(1, $r[0]);
         $this->assertSame('stats', $r[1]['callback'][1]);
     }
+
+    #[Test] public function api_v1_prefix_reaches_public_endpoints_bare_path_404(): void
+    {
+        // URL 版本硬切换回归：/api/v1 组可路由、裸 /api/auth/login 不命中（disableDefaultRoute → 404）。
+        // 路由表由上方 finance_stats_route_is_registered 按声明顺序先行 Route::load；
+        // 单独 --filter 运行本方法时 dispatcher 未初始化则跳过。
+        try {
+            $found = \Webman\Route::dispatch('POST', '/api/v1/auth/login');
+            $bare  = \Webman\Route::dispatch('POST', '/api/auth/login');
+        } catch (\Error) {
+            $this->markTestSkipped('路由未加载：请整类运行 StatsControllerTest');
+            return;
+        }
+        $this->assertSame(1, $found[0], 'POST /api/v1/auth/login 应命中 /api/v1 组路由');
+        $this->assertSame(0, $bare[0], '裸 /api/auth/login 不应命中任何路由（URL 不带版本前缀 → 404）');
+        $this->assertSame(1, \Webman\Route::dispatch('GET', '/health')[0], '/health 不应被误伤');
+        $this->assertSame(1, \Webman\Route::dispatch('GET', '/api/docs')[0], '/api/docs 不应被误伤');
+        $total = count(\Webman\Route::getRoutes());
+        $this->assertGreaterThanOrEqual(180, $total, "路由注册总数异常：{$total}");
+    }
 }

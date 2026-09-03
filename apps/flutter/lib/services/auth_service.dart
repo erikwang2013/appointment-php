@@ -37,7 +37,7 @@ class AuthService extends GetxService {
   Future<void> login(String phone, String password) async {
     try {
       isLoading.value = true;
-      // POST /api/auth/login → data: {token, user:{id,phone,nickname,avatar,active_role,referral_code,...}}
+      // POST /api/v1/auth/login → data: {token, user:{id,phone,nickname,avatar,active_role,referral_code,...}}
       final data = await ApiService.to.post('/auth/login', data: {
         'phone': phone,
         'password': password,
@@ -51,7 +51,7 @@ class AuthService extends GetxService {
   Future<void> loginByWechat(String code) async {
     try {
       isLoading.value = true;
-      // POST /api/wechat/mini-login → data: {token, is_new_user, need_phone, user:{id,nickname,avatar,phone}}
+      // POST /api/v1/wechat/mini-login → data: {token, is_new_user, need_phone, user:{id,nickname,avatar,phone}}
       final data = await ApiService.to.post('/wechat/mini-login', data: {
         'code': code,
       }) as Map<String, dynamic>;
@@ -62,14 +62,14 @@ class AuthService extends GetxService {
   }
 
   Future<void> sendCode(String phone) async {
-    // POST /api/captcha/send → data: {phone, expire_in}
+    // POST /api/v1/captcha/send → data: {phone, expire_in}
     await ApiService.to.post('/captcha/send', data: {'phone': phone});
   }
 
   Future<void> register(String phone, String password, String code, {String? referral}) async {
     try {
       isLoading.value = true;
-      // POST /api/auth/register：服务端读 referral_code（或 invite_code），并要求 confirm_password 一致
+      // POST /api/v1/auth/register：服务端读 referral_code（或 invite_code），并要求 confirm_password 一致
       final data = await ApiService.to.post('/auth/register', data: {
         'phone': phone,
         'password': password,
@@ -84,7 +84,7 @@ class AuthService extends GetxService {
   }
 
   Future<void> resetPassword(String phone, String code, String newPassword) async {
-    // POST /api/auth/forget-password：服务端要求 confirm_password 与 password 一致
+    // POST /api/v1/auth/forget-password：服务端要求 confirm_password 与 password 一致
     await ApiService.to.post('/auth/forget-password', data: {
       'phone': phone,
       'code': code,

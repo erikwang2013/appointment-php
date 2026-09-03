@@ -127,8 +127,8 @@
 
 | फ़ीचर | विवरण |
 |------|------|
-| वॉलेट बैलेंस | GET /api/wallet बैलेंस + लॉग (user_wallet/wallet_recharge/wallet_txn टेबल) |
-| रिचार्ज | POST /api/wallet/recharge रिचार्ज ऑर्डर बनाएँ; POST /api/wallet/recharge/{id}/pay वीचैट भुगतान रिचार्ज, कॉलबैक R उपसर्ग ऑर्डर नंबर |
+| वॉलेट बैलेंस | GET /api/v1/wallet बैलेंस + लॉग (user_wallet/wallet_recharge/wallet_txn टेबल) |
+| रिचार्ज | POST /api/v1/wallet/recharge रिचार्ज ऑर्डर बनाएँ; POST /api/v1/wallet/recharge/{id}/pay वीचैट भुगतान रिचार्ज, कॉलबैक R उपसर्ग ऑर्डर नंबर |
 | बैलेंस भुगतान | ऑर्डर भुगतान चैनल pay_channel=balance |
 | रिफंड पुनः-क्रेडिट | वीचैट/बैलेंस रिफंड स्वतः बैलेंस में (refundToBalance / creditRefundToWallet) |
 
@@ -144,8 +144,8 @@
 
 | फ़ीचर | विवरण |
 |------|------|
-| मेरे सेशन कार्ड | GET /api/marketing/cards/my रीयल-टाइम used_up/expired गणना |
-| वेरिफिकेशन सेशन घटाव | POST /api/marketing/cards/use: Redis NX आइडेम्पोटेंट + lockForUpdate रो-लॉक, सीधे completed ऑर्डर + OrderItem + OrderPayment(pay_type='card') बनाना |
+| मेरे सेशन कार्ड | GET /api/v1/marketing/cards/my रीयल-टाइम used_up/expired गणना |
+| वेरिफिकेशन सेशन घटाव | POST /api/v1/marketing/cards/use: Redis NX आइडेम्पोटेंट + lockForUpdate रो-लॉक, सीधे completed ऑर्डर + OrderItem + OrderPayment(pay_type='card') बनाना |
 
 ### 13. कूपन छूट (राउंड 9)
 
@@ -160,7 +160,7 @@
 | फ़ीचर | विवरण |
 |------|------|
 | एक्सचेंज | redeem: cash प्रकार वॉलेट में रिचार्ज (रो-लॉक डबल-एंट्री रोकता है, WalletTxn type='gift_card'), gift प्रकार केवल चिह्नित |
-| मेरे गिफ्ट कार्ड | GET /api/marketing/gift-cards/my |
+| मेरे गिफ्ट कार्ड | GET /api/v1/marketing/gift-cards/my |
 
 ### 15. पॉइंट्स प्रणाली (राउंड 9+10)
 
@@ -171,7 +171,7 @@
 | रिफंड वापसी | clawbackOrderPoints आनुपातिक वापसी (3 जगह एकीकरण) |
 | पॉइंट्स नकद | भुगतान पर use_points भेजें, 100 पॉइंट्स=1 युआन (config app.points_rate), SUM एकत्रीकरण बैलेंस सत्यापन, उपभोग लॉग source=points_offset आइडेम्पोटेंट |
 | पॉइंट्स वापसी (राउंड 15) | रद्द/रिफंड पर points_offset पॉइंट्स वापसी: refundOffsetPoints 5 हुक बिंदु (doCancel 3 पथ/doRefund वीचैट ट्रांज़ैक्शन/creditRefundToWallet/completeOneRefundCompensation), source=points_refund आइडेम्पोटेंट |
-| पॉइंट्स विवरण | GET /api/marketing/points पेजिनेशन + type/source फ़िल्टर, type एकीकृत earn |
+| पॉइंट्स विवरण | GET /api/v1/marketing/points पेजिनेशन + type/source फ़िल्टर, type एकीकृत earn |
 
 ### 16. मिनी प्रोग्राम ऑर्डर श्रृंखला (राउंड 10)
 
@@ -201,8 +201,8 @@
 
 | फ़ीचर | विवरण |
 |------|------|
-| आफ्टर-सेल आवेदन | POST /api/aftersales: type=refund/exchange, स्वयं के ऑर्डर/paid+completed/उसी ऑर्डर डी-डुप्लिकेशन सत्यापन |
-| मेरे आफ्टर-सेल | GET /api/aftersales पेजिनेशन सूची + GET /api/aftersales/{id} विवरण |
+| आफ्टर-सेल आवेदन | POST /api/v1/aftersales: type=refund/exchange, स्वयं के ऑर्डर/paid+completed/उसी ऑर्डर डी-डुप्लिकेशन सत्यापन |
+| मेरे आफ्टर-सेल | GET /api/v1/aftersales पेजिनेशन सूची + GET /api/v1/aftersales/{id} विवरण |
 | ऑडिट प्रवाह | प्रबंधन पक्ष approve/reject (rejected पर remark अनिवार्य); approved केवल स्थिति प्रवाह, रिफंड मौजूदा ऑर्डर रिफंड इंटरफ़ेस उपयोग करता है |
 
 ### 20. समूह खरीद/सेकिल (राउंड 15)
@@ -211,9 +211,9 @@
 
 | फ़ीचर | विवरण |
 |------|------|
-| गतिविधि सूची/विवरण | GET /api/promotions + /api/promotions/{id}, type फ़िल्टर group_buy/flash_sale |
-| भागीदारी | POST /api/promotions/join/{id}: Redis NX लॉक ओवर-सेल रोकता है (flash_sale में max_people स्टॉक सीमा), डुप्लिकेट भागीदारी 422, group_buy पूर्ण-सदस्य लॉक, समाप्ति पर अपूर्ण समूह लेज़ी बंद (show/join पर status 0) |
-| भागीदार सूची | GET /api/promotions/{id}/participants |
+| गतिविधि सूची/विवरण | GET /api/v1/promotions + /api/v1/promotions/{id}, type फ़िल्टर group_buy/flash_sale |
+| भागीदारी | POST /api/v1/promotions/join/{id}: Redis NX लॉक ओवर-सेल रोकता है (flash_sale में max_people स्टॉक सीमा), डुप्लिकेट भागीदारी 422, group_buy पूर्ण-सदस्य लॉक, समाप्ति पर अपूर्ण समूह लेज़ी बंद (show/join पर status 0) |
+| भागीदार सूची | GET /api/v1/promotions/{id}/participants |
 | स्थिति सुधार | PromotionParticipant स्थिति पूर्णांक स्थिरांक 0/1/2/3 में बदली (सख्त मोड में join 1366 क्षति ठीक) |
 
 ### 21. समूह पूर्ण होकर ऑर्डर (राउंड 16)
@@ -221,7 +221,7 @@
 | फ़ीचर | विवरण |
 |------|------|
 | समूह खरीद मूल्य | join प्रतिक्रिया discount_percent/original_price/group_price लौटाती है |
-| समूह खरीद ऑर्डर | POST /api/order पर promotion_id भेजें: केवल group_buy/गतिविधि सक्रिय/कॉलर भागीदार/पूर्ण नहीं/सेवा मिलान सत्यापन; समूह खरीद मूल्य=मूल कीमत×discount_percent/100, कूपन/सेशन कार्ड/पॉइंट्स स्टैकिंग अक्षम (422) |
+| समूह खरीद ऑर्डर | POST /api/v1/order पर promotion_id भेजें: केवल group_buy/गतिविधि सक्रिय/कॉलर भागीदार/पूर्ण नहीं/सेवा मिलान सत्यापन; समूह खरीद मूल्य=मूल कीमत×discount_percent/100, कूपन/सेशन कार्ड/पॉइंट्स स्टैकिंग अक्षम (422) |
 | ऑर्डर चिह्न | appointment_order में promotion_id/participant_id कॉलम + इंडेक्स जोड़ा |
 | समूह नहीं बना | समाप्ति पर अपूर्ण समूह→गतिविधि बंद + उस गतिविधि के pending ऑर्डर बैच रद्द (आइडेम्पोटेंट); pay() लेज़ी निर्णय: बंद हो चुका तो स्वतः ऑर्डर रद्द और तकनीशियन लॉक मुक्त |
 
@@ -233,22 +233,22 @@
 | हुक बिंदु | ReferralRewardService::handleOrderCompleted WorkController::complete ट्रांज़ैक्शन के भीतर जुड़ा (serving→completed एकमात्र प्रवेश, वेरिफिकेशन verify केवल serving तक, ट्रिगर नहीं), विफलता पर समग्र रोलबैक पुनः प्रयास योग्य |
 | आइडेम्पोटेंसी | appointment_user_referral रो-लॉक lockForUpdate + rewarded_at खालीपन जाँच + लॉक के भीतर पहले-ऑर्डर पुनर्जाँच (समवर्ती/डुप्लिकेट कॉल पर केवल एक बार जारी) |
 | जमा | वॉलेट रो-लॉक जमा + WalletTxn type='referral_reward' (balance_after + ऑर्डर नंबर remark); रेफ़रल रिकॉर्ड reward_type/reward_amount/rewarded_at/first_order_at लिखता है |
-| विवरण | GET /api/user/referral/earnings पेजिनेशन (रेफर किए गए व्यक्ति का उपनाम/अवतार/ऑर्डर नंबर/राशि/समय) |
+| विवरण | GET /api/v1/user/referral/earnings पेजिनेशन (रेफर किए गए व्यक्ति का उपनाम/अवतार/ऑर्डर नंबर/राशि/समय) |
 
 ### 23. पॉइंट्स एक्सचेंज मॉल (राउंड 16)
 
 | फ़ीचर | विवरण |
 |------|------|
 | एक्सचेंज उत्पाद | appointment_points_exchange_goods: type=coupon/gift_card/wallet, points_cost/value (DECIMAL(25,2) स्नोफ्लेक ID सटीकता हानि रोकता है)/stock/status |
-| उत्पाद सूची | GET /api/marketing/points-exchange: लिस्टेड उत्पाद + रीयल-टाइम शेष स्टॉक + एक्सचेंज संख्या |
-| एक्सचेंज | POST /api/marketing/points-exchange/{id}: Redis NX लॉक + उत्पाद रो-लॉक ओवर-एक्सचेंज रोकता है; पॉइंट्स SUM सत्यापन (कमी 422) + UserPoints type='consume' source='exchange' घटाव; coupon कूपन जारी / wallet बैलेंस जमा (WalletTxn points_exchange) / gift_card कार्ड-की लौटाना |
+| उत्पाद सूची | GET /api/v1/marketing/points-exchange: लिस्टेड उत्पाद + रीयल-टाइम शेष स्टॉक + एक्सचेंज संख्या |
+| एक्सचेंज | POST /api/v1/marketing/points-exchange/{id}: Redis NX लॉक + उत्पाद रो-लॉक ओवर-एक्सचेंज रोकता है; पॉइंट्स SUM सत्यापन (कमी 422) + UserPoints type='consume' source='exchange' घटाव; coupon कूपन जारी / wallet बैलेंस जमा (WalletTxn points_exchange) / gift_card कार्ड-की लौटाना |
 | आइडेम्पोटेंसी | uk_user_goods अद्वितीय इंडेक्स एक ही उपयोगकर्ता एक ही उत्पाद एक बार + लॉक के भीतर पुनर्जाँच + 1062 बैकअप; एक्सचेंज रिकॉर्ड स्नैपशॉट appointment_user_points_exchange |
 
 ### 24. अपॉइंटमेंट पुनर्निर्धारण (राउंड 17)
 
 | फ़ीचर | विवरण |
 |------|------|
-| इंटरफ़ेस | POST /api/order/reschedule/{id}: new_service_time (अनिवार्य) + reason (वैकल्पिक), उसी तकनीशियन के साथ समय बदलें |
+| इंटरफ़ेस | POST /api/v1/order/reschedule/{id}: new_service_time (अनिवार्य) + reason (वैकल्पिक), उसी तकनीशियन के साथ समय बदलें |
 | नियम | केवल स्वयं के ऑर्डर (गैर-स्वयं 404); केवल appointment प्रकार और स्थिति pending/paid/confirmed (बाकी 422); मूल सेवा शुरुआत से ≥ 6 घंटे (पूर्ण रिफंड विंडो के अनुरूप) |
 | समवर्ती सुरक्षा | B1 order_lock (pay/cancel/refund के साथ ही म्यूचुअल-एक्सक्लूज़न परिवार) → नए स्लॉट तकनीशियन लॉक Redis SETNX EX 180 (समवर्ती पुनर्निर्धारण ओवर-सेल रोकता है) → ट्रांज़ैक्शन के भीतर रो-लॉक पुनः-पठन + B2 शेड्यूल संघर्ष DB सत्यापन (इस ऑर्डर को छोड़कर) |
 | समापन | service_time अपडेट + appointment_order_reschedule लिखना (reason सहित) + मूल स्लॉट लॉक/नए स्लॉट लॉक का इस ऑर्डर धारण मुक्त; विफलता ट्रांज़ैक्शन रोलबैक पर नए स्लॉट लॉक भी मुक्त |
@@ -258,7 +258,7 @@
 
 | फ़ीचर | विवरण |
 |------|------|
-| इंटरफ़ेस | POST /api/marketing/coupons/transfer (user_coupon_id) 8-वर्ण डिओबफ़स्केटेड अद्वितीय ट्रांसफर कोड जनरेट (uk_code बैकअप, 7 दिन वैध); POST /api/marketing/coupons/claim (code) क्लेम; GET /api/marketing/coupons/transfers जारी (pending/claimed/expired) + प्राप्त (claimed) पेजिनेशन |
+| इंटरफ़ेस | POST /api/v1/marketing/coupons/transfer (user_coupon_id) 8-वर्ण डिओबफ़स्केटेड अद्वितीय ट्रांसफर कोड जनरेट (uk_code बैकअप, 7 दिन वैध); POST /api/v1/marketing/coupons/claim (code) क्लेम; GET /api/v1/marketing/coupons/transfers जारी (pending/claimed/expired) + प्राप्त (claimed) पेजिनेशन |
 | सत्यापन | कूपन स्वयं का/available/कूपन परिभाषा समाप्त नहीं/पहले ट्रांसफर नहीं (422); स्वयं के ट्रांसफर किए कूपन का क्लेम नहीं, प्राप्तकर्ता मूल धारक नहीं |
 | दुरुपयोग-रोधी | Redis NX लॉक coupon_transfer_claim:{code} (30s) + ट्रांज़ैक्शन के भीतर रो-लॉक पुनर्जाँच डबल-स्पेंड रोकता है; uk_user_coupon अद्वितीय इंडेक्स उसी कूपन का एक बार ट्रांसफर; ट्रांसफर किया कूपन दोबारा ट्रांसफर नहीं (नए कूपन में ट्रांसफर रिकॉर्ड नहीं, स्वाभाविक रोक); लेज़ी निर्णय समाप्ति पर expired + मूल कूपन available बहाल |
 | क्लेम | ट्रांज़ैक्शन के भीतर मूल कूपन used + नया UserCoupon बनाकर प्राप्तकर्ता से बाइंड (coupon_id अपरिवर्तित यानी वैधता अपरिवर्तित) + ट्रांसफर रिकॉर्ड claimed |
@@ -274,11 +274,11 @@
 
 ### 27. सेकिल ऑर्डर (राउंड 18, ऑफ़लाइन)
 
-> राउंड 24 के `/api/seckill` चैनल से प्रतिस्थापित (store() प्रोमो शाखा में केवल समूह खरीद शेष), "43. सेकिल" देखें।
+> राउंड 24 के `/api/v1/seckill` चैनल से प्रतिस्थापित (store() प्रोमो शाखा में केवल समूह खरीद शेष), "43. सेकिल" देखें।
 
 | फ़ीचर | विवरण |
 |------|------|
-| इंटरफ़ेस | POST /api/order पर promotion_id (flash_sale प्रकार) भेजें: सेकिल मूल्य = round(total × (100 − discount_percent)/100, 2), PromotionController सेकिल मूल्य मापदंड के अनुरूप |
+| इंटरफ़ेस | POST /api/v1/order पर promotion_id (flash_sale प्रकार) भेजें: सेकिल मूल्य = round(total × (100 − discount_percent)/100, 2), PromotionController सेकिल मूल्य मापदंड के अनुरूप |
 | सत्यापन | प्रकार व्हाइटलिस्ट [group_buy, flash_sale] (बाकी 422); गतिविधि चालू; कॉलर भागीदार; ऑर्डर सेवा गतिविधि से मिलान; सोल्ड-आउट participants_count ≥ max_people 422 "खत्म हो गया"; कूपन/सेशन कार्ड/पॉइंट्स स्टैकिंग अक्षम 422 |
 | समाप्ति | pay() लेज़ी निर्णय isFlashSaleClosed (isGroupBuyClosed मोड जैसा): सेकिल समाप्त → गतिविधि 0 + उस गतिविधि के pending ऑर्डर बैच रद्द + इस ऑर्डर का स्वतः रद्द + तकनीशियन लॉक मुक्त 422 |
 
@@ -295,7 +295,7 @@
 
 | फ़ीचर | विवरण |
 |------|------|
-| इंटरफ़ेस | POST /api/technician/review/reply/{order_id} (तकनीशियन पहचान मिडलवेयर): समीक्षा अनुपस्थित/गैर-स्वयं एकीकृत 404; मौजूदा उत्तर 422 (आइडेम्पोटेंट अस्वीकार, ओवरराइट नहीं); खाली उत्तर 422 |
+| इंटरफ़ेस | POST /api/v1/technician/review/reply/{order_id} (तकनीशियन पहचान मिडलवेयर): समीक्षा अनुपस्थित/गैर-स्वयं एकीकृत 404; मौजूदा उत्तर 422 (आइडेम्पोटेंट अस्वीकार, ओवरराइट नहीं); खाली उत्तर 422 |
 | उत्तर के बाद | उपयोगकर्ता को इन-ऐप नोटिफिकेशन (type='review_reply', गैर-ब्लॉकिंग try/catch + Log) |
 | डेटा | appointment_order_review आइडेम्पोटेंट replied_at कॉलम (reply कॉलम टेबल निर्माण में पहले से); प्रबंधन पक्ष समीक्षा list/show decorate()->toArray() से reply/replied_at पारदर्शी |
 
@@ -311,33 +311,33 @@
 
 | फ़ीचर | विवरण |
 |------|------|
-| इंटरफ़ेस | POST /api/wallet/transfer: प्राप्तकर्ता hashid डिकोड + अस्तित्व 404, स्वयं को ट्रांसफर 422, राशि 0.01-1000/लेनदेन 422 (DECIMAL तुलना float प्रतिबंधित), बैलेंस अपर्याप्त 422, दैनिक कुल 5000 युआन 422 |
+| इंटरफ़ेस | POST /api/v1/wallet/transfer: प्राप्तकर्ता hashid डिकोड + अस्तित्व 404, स्वयं को ट्रांसफर 422, राशि 0.01-1000/लेनदेन 422 (DECIMAL तुलना float प्रतिबंधित), बैलेंस अपर्याप्त 422, दैनिक कुल 5000 युआन 422 |
 | समवर्ती/आइडेम्पोटेंसी | Redis NX लॉक wallet_transfer:{from} 30s ट्रांसफर करने वाले को क्रमिक करता है; ट्रांज़ैक्शन के भीतर दोनों user_id आरोही lockForUpdate वॉलेट पंक्तियाँ (निश्चित क्रम डेडलॉक-रोधी); client_token सफलता पर SETNX 24h डुप्लिकेट सबमिट रोकता है (विफल अनुरोध token नहीं लिखता, पुनः प्रयास योग्य) |
 | जमा | ट्रांसफर करने वाले से घटाव + प्राप्तकर्ता में जोड़ + WalletTxn दोहरा लॉग (transfer_out/transfer_in balance_after स्नैपशॉट सहित) + ट्रांसफर रिकॉर्ड completed + प्राप्तकर्ता इन-ऐप नोटिफिकेशन type='balance_received' (विफलता केवल लॉग) |
-| रिकॉर्ड | GET /api/wallet/transfers (direction=out/in पेजिनेशन) + GET /transfers/{id} (केवल दोनों पक्षों को दिखाई, 404) |
+| रिकॉर्ड | GET /api/v1/wallet/transfers (direction=out/in पेजिनेशन) + GET /transfers/{id} (केवल दोनों पक्षों को दिखाई, 404) |
 
 ### 32. पॉइंट्स ट्रांसफर (राउंड 19)
 
 | फ़ीचर | विवरण |
 |------|------|
-| इंटरफ़ेस | POST /api/user/points/transfer: प्राप्तकर्ता अस्तित्व 404, स्वयं को 422, पॉइंट्स 1-10000 422, बैलेंस SUM एकत्रीकरण अपर्याप्त 422, दैनिक कुल 10000 सीमा 422 |
+| इंटरफ़ेस | POST /api/v1/user/points/transfer: प्राप्तकर्ता अस्तित्व 404, स्वयं को 422, पॉइंट्स 1-10000 422, बैलेंस SUM एकत्रीकरण अपर्याप्त 422, दैनिक कुल 10000 सीमा 422 |
 | समवर्ती/आइडेम्पोटेंसी | Redis NX लॉक points_transfer:{user} 30s; ट्रांज़ैक्शन के भीतर दोनों पक्ष की अंतिम लॉग पर lockForUpdate (user_id आरोही पारस्परिक ट्रांसफर डेडलॉक-रोधी) + लॉक के भीतर बैलेंस/सीमा/प्राप्तकर्ता पुनर्जाँच |
 | लॉग मानक | भेजने वाला type=consume source=points_transfer ऋणात्मक (balance=पिछला स्नैपशॉट-इस बार, points_offset/exchange के समान मापदंड); प्राप्तकर्ता type=earn source=points_transfer धनात्मक expires_at सहित (PointsExpiryTimer सामान्य रूप से समाप्त कर सकता है); ट्रांज़ैक्शन के भीतर ट्रांसफर रिकॉर्ड लिखना, commit के बाद प्राप्तकर्ता को इन-ऐप नोटिफिकेशन type='points_received' |
-| रिकॉर्ड | GET /api/user/points/transfers (direction=sent/received पेजिनेशन, दूसरे पक्ष का उपनाम) |
+| रिकॉर्ड | GET /api/v1/user/points/transfers (direction=sent/received पेजिनेशन, दूसरे पक्ष का उपनाम) |
 
 ### 33. समीक्षा अनुवर्ती + सबमिट रूट पूर्णता (राउंड 19)
 
 | फ़ीचर | विवरण |
 |------|------|
-| अनुवर्ती | POST /api/order/review/{order_id}/append: समीक्षा अनुपस्थित/गैर-स्वयं एकीकृत 404, गैर-completed 422, डुप्लिकेट अनुवर्ती 422 (append_content/append_at में से कोई भी गैर-खाली अस्वीकार), खाली सामग्री 422; सफलता पर append_content/append_images(JSON)/append_at + तकनीशियन इन-ऐप नोटिफिकेशन type='review_append' |
-| समीक्षा सबमिट | POST /api/order/review/{order_id} पंजीकरण पूरा (ReviewController::store मूल में रूट नहीं था, पहुँच से बाहर); साथ ही गुप्त TypeError ठीक: findByOrderId को int मिलने पर string हस्ताक्षर उल्लंघन (append के (string) रूपांतरण के अनुरूप), पंजीकरण पूरा होते ही कॉल पर 500 |
+| अनुवर्ती | POST /api/v1/order/review/{order_id}/append: समीक्षा अनुपस्थित/गैर-स्वयं एकीकृत 404, गैर-completed 422, डुप्लिकेट अनुवर्ती 422 (append_content/append_at में से कोई भी गैर-खाली अस्वीकार), खाली सामग्री 422; सफलता पर append_content/append_images(JSON)/append_at + तकनीशियन इन-ऐप नोटिफिकेशन type='review_append' |
+| समीक्षा सबमिट | POST /api/v1/order/review/{order_id} पंजीकरण पूरा (ReviewController::store मूल में रूट नहीं था, पहुँच से बाहर); साथ ही गुप्त TypeError ठीक: findByOrderId को int मिलने पर string हस्ताक्षर उल्लंघन (append के (string) रूपांतरण के अनुरूप), पंजीकरण पूरा होते ही कॉल पर 500 |
 | डेटा | appointment_order_review में append_content TEXT/append_images JSON/append_at DATETIME तीन कॉलम (आइडेम्पोटेंट माइग्रेशन); प्रतिक्रिया में append फ़ील्ड पारदर्शी |
 
 ### 34. उपयोगकर्ता पक्ष लॉजिस्टिक्स ट्रैकिंग (राउंड 19)
 
 | फ़ीचर | विवरण |
 |------|------|
-| इंटरफ़ेस | GET /api/order/logistics/{id}: केवल स्वयं के product ऑर्डर देख सकते हैं (गैर-स्वयं/गैर-उत्पाद/शिप नहीं हुआ एकीकृत 404) |
+| इंटरफ़ेस | GET /api/v1/order/logistics/{id}: केवल स्वयं के product ऑर्डर देख सकते हैं (गैर-स्वयं/गैर-उत्पाद/शिप नहीं हुआ एकीकृत 404) |
 | डेटा | order.remark JSON पढ़ना (shipping_company/tracking_no/shipped_at, admin MallOrderController::ship() शिपिंग पर लिखता है); parseShippingInfo/parseReceiver दोहरा पार्सिंग पुराने प्रारूप बैकअप |
 | मास्किंग | प्राप्तकर्ता मोबाइल maskPhone (138****5678), लीक-रोधी |
 
@@ -346,7 +346,7 @@
 | फ़ीचर | विवरण |
 |------|------|
 | डेटा | appointment_user_notify_setting टेबल (user_id+type संयुक्त अद्वितीय कुंजी uk_user_type, पंक्ति अनुपस्थित = डिफ़ॉल्ट चालू); 5 प्रकार: service_reminder सेवा स्मरण / card_expiry समाप्ति स्मरण (कार्ड+कूपन एकीकृत छाता) / points_expiry पॉइंट्स समाप्ति / marketing मार्केटिंग (आरक्षित) / system सिस्टम (बंद नहीं किया जा सकता, PUT अनिवार्य 1) |
-| इंटरफ़ेस | GET /api/user/notify-settings 5 प्रकार के पूर्ण स्विच लौटाता है; PUT बैच upsert डुप्लिकेट पंक्ति नहीं बनाता |
+| इंटरफ़ेस | GET /api/v1/user/notify-settings 5 प्रकार के पूर्ण स्विच लौटाता है; PUT बैच upsert डुप्लिकेट पंक्ति नहीं बनाता |
 | गेट | NotificationReminderService::notifySettingEnabled 3 टाइमर प्रोसेस जोड़ता है (ServiceReminderTimer/ExpiryReminderTimer कार्ड+कूपन/PointsExpiryTimer, टाइमर सीधे appointment_notification टेबल में लिखते हैं, सेवा लेखन पथ नहीं चलाते इसलिए प्रत्येक में समान गेट) + सब्सक्रिप्शन इवेंट (sendSubscribeForOrderEvent/Notification परिदृश्य मैपिंग PAY/REFUND/VERIFIED/RESCHEDULE→system सदा भेजें, REMINDER→service_reminder, EXPIRY→card_expiry); प्रकार बंद होने पर इन-ऐप नोटिफिकेशन और सब्सक्रिप्शन संदेश दोनों छोड़े जाते हैं |
 
 ---
@@ -468,7 +468,7 @@ Flutter Web एकल-पेज एप्लिकेशन, कुल 21 पे
 
 ### 16. स्टोर मैनेजर वर्कबेंच (राउंड 15)
 
-- service /api/store-manager: overview (आज के ऑर्डर/राजस्व/चालू/तकनीशियन संख्या/वेरिफिकेशन संख्या) + orders (पेजिनेशन + स्थिति फ़िल्टर) + technicians (आज के शेड्यूल सहित) + revenue (पिछले 7 दिन एकत्रीकरण), requireStoreId() अनिवार्य store_id अलगाव (स्टोर नहीं → 403)
+- service /api/v1/store-manager: overview (आज के ऑर्डर/राजस्व/चालू/तकनीशियन संख्या/वेरिफिकेशन संख्या) + orders (पेजिनेशन + स्थिति फ़िल्टर) + technicians (आज के शेड्यूल सहित) + revenue (पिछले 7 दिन एकत्रीकरण), requireStoreId() अनिवार्य store_id अलगाव (स्टोर नहीं → 403)
 - admin StoreController::workbenchOverview (GET /admin/stores/workbench-overview?store_id=, मापदंड service के अनुरूप) + AppointmentOrderController ऑर्डर सूची store_id फ़िल्टर (hashid डिकोड)
 - Flutter स्टोर वर्कबेंच पेज: स्टोर ड्रॉपडाउन + स्थिति फ़िल्टर + 5 अवलोकन कार्ड + ऑर्डर DataTable + पेजिनेशन (अनुमति 372)
 
@@ -498,7 +498,7 @@ Flutter Web एकल-पेज एप्लिकेशन, कुल 21 पे
 
 ### 21. अपॉइंटमेंट मासिक कैलेंडर (राउंड 20)
 
-- CalendarController मास/दिन दृश्य: GET /api/calendar/technician/{id} (मास दृश्य) + /day (दिन दृश्य)
+- CalendarController मास/दिन दृश्य: GET /api/v1/calendar/technician/{id} (मास दृश्य) + /day (दिन दृश्य)
 - डेटा स्रोत: technician_schedule.time_slots JSON सप्ताह के अनुसार घंटे-स्लॉट विस्तार, appointment_order उस दिन के बुक स्लॉट बहिष्करण (status ∈ pending/paid/confirmed/serving), शेष उपलब्ध स्लॉट आउटपुट
 - उपयोग: स्टोर शेड्यूल विज़ुअलाइज़ेशन समय चयन, फ्रंटएंड दिन के अनुसार क्षैतिज स्क्रॉल + समय ग्रिड चयन
 
@@ -506,20 +506,20 @@ Flutter Web एकल-पेज एप्लिकेशन, कुल 21 पे
 
 - appointment_user_growth (लॉग) + appointment_growth_level (टियर सीड 5 स्तर: कांस्य0/चांदी100/स्वर्ण500/प्लैटिनम2000/हीरा5000)
 - ग्रोथ पॉइंट्स जमा बिंदु: चेक-इन +10 (CheckInController); समीक्षा सबमिट +20 (ReviewController::store, अनुवर्ती जमा नहीं); उपभोग floor(paid) प्रति 1 युआन 1 पॉइंट (WechatPayService::markOrderPaid, मौजूदा भुगतान स्थिति पुनर्जाँच स्वाभाविक आइडेम्पोटेंट, डुप्लिकेट कॉलबैक पर डुप्लिकेट जमा नहीं)
-- इंटरफ़ेस: GET /api/growth (वर्तमान टियर अवलोकन: balance/level/अगले टियर का अंतर); GET /api/growth/records (लॉग पेजिनेशन); GET /api/growth/levels (सार्वजनिक टियर सूची, लॉगिन आवश्यक नहीं)
+- इंटरफ़ेस: GET /api/v1/growth (वर्तमान टियर अवलोकन: balance/level/अगले टियर का अंतर); GET /api/v1/growth/records (लॉग पेजिनेशन); GET /api/v1/growth/levels (सार्वजनिक टियर सूची, लॉगिन आवश्यक नहीं)
 - विफलता नीति: कोई भी जमा बिंदु try/catch लॉग, मुख्य प्रवाह प्रभावित नहीं
 
 ### 23. ई-इनवॉइस (राउंड 20)
 
 - appointment_invoice: uk_order_type(order_id,order_type) उसी ऑर्डर का डुप्लिकेट आवेदन रोकता है (डुप्लिकेट आवेदन 422, MySQL 1062 कैच बैकअप सहित); idx_user_created/idx_status
-- उपयोगकर्ता पक्ष: POST /api/invoices (आवेदन, राशि/शीर्षक सर्वर से ऑर्डर से लाई जाती है, छेड़छाड़ असंभव); GET /api/invoices (सूची); GET /api/invoices/{id} (विवरण)
+- उपयोगकर्ता पक्ष: POST /api/v1/invoices (आवेदन, राशि/शीर्षक सर्वर से ऑर्डर से लाई जाती है, छेड़छाड़ असंभव); GET /api/v1/invoices (सूची); GET /api/v1/invoices/{id} (विवरण)
 - प्रबंधन पक्ष: InvoiceController issue (जारी: invoice_no + status=issued + issued_at लिखना) / reject (अस्वीकार: status=rejected + reject_reason), अनुमति 382 सूची/383 जारी/384 अस्वीकार
 - स्टेट मशीन: pending → issued / rejected
 
 ### 24. ग्राहक सेवा टिकट (राउंड 20)
 
 - appointment_ticket: उपयोगकर्ता टिकट सबमिट (title/content), बैकएंड उत्तर जोड़ (reply_content/replied_at), उपयोगकर्ता बंद कर सकता है (closed_at)
-- उपयोगकर्ता पक्ष: POST /api/tickets (सबमिट); GET /api/tickets (सूची); GET /api/tickets/{id} (विवरण, केवल स्वयं); POST /api/tickets/{id}/close (बंद)
+- उपयोगकर्ता पक्ष: POST /api/v1/tickets (सबमिट); GET /api/v1/tickets (सूची); GET /api/v1/tickets/{id} (विवरण, केवल स्वयं); POST /api/v1/tickets/{id}/close (बंद)
 - प्रबंधन पक्ष: TicketController index (सूची)/ reply (उत्तर), स्थिर रूट resource परिभाषा से पहले {id} shadow से बचने के लिए; अनुमति 385 टिकट उत्तर/387 टिकट सूची देखना
 - स्टेट मशीन: open → replied (उत्तर के बाद open पर वापस, दोबारा उत्तर संभव) / closed
 
@@ -535,12 +535,12 @@ Flutter Web एकल-पेज एप्लिकेशन, कुल 21 पे
 - GrowthLevel.benefits JSON शेल लागू: माइग्रेशन सीड 5 टियर (कांस्य {"discount_rate":1.0,"points_multiplier":1.0}, चांदी 0.98/1.1, स्वर्ण 0.95/1.2, प्लैटिनम 0.92/1.3, हीरा 0.9/1.5)
 - टियर छूट: OrderController::store applyGrowthDiscount() — केवल मानक ऑर्डर (promotion_id खाली, समूह खरीद/सेकिल स्टैकिंग अक्षम); क्रम: कूपन/सेशन कार्ड छूट के बाद देय राशि × discount_rate; छूट राशि discount_amount में, ऑर्डर टिप्पणी में "टियर छूट: चांदी 9.8 छूट, बचत ¥2.00" ट्रेस करने योग्य; न्यूनतम मूल्य सुरक्षा: छूट के बाद वास्तविक भुगतान ≥0.01 युआन (पैसे में ≥100), कमी पर छूट 0 पर कट |
 - पॉइंट्स गुणक: WechatPayService::markOrderPaid ग्रोथ पॉइंट्स floor(paid) से floor(paid × points_multiplier), गुणक भुगतान समय के टियर से लिया (जमा से पहले संचयी, इस ऑर्डर से टियर नहीं बढ़ता); R20 के try/catch हुक बिंदु पूर्ण बरकरार
-- क्वेरी पुनः उपयोग: GrowthLevel::levelForGrowth() संचयी ग्रोथ पॉइंट्स के अनुसार टियर, ऑर्डर/भुगतान पुनः उपयोग के लिए; GET /api/growth पहले से benefits और next_gap लौटाता है (R20 कार्यान्वयन, बदलाव आवश्यक नहीं)
+- क्वेरी पुनः उपयोग: GrowthLevel::levelForGrowth() संचयी ग्रोथ पॉइंट्स के अनुसार टियर, ऑर्डर/भुगतान पुनः उपयोग के लिए; GET /api/v1/growth पहले से benefits और next_gap लौटाता है (R20 कार्यान्वयन, बदलाव आवश्यक नहीं)
 
 ### 27. इनवॉइस शीर्षक प्रबंधन (राउंड 21)
 
 - appointment_invoice_title (uk_user_title(user_id, title_type, invoice_title) डुप्लिकेट-रोधी + idx_user_default)
-- इंटरफ़ेस: POST /api/invoice-titles (सहेजें, company के लिए tax_no अनिवार्य, डुप्लिकेट 422); GET (सूची, डिफ़ॉल्ट शीर्ष); PUT /{id} (संपादन, केवल स्वयं); DELETE /{id} (हटाना, केवल स्वयं); POST /{id}/default (डिफ़ॉल्ट सेट, ट्रांज़ैक्शन में उसी उपयोगकर्ता की अन्य पंक्तियाँ शून्य)
+- इंटरफ़ेस: POST /api/v1/invoice-titles (सहेजें, company के लिए tax_no अनिवार्य, डुप्लिकेट 422); GET (सूची, डिफ़ॉल्ट शीर्ष); PUT /{id} (संपादन, केवल स्वयं); DELETE /{id} (हटाना, केवल स्वयं); POST /{id}/default (डिफ़ॉल्ट सेट, ट्रांज़ैक्शन में उसी उपयोगकर्ता की अन्य पंक्तियाँ शून्य)
 - डिफ़ॉल्ट नियम: पहली सहेजी पंक्ति स्वतः डिफ़ॉल्ट; डिफ़ॉल्ट हटाने पर स्वतः सबसे पुरानी पंक्ति
 - आवेदन समन्वय: InvoiceController::store वैकल्पिक title_id शीर्षक पार्स कर invoice_title/tax_no/title_type में लाता है, title_id न होने पर मूल मैन्युअल भरने का पथ बरकरार; uk_order_type डुप्लिकेट-रोधी लॉजिक अपरिवर्तित
 
@@ -561,19 +561,19 @@ Flutter Web एकल-पेज एप्लिकेशन, कुल 21 पे
 
 - appointment_browse_history (uk_user_item(user_id, item_id) अद्वितीय, डुप्लिकेट ब्राउज़ केवल viewed_at अपडेट, डुप्लिकेट सम्मिलन नहीं; idx_user_viewed क्रमबद्धता)
 - रिकॉर्ड हुक: ServiceController::detail() सफलता के बाद रिकॉर्ड (try/catch + Log::warning मुख्य प्रवाह प्रभावित नहीं; सार्वजनिक रूट बिना JWT, user_id खाली पर अनाम छोड़ें)
-- इंटरफ़ेस: GET /api/browse-history (appointment_service नाम/कवर/कीमत/मूल कीमत join, viewed_at उल्टा क्रम, per_page डिफ़ॉल्ट 15 अधिकतम 50, item_id hashid); DELETE /{item_id} (केवल स्वयं, अवैध/अन्य 404); DELETE / (सभी हटाना केवल स्वयं)
+- इंटरफ़ेस: GET /api/v1/browse-history (appointment_service नाम/कवर/कीमत/मूल कीमत join, viewed_at उल्टा क्रम, per_page डिफ़ॉल्ट 15 अधिकतम 50, item_id hashid); DELETE /{item_id} (केवल स्वयं, अवैध/अन्य 404); DELETE / (सभी हटाना केवल स्वयं)
 
 ### 31. फुल-रिडक्शन मार्केटिंग (राउंड 22)
 
 - appointment_full_reduction_activity (threshold/reduction/title/status/start_at/end_at + idx_status_status_time)
 - ऑर्डर स्टैकिंग: केवल मानक ऑर्डर (समूह खरीद/सेकिल छोड़ें), कूपन/सेशन कार्ड छूट के बाद देय राशि से थ्रेशहोल्ड निर्णय, क्रम **कूपन/सेशन कार्ड → फुल-रिडक्शन → टियर छूट**; सबसे बड़ी कटौती वाली गतिविधि लें; छूट राशि discount_amount + टिप्पणी "फुल-रिडक्शन: X पूरा करने पर Y कटौती"; फुल-रिडक्शन के बाद वास्तविक भुगतान न्यूनतम 0.01 युआन (पैसे में)
-- उपयोगकर्ता पक्ष GET /api/full-reduction-activities (सार्वजनिक, चालू में कटौती राशि उल्टे क्रम)
+- उपयोगकर्ता पक्ष GET /api/v1/full-reduction-activities (सार्वजनिक, चालू में कटौती राशि उल्टे क्रम)
 - admin FullReductionController: CRUD + toggle-status ऑन-ऑफ शेल्फ (destroy confirmPassword सहित)
 - अनुमतियाँ: 396 सूची / 397 जोड़ना / 398 संपादन / 399 ऑन-ऑफ शेल्फ / 400 हटाना (एक अनुमति रिकॉर्ड केवल एक method.path slug से मेल, 5 रूट 5 पंक्तियाँ)
 
 ### 32. मेरे अपॉइंटमेंट ICS निर्यात (राउंड 22)
 
-- IcsController GET /api/order/ics: 90 दिनों के भीतर pending/paid/confirmed/serving ऑर्डर iCal (RFC5545) निर्यात, केवल स्वयं
+- IcsController GET /api/v1/order/ics: 90 दिनों के भीतर pending/paid/confirmed/serving ऑर्डर iCal (RFC5545) निर्यात, केवल स्वयं
 - VEVENT: UID=ऑर्डर ID, DTSTAMP(UTC), TZID=Asia/Shanghai, डिफ़ॉल्ट अवधि 1h, सारांश "अपॉइंटमेंट: सेवा नाम" (अनुपलब्ध पर "अपॉइंटमेंट" डिग्रेड), विवरण तकनीशियन/स्टोर/पता (अनुपलब्ध छोड़ें), LOCATION; पाठ एस्केप (\, \; \\ \n) + 75 बाइट पंक्ति फोल्डिंग
 - कोई ऑर्डर नहीं होने पर वैध खाली कैलेंडर (`BEGIN:VCALENDAR` ढाँचा)
 
@@ -599,59 +599,59 @@ Flutter Web एकल-पेज एप्लिकेशन, कुल 21 पे
 
 ### 36. गोपनीयता अनुपालन (राउंड 22)
 
-- GET /api/privacy/data: डेटा निर्यात (personal/orders/points/wallet_txns/reviews/addresses/invoices समूहीकृत; लॉग केवल मास्क मोबाइल नंबर + संख्या)
+- GET /api/v1/privacy/data: डेटा निर्यात (personal/orders/points/wallet_txns/reviews/addresses/invoices समूहीकृत; लॉग केवल मास्क मोबाइल नंबर + संख्या)
 - विलोपन बंद-लूप: close-request (बैलेंस गैर-0 / अपूर्ण ऑर्डर / चालू टिकट 422 → close_status=1) → close-cancel (1→0) → close-confirm (72h पूर्ण → close_status=2 + close_at + phone/nickname अनाम user{id} + status=0)
 - appointment_user में close_status/close_requested_at/close_at (आइडेम्पोटेंट ALTER माइग्रेशन); AuthController login/loginByCode close_status=2 पर 403 "खाता विलोपित" लौटाता है
 
 ### 37. उपयोगकर्ता स्वास्थ्य प्रोफ़ाइल (राउंड 23)
 
-- GET/PUT/DELETE /api/health-profile: एक व्यक्ति एक प्रोफ़ाइल (uk_user अद्वितीय इंडेक्स), upsert केवल दिए गए फ़ील्ड अपडेट करता है
+- GET/PUT/DELETE /api/v1/health-profile: एक व्यक्ति एक प्रोफ़ाइल (uk_user अद्वितीय इंडेक्स), upsert केवल दिए गए फ़ील्ड अपडेट करता है
 - allergies/health_notes अधिकतम 500 वर्ण, preferred_technician_id अस्तित्व सत्यापन, प्रतिक्रिया hashid एन्कोडिंग
 - माइग्रेशन 000504_user_health_profile; HealthProfileTest 6 tests
 
 ### 38. वॉलेट भुगतान पासवर्ड (राउंड 23)
 
-- POST /api/wallet/pay-password/{set,verify,check}: 6-अंकीय सत्यापन, password_hash संग्रहण + pay_password_set_at
+- POST /api/v1/wallet/pay-password/{set,verify,check}: 6-अंकीय सत्यापन, password_hash संग्रहण + pay_password_set_at
 - पहले से सेट होने पर बदलाव के लिए पुराना पासवर्ड 422; verify केवल सत्यापन, संग्रहण नहीं; check क्या सेट है लौटाता है
 - माइग्रेशन 000502 (INFORMATION_SCHEMA आइडेम्पोटेंट ALTER दो कॉलम); WalletPayPasswordTest 7 tests
 
 ### 39. तकनीशियन बैच शेड्यूलिंग (राउंड 23)
 
-- POST /api/technician/schedule/batch: तिथि सीमा ≤7 दिन + weekdays फ़िल्टर, मौजूदा शेड्यूल वाले दिन छोड़ें
+- POST /api/v1/technician/schedule/batch: तिथि सीमा ≤7 दिन + weekdays फ़िल्टर, मौजूदा शेड्यूल वाले दिन छोड़ें
 - एकल सेटिंग में भी समय स्लॉट ओवरलैप पहचान सक्षम (422 "मौजूदा शेड्यूल समय से संघर्ष: HH:MM-HH:MM")
 - ScheduleConflictTest 5 tests
 
 ### 40. ऑर्डर स्थिति टाइमलाइन (राउंड 23)
 
-- GET /api/order/{id}/timeline: केवल स्वयं देख सकता है (अन्य 404), उल्टा क्रम लौटाता है; admin ऑर्डर विवरण में timeline सरणी समाहित
+- GET /api/v1/order/{id}/timeline: केवल स्वयं देख सकता है (अन्य 404), उल्टा क्रम लौटाता है; admin ऑर्डर विवरण में timeline सरणी समाहित
 - OrderStatusLog::record() स्थैतिक ट्रैक 8 प्रकार के परिवर्तन: सबमिट/भुगतान/रद्द/कन्फर्म/रिफंड आवेदन/रिफंड पास/सेवा शुरू/सेवा पूर्ण/टाइमआउट स्वतः रद्द/बैकएंड संचालन (operator=admin)
 - भुगतान कॉलबैक markOrderPaid एकमात्र उपभोग बिंदु; record() आंतरिक try/catch + Log::warning कभी मुख्य प्रवाह बाधित नहीं
 - माइग्रेशन 000501_order_status_log; OrderTimelineTest 4 tests
 
 ### 41. पॉइंट्स लकी व्हील (राउंड 23)
 
-- GET /api/wheel/prizes (weight/stock छिपा); POST /api/wheel/spin: Redis NX + रो-लॉक समवर्ती-रोधी, random_int वेटेड ड्रॉ, client_token आइडेम्पोटेंसी
+- GET /api/v1/wheel/prizes (weight/stock छिपा); POST /api/v1/wheel/spin: Redis NX + रो-लॉक समवर्ती-रोधी, random_int वेटेड ड्रॉ, client_token आइडेम्पोटेंसी
 - पुरस्कार जमा: पॉइंट्स→earn लॉग (समाप्ति समय सहित, PointsExpiryTimer सामान्य रूप से समाप्त कर सकता है), बैलेंस→lockForUpdate, कूपन→pending मैन्युअल जारी, कोई पुरस्कार→lose
-- GET /api/wheel/records मेरे रिकॉर्ड पेजिनेशन; admin /admin/lucky-wheel CRUD + ऑन-ऑफ शेल्फ + रिकॉर्ड (अनुमति 401-406)
+- GET /api/v1/wheel/records मेरे रिकॉर्ड पेजिनेशन; admin /admin/lucky-wheel CRUD + ऑन-ऑफ शेल्फ + रिकॉर्ड (अनुमति 401-406)
 - माइग्रेशन 000503 (appointment_lucky_wheel + appointment_wheel_record + w60/w40 डेमो सीड) + 000505 (अनुमति सीड); LuckyWheelTest admin 3 + service 6 tests
 
 ### 42. गेस्ट मोड (राउंड 24)
 
-- GET /api/guest/{home,services,services/{id},stores,technicians}: बिना प्रमाणीकरण (केवल ApiVersion मिडलवेयर) के लॉगिन-रहित ब्राउज़िंग प्रवेश
+- GET /api/v1/guest/{home,services,services/{id},stores,technicians}: बिना प्रमाणीकरण (सार्वजनिक इंटरफ़ेस) के लॉगिन-रहित ब्राउज़िंग प्रवेश
 - home एकत्रित कैरोसेल/घोषणा/सेवा श्रेणियाँ/लोकप्रिय सेवाएँ, Redis कैश svc:guest:home 300s; services श्रेणी फ़िल्टर + newest/sales/price क्रमबद्धता समर्थन (page/per_page≤50); technicians केवल ऑडिट पास, service_id फ़िल्टर योग्य, रेटिंग उल्टा क्रम
 - GuestControllerTest कवरेज
 
 ### 43. सेकिल (राउंड 24)
 
 - appointment_seckill_activity (name/service_id/seckill_price/original_price/stock/start_at/end_at/status); बिक्री मात्रा = appointment_order.seckill_id ऑर्डर संख्या
-- GET /api/seckill (status=1 + समय विंडो), /{id} (state=not_started/ongoing/ended), POST /{id}/buy: client_token (8-64 वर्ण, SETNX 24h) आइडेम्पोटेंसी + Redis NX 30s समवर्ती-रोधी + गतिविधि सत्यापन (2026-08-26 से स्टॉक पूर्व-घटाव नहीं)
-- ऑर्डर में seckill_id इंजेक्ट कर OrderController::store पुनः उपयोग; स्टॉक एकीकृत रूप से store() ट्रांज़ैक्शन के भीतर रो-लॉक घटाव (सीधे /api/order को seckill_id के साथ कॉल करने पर भी स्टॉक घटता है), सेकिल मूल्य = seckill_price (DB आधारित), कूपन/पॉइंट्स/सदस्यता कार्ड स्टैकिंग नहीं; ऑर्डर रद्द करने पर स्टॉक वापस नहीं; पुराना प्रोमो FLASH_SALE चैनल हटाया गया (store() प्रोमो शाखा में केवल समूह खरीद, PromotionController index flash_sale फ़िल्टर, show/join 400), सेकिल केवल इस चैनल से
+- GET /api/v1/seckill (status=1 + समय विंडो), /{id} (state=not_started/ongoing/ended), POST /{id}/buy: client_token (8-64 वर्ण, SETNX 24h) आइडेम्पोटेंसी + Redis NX 30s समवर्ती-रोधी + गतिविधि सत्यापन (2026-08-26 से स्टॉक पूर्व-घटाव नहीं)
+- ऑर्डर में seckill_id इंजेक्ट कर OrderController::store पुनः उपयोग; स्टॉक एकीकृत रूप से store() ट्रांज़ैक्शन के भीतर रो-लॉक घटाव (सीधे /api/v1/order को seckill_id के साथ कॉल करने पर भी स्टॉक घटता है), सेकिल मूल्य = seckill_price (DB आधारित), कूपन/पॉइंट्स/सदस्यता कार्ड स्टैकिंग नहीं; ऑर्डर रद्द करने पर स्टॉक वापस नहीं; पुराना प्रोमो FLASH_SALE चैनल हटाया गया (store() प्रोमो शाखा में केवल समूह खरीद, PromotionController index flash_sale फ़िल्टर, show/join 400), सेकिल केवल इस चैनल से
 - admin /admin/seckill CRUD + ऑन-ऑफ शेल्फ + ऑर्डर सूची (अनुमति 407-411, 420); माइग्रेशन 000606 अनुमति सीड; SeckillTest service + admin
 
 ### 44. APP संस्करण प्रबंधन और अपडेट जाँच (राउंड 24)
 
 - appointment_app_version (platform/version_code/version_name/force_update/changelog/download_url/status)
-- GET /api/app/version?platform=android|ios सार्वजनिक अपडेट जाँच (platform अवैध 422; status=1 में नवीनतम; कोई नहीं तो खाली वस्तु)
+- GET /api/v1/app/version?platform=android|ios सार्वजनिक अपडेट जाँच (platform अवैध 422; status=1 में नवीनतम; कोई नहीं तो खाली वस्तु)
 - admin /admin/versions CRUD (अनुमति 416-419); माइग्रेशन 000609 अनुमति सीड; VersionTest service + admin
 
 ### 45. रिटर्न-कस्टमर पुरस्कार (राउंड 24)

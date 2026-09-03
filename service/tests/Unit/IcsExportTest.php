@@ -39,7 +39,7 @@ class IcsExportTest extends TestCase
         $head = "Host: localhost\r\n"
             . "Content-Type: application/x-www-form-urlencoded\r\n"
             . "Content-Length: 0\r\n";
-        return new Request("GET /api/order/ics HTTP/1.1\r\n" . $head . "\r\n");
+        return new Request("GET /api/v1/order/ics HTTP/1.1\r\n" . $head . "\r\n");
     }
 
     private function export(string $userId): Response

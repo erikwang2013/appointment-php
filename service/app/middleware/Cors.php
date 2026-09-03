@@ -29,7 +29,7 @@ class Cors implements MiddlewareInterface
         $response->withHeaders([
             'Access-Control-Allow-Origin' => $this->resolveAllowedOrigin($request),
             'Access-Control-Allow-Methods' => 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
-            'Access-Control-Allow-Headers' => 'Authorization, Content-Type, X-Requested-With, API-Version, Accept, Origin, X-CSRF-Token',
+            'Access-Control-Allow-Headers' => 'Authorization, Content-Type, X-Requested-With, Accept, Origin, X-CSRF-Token',
             'Access-Control-Max-Age' => '86400',
         ]);
 

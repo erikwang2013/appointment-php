@@ -17,9 +17,8 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final _usernameCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController();
-  static final _headers = {'API-Version': 'v1'};
-  final _dio = Dio(BaseOptions(baseUrl: ApiService.baseUrl, headers: _headers));
-  final _captcha = CaptchaService(Dio(BaseOptions(baseUrl: ApiService.baseUrl, headers: _headers)));
+  final _dio = Dio(BaseOptions(baseUrl: ApiService.baseUrl));
+  final _captcha = CaptchaService(Dio(BaseOptions(baseUrl: ApiService.baseUrl)));
 
   bool _loading = false;
   String? _error;
@@ -89,7 +88,7 @@ class _LoginPageState extends State<LoginPage> {
     setState(() => _loading = true);
 
     try {
-      final resp = await _dio.post('/api/auth/login', data: {
+      final resp = await _dio.post('/api/v1/auth/login', data: {
         'username': username,
         'password': password,
         'captcha_key': _captchaData!.key,

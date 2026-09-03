@@ -126,13 +126,13 @@ php start.php start -d
 
 ```bash
 # API de negocio
-curl http://localhost:8787/api/common/config
+curl http://localhost:8787/api/v1/common/config
 
 # Comprobación de salud del panel de administración
 curl http://localhost:8787/health
 
 # Inicio de sesión en el panel de administración (cuenta y contraseña predeterminadas abajo)
-curl -X POST http://localhost:8787/api/auth/login \
+curl -X POST http://localhost:8787/api/v1/auth/login \
   -H "Content-Type: application/json" \
   -d '{"username":"admin","password":"admin123"}'
 ```

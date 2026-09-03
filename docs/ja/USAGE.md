@@ -99,7 +99,7 @@ ws://localhost:8282
 iOS(APNs): apns_key_id/team_id/bundle_id/.p8ファイル を設定  
 Android(FCM): fcm_server_key を設定
 
-APPデバイス登録: `POST /api/user/device/register {"platform":"ios","device_token":"..."}`
+APPデバイス登録: `POST /api/v1/user/device/register {"platform":"ios","device_token":"..."}`
 
 ---
 

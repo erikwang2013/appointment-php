@@ -6,7 +6,7 @@
 - **واجهات الأعمال** (service/): `http://localhost:8787` — توفر واجهات الأعمال لبرنامج WeChat الصغير والتطبيق
 - **واجهات لوحة الإدارة** (admin/): `http://localhost:8787` — توفر الواجهات لـ Flutter Web الخاص بلوحة الإدارة
 - **طريقة المصادقة**: Bearer Token (JWT)، ترويسة الطلب `Authorization: Bearer <token>`
-- **التحكم بالإصدارات**: عبر ترويسة الطلب `API-Version: v1`، ولا تظهر في URL. الافتراضي v1
+- **التحكم بالإصدارات**: الإصدار مُثبَّت في بادئة مسار URL `/api/v1` (مثل `POST /api/v1/auth/login`)، وURL بدون بادئة الإصدار يُرجع 404
 - **ترميز المعرّفات**: جميع حقول المعرّفات في الطلبات/الاستجابات مشفرة بـ hashids، لإخفاء معرّفات قاعدة البيانات الحقيقية خارجيًا
 - **وثائق OpenAPI**: تُولَّد عبر `hg/apidoc`، منفصلة للوحة الإدارة والعميل
 
@@ -50,7 +50,7 @@
 
 #### 1.1 رمز التحقق
 
-**`POST /api/captcha/send`** — إرسال رمز تحقق بالرسائل النصية
+**`POST /api/v1/captcha/send`** — إرسال رمز تحقق بالرسائل النصية
 
 الطلب:
 ```json
@@ -66,7 +66,7 @@
 
 #### 1.2 المصادقة
 
-**`POST /api/auth/register`** — التسجيل برقم الهاتف
+**`POST /api/v1/auth/register`** — التسجيل برقم الهاتف
 
 الطلب:
 ```json
@@ -99,7 +99,7 @@
 
 ---
 
-**`POST /api/auth/login`** — تسجيل الدخول بكلمة المرور
+**`POST /api/v1/auth/login`** — تسجيل الدخول بكلمة المرور
 
 الطلب:
 ```json
@@ -112,7 +112,7 @@
 
 ---
 
-**`POST /api/auth/login-by-code`** — تسجيل الدخول برمز التحقق
+**`POST /api/v1/auth/login-by-code`** — تسجيل الدخول برمز التحقق
 
 الطلب:
 ```json
@@ -125,7 +125,7 @@
 
 ---
 
-**`POST /api/auth/forget-password`** — نسيت كلمة المرور
+**`POST /api/v1/auth/forget-password`** — نسيت كلمة المرور
 
 الطلب:
 ```json
@@ -139,7 +139,7 @@
 
 ---
 
-**`POST /api/auth/refresh`** — تحديث Token
+**`POST /api/v1/auth/refresh`** — تحديث Token
 
 ترويسة الطلب: `Authorization: Bearer <旧token>`
 الاستجابة: `{"code":0,"data":{"token":"eyJhbGciOi..."}}`
@@ -148,20 +148,20 @@
 
 #### 1.3 WeChat
 
-**`POST /api/wechat/mini-login`** — تسجيل دخول برنامج WeChat الصغير
+**`POST /api/v1/wechat/mini-login`** — تسجيل دخول برنامج WeChat الصغير
 
 الطلب: `{"code":"微信登录code"}`
-الوصف: عند أول تسجيل دخول يلزم لاحقًا استدعاء `/api/wechat/phone` لربط رقم الهاتف.
+الوصف: عند أول تسجيل دخول يلزم لاحقًا استدعاء `/api/v1/wechat/phone` لربط رقم الهاتف.
 
 ---
 
-**`POST /api/wechat/phone`** — ربط رقم الهاتف
+**`POST /api/v1/wechat/phone`** — ربط رقم الهاتف
 
 الطلب: `{"code":"微信手机号组件code"}`
 
 ---
 
-**`POST /api/wechat/oa-login`** — تسجيل دخول الحساب الرسمي
+**`POST /api/v1/wechat/oa-login`** — تسجيل دخول الحساب الرسمي
 
 الطلب: `{"code":"公众号授权code"}`
 
@@ -169,39 +169,39 @@
 
 #### 1.4 الخدمات العامة
 
-**`GET /api/common/config`** — الإعدادات العامة
+**`GET /api/v1/common/config`** — الإعدادات العامة
 
 الاستجابة: تتضمن نصوص الاتفاقيات (اتفاقية المستخدم/اتفاقية الخصوصية/اتفاقية الخدمة) ومعلومات «من نحن» ورقم الإصدار.
 
 ---
 
-**`GET /api/common/area`** — قائمة مناطق المدن
+**`GET /api/v1/common/area`** — قائمة مناطق المدن
 
 ---
 
 #### 1.5 الاستعلام عن الخدمات
 
-**`GET /api/service/categories`** — قائمة التصنيفات
+**`GET /api/v1/service/categories`** — قائمة التصنيفات
 
 المعلمات: `?parent_id=0`
 
 ---
 
-**`GET /api/service/items`** — قائمة مشاريع الخدمة
+**`GET /api/v1/service/items`** — قائمة مشاريع الخدمة
 
 المعلمات: `?category_id=&page=1&per_page=10&sort=sales`
 
 ---
 
-**`GET /api/service/detail/{id}`** — تفاصيل الخدمة
+**`GET /api/v1/service/detail/{id}`** — تفاصيل الخدمة
 
 تتضمن الاستجابة: الصور/الاسم/السعر/المواصفات/المدة/المبيعات/قائمة التقييمات.
 
 ---
 
-**`GET /api/service/products`** — قائمة المنتجات
+**`GET /api/v1/service/products`** — قائمة المنتجات
 
-**`GET /api/service/stores`** — قائمة المتاجر
+**`GET /api/v1/service/stores`** — قائمة المتاجر
 
 المعلمات: `?lat=&lng=&city=`
 
@@ -209,20 +209,20 @@
 
 #### 1.6 الاستعلام عن الفنيين
 
-**`GET /api/technician/list`** — قائمة الفنيين
+**`GET /api/v1/technician/list`** — قائمة الفنيين
 
 المعلمات: `?lat=&lng=&service_id=&page=1`
 مرتبة حسب المسافة من الأقرب إلى الأبعد، وتُرجع: الصورة الرمزية/الاسم/التقييم/عدد الطلبات/عدد المفضلة/المسافة/أقرب وقت حجز/قابلية الخدمة.
 
 ---
 
-**`GET /api/technician/detail/{id}`** — تفاصيل الفني
+**`GET /api/v1/technician/detail/{id}`** — تفاصيل الفني
 
 تتضمن الاستجابة: الصور/الاسم/التعريف/التقييم/المسافة/قائمة المشاريع القابلة للخدمة/التقييمات.
 
 ---
 
-**`GET /api/technician/schedule/{id}`** — جدول مواعيد الفني
+**`GET /api/v1/technician/schedule/{id}`** — جدول مواعيد الفني
 
 المعلمات: `?date=2026-05-26`
 تُرجع الفترات الزمنية القابلة للحجز في ذلك التاريخ وحالة توفرها.
@@ -231,25 +231,25 @@
 
 #### 1.7 المحتوى
 
-**`GET /api/content/banners`** — الشرائح الدوارة
+**`GET /api/v1/content/banners`** — الشرائح الدوارة
 
 المعلمات: `?position=home`
 
-**`GET /api/content/articles`** — قائمة الإعلانات/المقالات
+**`GET /api/v1/content/articles`** — قائمة الإعلانات/المقالات
 
 المعلمات: `?type=announcement&page=1`
 
-**`GET /api/content/article/{id}`** — تفاصيل المقالة
+**`GET /api/v1/content/article/{id}`** — تفاصيل المقالة
 
 ---
 
 #### 1.8 LBS
 
-**`GET /api/lbs/nearby-stores`** — المتاجر القريبة
+**`GET /api/v1/lbs/nearby-stores`** — المتاجر القريبة
 
 المعلمات: `?lat=&lng=&radius=5000`
 
-**`GET /api/lbs/geocode`** — الترميز الجغرافي العكسي
+**`GET /api/v1/lbs/geocode`** — الترميز الجغرافي العكسي
 
 المعلمات: `?lat=&lng=`
 
@@ -263,13 +263,13 @@
 
 | الطريقة | المسار | الوصف |
 |------|------|------|
-| GET | `/api/user/profile` | الحصول على المعلومات الشخصية |
-| PUT | `/api/user/profile` | تحديث اللقب/الصورة الرمزية/الجنس |
-| POST | `/api/user/change-password` | تغيير كلمة المرور (old_password/new_password/confirm_password) |
-| POST | `/api/user/change-phone` | تغيير رقم الهاتف المرتبط (old_code/new_phone/new_code) |
-| POST | `/api/user/cancel-account` | إلغاء الحساب (يتطلب التحقق من كلمة المرور) |
-| POST | `/api/user/logout` | تسجيل الخروج (يُضاف token إلى القائمة السوداء) |
-| POST | `/api/user/switch-role` | تبديل الهوية (role: customer/technician) |
+| GET | `/api/v1/user/profile` | الحصول على المعلومات الشخصية |
+| PUT | `/api/v1/user/profile` | تحديث اللقب/الصورة الرمزية/الجنس |
+| POST | `/api/v1/user/change-password` | تغيير كلمة المرور (old_password/new_password/confirm_password) |
+| POST | `/api/v1/user/change-phone` | تغيير رقم الهاتف المرتبط (old_code/new_phone/new_code) |
+| POST | `/api/v1/user/cancel-account` | إلغاء الحساب (يتطلب التحقق من كلمة المرور) |
+| POST | `/api/v1/user/logout` | تسجيل الخروج (يُضاف token إلى القائمة السوداء) |
+| POST | `/api/v1/user/switch-role` | تبديل الهوية (role: customer/technician) |
 
 التبديل إلى technician يتطلب وجود ملف فني بحالة approved.
 
@@ -277,11 +277,11 @@
 
 | الطريقة | المسار | الوصف |
 |------|------|------|
-| GET | `/api/user/addresses` | قائمة العناوين |
-| POST | `/api/user/addresses` | إضافة عنوان (contact_name/contact_phone/province/city/district/detail/lat/lng/is_default) |
-| GET | `/api/user/addresses/{id}` | تفاصيل العنوان |
-| PUT | `/api/user/addresses/{id}` | تحديث العنوان |
-| DELETE | `/api/user/addresses/{id}` | حذف العنوان |
+| GET | `/api/v1/user/addresses` | قائمة العناوين |
+| POST | `/api/v1/user/addresses` | إضافة عنوان (contact_name/contact_phone/province/city/district/detail/lat/lng/is_default) |
+| GET | `/api/v1/user/addresses/{id}` | تفاصيل العنوان |
+| PUT | `/api/v1/user/addresses/{id}` | تحديث العنوان |
+| DELETE | `/api/v1/user/addresses/{id}` | حذف العنوان |
 
 عند التعيين كافتراضي تُلغى العناوين الافتراضية الأخرى تلقائيًا.
 
@@ -289,22 +289,22 @@
 
 | الطريقة | المسار | الوصف |
 |------|------|------|
-| GET | `/api/user/favorites` | قائمة المفضلة (?type=service/technician) |
-| POST | `/api/user/favorites` | إضافة إلى المفضلة (target_type/target_id) |
-| DELETE | `/api/user/favorites/{id}` | إلغاء التفضيل |
+| GET | `/api/v1/user/favorites` | قائمة المفضلة (?type=service/technician) |
+| POST | `/api/v1/user/favorites` | إضافة إلى المفضلة (target_type/target_id) |
+| DELETE | `/api/v1/user/favorites/{id}` | إلغاء التفضيل |
 
 #### 2.4 الملاحظات
 
-`POST /api/user/feedback` — إرسال ملاحظات (content + مصفوفة images)
+`POST /api/v1/user/feedback` — إرسال ملاحظات (content + مصفوفة images)
 
 #### 2.5 الترويج والإحالة
 
 | الطريقة | المسار | الوصف |
 |------|------|------|
-| GET | `/api/user/referral` | معلومات الترويج (رمز الإحالة/عدد المدعوين/عدد أصحاب الطلبات الأولى/النقاط المكتسبة) |
-| GET | `/api/user/referral/qrcode` | رمز الترويج (رمز الإحالة + رابط الدعوة) |
-| GET | `/api/user/referral/referred-users` | قائمة المستخدمين المُحالين |
-| GET | `/api/user/referral/earnings` | تفاصيل عمولات التوزيع (ترقيم: لقب المُحال/الصورة الرمزية/رقم الطلب/المبلغ/وقت الصرف) |
+| GET | `/api/v1/user/referral` | معلومات الترويج (رمز الإحالة/عدد المدعوين/عدد أصحاب الطلبات الأولى/النقاط المكتسبة) |
+| GET | `/api/v1/user/referral/qrcode` | رمز الترويج (رمز الإحالة + رابط الدعوة) |
+| GET | `/api/v1/user/referral/referred-users` | قائمة المستخدمين المُحالين |
+| GET | `/api/v1/user/referral/earnings` | تفاصيل عمولات التوزيع (ترقيم: لقب المُحال/الصورة الرمزية/رقم الطلب/المبلغ/وقت الصرف) |
 
 **عمولة التوزيع**: تُصرف بعد اكتمال (completed) أول طلب للمُحال، المبلغ = paid_amount × reward_rate (appointment_system_config referral.reward_rate، الافتراضي 0.05، والقيمة غير القانونية تعود إلى الثابت). قفل صف + فحص rewarded_at فارغ + إعادة فحص أول طلب (ثلاثي منع التكرار)؛ التسجيل في WalletTxn بنوع referral_reward.
 
@@ -312,8 +312,8 @@
 
 | الطريقة | المسار | الوصف |
 |------|------|------|
-| POST | `/api/user/points/transfer` | إهداء النقاط (to_user_id hashid/points) |
-| GET | `/api/user/points/transfers` | سجلات الإهداء (?direction=sent/received&page=1) |
+| POST | `/api/v1/user/points/transfer` | إهداء النقاط (to_user_id hashid/points) |
+| GET | `/api/v1/user/points/transfers` | سجلات الإهداء (?direction=sent/received&page=1) |
 
 **إهداء النقاط**: فك hashid للمستلم + التحقق من الوجود 404، إهداء النفس 422، النقاط 1-10000 422، عدم كفاية الرصيد عبر SUM 422، حد يومي تراكمي 10000 422. حماية التزامن: قفل Redis NX points_transfer:{user} لمدة 30 ثانية → داخل المعاملة lockForUpdate على آخر سطرَي العمليات للطرفين (بترتيب تصاعدي user_id لمنع الجمود المتبادل) → إعادة فحص الرصيد/الحد/المستلم داخل القفل. مواصفات العمليات: المرسِل type=consume/source=points_transfer بقيمة سالبة (balance=لقطة السطر السابق-هذه الدفعة)، والمستلم type=earn/source=points_transfer بقيمة موجبة تتضمن expires_at (يمكن لـ PointsExpiryTimer إبطالها بشكل طبيعي)؛ بعد commit إشعار داخلي للمستلم type='points_received' (الفشل فقط warn).
 
@@ -321,8 +321,8 @@
 
 | الطريقة | المسار | الوصف |
 |------|------|------|
-| GET | `/api/user/notify-settings` | الاستعلام عن مفاتيح الإشعارات (5 فئات كاملة) |
-| PUT | `/api/user/notify-settings` | تحديث جماعي للمفاتيح (types: {service_reminder: 0/1, ...}) |
+| GET | `/api/v1/user/notify-settings` | الاستعلام عن مفاتيح الإشعارات (5 فئات كاملة) |
+| PUT | `/api/v1/user/notify-settings` | تحديث جماعي للمفاتيح (types: {service_reminder: 0/1, ...}) |
 
 **مفاتيح الإشعارات**: جدول appointment_user_notify_setting (مفتاح مركب فريد user_id+type، السطر المفقود=مفتوح افتراضيًا). 5 فئات: service_reminder تذكير الخدمة / card_expiry تذكير الانتهاء (موحدة للبطاقات والكوبونات) / points_expiry انتهاء النقاط / marketing تسويقي (محجوز) / system نظامي (لا يُغلق، PUT يفرضه 1). التحكم: notifySettingEnabled مربوط بعمليات 3 مؤقتات ServiceReminderTimer/ExpiryReminderTimer/PointsExpiryTimer + رسم خرائط سيناريوهات أحداث الاشتراك (PAY/REFUND/VERIFIED/RESCHEDULE→system يُرسل دائمًا، REMINDER→service_reminder، EXPIRY→card_expiry)؛ عند إغلاق الفئة يُتخطى الإشعار الداخلي ورسالة الاشتراك معًا.
 
@@ -334,8 +334,8 @@
 
 | الطريقة | المسار | الوصف |
 |------|------|------|
-| GET | `/api/technician/profile` | الحصول على ملف الفني |
-| PUT | `/api/technician/profile` | تحديث الملف (avatar/intro/real_name/gender/id_card/id_card_front/id_card_back) |
+| GET | `/api/v1/technician/profile` | الحصول على ملف الفني |
+| PUT | `/api/v1/technician/profile` | تحديث الملف (avatar/intro/real_name/gender/id_card/id_card_front/id_card_back) |
 
 أول تعبئة كاملة تُعد طلب انضمام، والحالة status=pending في انتظار المراجعة.
 
@@ -343,37 +343,37 @@
 
 | الطريقة | المسار | الوصف |
 |------|------|------|
-| GET | `/api/technician/schedule` | استعلام المواعيد (?start_date=&end_date=) |
-| PUT | `/api/technician/schedule` | ضبط المواعيد (date/time_slots/status)، تداخل الفترات 422 «تعارض مع المواعيد القائمة» |
-| POST | `/api/technician/schedule/batch` | مواعيد جماعية (الجولة 23): نطاق الأيام ≤7 أيام + فلترة weekdays، تُتخطى الأيام ذات المواعيد القائمة، الاستجابة created/skipped |
+| GET | `/api/v1/technician/schedule` | استعلام المواعيد (?start_date=&end_date=) |
+| PUT | `/api/v1/technician/schedule` | ضبط المواعيد (date/time_slots/status)، تداخل الفترات 422 «تعارض مع المواعيد القائمة» |
+| POST | `/api/v1/technician/schedule/batch` | مواعيد جماعية (الجولة 23): نطاق الأيام ≤7 أيام + فلترة weekdays، تُتخطى الأيام ذات المواعيد القائمة، الاستجابة created/skipped |
 
 #### 3.3 طلبات الفني
 
-`GET /api/technician/orders` — قائمة الطلبات (?status=&page=1)
+`GET /api/v1/technician/orders` — قائمة الطلبات (?status=&page=1)
 
 #### 3.4 الأرباح
 
-`GET /api/technician/earnings` — نظرة على الأرباح (today_income/pending_settlement/balance + قائمة العمليات)
+`GET /api/v1/technician/earnings` — نظرة على الأرباح (today_income/pending_settlement/balance + قائمة العمليات)
 
 #### 3.5 السحب
 
-`POST /api/technician/withdraw` — تقديم طلب سحب (amount)
+`POST /api/v1/technician/withdraw` — تقديم طلب سحب (amount)
 القواعد: السحب يوم 20 من كل شهر، وصول T+1، الحد الأدنى للمبلغ/تقريب المئات بإعدادات لوحة الإدارة.
 
 **الاحتياطي العالق (2026-08-26)**: عند التقديم يُخصم الرصيد فورًا كاحتياطي عالق (pending/approved)؛ وقبل الموافقة على التحويل تُعاد الفحوصات settled − withdrawn − العالق ≥ مبلغ السحب؛ الموافقات المتزامنة لن تدفع مرتين.
 
 #### 3.6 الرد على التقييمات (الجولة 18)
 
-`POST /api/technician/review/reply/{order_id}` — رد الفني على التقييم (reply). التقييم غير موجود/ليس للمستخدم نفسه 404 موحد (لا يكشف الوجود)؛ رد موجود 422 (رفض قطعي بدون استبدال)؛ رد فارغ 422. بعد نجاح الرد إشعار داخلي للمستخدم (type='review_reply').
+`POST /api/v1/technician/review/reply/{order_id}` — رد الفني على التقييم (reply). التقييم غير موجود/ليس للمستخدم نفسه 404 موحد (لا يكشف الوجود)؛ رد موجود 422 (رفض قطعي بدون استبدال)؛ رد فارغ 422. بعد نجاح الرد إشعار داخلي للمستخدم (type='review_reply').
 
 #### 3.6 لوحة العمل
 
 | الطريقة | المسار | الوصف |
 |------|------|------|
-| GET | `/api/technician/work/today` | قائمة مهام اليوم |
-| GET | `/api/technician/work/records` | ترقيم سجلات الإنجاز |
-| POST | `/api/technician/work/{id}/start` | بدء الخدمة |
-| POST | `/api/technician/work/{id}/complete` | إكمال الخدمة |
+| GET | `/api/v1/technician/work/today` | قائمة مهام اليوم |
+| GET | `/api/v1/technician/work/records` | ترقيم سجلات الإنجاز |
+| POST | `/api/v1/technician/work/{id}/start` | بدء الخدمة |
+| POST | `/api/v1/technician/work/{id}/complete` | إكمال الخدمة |
 
 **مهام اليوم**: status ∈ [confirmed, serving]، وservice_time في اليوم أو فارغ، تُرجع service_name/price/nickname/avatar.
 
@@ -387,17 +387,17 @@
 
 | الطريقة | المسار | الوصف |
 |------|------|------|
-| POST | `/api/order` | إنشاء طلب (order_type/items/store_id/technician_id/service_time/coupon_id/user_coupon_id/promotion_id/remark) |
-| GET | `/api/order/list` | قائمة الطلبات (?status=&page=1) |
-| GET | `/api/order/detail/{id}` | تفاصيل الطلب |
-| POST | `/api/order/cancel/{id}` | إلغاء الطلب (reason) |
-| POST | `/api/order/pay/{id}` | إطلاق الدفع (pay_channel: wechat/balance، use_points: خصم النقاط اختياري) |
-| POST | `/api/order/refund/{id}` | تقديم طلب استرداد |
-| POST | `/api/order/verify/{id}` | التحقق (code: قيمة رمز QR) |
-| POST | `/api/order/reschedule/{id}` | تغيير موعد الحجز (new_service_time إلزامي/reason اختياري) |
-| GET | `/api/order/logistics/{id}` | تتبع اللوجستيات (الجولة 19، طلبات المنتجات) |
-| POST | `/api/order/review/{order_id}` | إرسال تقييم (rating 1-5/content/images) (الجولة 19 إضافة) |
-| POST | `/api/order/review/{order_id}/append` | إضافة تقييم تكميلية (content/images مفصولة بفواصل) (الجولة 19) |
+| POST | `/api/v1/order` | إنشاء طلب (order_type/items/store_id/technician_id/service_time/coupon_id/user_coupon_id/promotion_id/remark) |
+| GET | `/api/v1/order/list` | قائمة الطلبات (?status=&page=1) |
+| GET | `/api/v1/order/detail/{id}` | تفاصيل الطلب |
+| POST | `/api/v1/order/cancel/{id}` | إلغاء الطلب (reason) |
+| POST | `/api/v1/order/pay/{id}` | إطلاق الدفع (pay_channel: wechat/balance، use_points: خصم النقاط اختياري) |
+| POST | `/api/v1/order/refund/{id}` | تقديم طلب استرداد |
+| POST | `/api/v1/order/verify/{id}` | التحقق (code: قيمة رمز QR) |
+| POST | `/api/v1/order/reschedule/{id}` | تغيير موعد الحجز (new_service_time إلزامي/reason اختياري) |
+| GET | `/api/v1/order/logistics/{id}` | تتبع اللوجستيات (الجولة 19، طلبات المنتجات) |
+| POST | `/api/v1/order/review/{order_id}` | إرسال تقييم (rating 1-5/content/images) (الجولة 19 إضافة) |
+| POST | `/api/v1/order/review/{order_id}/append` | إضافة تقييم تكميلية (content/images مفصولة بفواصل) (الجولة 19) |
 
 **حالة الطلب**: pending(في انتظار الدفع) → paid(مدفوع) → confirmed(مؤكد) → serving(في الخدمة) → completed(مكتمل)
 
@@ -415,25 +415,25 @@
 
 **إعادة النقاط**: عند الإلغاء/الاسترداد تُعاد النقاط المستهلكة عبر points_offset (type=earn/source=points_refund): الإلغاء كاملًا والاسترداد نسبيًا، عبر 5 نقاط ربط قطعية (refundOffsetPoints).
 
-**الطلب الجماعي (الجولة 16)**: عند إنشاء الطلب يمكن تمرير `promotion_id` (hashid). التحقق: فقط نوع group_buy، ضمن فترة صلاحية النشاط، والطالب مشارك، ولم يكتمل العدد (اكتمل التشكيل 422)، ومطابقة خدمة الطلب للنشاط؛ سعر المجموعة = السعر الأصلي × discount_percent/100، ويُحظر تراكب الكوبونات/بطاقات المرات/النقاط (تمرير أي منها 422). يُخزن الطلب promotion_id/participant_id؛ الدفع يعيد استخدام `POST /api/order/pay/{id}` بالكامل، وعند الدفع يُفحص بتكاسل إغلاق النشاط (انتهت المهلة دون اكتمال العدد) → يُلغى الطلب تلقائيًا ويُحرَّر قفل الفني.
+**الطلب الجماعي (الجولة 16)**: عند إنشاء الطلب يمكن تمرير `promotion_id` (hashid). التحقق: فقط نوع group_buy، ضمن فترة صلاحية النشاط، والطالب مشارك، ولم يكتمل العدد (اكتمل التشكيل 422)، ومطابقة خدمة الطلب للنشاط؛ سعر المجموعة = السعر الأصلي × discount_percent/100، ويُحظر تراكب الكوبونات/بطاقات المرات/النقاط (تمرير أي منها 422). يُخزن الطلب promotion_id/participant_id؛ الدفع يعيد استخدام `POST /api/v1/order/pay/{id}` بالكامل، وعند الدفع يُفحص بتكاسل إغلاق النشاط (انتهت المهلة دون اكتمال العدد) → يُلغى الطلب تلقائيًا ويُحرَّر قفل الفني.
 
-**الطلب السريع (الجولة 18، أوقف)**: ~~تمرير `promotion_id` (نوع flash_sale) عند إنشاء الطلب~~ — اعتبارًا من 2026-08 حُذفت قناة الترويج القديمة FLASH_SALE، وفرع الترويج في store() لم يبقَ سوى المجموعة المشتركة GROUP_BUY (promotion غير المجموعة 422)؛ البيع المفاجئ يسلك قناة الجولة 24 `/api/seckill` (يُحقن seckill_id في معاملة store مع قفل صف لخصم المخزون)، وPromotionController::index يفلتر flash_sale، وshow/join يُرجعان لها 400، والثابت `Promotion::TYPE_FLASH_SALE` محفوظ لتوافق البيانات التاريخية.
+**الطلب السريع (الجولة 18، أوقف)**: ~~تمرير `promotion_id` (نوع flash_sale) عند إنشاء الطلب~~ — اعتبارًا من 2026-08 حُذفت قناة الترويج القديمة FLASH_SALE، وفرع الترويج في store() لم يبقَ سوى المجموعة المشتركة GROUP_BUY (promotion غير المجموعة 422)؛ البيع المفاجئ يسلك قناة الجولة 24 `/api/v1/seckill` (يُحقن seckill_id في معاملة store مع قفل صف لخصم المخزون)، وPromotionController::index يفلتر flash_sale، وshow/join يُرجعان لها 400، والثابت `Promotion::TYPE_FLASH_SALE` محفوظ لتوافق البيانات التاريخية.
 
-**تغيير موعد الحجز (الجولة 17)**: `POST /api/order/reschedule/{id}` يمرر new_service_time (إلزامي) + reason (اختياري)، تغيير الوقت مع نفس الفني. القواعد: فقط طلبات المستخدم نفسه (غير نفسه 404)، فقط نوع appointment وحالات pending/paid/confirmed القابلة للتغيير (غيرها 422)، مسافة ≥ 6 ساعات من موعد بدء الخدمة الأصلي (متطابقة مع نافذة الاسترداد الكامل) لإمكانية التغيير. حماية التزامن: B1 order_lock (نفس عائلة التبادل مع pay/cancel/refund) → قفل الفني للفترة الجديدة Redis SETNX EX 180 (منع البيع الزائد في التغييرات المتزامنة) → داخل المعاملة إعادة قراءة بقفل صف + B2 فحص تعارض المواعيد في DB (باستبعاد هذا الطلب) → تحديث service_time + كتابة سجل appointment_order_reschedule → تحرير قفل الفترة الأصلية، والفترة الجديدة يحملها هذا الطلب → رسالة اشتراك SCENE_RESCHEDULE (عند عدم التهيئة تنخفض إلى إشعار داخلي). في مسار الفشل تُتراجع المعاملة ويُحرَّر قفل الفترة الجديدة معًا.
+**تغيير موعد الحجز (الجولة 17)**: `POST /api/v1/order/reschedule/{id}` يمرر new_service_time (إلزامي) + reason (اختياري)، تغيير الوقت مع نفس الفني. القواعد: فقط طلبات المستخدم نفسه (غير نفسه 404)، فقط نوع appointment وحالات pending/paid/confirmed القابلة للتغيير (غيرها 422)، مسافة ≥ 6 ساعات من موعد بدء الخدمة الأصلي (متطابقة مع نافذة الاسترداد الكامل) لإمكانية التغيير. حماية التزامن: B1 order_lock (نفس عائلة التبادل مع pay/cancel/refund) → قفل الفني للفترة الجديدة Redis SETNX EX 180 (منع البيع الزائد في التغييرات المتزامنة) → داخل المعاملة إعادة قراءة بقفل صف + B2 فحص تعارض المواعيد في DB (باستبعاد هذا الطلب) → تحديث service_time + كتابة سجل appointment_order_reschedule → تحرير قفل الفترة الأصلية، والفترة الجديدة يحملها هذا الطلب → رسالة اشتراك SCENE_RESCHEDULE (عند عدم التهيئة تنخفض إلى إشعار داخلي). في مسار الفشل تُتراجع المعاملة ويُحرَّر قفل الفترة الجديدة معًا.
 
-**تتبع اللوجستيات (الجولة 19)**: `GET /api/order/logistics/{id}` — فقط طلبات المنتجات للمستخدم نفسه (غير نفسه/ليس منتجًا/لم يُشحن 404 موحد). يقرأ JSON حقل order.remark (shipping_company/tracking_no/shipped_at، يكتبها admin MallOrderController::ship() عند الشحن)، وتحليلان احتياطيان parseShippingInfo/parseReceiver للصيغ القديمة؛ إخفاء رقم هاتف المستلم 138****5678.
+**تتبع اللوجستيات (الجولة 19)**: `GET /api/v1/order/logistics/{id}` — فقط طلبات المنتجات للمستخدم نفسه (غير نفسه/ليس منتجًا/لم يُشحن 404 موحد). يقرأ JSON حقل order.remark (shipping_company/tracking_no/shipped_at، يكتبها admin MallOrderController::ship() عند الشحن)، وتحليلان احتياطيان parseShippingInfo/parseReceiver للصيغ القديمة؛ إخفاء رقم هاتف المستلم 138****5678.
 
-**التقييم (الجولة 19)**: `POST /api/order/review/{order_id}` يرسل تقييمًا (rating إلزامي 1-5، content/images اختياريان): غير نفسه 404، غير completed 422، تقييم مكرر 400. `POST /api/order/review/{order_id}/append` تقييم تكميلي (content إلزامي، images مفصولة بفواصل): التقييم غير موجود/ليس لنفسه 404 موحد، غير completed 422، تكميلة مكررة 422، محتوى فارغ 422؛ عند النجاح يُكتب append_content/append_images(JSON)/append_at ويُرسل إشعار داخلي للفني type='review_append'، وتُظهر الاستجابة حقل append.
+**التقييم (الجولة 19)**: `POST /api/v1/order/review/{order_id}` يرسل تقييمًا (rating إلزامي 1-5، content/images اختياريان): غير نفسه 404، غير completed 422، تقييم مكرر 400. `POST /api/v1/order/review/{order_id}/append` تقييم تكميلي (content إلزامي، images مفصولة بفواصل): التقييم غير موجود/ليس لنفسه 404 موحد، غير completed 422، تكميلة مكررة 422، محتوى فارغ 422؛ عند النجاح يُكتب append_content/append_images(JSON)/append_at ويُرسل إشعار داخلي للفني type='review_append'، وتُظهر الاستجابة حقل append.
 
 ### 4.1 واجهات ما بعد البيع (تتطلب مصادقة JWT)
 
 | الطريقة | المسار | الوصف |
 |------|------|------|
-| POST | `/api/aftersales` | تقديم طلب ما بعد البيع (order_id hashid/type: refund|exchange/reason)، التحقق من طلب المستخدم نفسه 404، فقط الحالات paid+completed القابلة للتقديم 422، تكرار ما بعد البيع الجاري لنفس الطلب 422 |
-| GET | `/api/aftersales` | قائمة طلبات ما بعد البيع الخاصة بي (?status=&page=1&limit=) |
-| GET | `/api/aftersales/{id}` | تفاصيل ما بعد البيع (تحقق الملكية 404) |
+| POST | `/api/v1/aftersales` | تقديم طلب ما بعد البيع (order_id hashid/type: refund|exchange/reason)، التحقق من طلب المستخدم نفسه 404، فقط الحالات paid+completed القابلة للتقديم 422، تكرار ما بعد البيع الجاري لنفس الطلب 422 |
+| GET | `/api/v1/aftersales` | قائمة طلبات ما بعد البيع الخاصة بي (?status=&page=1&limit=) |
+| GET | `/api/v1/aftersales/{id}` | تفاصيل ما بعد البيع (تحقق الملكية 404) |
 
-**حالة ما بعد البيع**: pending(في انتظار المراجعة) → approved(موافق) / rejected(مرفوض). approved انتقال حالة فقط، وإجراء الاسترداد يستخدم `POST /api/order/refund/{id}`.
+**حالة ما بعد البيع**: pending(في انتظار المراجعة) → approved(موافق) / rejected(مرفوض). approved انتقال حالة فقط، وإجراء الاسترداد يستخدم `POST /api/v1/order/refund/{id}`.
 
 ---
 
@@ -441,10 +441,10 @@
 
 | الطريقة | المسار | الوصف |
 |------|------|------|
-| GET | `/api/promotions` | قائمة النشاطات (?type=group_buy؛ flash_sale مفلتر ولا يُرجع) |
-| GET | `/api/promotions/{id}` | تفاصيل النشاط (تشمل عدد المشاركين/اكتمال التشكيل؛ نوع flash_sale 400) |
-| GET | `/api/promotions/{id}/participants` | قائمة المشاركين |
-| POST | `/api/promotions/join/{id}` | المشاركة في النشاط (الجولة 15 تحسين: الاستجابة تتضمن discount_percent/original_price/group_price؛ نوع flash_sale 400) |
+| GET | `/api/v1/promotions` | قائمة النشاطات (?type=group_buy؛ flash_sale مفلتر ولا يُرجع) |
+| GET | `/api/v1/promotions/{id}` | تفاصيل النشاط (تشمل عدد المشاركين/اكتمال التشكيل؛ نوع flash_sale 400) |
+| GET | `/api/v1/promotions/{id}/participants` | قائمة المشاركين |
+| POST | `/api/v1/promotions/join/{id}` | المشاركة في النشاط (الجولة 15 تحسين: الاستجابة تتضمن discount_percent/original_price/group_price؛ نوع flash_sale 400) |
 
 **قواعد المشاركة**: اكتمال عدد group_buy (≥min_people) يُقفل، والمشاركة بعد التشكيل 422؛ عدم اكتمال العدد عند الانتهاء يُغلق بتكاسل (عند show/join تُضبط status إلى 0). الطلب بعد join بسعر المجموعة راجع «الطلب الجماعي (الجولة 16)». البيع المفاجئ لم يعد يسلك هذه القناة، راجع «24. واجهات البيع المفاجئ».
 
@@ -454,21 +454,21 @@
 
 | الطريقة | المسار | الوصف |
 |------|------|------|
-| GET | `/api/marketing/coupons` | قائمة الكوبونات (?status=available/used/expired) |
-| POST | `/api/marketing/coupons/receive` | الحصول على كوبون (coupon_id) |
-| GET | `/api/marketing/cards` | قائمة بطاقات العضوية |
-| POST | `/api/marketing/cards/buy` | شراء بطاقة عضوية (card_id) |
-| GET | `/api/marketing/cards/my` | قائمة بطاقات المرات الخاصة بي |
-| POST | `/api/marketing/cards/use` | التحقق من بطاقة مرات (user_card_id/service_id/remark?) |
-| GET | `/api/marketing/gift-cards` | قائمة بطاقات الهدايا |
-| GET | `/api/marketing/gift-cards/my` | بطاقات الهدايا الخاصة بي (سجلات redeem) |
-| POST | `/api/marketing/gift-cards/redeem` | استبدال بطاقة هدايا (نوع cash بعد الاستبدال يُشحن رصيد المحفظة) |
-| GET | `/api/marketing/points` | عمليات النقاط (?type=earn/use/expire&source=order/referral/gift_card/check_in/admin) |
-| GET | `/api/marketing/points-exchange` | قائمة منتجات استبدال النقاط (متاحة + المخزون المتبقي الفوري + العدد المتبدل) |
-| POST | `/api/marketing/points-exchange/{id}` | الاستبدال (type=coupon إصدار كوبون / wallet إيداع / gift_card إرجاع كلمة البطاقة) |
-| POST | `/api/marketing/coupons/transfer` | توليد رمز الإهداء (user_coupon_id: رمز فريد 8 أحرف/صالح 7 أيام) |
-| POST | `/api/marketing/coupons/claim` | استلام الكوبون المُهدى (code) |
-| GET | `/api/marketing/coupons/transfers` | سجلات الإهداء (المرسل: pending/claimed/expired + المستقبِل: claimed) |
+| GET | `/api/v1/marketing/coupons` | قائمة الكوبونات (?status=available/used/expired) |
+| POST | `/api/v1/marketing/coupons/receive` | الحصول على كوبون (coupon_id) |
+| GET | `/api/v1/marketing/cards` | قائمة بطاقات العضوية |
+| POST | `/api/v1/marketing/cards/buy` | شراء بطاقة عضوية (card_id) |
+| GET | `/api/v1/marketing/cards/my` | قائمة بطاقات المرات الخاصة بي |
+| POST | `/api/v1/marketing/cards/use` | التحقق من بطاقة مرات (user_card_id/service_id/remark?) |
+| GET | `/api/v1/marketing/gift-cards` | قائمة بطاقات الهدايا |
+| GET | `/api/v1/marketing/gift-cards/my` | بطاقات الهدايا الخاصة بي (سجلات redeem) |
+| POST | `/api/v1/marketing/gift-cards/redeem` | استبدال بطاقة هدايا (نوع cash بعد الاستبدال يُشحن رصيد المحفظة) |
+| GET | `/api/v1/marketing/points` | عمليات النقاط (?type=earn/use/expire&source=order/referral/gift_card/check_in/admin) |
+| GET | `/api/v1/marketing/points-exchange` | قائمة منتجات استبدال النقاط (متاحة + المخزون المتبقي الفوري + العدد المتبدل) |
+| POST | `/api/v1/marketing/points-exchange/{id}` | الاستبدال (type=coupon إصدار كوبون / wallet إيداع / gift_card إرجاع كلمة البطاقة) |
+| POST | `/api/v1/marketing/coupons/transfer` | توليد رمز الإهداء (user_coupon_id: رمز فريد 8 أحرف/صالح 7 أيام) |
+| POST | `/api/v1/marketing/coupons/claim` | استلام الكوبون المُهدى (code) |
+| GET | `/api/v1/marketing/coupons/transfers` | سجلات الإهداء (المرسل: pending/claimed/expired + المستقبِل: claimed) |
 
 **بطاقة المرات**: cards/my تُرجع card_id/name/type/services/total_times/used_times/remaining_times/start_at/end_at/status (محسوبة فوريًا). التحقق الناجح يُرجع {order_id, usage_id, remaining_times}؛ رموز الخطأ: hashid غير صالح 422، مرات غير كافية 422، منتهية 400، ليست لنفسه 404، منع تكرار Redis 400.
 
@@ -486,9 +486,9 @@
 
 | الطريقة | المسار | الوصف |
 |------|------|------|
-| GET | `/api/notification` | قائمة الإشعارات (?type=order/system&page=1) |
-| PUT | `/api/notification/read/{id}` | تعليم كمقروء |
-| PUT | `/api/notification/read-all` | تعليم الكل كمقروء |
+| GET | `/api/v1/notification` | قائمة الإشعارات (?type=order/system&page=1) |
+| PUT | `/api/v1/notification/read/{id}` | تعليم كمقروء |
+| PUT | `/api/v1/notification/read-all` | تعليم الكل كمقروء |
 
 ---
 
@@ -496,20 +496,20 @@
 
 | الطريقة | المسار | الوصف |
 |------|------|------|
-| GET | `/api/wallet` | رصيد المحفظة + ترقيم العمليات |
-| POST | `/api/wallet/recharge` | إنشاء طلب شحن (amount: يوان) |
-| POST | `/api/wallet/recharge/{id}/pay` | إطلاق الدفع لطلب الشحن (WeChat) |
-| POST | `/api/wallet/transfer` | تحويل الرصيد (to_user_id hashid/amount/remark اختياري/client_token اختياري) (الجولة 19) |
-| GET | `/api/wallet/transfers` | سجلات التحويل (?direction=out/in&page=1) (الجولة 19) |
-| GET | `/api/wallet/transfers/{id}` | تفاصيل التحويل (مرئي للطرفين فقط، الآخرين 404) (الجولة 19) |
+| GET | `/api/v1/wallet` | رصيد المحفظة + ترقيم العمليات |
+| POST | `/api/v1/wallet/recharge` | إنشاء طلب شحن (amount: يوان) |
+| POST | `/api/v1/wallet/recharge/{id}/pay` | إطلاق الدفع لطلب الشحن (WeChat) |
+| POST | `/api/v1/wallet/transfer` | تحويل الرصيد (to_user_id hashid/amount/remark اختياري/client_token اختياري) (الجولة 19) |
+| GET | `/api/v1/wallet/transfers` | سجلات التحويل (?direction=out/in&page=1) (الجولة 19) |
+| GET | `/api/v1/wallet/transfers/{id}` | تفاصيل التحويل (مرئي للطرفين فقط، الآخرين 404) (الجولة 19) |
 
 **العمليات**: أنواع wallet_txn: recharge / consume / refund / gift_card / referral_reward(عمولة التوزيع) / referral_level2(عمولة المستوى الثاني) / points_exchange(إيداع استبدال النقاط)، تُرجع مرقمة.
 
-**الشحن**: `POST /api/wallet/recharge` يمرر amount (يوان) لإنشاء طلب الشحن، ويُرجع hashid طلب الشحن. `POST /api/wallet/recharge/{id}/pay` يُطلق دفع WeChat، والاستجابة تتضمن sign_params (مثل نمط دفع الطلبات)؛ استدعاء الدفع يميز طلبات الشحن عن الطلبات عبر out_trade_no بادئته R.
+**الشحن**: `POST /api/v1/wallet/recharge` يمرر amount (يوان) لإنشاء طلب الشحن، ويُرجع hashid طلب الشحن. `POST /api/v1/wallet/recharge/{id}/pay` يُطلق دفع WeChat، والاستجابة تتضمن sign_params (مثل نمط دفع الطلبات)؛ استدعاء الدفع يميز طلبات الشحن عن الطلبات عبر out_trade_no بادئته R.
 
 **الدفع بالرصيد**: تمرير `pay_channel: "balance"` في جسم دفع الطلب يستخدم رصيد المحفظة؛ استرداد WeChat واسترداد الرصيد يعيدان المبلغ إلى رصيد المحفظة.
 
-**تحويل الرصيد (الجولة 19)**: `POST /api/wallet/transfer` — فك hashid للمستلم + التحقق من الوجود 404، تحويل النفس 422، المبلغ 0.01-1000/عملية 422 (مقارنة DECIMAL وليس float)، الرصيد غير كافٍ 422، حد يومي تراكمي 5000 يوان 422. التزامن/القطع: قفل Redis NX wallet_transfer:{from} 30s لتسلسل المرسِل → داخل المعاملة lockForUpdate لصفَي محفظة الطرفين بترتيب تصاعدي user_id (ترتيب ثابت لمنع الجمود) → خصم المرسِل + إيداع المستلم + عمليتان wallet_txn (transfer_out/transfer_in تتضمن لقطة balance_after) + سجل تحويل completed + إشعار داخلي للمستلم type='balance_received' (الفشل يسجَّل فقط). client_token اختياري: بعد النجاح SETNX 24 ساعة لمنع الإرسال المكرر (الطلبات الفاشلة لا تُسجل token ويمكن إعادة المحاولة).
+**تحويل الرصيد (الجولة 19)**: `POST /api/v1/wallet/transfer` — فك hashid للمستلم + التحقق من الوجود 404، تحويل النفس 422، المبلغ 0.01-1000/عملية 422 (مقارنة DECIMAL وليس float)، الرصيد غير كافٍ 422، حد يومي تراكمي 5000 يوان 422. التزامن/القطع: قفل Redis NX wallet_transfer:{from} 30s لتسلسل المرسِل → داخل المعاملة lockForUpdate لصفَي محفظة الطرفين بترتيب تصاعدي user_id (ترتيب ثابت لمنع الجمود) → خصم المرسِل + إيداع المستلم + عمليتان wallet_txn (transfer_out/transfer_in تتضمن لقطة balance_after) + سجل تحويل completed + إشعار داخلي للمستلم type='balance_received' (الفشل يسجَّل فقط). client_token اختياري: بعد النجاح SETNX 24 ساعة لمنع الإرسال المكرر (الطلبات الفاشلة لا تُسجل token ويمكن إعادة المحاولة).
 
 ---
 
@@ -517,10 +517,10 @@
 
 | الطريقة | المسار | الوصف |
 |------|------|------|
-| GET | `/api/store-manager/overview` | نظرة اليوم (طلبات اليوم/إيراد اليوم/الجاري/عدد الفنيين/عدد التحققات) |
-| GET | `/api/store-manager/orders` | قائمة طلبات المتجر (?status=&page=&limit=) |
-| GET | `/api/store-manager/technicians` | قائمة الفنيين (تشمل مواعيد اليوم) |
-| GET | `/api/store-manager/revenue` | تجميع إيراد آخر 7 أيام |
+| GET | `/api/v1/store-manager/overview` | نظرة اليوم (طلبات اليوم/إيراد اليوم/الجاري/عدد الفنيين/عدد التحققات) |
+| GET | `/api/v1/store-manager/orders` | قائمة طلبات المتجر (?status=&page=&limit=) |
+| GET | `/api/v1/store-manager/technicians` | قائمة الفنيين (تشمل مواعيد اليوم) |
+| GET | `/api/v1/store-manager/revenue` | تجميع إيراد آخر 7 أيام |
 
 **عزل store_id**: requireStoreId() يفرض ربط المستخدم الحالي بمتجر (appointment_user.store_id)، بلا متجر 403؛ جميع الاستعلامات مفلترة حسب store_id.
 
@@ -530,9 +530,9 @@
 
 | الطريقة | المسار | الوصف |
 |------|------|------|
-| GET | `/api/growth` | نظرة النمو الحالية (balance/المستوى/فرق الشريحة التالية/اسم المستوى) |
-| GET | `/api/growth/records` | ترقيم عمليات قيمة النمو (?page=&limit=) |
-| GET | `/api/growth/levels` | قائمة الشرائح (عامة، بدون تسجيل دخول) |
+| GET | `/api/v1/growth` | نظرة النمو الحالية (balance/المستوى/فرق الشريحة التالية/اسم المستوى) |
+| GET | `/api/v1/growth/records` | ترقيم عمليات قيمة النمو (?page=&limit=) |
+| GET | `/api/v1/growth/levels` | قائمة الشرائح (عامة، بدون تسجيل دخول) |
 
 **إدخالات قيمة النمو**: تسجيل الحضور +10؛ إرسال تقييم +20 (التكميلة لا تُدخل)؛ الاستهلاك floor(paid) كل 1 يوان نقطة واحدة (داخل استدعاء الدفع عبر إعادة فحص القطع، التكرار لا يُدخل مرتين).
 
@@ -540,9 +540,9 @@
 
 | الطريقة | المسار | الوصف |
 |------|------|------|
-| POST | `/api/invoices` | طلب فاتورة (order_id hashid/order_type: service=خدمة/points_exchange=استبدال نقاط؛ order_type الافتراضي service؛ المبلغ والرأس يُخرجان من الخادم ولا يمكن العبث بهما) |
-| GET | `/api/invoices` | قائمة الفواتير (?status=&page=) |
-| GET | `/api/invoices/{id}` | تفاصيل الفاتورة (لنفسه فقط) |
+| POST | `/api/v1/invoices` | طلب فاتورة (order_id hashid/order_type: service=خدمة/points_exchange=استبدال نقاط؛ order_type الافتراضي service؛ المبلغ والرأس يُخرجان من الخادم ولا يمكن العبث بهما) |
+| GET | `/api/v1/invoices` | قائمة الفواتير (?status=&page=) |
+| GET | `/api/v1/invoices/{id}` | تفاصيل الفاتورة (لنفسه فقط) |
 
 **منع التكرار**: مفتاح فريد uk_order_type(order_id, order_type)، طلب مكرر لنفس النوع لنفس الطلب 422 (تشمل التقاط MySQL 1062 كضمانة).
 
@@ -550,37 +550,37 @@
 
 | الطريقة | المسار | الوصف |
 |------|------|------|
-| POST | `/api/tickets` | إرسال تذكرة (title/content إلزاميان) |
-| GET | `/api/tickets` | قائمة التذاكر (?status=open/closed&page=) |
-| GET | `/api/tickets/{id}` | تفاصيل التذكرة (لنفسه فقط، الآخرين 404) |
-| POST | `/api/tickets/{id}/close` | إغلاق التذكرة (لنفسه فقط/فقط open؛ rating اختياري 1-5 لتقييم الرضا، خارج الحدود/غير صحيح 422، عند عدم التقديم NULL متوافق) |
+| POST | `/api/v1/tickets` | إرسال تذكرة (title/content إلزاميان) |
+| GET | `/api/v1/tickets` | قائمة التذاكر (?status=open/closed&page=) |
+| GET | `/api/v1/tickets/{id}` | تفاصيل التذكرة (لنفسه فقط، الآخرين 404) |
+| POST | `/api/v1/tickets/{id}/close` | إغلاق التذكرة (لنفسه فقط/فقط open؛ rating اختياري 1-5 لتقييم الرضا، خارج الحدود/غير صحيح 422، عند عدم التقديم NULL متوافق) |
 
 ### 12. واجهات تقويم الحجوزات (تتطلب مصادقة JWT، الجولة 20)
 
 | الطريقة | المسار | الوصف |
 |------|------|------|
-| GET | `/api/calendar/technician/{id}` | عرض الشهر (?month=YYYY-MM): توسيع time_slots للمواعيد إلى فتحات ساعة + استبعاد المحجوز |
-| GET | `/api/calendar/technician/{id}/day` | عرض اليوم (?date=YYYY-MM-DD): تفاصيل فتحات اليوم المتاحة/المحجوزة/غير المتاحة |
+| GET | `/api/v1/calendar/technician/{id}` | عرض الشهر (?month=YYYY-MM): توسيع time_slots للمواعيد إلى فتحات ساعة + استبعاد المحجوز |
+| GET | `/api/v1/calendar/technician/{id}/day` | عرض اليوم (?date=YYYY-MM-DD): تفاصيل فتحات اليوم المتاحة/المحجوزة/غير المتاحة |
 
 ### 13. واجهات رأس الفاتورة (تتطلب مصادقة JWT، الجولة 21)
 
 | الطريقة | المسار | الوصف |
 |------|------|------|
-| POST | `/api/invoice-titles` | حفظ رأس (title_type: personal/company؛ company يجب أن يحمل tax_no؛ تكرار نفس المستخدم لنفس الرأس 422؛ أول سطر يُجعل افتراضيًا تلقائيًا) |
-| GET | `/api/invoice-titles` | قائمة الرؤوس (الافتراضي في الأعلى) |
-| PUT | `/api/invoice-titles/{id}` | تعديل الرأس (لنفسه فقط) |
-| DELETE | `/api/invoice-titles/{id}` | حذف الرأس (لنفسه فقط؛ بعد حذف الافتراضي يُعيَّن أقرب سطر تلقائيًا) |
-| POST | `/api/invoice-titles/{id}/default` | تعيين كافتراضي (داخل معاملة تصفير بقية أسطر المستخدم) |
+| POST | `/api/v1/invoice-titles` | حفظ رأس (title_type: personal/company؛ company يجب أن يحمل tax_no؛ تكرار نفس المستخدم لنفس الرأس 422؛ أول سطر يُجعل افتراضيًا تلقائيًا) |
+| GET | `/api/v1/invoice-titles` | قائمة الرؤوس (الافتراضي في الأعلى) |
+| PUT | `/api/v1/invoice-titles/{id}` | تعديل الرأس (لنفسه فقط) |
+| DELETE | `/api/v1/invoice-titles/{id}` | حذف الرأس (لنفسه فقط؛ بعد حذف الافتراضي يُعيَّن أقرب سطر تلقائيًا) |
+| POST | `/api/v1/invoice-titles/{id}/default` | تعيين كافتراضي (داخل معاملة تصفير بقية أسطر المستخدم) |
 
-**الربط عند التقديم**: POST /api/invoices يدعم title_id اختياريًا — تحليل الرأس يُدخل تلقائيًا invoice_title/tax_no/title_type، وعند غياب title_id يحتفظ بالمسار اليدوي القديم.
+**الربط عند التقديم**: POST /api/v1/invoices يدعم title_id اختياريًا — تحليل الرأس يُدخل تلقائيًا invoice_title/tax_no/title_type، وعند غياب title_id يحتفظ بالمسار اليدوي القديم.
 
 ### 14. واجهات سجل التصفح (تتطلب مصادقة JWT، الجولة 21)
 
 | الطريقة | المسار | الوصف |
 |------|------|------|
-| GET | `/api/browse-history` | آخر الخدمات المُتصفحة (join اسم الخدمة/الغلاف/السعر/السعر الأصلي، تنازليًا viewed_at، per_page الافتراضي 15 والحد 50) |
-| DELETE | `/api/browse-history/{item_id}` | حذف سطر واحد (لنفسه فقط، غير قانوني/الآخرين 404) |
-| DELETE | `/api/browse-history` | مسح السجل (لنفسه فقط) |
+| GET | `/api/v1/browse-history` | آخر الخدمات المُتصفحة (join اسم الخدمة/الغلاف/السعر/السعر الأصلي، تنازليًا viewed_at، per_page الافتراضي 15 والحد 50) |
+| DELETE | `/api/v1/browse-history/{item_id}` | حذف سطر واحد (لنفسه فقط، غير قانوني/الآخرين 404) |
+| DELETE | `/api/v1/browse-history` | مسح السجل (لنفسه فقط) |
 
 **وقت التسجيل**: بعد نجاح الوصول لواجهة تفاصيل الخدمة يُسجَّل تلقائيًا (غير المسجل يُتخطى؛ التصفح المكرر يحدّث viewed_at فقط ولا يُدرج سطرًا جديدًا).
 
@@ -588,7 +588,7 @@
 
 | الطريقة | المسار | الوصف |
 |------|------|------|
-| GET | `/api/full-reduction-activities` | قائمة نشاطات الخصم الكامل السارية (status=1 والوقت ضمن الصلاحية، تنازليًا حسب مبلغ الخصم؛ واجهة عامة) |
+| GET | `/api/v1/full-reduction-activities` | قائمة نشاطات الخصم الكامل السارية (status=1 والوقت ضمن الصلاحية، تنازليًا حسب مبلغ الخصم؛ واجهة عامة) |
 
 **قواعد التراكب عند الطلب**: الخصم الكامل يسري على الطلبات القياسية فقط (المجموعة/البيع المفاجئ يُتخطيان)، وتُحكم العتبة (threshold) بالمبلغ المستحق بعد خصم الكوبونات/بطاقات المرات، وترتيب التراكب **كوبون/بطاقة مرات → خصم كامل → خصم المستوى**؛ يُؤخذ النشاط بأكبر مبلغ خصم؛ يُدمج مبلغ الخصم في discount_amount وتُضاف ملاحظة «خصم كامل: خصم X عند Y»؛ الحد الأدنى للمبلغ الفعلي بعد الخصم 0.01 يوان.
 
@@ -596,7 +596,7 @@
 
 | الطريقة | المسار | الوصف |
 |------|------|------|
-| GET | `/api/order/ics` | تصدير الطلبات السارية خلال 90 يومًا (pending/paid/confirmed/serving) بصيغة iCal (RFC5545) |
+| GET | `/api/v1/order/ics` | تصدير الطلبات السارية خلال 90 يومًا (pending/paid/confirmed/serving) بصيغة iCal (RFC5545) |
 
 **الناتج**: `Content-Type: text/calendar; charset=utf-8` + `Content-Disposition: attachment; filename="my-appointments.ics"`. VEVENT: UID=معرّف الطلب، TZID=Asia/Shanghai، الملخص «حجز: اسم الخدمة» (عند الغياب ينخفض إلى «حجز»)، الوصف (الفني/المتجر/العنوان، المفقود يُتخطى)، LOCATION اسم المتجر؛ النصوص وفق هروب RFC5545 (\, \; \\ \n) + طي الأسطر عند 75 بايت. بلا طلبات تُرجع تقويمًا فارغًا قانونيًا؛ تُصدَّر طلبات المستخدم نفسه فقط.
 
@@ -604,18 +604,18 @@
 
 | الطريقة | المسار | الوصف |
 |------|------|------|
-| POST | `/api/technician/attendance/check-in` | تسجيل دخول اليوم (تكرار نفس اليوم 422، مؤشر فريد كضمانة التزامن؛ بعد >10:00 يُعلَّم متأخرًا) |
-| POST | `/api/technician/attendance/check-out` | تسجيل خروج اليوم (بدون دخول/خروج مكرر 422، قفل صف للتزامن) |
-| GET | `/api/technician/attendance` | قائمة حضور الشهر + ملخص أيام الحضور/إجمالي الساعات/متوسط الساعات (?month=YYYY-MM، غير القانوني 422) |
+| POST | `/api/v1/technician/attendance/check-in` | تسجيل دخول اليوم (تكرار نفس اليوم 422، مؤشر فريد كضمانة التزامن؛ بعد >10:00 يُعلَّم متأخرًا) |
+| POST | `/api/v1/technician/attendance/check-out` | تسجيل خروج اليوم (بدون دخول/خروج مكرر 422، قفل صف للتزامن) |
+| GET | `/api/v1/technician/attendance` | قائمة حضور الشهر + ملخص أيام الحضور/إجمالي الساعات/متوسط الساعات (?month=YYYY-MM، غير القانوني 422) |
 
 ### 18. واجهات امتثال الخصوصية (تتطلب مصادقة JWT، الجولة 22)
 
 | الطريقة | المسار | الوصف |
 |------|------|------|
-| GET | `/api/privacy/data` | تصدير البيانات (مجموعات personal/orders/points/wallet_txns/reviews/addresses/invoices كـ JSON؛ سجلات الخادم تسجّل فقط الهاتف المُخفي + عدد العناصر) |
-| POST | `/api/privacy/close-request` | طلب إلغاء الحساب (الرصيد غير 0 / طلبات غير مكتملة / تذاكر جارية 422؛ يُضبط close_status=1 + close_requested_at) |
-| POST | `/api/privacy/close-cancel` | إلغاء طلب الإلغاء (close_status 1→0) |
-| POST | `/api/privacy/close-confirm` | تأكيد الإلغاء (بعد اكتمال 72 ساعة؛ close_status=2 + close_at + إخفاء هوية phone/nickname إلى user{id} + status=0) |
+| GET | `/api/v1/privacy/data` | تصدير البيانات (مجموعات personal/orders/points/wallet_txns/reviews/addresses/invoices كـ JSON؛ سجلات الخادم تسجّل فقط الهاتف المُخفي + عدد العناصر) |
+| POST | `/api/v1/privacy/close-request` | طلب إلغاء الحساب (الرصيد غير 0 / طلبات غير مكتملة / تذاكر جارية 422؛ يُضبط close_status=1 + close_requested_at) |
+| POST | `/api/v1/privacy/close-cancel` | إلغاء طلب الإلغاء (close_status 1→0) |
+| POST | `/api/v1/privacy/close-confirm` | تأكيد الإلغاء (بعد اكتمال 72 ساعة؛ close_status=2 + close_at + إخفاء هوية phone/nickname إلى user{id} + status=0) |
 
 **اعتراض تسجيل الدخول**: حساب close_status=2 يُرجع عند تسجيل الدخول 403 «الحساب مُلغى».
 
@@ -623,9 +623,9 @@
 
 | الطريقة | المسار | الوصف |
 |------|------|------|
-| GET | `/api/health-profile` | الاستعلام عن ملف صحتي (بلا ملف يُرجع كائنًا فارغًا) |
-| PUT | `/api/health-profile` | إنشاء/تحديث (upsert، ملف واحد لكل شخص؛ allergies/health_notes بحد 500 حرف، preferred_technician_id يُفحص وجوده؛ تحديث الحقول المقدمة فقط، الاستجابة بترميز hashid) |
-| DELETE | `/api/health-profile` | حذف ملفي (لنفسه فقط) |
+| GET | `/api/v1/health-profile` | الاستعلام عن ملف صحتي (بلا ملف يُرجع كائنًا فارغًا) |
+| PUT | `/api/v1/health-profile` | إنشاء/تحديث (upsert، ملف واحد لكل شخص؛ allergies/health_notes بحد 500 حرف، preferred_technician_id يُفحص وجوده؛ تحديث الحقول المقدمة فقط، الاستجابة بترميز hashid) |
+| DELETE | `/api/v1/health-profile` | حذف ملفي (لنفسه فقط) |
 
 الحقول: allergies (تاريخ الحساسية)/health_notes (ملاحظات صحية)/preferred_technician_id (الفني المفضل، قابل للفارغ).
 
@@ -633,9 +633,9 @@
 
 | الطريقة | المسار | الوصف |
 |------|------|------|
-| POST | `/api/wallet/pay-password/set` | تعيين كلمة مرور الدفع (6 أرقام `\d{6}`؛ عند التعيين المسبق يلزم تمرير الكلمة القديمة 422 اعتراض) |
-| POST | `/api/wallet/pay-password/verify` | التحقق من كلمة مرور الدفع (تُرجع قيمة منطقية صحيحة/خاطئة، دون كتابة في DB) |
-| POST | `/api/wallet/pay-password/check` | الاستعلام هل عُيّنت (set: true/false) |
+| POST | `/api/v1/wallet/pay-password/set` | تعيين كلمة مرور الدفع (6 أرقام `\d{6}`؛ عند التعيين المسبق يلزم تمرير الكلمة القديمة 422 اعتراض) |
+| POST | `/api/v1/wallet/pay-password/verify` | التحقق من كلمة مرور الدفع (تُرجع قيمة منطقية صحيحة/خاطئة، دون كتابة في DB) |
+| POST | `/api/v1/wallet/pay-password/check` | الاستعلام هل عُيّنت (set: true/false) |
 
 التخزين: hash من password_hash() + pay_password_set_at، ولا يُخزن النص الصريح أبدًا.
 
@@ -643,7 +643,7 @@
 
 | الطريقة | المسار | الوصف |
 |------|------|------|
-| GET | `/api/order/{id}/timeline` | الخط الزمني لتغييرات حالة الطلب (تنازليًا؛ لنفسه فقط، طلبات الآخرين 404 دون كشف الوجود) |
+| GET | `/api/v1/order/{id}/timeline` | الخط الزمني لتغييرات حالة الطلب (تنازليًا؛ لنفسه فقط، طلبات الآخرين 404 دون كشف الوجود) |
 
 نقاط التتبع: التقديم/الدفع (نقطة استهلاك واحدة في استدعاء WeChat markOrderPaid)/الإلغاء/تأكيد الفني/طلب الاسترداد/قبول الاسترداد/بدء الخدمة/إكمال الخدمة/الإلغاء التلقائي بعد المهلة/عمليات لوحة الإدارة (operator=admin) بإجمالي 8 فئات.
 
@@ -651,37 +651,37 @@
 
 | الطريقة | المسار | الوصف |
 |------|------|------|
-| GET | `/api/wheel/prizes` | قائمة جوائز العجلة (تُخفي الحقول الحساسة weight/stock) |
-| POST | `/api/wheel/spin` | سحب مرة واحدة (Redis NX + قفل صف ضد التزامن؛ random_int سحب بالأوزان؛ النقاط→عملية earn تتضمن مدة الصلاحية، الرصيد→إيداع lockForUpdate، الكوبون→صرف يدوي pending، بلا جائزة→lose؛ client_token قطعي) |
-| GET | `/api/wheel/records` | سجلات سحوباتي (ترقيم) |
+| GET | `/api/v1/wheel/prizes` | قائمة جوائز العجلة (تُخفي الحقول الحساسة weight/stock) |
+| POST | `/api/v1/wheel/spin` | سحب مرة واحدة (Redis NX + قفل صف ضد التزامن؛ random_int سحب بالأوزان؛ النقاط→عملية earn تتضمن مدة الصلاحية، الرصيد→إيداع lockForUpdate، الكوبون→صرف يدوي pending، بلا جائزة→lose؛ client_token قطعي) |
+| GET | `/api/v1/wheel/records` | سجلات سحوباتي (ترقيم) |
 
 ### 23. واجهات وضع الزائر (الجولة 24)
 
 | الطريقة | المسار | الوصف |
 |------|------|------|
-| GET | `/api/guest/home` | تجميع الصفحة الرئيسية (الشرائح/الإعلانات/تصنيفات الخدمات/الخدمات الرائجة، تخزين Redis svc:guest:home 300s) |
-| GET | `/api/guest/services` | قائمة الخدمات (?category_id=hashid&sort=newest|sales|price&page/per_page≤50) |
-| GET | `/api/guest/services/{id}` | تفاصيل الخدمة (غير الموجودة 404) |
-| GET | `/api/guest/stores` | قائمة المتاجر |
-| GET | `/api/guest/technicians` | قائمة الفنيين (المقبولون فقط؛ ?service_id=hashid تصفية؛ تنازليًا بالتقييم) |
+| GET | `/api/v1/guest/home` | تجميع الصفحة الرئيسية (الشرائح/الإعلانات/تصنيفات الخدمات/الخدمات الرائجة، تخزين Redis svc:guest:home 300s) |
+| GET | `/api/v1/guest/services` | قائمة الخدمات (?category_id=hashid&sort=newest|sales|price&page/per_page≤50) |
+| GET | `/api/v1/guest/services/{id}` | تفاصيل الخدمة (غير الموجودة 404) |
+| GET | `/api/v1/guest/stores` | قائمة المتاجر |
+| GET | `/api/v1/guest/technicians` | قائمة الفنيين (المقبولون فقط؛ ?service_id=hashid تصفية؛ تنازليًا بالتقييم) |
 
-مدخل تصفح بدون تسجيل الدخول، بلا مصادقة (وسيط ApiVersion فقط).
+مدخل تصفح بدون تسجيل الدخول، لا يتطلب مصادقة (واجهة عامة).
 
 ### 24. واجهات البيع المفاجئ (تتطلب مصادقة JWT، الجولة 24)
 
 | الطريقة | المسار | الوصف |
 |------|------|------|
-| GET | `/api/seckill` | قائمة نشاطات البيع المفاجئ (status=1 وداخل النافذة الزمنية؛ تتضمن المبيعات = عدد طلبات appointment_order.seckill_id والمخزون المتبقي) |
-| GET | `/api/seckill/{id}` | تفاصيل النشاط (state=not_started/ongoing/ended) |
-| POST | `/api/seckill/{id}/buy` | طلب بيع مفاجئ (client_token قطعي + Redis NX 30s ضد التزامن + فحص النشاط؛ لا يخصم المخزون مسبقًا) |
+| GET | `/api/v1/seckill` | قائمة نشاطات البيع المفاجئ (status=1 وداخل النافذة الزمنية؛ تتضمن المبيعات = عدد طلبات appointment_order.seckill_id والمخزون المتبقي) |
+| GET | `/api/v1/seckill/{id}` | تفاصيل النشاط (state=not_started/ongoing/ended) |
+| POST | `/api/v1/seckill/{id}/buy` | طلب بيع مفاجئ (client_token قطعي + Redis NX 30s ضد التزامن + فحص النشاط؛ لا يخصم المخزون مسبقًا) |
 
-**قواعد الطلب (من 2026-08-26)**: المخزون يُخصم داخل معاملة `/api/order store()` بقفل صف موحد، وbuy يقوم فقط بفحوصات الدخول/القطع؛ سعر البيع المفاجئ = seckill_price (حسب DB)، لا يتراكب مع الكوبونات/النقاط/بطاقات العضوية؛ إلغاء الطلب لا يعيد المخزون؛ استدعاء `/api/order` مباشرة مع seckill_id يخصم المخزون أيضًا.
+**قواعد الطلب (من 2026-08-26)**: المخزون يُخصم داخل معاملة `/api/v1/order store()` بقفل صف موحد، وbuy يقوم فقط بفحوصات الدخول/القطع؛ سعر البيع المفاجئ = seckill_price (حسب DB)، لا يتراكب مع الكوبونات/النقاط/بطاقات العضوية؛ إلغاء الطلب لا يعيد المخزون؛ استدعاء `/api/v1/order` مباشرة مع seckill_id يخصم المخزون أيضًا.
 
 ### 25. واجهة فحص إصدار التطبيق (الجولة 24)
 
 | الطريقة | المسار | الوصف |
 |------|------|------|
-| GET | `/api/app/version?platform=android|ios` | فحص أحدث إصدار (platform غير قانوني 422؛ بلا إصدار يُرجع كائنًا فارغًا؛ واجهة عامة) |
+| GET | `/api/v1/app/version?platform=android|ios` | فحص أحدث إصدار (platform غير قانوني 422؛ بلا إصدار يُرجع كائنًا فارغًا؛ واجهة عامة) |
 
 الاستجابة: id/platform/version_code/version_name/force_update (1=إجباري)/changelog/download_url.
 
@@ -689,7 +689,7 @@
 
 ## 二、واجهات لوحة الإدارة (admin/ :8787)
 
-ترويسة الطلب: `Authorization: Bearer <admin_token>`, `API-Version: v1`
+ترويسة الطلب: `Authorization: Bearer <admin_token>`؛ إصدار واجهات المصادقة العامة يتبع بادئة URL `/api/v1`
 
 ### لوحة القيادة
 
@@ -882,7 +882,7 @@
 | PUT | `/admin/versions/{id}` | تعديل |
 | DELETE | `/admin/versions/{id}` | حذف |
 
-معرّفات الصلاحيات: 416-419. واجهة فحص التحديث /api/app/version تأخذ الأحدث (أكبر updated_at/id) من status=1.
+معرّفات الصلاحيات: 416-419. واجهة فحص التحديث /api/v1/app/version تأخذ الأحدث (أكبر updated_at/id) من status=1.
 
 ### تصدير المواعيد (الجولة 24)
 

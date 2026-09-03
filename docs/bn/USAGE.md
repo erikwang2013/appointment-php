@@ -101,7 +101,7 @@ ws://localhost:8282
 iOS(APNs): apns_key_id/team_id/bundle_id/.p8 ফাইল কনফিগ
 Android(FCM): fcm_server_key কনফিগ
 
-APP ডিভাইস রেজিস্ট্রেশন: `POST /api/user/device/register {"platform":"ios","device_token":"..."}`
+APP ডিভাইস রেজিস্ট্রেশন: `POST /api/v1/user/device/register {"platform":"ios","device_token":"..."}`
 
 ---
 

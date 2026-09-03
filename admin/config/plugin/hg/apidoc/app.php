@@ -40,8 +40,7 @@ return [
         'params' => [
             'header' => [
                 ['name' => 'Authorization', 'type' => 'string', 'require' => false, 'desc' => 'JWT Token（管理端接口必填）'],
-                ['name' => 'API-Version', 'type' => 'string', 'require' => false, 'default' => 'v1', 'desc' => 'API 版本号'],
-                ['name' => 'Accept-Language', 'type' => 'string', 'require' => false, 'default' => 'zh_CN', 'desc' => '语言 (zh_CN | en)'],
+                                ['name' => 'Accept-Language', 'type' => 'string', 'require' => false, 'default' => 'zh_CN', 'desc' => '语言 (zh_CN | en)'],
             ],
         ],
         'responses' => [
@@ -57,7 +56,7 @@ return [
         ],
         'responses_status' => [
             ['name' => '200', 'desc' => '请求成功'],
-            ['name' => '400', 'desc' => '请求参数错误 / 不支持的 API 版本'],
+            ['name' => '400', 'desc' => '请求参数错误'],
             ['name' => '401', 'desc' => '未登录 / Token 无效'],
             ['name' => '403', 'desc' => '无权限 / 安全攻击拦截'],
             ['name' => '404', 'desc' => '资源不存在'],

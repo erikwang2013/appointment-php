@@ -99,7 +99,7 @@ Event: `order_update` / `technician_online` / `system_notice`
 iOS(APNs): konfigurasi apns_key_id/team_id/bundle_id/file .p8  
 Android(FCM): konfigurasi fcm_server_key
 
-Registrasi perangkat APP: `POST /api/user/device/register {"platform":"ios","device_token":"..."}`
+Registrasi perangkat APP: `POST /api/v1/user/device/register {"platform":"ios","device_token":"..."}`
 
 ---
 

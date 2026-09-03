@@ -8,7 +8,7 @@ class ApiService extends GetxService {
   /// 支持 --dart-define=API_BASE_URL=xxx 覆盖，默认本地开发地址
   static const baseUrl = String.fromEnvironment(
     'API_BASE_URL',
-    defaultValue: 'http://localhost:8788/api',
+    defaultValue: 'http://localhost:8788/api/v1',
   );
 
   static ApiService get to => Get.find<ApiService>();
@@ -23,7 +23,6 @@ class ApiService extends GetxService {
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
-        'API-Version': 'v1',
       },
     ));
 

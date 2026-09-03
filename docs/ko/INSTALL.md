@@ -126,13 +126,13 @@ php start.php start -d
 
 ```bash
 # 비즈니스 API
-curl http://localhost:8787/api/common/config
+curl http://localhost:8787/api/v1/common/config
 
 # 관리 백엔드 헬스 체크
 curl http://localhost:8787/health
 
 # 관리 백엔드 로그인(기본 계정 비밀번호는 아래 참조)
-curl -X POST http://localhost:8787/api/auth/login \
+curl -X POST http://localhost:8787/api/v1/auth/login \
   -H "Content-Type: application/json" \
   -d '{"username":"admin","password":"admin123"}'
 ```

@@ -6,7 +6,7 @@
 - **Бизнес-API** (service/): `http://localhost:8787` — бизнес-интерфейсы для мини-программы/приложения
 - **API админки** (admin/): `http://localhost:8787` — интерфейсы для Flutter Web админки
 - **Способ аутентификации**: Bearer Token (JWT), заголовок запроса `Authorization: Bearer <token>`
-- **Версионирование**: версия API задаётся заголовком `API-Version: v1`, в URL не отражается. По умолчанию v1
+- **Версионирование**: версия зафиксирована в префиксе пути URL `/api/v1` (например, `POST /api/v1/auth/login`); URL без префикса версии возвращает 404
 - **Кодирование ID**: все поля ID в запросах/ответах закодированы через hashids, реальные ID БД наружу не раскрываются
 - **Документация OpenAPI**: генерируется через `hg/apidoc`, для админки и клиента раздельно
 
@@ -50,7 +50,7 @@
 
 #### 1.1 Проверочный код
 
-**`POST /api/captcha/send`** — отправка SMS-кода подтверждения
+**`POST /api/v1/captcha/send`** — отправка SMS-кода подтверждения
 
 Запрос:
 ```json
@@ -66,7 +66,7 @@
 
 #### 1.2 Аутентификация
 
-**`POST /api/auth/register`** — регистрация по номеру телефона
+**`POST /api/v1/auth/register`** — регистрация по номеру телефона
 
 Запрос:
 ```json
@@ -99,7 +99,7 @@
 
 ---
 
-**`POST /api/auth/login`** — вход по паролю
+**`POST /api/v1/auth/login`** — вход по паролю
 
 Запрос:
 ```json
@@ -112,7 +112,7 @@
 
 ---
 
-**`POST /api/auth/login-by-code`** — вход по коду подтверждения
+**`POST /api/v1/auth/login-by-code`** — вход по коду подтверждения
 
 Запрос:
 ```json
@@ -125,7 +125,7 @@
 
 ---
 
-**`POST /api/auth/forget-password`** — восстановление пароля
+**`POST /api/v1/auth/forget-password`** — восстановление пароля
 
 Запрос:
 ```json
@@ -139,7 +139,7 @@
 
 ---
 
-**`POST /api/auth/refresh`** — обновление токена
+**`POST /api/v1/auth/refresh`** — обновление токена
 
 Заголовок запроса: `Authorization: Bearer <старый токен>`
 Ответ: `{"code":0,"data":{"token":"eyJhbGciOi..."}}`
@@ -148,20 +148,20 @@
 
 #### 1.3 WeChat
 
-**`POST /api/wechat/mini-login`** — вход через мини-программу
+**`POST /api/v1/wechat/mini-login`** — вход через мини-программу
 
 Запрос: `{"code":"微信登录code"}`
-Примечание: при первом входе необходимо дополнительно вызвать `/api/wechat/phone` для привязки номера телефона.
+Примечание: при первом входе необходимо дополнительно вызвать `/api/v1/wechat/phone` для привязки номера телефона.
 
 ---
 
-**`POST /api/wechat/phone`** — привязка номера телефона
+**`POST /api/v1/wechat/phone`** — привязка номера телефона
 
 Запрос: `{"code":"微信手机号组件code"}`
 
 ---
 
-**`POST /api/wechat/oa-login`** — вход через официальный аккаунт
+**`POST /api/v1/wechat/oa-login`** — вход через официальный аккаунт
 
 Запрос: `{"code":"公众号授权code"}`
 
@@ -169,39 +169,39 @@
 
 #### 1.4 Общие сервисы
 
-**`GET /api/common/config`** — общая конфигурация
+**`GET /api/v1/common/config`** — общая конфигурация
 
 Ответ: содержит тексты соглашений (пользовательское соглашение/политика конфиденциальности/сервисное соглашение), информацию о нас, номер версии.
 
 ---
 
-**`GET /api/common/area`** — список городов и регионов
+**`GET /api/v1/common/area`** — список городов и регионов
 
 ---
 
 #### 1.5 Поиск услуг
 
-**`GET /api/service/categories`** — список категорий
+**`GET /api/v1/service/categories`** — список категорий
 
 Параметры: `?parent_id=0`
 
 ---
 
-**`GET /api/service/items`** — список услуг
+**`GET /api/v1/service/items`** — список услуг
 
 Параметры: `?category_id=&page=1&per_page=10&sort=sales`
 
 ---
 
-**`GET /api/service/detail/{id}`** — детали услуги
+**`GET /api/v1/service/detail/{id}`** — детали услуги
 
 Ответ содержит: изображения/название/цену/спецификации/длительность/продажи/список отзывов.
 
 ---
 
-**`GET /api/service/products`** — список товаров
+**`GET /api/v1/service/products`** — список товаров
 
-**`GET /api/service/stores`** — список филиалов
+**`GET /api/v1/service/stores`** — список филиалов
 
 Параметры: `?lat=&lng=&city=`
 
@@ -209,20 +209,20 @@
 
 #### 1.6 Поиск мастеров
 
-**`GET /api/technician/list`** — список мастеров
+**`GET /api/v1/technician/list`** — список мастеров
 
 Параметры: `?lat=&lng=&service_id=&page=1`
 Сортировка по расстоянию от ближнего к дальнему, возвращает: аватар/имя/рейтинг/число заказов/число избранных/расстояние/ближайшее доступное время/доступность услуги.
 
 ---
 
-**`GET /api/technician/detail/{id}`** — детали мастера
+**`GET /api/v1/technician/detail/{id}`** — детали мастера
 
 Ответ содержит: изображения/имя/описание/рейтинг/расстояние/список доступных услуг/отзывы.
 
 ---
 
-**`GET /api/technician/schedule/{id}`** — расписание мастера
+**`GET /api/v1/technician/schedule/{id}`** — расписание мастера
 
 Параметры: `?date=2026-05-26`
 Возвращает доступные интервалы записи и их статус на указанную дату.
@@ -231,25 +231,25 @@
 
 #### 1.7 Контент
 
-**`GET /api/content/banners`** — карусель баннеров
+**`GET /api/v1/content/banners`** — карусель баннеров
 
 Параметры: `?position=home`
 
-**`GET /api/content/articles`** — список объявлений/статей
+**`GET /api/v1/content/articles`** — список объявлений/статей
 
 Параметры: `?type=announcement&page=1`
 
-**`GET /api/content/article/{id}`** — детали статьи
+**`GET /api/v1/content/article/{id}`** — детали статьи
 
 ---
 
 #### 1.8 LBS
 
-**`GET /api/lbs/nearby-stores`** — филиалы рядом
+**`GET /api/v1/lbs/nearby-stores`** — филиалы рядом
 
 Параметры: `?lat=&lng=&radius=5000`
 
-**`GET /api/lbs/geocode`** — обратное геокодирование
+**`GET /api/v1/lbs/geocode`** — обратное геокодирование
 
 Параметры: `?lat=&lng=`
 
@@ -263,13 +263,13 @@
 
 | Метод | Путь | Описание |
 |------|------|------|
-| GET | `/api/user/profile` | Получить личную информацию |
-| PUT | `/api/user/profile` | Обновить никнейм/аватар/пол |
-| POST | `/api/user/change-password` | Сменить пароль (old_password/new_password/confirm_password) |
-| POST | `/api/user/change-phone` | Перепривязать телефон (old_code/new_phone/new_code) |
-| POST | `/api/user/cancel-account` | Удалить аккаунт (требуется подтверждение пароля) |
-| POST | `/api/user/logout` | Выйти (token попадает в чёрный список) |
-| POST | `/api/user/switch-role` | Переключить роль (role: customer/technician) |
+| GET | `/api/v1/user/profile` | Получить личную информацию |
+| PUT | `/api/v1/user/profile` | Обновить никнейм/аватар/пол |
+| POST | `/api/v1/user/change-password` | Сменить пароль (old_password/new_password/confirm_password) |
+| POST | `/api/v1/user/change-phone` | Перепривязать телефон (old_code/new_phone/new_code) |
+| POST | `/api/v1/user/cancel-account` | Удалить аккаунт (требуется подтверждение пароля) |
+| POST | `/api/v1/user/logout` | Выйти (token попадает в чёрный список) |
+| POST | `/api/v1/user/switch-role` | Переключить роль (role: customer/technician) |
 
 Для переключения на technician необходим профиль мастера в статусе approved.
 
@@ -277,11 +277,11 @@
 
 | Метод | Путь | Описание |
 |------|------|------|
-| GET | `/api/user/addresses` | Список адресов |
-| POST | `/api/user/addresses` | Добавить адрес (contact_name/contact_phone/province/city/district/detail/lat/lng/is_default) |
-| GET | `/api/user/addresses/{id}` | Детали адреса |
-| PUT | `/api/user/addresses/{id}` | Обновить адрес |
-| DELETE | `/api/user/addresses/{id}` | Удалить адрес |
+| GET | `/api/v1/user/addresses` | Список адресов |
+| POST | `/api/v1/user/addresses` | Добавить адрес (contact_name/contact_phone/province/city/district/detail/lat/lng/is_default) |
+| GET | `/api/v1/user/addresses/{id}` | Детали адреса |
+| PUT | `/api/v1/user/addresses/{id}` | Обновить адрес |
+| DELETE | `/api/v1/user/addresses/{id}` | Удалить адрес |
 
 При установке адреса по умолчанию остальные автоматически снимаются с роли адреса по умолчанию.
 
@@ -289,22 +289,22 @@
 
 | Метод | Путь | Описание |
 |------|------|------|
-| GET | `/api/user/favorites` | Список избранного (?type=service/technician) |
-| POST | `/api/user/favorites` | Добавить в избранное (target_type/target_id) |
-| DELETE | `/api/user/favorites/{id}` | Убрать из избранного |
+| GET | `/api/v1/user/favorites` | Список избранного (?type=service/technician) |
+| POST | `/api/v1/user/favorites` | Добавить в избранное (target_type/target_id) |
+| DELETE | `/api/v1/user/favorites/{id}` | Убрать из избранного |
 
 #### 2.4 Обратная связь
 
-`POST /api/user/feedback` — отправить отзыв (content + массив images)
+`POST /api/v1/user/feedback` — отправить отзыв (content + массив images)
 
 #### 2.5 Реферальная программа
 
 | Метод | Путь | Описание |
 |------|------|------|
-| GET | `/api/user/referral` | Информация о приглашениях (реферальный код/число приглашённых/число совершивших первый заказ/полученные баллы) |
-| GET | `/api/user/referral/qrcode` | QR-код для приглашения (реферальный код + пригласительная ссылка) |
-| GET | `/api/user/referral/referred-users` | Список приглашённых пользователей |
-| GET | `/api/user/referral/earnings` | Детализация комиссионных (пагинация: никнейм/аватар приглашённого/номер заказа/сумма/время выплаты) |
+| GET | `/api/v1/user/referral` | Информация о приглашениях (реферальный код/число приглашённых/число совершивших первый заказ/полученные баллы) |
+| GET | `/api/v1/user/referral/qrcode` | QR-код для приглашения (реферальный код + пригласительная ссылка) |
+| GET | `/api/v1/user/referral/referred-users` | Список приглашённых пользователей |
+| GET | `/api/v1/user/referral/earnings` | Детализация комиссионных (пагинация: никнейм/аватар приглашённого/номер заказа/сумма/время выплаты) |
 
 **Комиссионные**: выплачиваются после завершения (completed) первого заказа приглашённого, сумма = paid_amount × reward_rate (appointment_system_config referral.reward_rate, по умолчанию 0.05, при недопустимом значении — откат к константе). Тройная идемпотентность: блокировка строк + проверка rewarded_at + повторная проверка первого заказа; зачисление в WalletTxn type=referral_reward.
 
@@ -312,8 +312,8 @@
 
 | Метод | Путь | Описание |
 |------|------|------|
-| POST | `/api/user/points/transfer` | Перевод баллов (to_user_id hashid/points) |
-| GET | `/api/user/points/transfers` | История переводов (?direction=sent/received&page=1) |
+| POST | `/api/v1/user/points/transfer` | Перевод баллов (to_user_id hashid/points) |
+| GET | `/api/v1/user/points/transfers` | История переводов (?direction=sent/received&page=1) |
 
 **Перевод баллов**: декодирование hashid получателя + проверка существования 404, перевод самому себе 422, количество 1–10000 422, недостаточный остаток по SUM-агрегации 422, суточный лимит 10000 422. Защита от конкурентности: Redis NX-блокировка points_transfer:{user} 30с → внутри транзакции lockForUpdate последних записей обеих сторон (сортировка user_id по возрастанию против взаимных переводов-дедлоков) → повторная проверка остатка/лимита/получателя под блокировкой. Правила записей: у отправителя type=consume/source=points_transfer с отрицательным значением (balance=снапшот предыдущей записи − текущая сумма), у получателя type=earn/source=points_transfer с положительным значением и expires_at (PointsExpiryTimer корректно обрабатывает истечение); после commit — внутрисистемное уведомление получателя type='points_received' (при сбое только warn).
 
@@ -321,8 +321,8 @@
 
 | Метод | Путь | Описание |
 |------|------|------|
-| GET | `/api/user/notify-settings` | Запрос переключателей уведомлений (все 5 типов) |
-| PUT | `/api/user/notify-settings` | Пакетное обновление переключателей (types: {service_reminder: 0/1, ...}) |
+| GET | `/api/v1/user/notify-settings` | Запрос переключателей уведомлений (все 5 типов) |
+| PUT | `/api/v1/user/notify-settings` | Пакетное обновление переключателей (types: {service_reminder: 0/1, ...}) |
 
 **Переключатели уведомлений**: таблица appointment_user_notify_setting (составной уникальный ключ user_id+type, отсутствующая строка = по умолчанию включено). 5 типов: service_reminder напоминание об услуге / card_expiry напоминание об истечении (единый зонт для карт и купонов) / points_expiry истечение баллов / marketing маркетинг (зарезервировано) / system системные (нельзя отключить, PUT принудительно ставит 1). Гейтинг: notifySettingEnabled подключается к 3 процессам-таймерам ServiceReminderTimer/ExpiryReminderTimer/PointsExpiryTimer + маппинг сценариев событий подписки (PAY/REFUND/VERIFIED/RESCHEDULE→system шлётся всегда, REMINDER→service_reminder, EXPIRY→card_expiry); при выключенном типе пропускаются и внутрисистемные уведомления, и сообщения подписки.
 
@@ -334,8 +334,8 @@
 
 | Метод | Путь | Описание |
 |------|------|------|
-| GET | `/api/technician/profile` | Получить профиль мастера |
-| PUT | `/api/technician/profile` | Обновить профиль (avatar/intro/real_name/gender/id_card/id_card_front/id_card_back) |
+| GET | `/api/v1/technician/profile` | Получить профиль мастера |
+| PUT | `/api/v1/technician/profile` | Обновить профиль (avatar/intro/real_name/gender/id_card/id_card_front/id_card_back) |
 
 Первое полное заполнение считается заявкой на вступление, status=pending ожидает проверки.
 
@@ -343,37 +343,37 @@
 
 | Метод | Путь | Описание |
 |------|------|------|
-| GET | `/api/technician/schedule` | Запрос расписания (?start_date=&end_date=) |
-| PUT | `/api/technician/schedule` | Установить расписание (date/time_slots/status), пересечение интервалов 422 «与已有排班时间冲突» |
-| POST | `/api/technician/schedule/batch` | Пакетное расписание (раунд 23): диапазон дат ≤7 дней + фильтр weekdays, дни с уже заданным расписанием пропускаются, ответ created/skipped |
+| GET | `/api/v1/technician/schedule` | Запрос расписания (?start_date=&end_date=) |
+| PUT | `/api/v1/technician/schedule` | Установить расписание (date/time_slots/status), пересечение интервалов 422 «与已有排班时间冲突» |
+| POST | `/api/v1/technician/schedule/batch` | Пакетное расписание (раунд 23): диапазон дат ≤7 дней + фильтр weekdays, дни с уже заданным расписанием пропускаются, ответ created/skipped |
 
 #### 3.3 Заказы мастера
 
-`GET /api/technician/orders` — список заказов (?status=&page=1)
+`GET /api/v1/technician/orders` — список заказов (?status=&page=1)
 
 #### 3.4 Доходы
 
-`GET /api/technician/earnings` — обзор доходов (today_income/pending_settlement/balance + список операций)
+`GET /api/v1/technician/earnings` — обзор доходов (today_income/pending_settlement/balance + список операций)
 
 #### 3.5 Вывод средств
 
-`POST /api/technician/withdraw` — заявка на вывод средств (amount)
+`POST /api/v1/technician/withdraw` — заявка на вывод средств (amount)
 Правила: вывод возможен 20-го числа каждого месяца, зачисление T+1, минимальная сумма/кратность сотне задаются в настройках админки.
 
 **Резервирование в пути (2026-08-26)**: при заявке сумма сразу резервируется из остатка (в пути pending/approved); перед одобрением перевода повторная проверка settled − withdrawn − в пути ≥ суммы вывода; параллельное одобрение не приводит к двойной выплате.
 
 #### 3.6 Ответ на отзыв (раунд 18)
 
-`POST /api/technician/review/reply/{order_id}` — ответ мастера на отзыв (reply). Отзыв не существует/не свой — единый 404 (существование не раскрывается); ответ уже есть 422 (идемпотентный отказ без перезаписи); пустой ответ 422. После успешного ответа — внутрисистемное уведомление пользователя (type='review_reply').
+`POST /api/v1/technician/review/reply/{order_id}` — ответ мастера на отзыв (reply). Отзыв не существует/не свой — единый 404 (существование не раскрывается); ответ уже есть 422 (идемпотентный отказ без перезаписи); пустой ответ 422. После успешного ответа — внутрисистемное уведомление пользователя (type='review_reply').
 
 #### 3.6 Рабочий стол
 
 | Метод | Путь | Описание |
 |------|------|------|
-| GET | `/api/technician/work/today` | Список задач на сегодня |
-| GET | `/api/technician/work/records` | Пагинация записей о выполненных работах |
-| POST | `/api/technician/work/{id}/start` | Начать услугу |
-| POST | `/api/technician/work/{id}/complete` | Завершить услугу |
+| GET | `/api/v1/technician/work/today` | Список задач на сегодня |
+| GET | `/api/v1/technician/work/records` | Пагинация записей о выполненных работах |
+| POST | `/api/v1/technician/work/{id}/start` | Начать услугу |
+| POST | `/api/v1/technician/work/{id}/complete` | Завершить услугу |
 
 **Задачи на сегодня**: status ∈ [confirmed, serving], service_time сегодня или пусто, возвращаются service_name/price/nickname/avatar.
 
@@ -387,17 +387,17 @@
 
 | Метод | Путь | Описание |
 |------|------|------|
-| POST | `/api/order` | Создать заказ (order_type/items/store_id/technician_id/service_time/coupon_id/user_coupon_id/promotion_id/remark) |
-| GET | `/api/order/list` | Список заказов (?status=&page=1) |
-| GET | `/api/order/detail/{id}` | Детали заказа |
-| POST | `/api/order/cancel/{id}` | Отменить заказ (reason) |
-| POST | `/api/order/pay/{id}` | Инициировать оплату (pay_channel: wechat/balance, use_points: опционально баллы вместо денег) |
-| POST | `/api/order/refund/{id}` | Запросить возврат |
-| POST | `/api/order/verify/{id}` | Списывание (code: значение QR-кода) |
-| POST | `/api/order/reschedule/{id}` | Перенос записи (new_service_time обязательно/reason опционально) |
-| GET | `/api/order/logistics/{id}` | Отслеживание доставки (раунд 19, заказы product) |
-| POST | `/api/order/review/{order_id}` | Оставить отзыв (rating 1-5/content/images) (дополнительно зарегистрирован в раунде 19) |
-| POST | `/api/order/review/{order_id}/append` | Дополнить отзыв (content/images через запятую) (раунд 19) |
+| POST | `/api/v1/order` | Создать заказ (order_type/items/store_id/technician_id/service_time/coupon_id/user_coupon_id/promotion_id/remark) |
+| GET | `/api/v1/order/list` | Список заказов (?status=&page=1) |
+| GET | `/api/v1/order/detail/{id}` | Детали заказа |
+| POST | `/api/v1/order/cancel/{id}` | Отменить заказ (reason) |
+| POST | `/api/v1/order/pay/{id}` | Инициировать оплату (pay_channel: wechat/balance, use_points: опционально баллы вместо денег) |
+| POST | `/api/v1/order/refund/{id}` | Запросить возврат |
+| POST | `/api/v1/order/verify/{id}` | Списывание (code: значение QR-кода) |
+| POST | `/api/v1/order/reschedule/{id}` | Перенос записи (new_service_time обязательно/reason опционально) |
+| GET | `/api/v1/order/logistics/{id}` | Отслеживание доставки (раунд 19, заказы product) |
+| POST | `/api/v1/order/review/{order_id}` | Оставить отзыв (rating 1-5/content/images) (дополнительно зарегистрирован в раунде 19) |
+| POST | `/api/v1/order/review/{order_id}/append` | Дополнить отзыв (content/images через запятую) (раунд 19) |
 
 **Статусы заказа**: pending(ожидает оплаты) → paid(оплачен) → confirmed(подтверждён) → serving(в работе) → completed(завершён)
 
@@ -415,25 +415,25 @@
 
 **Возврат баллов**: при отмене/возврате возвращаются баллы, израсходованные через points_offset (type=earn/source=points_refund): при отмене полностью, при возврате пропорционально, 5 точек подключения идемпотентны (refundOffsetPoints).
 
-**Групповая покупка (раунд 16)**: при создании заказа опционально передаётся `promotion_id` (hashid). Проверки: только тип group_buy, активность в сроке действия, вызывающий — участник, группа не полна (закрытая группа 422), услуга заказа соответствует активности; цена группы = исходная цена × discount_percent/100, купоны/карты/баллы поверх не применяются (передача любого — 422). В заказ пишутся promotion_id/participant_id; оплата полностью переиспользует `POST /api/order/pay/{id}`, при pay лениво проверяется закрытие активности (срок истёк, группа не собрана) → заказ автоматически отменяется и освобождается блокировка мастера.
+**Групповая покупка (раунд 16)**: при создании заказа опционально передаётся `promotion_id` (hashid). Проверки: только тип group_buy, активность в сроке действия, вызывающий — участник, группа не полна (закрытая группа 422), услуга заказа соответствует активности; цена группы = исходная цена × discount_percent/100, купоны/карты/баллы поверх не применяются (передача любого — 422). В заказ пишутся promotion_id/participant_id; оплата полностью переиспользует `POST /api/v1/order/pay/{id}`, при pay лениво проверяется закрытие активности (срок истёк, группа не собрана) → заказ автоматически отменяется и освобождается блокировка мастера.
 
-**Секундная распродажа (раунд 18, снята с эксплуатации)**: ~~при создании заказа передавался `promotion_id` (тип flash_sale)~~ — с 2026-08 канал старой акции FLASH_SALE удалён, в store() осталась только ветка group_buy (не групповая promotion 422); секундная распродажа единообразно переведена на канал `/api/seckill` раунда 24 (seckill_id внедряется в транзакцию store() с блокировкой строк для списания запаса), PromotionController::index фильтрует flash_sale, show/join возвращают для него 400, константа `Promotion::TYPE_FLASH_SALE` сохранена для совместимости с историческими данными.
+**Секундная распродажа (раунд 18, снята с эксплуатации)**: ~~при создании заказа передавался `promotion_id` (тип flash_sale)~~ — с 2026-08 канал старой акции FLASH_SALE удалён, в store() осталась только ветка group_buy (не групповая promotion 422); секундная распродажа единообразно переведена на канал `/api/v1/seckill` раунда 24 (seckill_id внедряется в транзакцию store() с блокировкой строк для списания запаса), PromotionController::index фильтрует flash_sale, show/join возвращают для него 400, константа `Promotion::TYPE_FLASH_SALE` сохранена для совместимости с историческими данными.
 
-**Перенос записи (раунд 17)**: `POST /api/order/reschedule/{id}` передаёт new_service_time (обязательно) + reason (опционально), смена времени у того же мастера. Правила: только свой заказ (чужой 404), перенос возможен только для типа appointment в статусе pending/paid/confirmed (остальные 422), до начала исходной услуги ≥ 6 часов (совпадает с окном полного возврата). Защита от конкурентности: B1 order_lock (та же семья взаимных блокировок, что pay/cancel/refund) → блокировка мастера на новый слот через Redis SETNX EX 180 (защита от перепродажи при параллельных переносах) → внутри транзакции блокировка строки с повторным чтением + B2 проверка конфликта расписания в БД (без учёта данного заказа) → обновление service_time + запись appointment_order_reschedule → освобождение блокировки старого слота, блокировку нового слота держит этот заказ → подписка SCENE_RESCHEDULE (при отсутствии настройки — деградация до внутрисистемного уведомления). При сбое транзакция откатывается и одновременно освобождается блокировка нового слота.
+**Перенос записи (раунд 17)**: `POST /api/v1/order/reschedule/{id}` передаёт new_service_time (обязательно) + reason (опционально), смена времени у того же мастера. Правила: только свой заказ (чужой 404), перенос возможен только для типа appointment в статусе pending/paid/confirmed (остальные 422), до начала исходной услуги ≥ 6 часов (совпадает с окном полного возврата). Защита от конкурентности: B1 order_lock (та же семья взаимных блокировок, что pay/cancel/refund) → блокировка мастера на новый слот через Redis SETNX EX 180 (защита от перепродажи при параллельных переносах) → внутри транзакции блокировка строки с повторным чтением + B2 проверка конфликта расписания в БД (без учёта данного заказа) → обновление service_time + запись appointment_order_reschedule → освобождение блокировки старого слота, блокировку нового слота держит этот заказ → подписка SCENE_RESCHEDULE (при отсутствии настройки — деградация до внутрисистемного уведомления). При сбое транзакция откатывается и одновременно освобождается блокировка нового слота.
 
-**Отслеживание доставки (раунд 19)**: `GET /api/order/logistics/{id}` — только свои заказы product (чужой/не товар/не отправлен — единый 404). Читает JSON из order.remark (shipping_company/tracking_no/shipped_at, пишется при отгрузке в admin MallOrderController::ship()), двойной парсинг parseShippingInfo/parseReceiver для обратной совместимости со старыми форматами; телефон получателя маскируется 138****5678.
+**Отслеживание доставки (раунд 19)**: `GET /api/v1/order/logistics/{id}` — только свои заказы product (чужой/не товар/не отправлен — единый 404). Читает JSON из order.remark (shipping_company/tracking_no/shipped_at, пишется при отгрузке в admin MallOrderController::ship()), двойной парсинг parseShippingInfo/parseReceiver для обратной совместимости со старыми форматами; телефон получателя маскируется 138****5678.
 
-**Отзывы (раунд 19)**: `POST /api/order/review/{order_id}` оставить отзыв (rating обязателен 1-5, content/images опциональны): чужой заказ 404, не completed 422, повторный отзыв 400. `POST /api/order/review/{order_id}/append` дополнить отзыв (content обязателен, images через запятую): отзыв не существует/не свой — единый 404, не completed 422, повторное дополнение 422, пустой контент 422; при успехе пишутся append_content/append_images(JSON)/append_at и мастеру отправляется внутрисистемное уведомление type='review_append', в ответе пробрасывается поле append.
+**Отзывы (раунд 19)**: `POST /api/v1/order/review/{order_id}` оставить отзыв (rating обязателен 1-5, content/images опциональны): чужой заказ 404, не completed 422, повторный отзыв 400. `POST /api/v1/order/review/{order_id}/append` дополнить отзыв (content обязателен, images через запятую): отзыв не существует/не свой — единый 404, не completed 422, повторное дополнение 422, пустой контент 422; при успехе пишутся append_content/append_images(JSON)/append_at и мастеру отправляется внутрисистемное уведомление type='review_append', в ответе пробрасывается поле append.
 
 ### 4.1 Послепродажное обслуживание (требуется JWT)
 
 | Метод | Путь | Описание |
 |------|------|------|
-| POST | `/api/aftersales` | Запросить послепродажное обслуживание (order_id hashid/type: refund|exchange/reason), проверка своего заказа 404, заявка возможна только в статусе paid+completed 422, дублирующаяся незавершённая заявка по тому же заказу 422 |
-| GET | `/api/aftersales` | Список моих заявок (?status=&page=1&limit=) |
-| GET | `/api/aftersales/{id}` | Детали заявки (проверка принадлежности 404) |
+| POST | `/api/v1/aftersales` | Запросить послепродажное обслуживание (order_id hashid/type: refund|exchange/reason), проверка своего заказа 404, заявка возможна только в статусе paid+completed 422, дублирующаяся незавершённая заявка по тому же заказу 422 |
+| GET | `/api/v1/aftersales` | Список моих заявок (?status=&page=1&limit=) |
+| GET | `/api/v1/aftersales/{id}` | Детали заявки (проверка принадлежности 404) |
 
-**Статус заявки**: pending(на рассмотрении) → approved(одобрена) / rejected(отклонена). approved только меняет статус, сам возврат выполняется через `POST /api/order/refund/{id}`.
+**Статус заявки**: pending(на рассмотрении) → approved(одобрена) / rejected(отклонена). approved только меняет статус, сам возврат выполняется через `POST /api/v1/order/refund/{id}`.
 
 ---
 
@@ -441,10 +441,10 @@
 
 | Метод | Путь | Описание |
 |------|------|------|
-| GET | `/api/promotions` | Список активностей (?type=group_buy; flash_sale фильтруется и не возвращается) |
-| GET | `/api/promotions/{id}` | Детали активности (включая число участников/собрана ли группа; тип flash_sale — 400) |
-| GET | `/api/promotions/{id}/participants` | Список участников |
-| POST | `/api/promotions/join/{id}` | Участвовать в активности (доработано в раунде 15: ответ содержит discount_percent/original_price/group_price; тип flash_sale — 400) |
+| GET | `/api/v1/promotions` | Список активностей (?type=group_buy; flash_sale фильтруется и не возвращается) |
+| GET | `/api/v1/promotions/{id}` | Детали активности (включая число участников/собрана ли группа; тип flash_sale — 400) |
+| GET | `/api/v1/promotions/{id}/participants` | Список участников |
+| POST | `/api/v1/promotions/join/{id}` | Участвовать в активности (доработано в раунде 15: ответ содержит discount_percent/original_price/group_price; тип flash_sale — 400) |
 
 **Правила участия**: группа group_buy полна (≥min_people) — закрыта, после сбора группы новое участие 422; по истечении срока без полного набора — ленивое закрытие (при show/join status ставится 0). После join заказ оформляется по цене группы — см. «Групповая покупка (раунд 16)». Секундная распродажа этим каналом больше не идёт — см. «24. Интерфейсы секундной распродажи».
 
@@ -454,21 +454,21 @@
 
 | Метод | Путь | Описание |
 |------|------|------|
-| GET | `/api/marketing/coupons` | Список купонов (?status=available/used/expired) |
-| POST | `/api/marketing/coupons/receive` | Получить купон (coupon_id) |
-| GET | `/api/marketing/cards` | Список карт |
-| POST | `/api/marketing/cards/buy` | Купить карту (card_id) |
-| GET | `/api/marketing/cards/my` | Список моих карт |
-| POST | `/api/marketing/cards/use` | Списать карту (user_card_id/service_id/remark?) |
-| GET | `/api/marketing/gift-cards` | Список подарочных карт |
-| GET | `/api/marketing/gift-cards/my` | Мои подарочные карты (записи redeem) |
-| POST | `/api/marketing/gift-cards/redeem` | Активировать подарочную карту (карты типа cash после активации пополняют баланс кошелька) |
-| GET | `/api/marketing/points` | Операции с баллами (?type=earn/use/expire&source=order/referral/gift_card/check_in/admin) |
-| GET | `/api/marketing/points-exchange` | Список товаров за баллы (наличие на витрине + актуальный остаток + число выданных) |
-| POST | `/api/marketing/points-exchange/{id}` | Обменять (type=coupon выдача купона / wallet зачисление / gift_card возврат карты с кодом) |
-| POST | `/api/marketing/coupons/transfer` | Сгенерировать код передачи (user_coupon_id: уникальный 8-символьный код/действителен 7 дней) |
-| POST | `/api/marketing/coupons/claim` | Получить переданный купон (code) |
-| GET | `/api/marketing/coupons/transfers` | Записи передач (исходящие pending/claimed/expired + входящие claimed) |
+| GET | `/api/v1/marketing/coupons` | Список купонов (?status=available/used/expired) |
+| POST | `/api/v1/marketing/coupons/receive` | Получить купон (coupon_id) |
+| GET | `/api/v1/marketing/cards` | Список карт |
+| POST | `/api/v1/marketing/cards/buy` | Купить карту (card_id) |
+| GET | `/api/v1/marketing/cards/my` | Список моих карт |
+| POST | `/api/v1/marketing/cards/use` | Списать карту (user_card_id/service_id/remark?) |
+| GET | `/api/v1/marketing/gift-cards` | Список подарочных карт |
+| GET | `/api/v1/marketing/gift-cards/my` | Мои подарочные карты (записи redeem) |
+| POST | `/api/v1/marketing/gift-cards/redeem` | Активировать подарочную карту (карты типа cash после активации пополняют баланс кошелька) |
+| GET | `/api/v1/marketing/points` | Операции с баллами (?type=earn/use/expire&source=order/referral/gift_card/check_in/admin) |
+| GET | `/api/v1/marketing/points-exchange` | Список товаров за баллы (наличие на витрине + актуальный остаток + число выданных) |
+| POST | `/api/v1/marketing/points-exchange/{id}` | Обменять (type=coupon выдача купона / wallet зачисление / gift_card возврат карты с кодом) |
+| POST | `/api/v1/marketing/coupons/transfer` | Сгенерировать код передачи (user_coupon_id: уникальный 8-символьный код/действителен 7 дней) |
+| POST | `/api/v1/marketing/coupons/claim` | Получить переданный купон (code) |
+| GET | `/api/v1/marketing/coupons/transfers` | Записи передач (исходящие pending/claimed/expired + входящие claimed) |
 
 **Карты**: cards/my возвращает card_id/name/type/services/total_times/used_times/remaining_times/start_at/end_at/status (рассчитывается в реальном времени). При успешном списании возвращается {order_id, usage_id, remaining_times}; коды ошибок: недопустимый hashid 422, недостаточно попыток 422, истекла 400, не своя 404, защита Redis от повторов 400.
 
@@ -486,9 +486,9 @@
 
 | Метод | Путь | Описание |
 |------|------|------|
-| GET | `/api/notification` | Список уведомлений (?type=order/system&page=1) |
-| PUT | `/api/notification/read/{id}` | Отметить прочитанным |
-| PUT | `/api/notification/read-all` | Прочитать все |
+| GET | `/api/v1/notification` | Список уведомлений (?type=order/system&page=1) |
+| PUT | `/api/v1/notification/read/{id}` | Отметить прочитанным |
+| PUT | `/api/v1/notification/read-all` | Прочитать все |
 
 ---
 
@@ -496,20 +496,20 @@
 
 | Метод | Путь | Описание |
 |------|------|------|
-| GET | `/api/wallet` | Баланс кошелька + пагинация операций |
-| POST | `/api/wallet/recharge` | Создать пополнение (amount: юани) |
-| POST | `/api/wallet/recharge/{id}/pay` | Оплатить пополнение (WeChat) |
-| POST | `/api/wallet/transfer` | Перевод с баланса (to_user_id hashid/amount/remark опционально/client_token опционально) (раунд 19) |
-| GET | `/api/wallet/transfers` | Записи переводов (?direction=out/in&page=1) (раунд 19) |
-| GET | `/api/wallet/transfers/{id}` | Детали перевода (видны только обеим сторонам, чужим 404) (раунд 19) |
+| GET | `/api/v1/wallet` | Баланс кошелька + пагинация операций |
+| POST | `/api/v1/wallet/recharge` | Создать пополнение (amount: юани) |
+| POST | `/api/v1/wallet/recharge/{id}/pay` | Оплатить пополнение (WeChat) |
+| POST | `/api/v1/wallet/transfer` | Перевод с баланса (to_user_id hashid/amount/remark опционально/client_token опционально) (раунд 19) |
+| GET | `/api/v1/wallet/transfers` | Записи переводов (?direction=out/in&page=1) (раунд 19) |
+| GET | `/api/v1/wallet/transfers/{id}` | Детали перевода (видны только обеим сторонам, чужим 404) (раунд 19) |
 
 **Операции**: типы wallet_txn: recharge / consume / refund / gift_card / referral_reward(комиссионные) / referral_level2(комиссионные второго уровня) / points_exchange(зачисление за обмен баллов), возвращаются с пагинацией.
 
-**Пополнение**: `POST /api/wallet/recharge` передаёт amount (юани), создаёт пополнение и возвращает его hashid. `POST /api/wallet/recharge/{id}/pay` инициирует оплату WeChat, ответ содержит sign_params (по той же схеме, что оплата заказа); в платёжном колбэке пополнение отличается от заказа по out_trade_no с префиксом R.
+**Пополнение**: `POST /api/v1/wallet/recharge` передаёт amount (юани), создаёт пополнение и возвращает его hashid. `POST /api/v1/wallet/recharge/{id}/pay` инициирует оплату WeChat, ответ содержит sign_params (по той же схеме, что оплата заказа); в платёжном колбэке пополнение отличается от заказа по out_trade_no с префиксом R.
 
 **Оплата с баланса**: в теле платежа передаётся `pay_channel: "balance"` для оплаты остатком кошелька; и возврат WeChat, и возврат с баланса зачисляют сумму обратно на остаток кошелька.
 
-**Перевод с баланса (раунд 19)**: `POST /api/wallet/transfer` — декодирование hashid получателя + проверка существования 404, перевод самому себе 422, сумма 0.01–1000 за операцию 422 (сравнение через DECIMAL, float запрещён), недостаточный остаток 422, суточный лимит 5000 юаней 422. Конкурентность/идемпотентность: Redis NX-блокировка wallet_transfer:{from} 30с сериализует исходящую сторону → внутри транзакции строки кошельков обеих сторон lockForUpdate в порядке возрастания user_id (фиксированный порядок против дедлоков) → списание у отправителя + зачисление получателю + двойные записи WalletTxn (transfer_out/transfer_in с балансовым снапшотом balance_after) + запись перевода completed + внутрисистемное уведомление получателя type='balance_received' (при сбое только запись в лог). client_token опционален: после успеха SETNX 24ч защищает от повторной отправки (при сбое запроса токен не сохраняется — можно повторить).
+**Перевод с баланса (раунд 19)**: `POST /api/v1/wallet/transfer` — декодирование hashid получателя + проверка существования 404, перевод самому себе 422, сумма 0.01–1000 за операцию 422 (сравнение через DECIMAL, float запрещён), недостаточный остаток 422, суточный лимит 5000 юаней 422. Конкурентность/идемпотентность: Redis NX-блокировка wallet_transfer:{from} 30с сериализует исходящую сторону → внутри транзакции строки кошельков обеих сторон lockForUpdate в порядке возрастания user_id (фиксированный порядок против дедлоков) → списание у отправителя + зачисление получателю + двойные записи WalletTxn (transfer_out/transfer_in с балансовым снапшотом balance_after) + запись перевода completed + внутрисистемное уведомление получателя type='balance_received' (при сбое только запись в лог). client_token опционален: после успеха SETNX 24ч защищает от повторной отправки (при сбое запроса токен не сохраняется — можно повторить).
 
 ---
 
@@ -517,10 +517,10 @@
 
 | Метод | Путь | Описание |
 |------|------|------|
-| GET | `/api/store-manager/overview` | Обзор за сегодня (заказы за сегодня/выручка за сегодня/в работе/число мастеров/число списаний) |
-| GET | `/api/store-manager/orders` | Список заказов филиала (?status=&page=&limit=) |
-| GET | `/api/store-manager/technicians` | Список мастеров (включая расписание на сегодня) |
-| GET | `/api/store-manager/revenue` | Агрегация выручки за 7 дней |
+| GET | `/api/v1/store-manager/overview` | Обзор за сегодня (заказы за сегодня/выручка за сегодня/в работе/число мастеров/число списаний) |
+| GET | `/api/v1/store-manager/orders` | Список заказов филиала (?status=&page=&limit=) |
+| GET | `/api/v1/store-manager/technicians` | Список мастеров (включая расписание на сегодня) |
+| GET | `/api/v1/store-manager/revenue` | Агрегация выручки за 7 дней |
 
 **Изоляция по store_id**: requireStoreId() принудительно требует привязку текущего пользователя к филиалу (appointment_user.store_id), без филиала 403; все запросы фильтруются по store_id.
 
@@ -530,9 +530,9 @@
 
 | Метод | Путь | Описание |
 |------|------|------|
-| GET | `/api/growth` | Обзор текущего уровня (balance/уровень/разница до следующей ступени/название уровня) |
-| GET | `/api/growth/records` | Пагинация операций с очками роста (?page=&limit=) |
-| GET | `/api/growth/levels` | Список ступеней (публичный, без входа) |
+| GET | `/api/v1/growth` | Обзор текущего уровня (balance/уровень/разница до следующей ступени/название уровня) |
+| GET | `/api/v1/growth/records` | Пагинация операций с очками роста (?page=&limit=) |
+| GET | `/api/v1/growth/levels` | Список ступеней (публичный, без входа) |
 
 **Начисление очков роста**: отметка о посещении +10; отзыв +20 (дополнение отзыва не начисляется); покупка floor(paid) по 1 баллу за 1 юань (в колбэке оплаты повторная проверка состояния с идемпотентностью — повторные колбэки не начисляют дважды).
 
@@ -540,9 +540,9 @@
 
 | Метод | Путь | Описание |
 |------|------|------|
-| POST | `/api/invoices` | Запросить счёт (order_id hashid/order_type: service=услуга/points_exchange=обмен баллов/order_type по умолчанию service; сумма и реквизиты подставляются сервером, подмена невозможна) |
-| GET | `/api/invoices` | Список счетов (?status=&page=) |
-| GET | `/api/invoices/{id}` | Детали счёта (только свой) |
+| POST | `/api/v1/invoices` | Запросить счёт (order_id hashid/order_type: service=услуга/points_exchange=обмен баллов/order_type по умолчанию service; сумма и реквизиты подставляются сервером, подмена невозможна) |
+| GET | `/api/v1/invoices` | Список счетов (?status=&page=) |
+| GET | `/api/v1/invoices/{id}` | Детали счёта (только свой) |
 
 **Защита от повторов**: уникальный ключ uk_order_type(order_id, order_type), повторная заявка на один заказ того же типа 422 (включая страховочный перехват MySQL 1062).
 
@@ -550,37 +550,37 @@
 
 | Метод | Путь | Описание |
 |------|------|------|
-| POST | `/api/tickets` | Создать тикет (title/content обязательны) |
-| GET | `/api/tickets` | Список тикетов (?status=open/closed&page=) |
-| GET | `/api/tickets/{id}` | Детали тикета (только свой, чужой 404) |
-| POST | `/api/tickets/{id}/close` | Закрыть тикет (только свой/только open; опционально rating 1-5 оценка удовлетворённости, вне диапазона/не целое 422, если не указано — NULL) |
+| POST | `/api/v1/tickets` | Создать тикет (title/content обязательны) |
+| GET | `/api/v1/tickets` | Список тикетов (?status=open/closed&page=) |
+| GET | `/api/v1/tickets/{id}` | Детали тикета (только свой, чужой 404) |
+| POST | `/api/v1/tickets/{id}/close` | Закрыть тикет (только свой/только open; опционально rating 1-5 оценка удовлетворённости, вне диапазона/не целое 422, если не указано — NULL) |
 
 ### 12. Календарь записей (требуется JWT, раунд 20)
 
 | Метод | Путь | Описание |
 |------|------|------|
-| GET | `/api/calendar/technician/{id}` | Месячный вид (?month=YYYY-MM): развёртка интервалов time_slots в часовые слоты + исключение занятых |
-| GET | `/api/calendar/technician/{id}/day` | Дневной вид (?date=YYYY-MM-DD): детализация слотов — свободен/занят/недоступен |
+| GET | `/api/v1/calendar/technician/{id}` | Месячный вид (?month=YYYY-MM): развёртка интервалов time_slots в часовые слоты + исключение занятых |
+| GET | `/api/v1/calendar/technician/{id}/day` | Дневной вид (?date=YYYY-MM-DD): детализация слотов — свободен/занят/недоступен |
 
 ### 13. Реквизиты счёта (требуется JWT, раунд 21)
 
 | Метод | Путь | Описание |
 |------|------|------|
-| POST | `/api/invoice-titles` | Сохранить реквизиты (title_type: personal/company; для company обязателен tax_no; повтор одинаковых реквизитов у одного пользователя 422; первая запись автоматически по умолчанию) |
-| GET | `/api/invoice-titles` | Список реквизитов (по умолчанию сверху) |
-| PUT | `/api/invoice-titles/{id}` | Изменить реквизиты (только свои) |
-| DELETE | `/api/invoice-titles/{id}` | Удалить реквизиты (только свои; при удалении записи по умолчанию по умолчанию назначается самая ранняя) |
-| POST | `/api/invoice-titles/{id}/default` | Сделать по умолчанию (в транзакции снимает по умолчанию с остальных строк пользователя) |
+| POST | `/api/v1/invoice-titles` | Сохранить реквизиты (title_type: personal/company; для company обязателен tax_no; повтор одинаковых реквизитов у одного пользователя 422; первая запись автоматически по умолчанию) |
+| GET | `/api/v1/invoice-titles` | Список реквизитов (по умолчанию сверху) |
+| PUT | `/api/v1/invoice-titles/{id}` | Изменить реквизиты (только свои) |
+| DELETE | `/api/v1/invoice-titles/{id}` | Удалить реквизиты (только свои; при удалении записи по умолчанию по умолчанию назначается самая ранняя) |
+| POST | `/api/v1/invoice-titles/{id}/default` | Сделать по умолчанию (в транзакции снимает по умолчанию с остальных строк пользователя) |
 
-**Связка при заявке**: POST /api/invoices поддерживает опциональный title_id — реквизиты подтягиваются автоматически (invoice_title/tax_no/title_type), при отсутствии title_id сохраняется прежний путь ручного заполнения.
+**Связка при заявке**: POST /api/v1/invoices поддерживает опциональный title_id — реквизиты подтягиваются автоматически (invoice_title/tax_no/title_type), при отсутствии title_id сохраняется прежний путь ручного заполнения.
 
 ### 14. История просмотров (требуется JWT, раунд 21)
 
 | Метод | Путь | Описание |
 |------|------|------|
-| GET | `/api/browse-history` | Недавно просмотренные услуги (join названия услуги/обложки/цены/исходной цены, сортировка по viewed_at по убыванию, per_page по умолчанию 15 с пределом 50) |
-| DELETE | `/api/browse-history/{item_id}` | Удалить одну запись (только свою, недопустимую/чужую 404) |
-| DELETE | `/api/browse-history` | Очистить историю (только свою) |
+| GET | `/api/v1/browse-history` | Недавно просмотренные услуги (join названия услуги/обложки/цены/исходной цены, сортировка по viewed_at по убыванию, per_page по умолчанию 15 с пределом 50) |
+| DELETE | `/api/v1/browse-history/{item_id}` | Удалить одну запись (только свою, недопустимую/чужую 404) |
+| DELETE | `/api/v1/browse-history` | Очистить историю (только свою) |
 
 **Момент записи**: автоматически записывается после успешного обращения к деталям услуги (без входа пропускается; повторный просмотр только обновляет viewed_at без дублирования записей).
 
@@ -588,7 +588,7 @@
 
 | Метод | Путь | Описание |
 |------|------|------|
-| GET | `/api/full-reduction-activities` | Список действующих акций (status=1 и в сроке действия, сортировка по размеру скидки по убыванию; публичный интерфейс) |
+| GET | `/api/v1/full-reduction-activities` | Список действующих акций (status=1 и в сроке действия, сортировка по размеру скидки по убыванию; публичный интерфейс) |
 
 **Правила наложения при заказе**: скидка действует только для стандартных заказов (групповые/секундные пропускаются), порог (threshold) определяется по сумме после списания купонов/карт, порядок наложения **купон/карта → скидка при сумме → скидка по уровню**; берётся активность с наибольшей скидкой; сумма скидки входит в discount_amount, в примечание добавляется «满减：满X减Y»; после скидки сумма к оплате не ниже 0.01 юаня.
 
@@ -596,7 +596,7 @@
 
 | Метод | Путь | Описание |
 |------|------|------|
-| GET | `/api/order/ics` | Экспорт действующих заказов за 90 дней (pending/paid/confirmed/serving) в iCal (RFC5545) |
+| GET | `/api/v1/order/ics` | Экспорт действующих заказов за 90 дней (pending/paid/confirmed/serving) в iCal (RFC5545) |
 
 **Вывод**: `Content-Type: text/calendar; charset=utf-8` + `Content-Disposition: attachment; filename="my-appointments.ics"`. VEVENT: UID=ID заказа, TZID=Asia/Shanghai, заголовок «预约：服务名» (при отсутствии — деградация до «预约»), описание (мастер/филиал/адрес, отсутствующие поля пропускаются), LOCATION название филиала; текст экранируется по RFC5545 (\, \; \\ \n) + перенос строк по 75 байт. При отсутствии заказов возвращается корректный пустой календарь; экспортируются только свои заказы.
 
@@ -604,18 +604,18 @@
 
 | Метод | Путь | Описание |
 |------|------|------|
-| POST | `/api/technician/attendance/check-in` | Отметка прихода (повтор в тот же день 422, уникальный индекс страхует от конкурентности; после 10:00 отмечается опоздание) |
-| POST | `/api/technician/attendance/check-out` | Отметка ухода (без прихода/уже отмечен уход 422, блокировка строк от конкурентности) |
-| GET | `/api/technician/attendance` | Список отметок за месяц + сводка дней присутствия/общего и среднего времени (?month=YYYY-MM, недопустимый 422) |
+| POST | `/api/v1/technician/attendance/check-in` | Отметка прихода (повтор в тот же день 422, уникальный индекс страхует от конкурентности; после 10:00 отмечается опоздание) |
+| POST | `/api/v1/technician/attendance/check-out` | Отметка ухода (без прихода/уже отмечен уход 422, блокировка строк от конкурентности) |
+| GET | `/api/v1/technician/attendance` | Список отметок за месяц + сводка дней присутствия/общего и среднего времени (?month=YYYY-MM, недопустимый 422) |
 
 ### 18. Приватность и соответствие (требуется JWT, раунд 22)
 
 | Метод | Путь | Описание |
 |------|------|------|
-| GET | `/api/privacy/data` | Экспорт данных (группы personal/orders/points/wallet_txns/reviews/addresses/invoices в JSON; в серверных логах — только маскированный телефон и число записей) |
-| POST | `/api/privacy/close-request` | Запросить удаление (остаток не 0 / незавершённые заказы / открытые тикеты 422; ставит close_status=1 + close_requested_at) |
-| POST | `/api/privacy/close-cancel` | Отменить запрос на удаление (close_status 1→0) |
-| POST | `/api/privacy/close-confirm` | Подтвердить удаление (только по истечении 72 часов; close_status=2 + close_at + анонимизация phone/nickname в user{id} + status=0) |
+| GET | `/api/v1/privacy/data` | Экспорт данных (группы personal/orders/points/wallet_txns/reviews/addresses/invoices в JSON; в серверных логах — только маскированный телефон и число записей) |
+| POST | `/api/v1/privacy/close-request` | Запросить удаление (остаток не 0 / незавершённые заказы / открытые тикеты 422; ставит close_status=1 + close_requested_at) |
+| POST | `/api/v1/privacy/close-cancel` | Отменить запрос на удаление (close_status 1→0) |
+| POST | `/api/v1/privacy/close-confirm` | Подтвердить удаление (только по истечении 72 часов; close_status=2 + close_at + анонимизация phone/nickname в user{id} + status=0) |
 
 **Блокировка входа**: вход с аккаунта с close_status=2 возвращает 403 «账号已注销».
 
@@ -623,9 +623,9 @@
 
 | Метод | Путь | Описание |
 |------|------|------|
-| GET | `/api/health-profile` | Запрос моего профиля здоровья (при отсутствии — пустой объект) |
-| PUT | `/api/health-profile` | Создать/обновить (upsert, один профиль на пользователя; allergies/health_notes не более 500 символов, preferred_technician_id с проверкой существования; обновляются только переданные поля, ответ в hashid) |
-| DELETE | `/api/health-profile` | Удалить мой профиль (только свой) |
+| GET | `/api/v1/health-profile` | Запрос моего профиля здоровья (при отсутствии — пустой объект) |
+| PUT | `/api/v1/health-profile` | Создать/обновить (upsert, один профиль на пользователя; allergies/health_notes не более 500 символов, preferred_technician_id с проверкой существования; обновляются только переданные поля, ответ в hashid) |
+| DELETE | `/api/v1/health-profile` | Удалить мой профиль (только свой) |
 
 Поля: allergies (аллергии)/health_notes (заметки о здоровье)/preferred_technician_id (предпочитаемый мастер, может быть пустым).
 
@@ -633,9 +633,9 @@
 
 | Метод | Путь | Описание |
 |------|------|------|
-| POST | `/api/wallet/pay-password/set` | Установить PIN (6 цифр `\d{6}`; если уже установлен — требуется старый PIN, иначе 422) |
-| POST | `/api/wallet/pay-password/verify` | Проверить PIN (возвращает булево значение, ничего не сохраняет) |
-| POST | `/api/wallet/pay-password/check` | Проверить, установлен ли PIN (set: true/false) |
+| POST | `/api/v1/wallet/pay-password/set` | Установить PIN (6 цифр `\d{6}`; если уже установлен — требуется старый PIN, иначе 422) |
+| POST | `/api/v1/wallet/pay-password/verify` | Проверить PIN (возвращает булево значение, ничего не сохраняет) |
+| POST | `/api/v1/wallet/pay-password/check` | Проверить, установлен ли PIN (set: true/false) |
 
 Хранение: хеш через password_hash() + pay_password_set_at, открытый вид не хранится никогда.
 
@@ -643,7 +643,7 @@
 
 | Метод | Путь | Описание |
 |------|------|------|
-| GET | `/api/order/{id}/timeline` | Хронология изменения статуса заказа (по убыванию; только свой заказ, чужой 404 без раскрытия существования) |
+| GET | `/api/v1/order/{id}/timeline` | Хронология изменения статуса заказа (по убыванию; только свой заказ, чужой 404 без раскрытия существования) |
 
 Точки записи: создание/оплата (единая точка потребления markOrderPaid в колбэке WeChat)/отмена/подтверждение мастером/заявка на возврат/одобрение возврата/начало услуги/завершение услуги/автоматическая отмена по таймауту/действия админки (operator=admin) — всего 8 типов изменений.
 
@@ -651,37 +651,37 @@
 
 | Метод | Путь | Описание |
 |------|------|------|
-| GET | `/api/wheel/prizes` | Список призов (чувствительные поля weight/stock скрыты) |
-| POST | `/api/wheel/spin` | Один розыгрыш (Redis NX + блокировка строк против конкурентности; взвешенный выбор random_int; баллы→запись earn с сроком действия, баланс→зачисление через lockForUpdate, купон→выдача вручную в статусе pending, без приза→lose; идемпотентность client_token) |
-| GET | `/api/wheel/records` | Мои записи розыгрышей (пагинация) |
+| GET | `/api/v1/wheel/prizes` | Список призов (чувствительные поля weight/stock скрыты) |
+| POST | `/api/v1/wheel/spin` | Один розыгрыш (Redis NX + блокировка строк против конкурентности; взвешенный выбор random_int; баллы→запись earn с сроком действия, баланс→зачисление через lockForUpdate, купон→выдача вручную в статусе pending, без приза→lose; идемпотентность client_token) |
+| GET | `/api/v1/wheel/records` | Мои записи розыгрышей (пагинация) |
 
 ### 23. Гостевой режим (раунд 24)
 
 | Метод | Путь | Описание |
 |------|------|------|
-| GET | `/api/guest/home` | Агрегация главной (карусель/объявления/категории услуг/популярные услуги, кэш Redis svc:guest:home 300с) |
-| GET | `/api/guest/services` | Список услуг (?category_id=hashid&sort=newest|sales|price&page/per_page≤50) |
-| GET | `/api/guest/services/{id}` | Детали услуги (нет — 404) |
-| GET | `/api/guest/stores` | Список филиалов |
-| GET | `/api/guest/technicians` | Список мастеров (только прошедшие проверку; фильтр ?service_id=hashid; сортировка по рейтингу по убыванию) |
+| GET | `/api/v1/guest/home` | Агрегация главной (карусель/объявления/категории услуг/популярные услуги, кэш Redis svc:guest:home 300с) |
+| GET | `/api/v1/guest/services` | Список услуг (?category_id=hashid&sort=newest|sales|price&page/per_page≤50) |
+| GET | `/api/v1/guest/services/{id}` | Детали услуги (нет — 404) |
+| GET | `/api/v1/guest/stores` | Список филиалов |
+| GET | `/api/v1/guest/technicians` | Список мастеров (только прошедшие проверку; фильтр ?service_id=hashid; сортировка по рейтингу по убыванию) |
 
-Вход для просмотра без аутентификации (только промежуточное ПО ApiVersion).
+Просмотр без входа и аутентификации (публичный интерфейс).
 
 ### 24. Секундная распродажа (требуется JWT, раунд 24)
 
 | Метод | Путь | Описание |
 |------|------|------|
-| GET | `/api/seckill` | Список активностей распродажи (status=1 и во временном окне; включает проданное = число заказов с appointment_order.seckill_id, остаток) |
-| GET | `/api/seckill/{id}` | Детали активности (state=not_started/ongoing/ended) |
-| POST | `/api/seckill/{id}/buy` | Оформить заказ распродажи (идемпотентность client_token + Redis NX 30с против конкурентности + проверка активности; предварительное списание запаса не выполняется) |
+| GET | `/api/v1/seckill` | Список активностей распродажи (status=1 и во временном окне; включает проданное = число заказов с appointment_order.seckill_id, остаток) |
+| GET | `/api/v1/seckill/{id}` | Детали активности (state=not_started/ongoing/ended) |
+| POST | `/api/v1/seckill/{id}/buy` | Оформить заказ распродажи (идемпотентность client_token + Redis NX 30с против конкурентности + проверка активности; предварительное списание запаса не выполняется) |
 
-**Правила оформления (с 2026-08-26)**: запас единообразно списывается внутри транзакции `/api/order store()` блокировкой строк, buy выполняет только входную проверку/идемпотентность; цена распродажи = seckill_price (по данным БД), купоны/баллы/карты не накладываются; при отмене заказа запас не возвращается; прямой вызов `/api/order` с seckill_id также списывает запас.
+**Правила оформления (с 2026-08-26)**: запас единообразно списывается внутри транзакции `/api/v1/order store()` блокировкой строк, buy выполняет только входную проверку/идемпотентность; цена распродажи = seckill_price (по данным БД), купоны/баллы/карты не накладываются; при отмене заказа запас не возвращается; прямой вызов `/api/v1/order` с seckill_id также списывает запас.
 
 ### 25. Проверка версии приложения (раунд 24)
 
 | Метод | Путь | Описание |
 |------|------|------|
-| GET | `/api/app/version?platform=android|ios` | Проверка последней версии (недопустимый platform 422; без версии — пустой объект; публичный интерфейс) |
+| GET | `/api/v1/app/version?platform=android|ios` | Проверка последней версии (недопустимый platform 422; без версии — пустой объект; публичный интерфейс) |
 
 Ответ: id/platform/version_code/version_name/force_update (1=обязательно)/changelog/download_url.
 
@@ -689,7 +689,7 @@
 
 ## II. API админки (admin/ :8787)
 
-Заголовки запроса: `Authorization: Bearer <admin_token>`, `API-Version: v1`
+Заголовки запроса: `Authorization: Bearer <admin_token>`; версия публичных интерфейсов аутентификации задаётся префиксом URL `/api/v1`
 
 ### Панель управления
 
@@ -882,7 +882,7 @@ ID прав: 407–411, 420. Проданное = число заказов с a
 | PUT | `/admin/versions/{id}` | Изменить |
 | DELETE | `/admin/versions/{id}` | Удалить |
 
-ID прав: 416–419. Интерфейс проверки обновления /api/app/version берёт самую новую (max updated_at/id) из версий со status=1.
+ID прав: 416–419. Интерфейс проверки обновления /api/v1/app/version берёт самую новую (max updated_at/id) из версий со status=1.
 
 ### Экспорт расписаний (раунд 24)
 

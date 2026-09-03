@@ -99,7 +99,7 @@ Authentification : `{"type":"auth","token":"<JWT>"}`
 iOS (APNs) : configurer apns_key_id / team_id / bundle_id / fichier .p8  
 Android (FCM) : configurer fcm_server_key
 
-Enregistrement de l'appareil APP : `POST /api/user/device/register {"platform":"ios","device_token":"..."}`
+Enregistrement de l'appareil APP : `POST /api/v1/user/device/register {"platform":"ios","device_token":"..."}`
 
 ---
 

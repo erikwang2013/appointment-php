@@ -99,7 +99,7 @@ ws://localhost:8282
 iOS(APNs): اضبط apns_key_id/team_id/bundle_id/ملف .p8  
 Android(FCM): اضبط fcm_server_key
 
-تسجيل جهاز APP: `POST /api/user/device/register {"platform":"ios","device_token":"..."}`
+تسجيل جهاز APP: `POST /api/v1/user/device/register {"platform":"ios","device_token":"..."}`
 
 ---
 

@@ -126,13 +126,13 @@ php start.php start -d
 
 ```bash
 # Бизнес-API
-curl http://localhost:8787/api/common/config
+curl http://localhost:8787/api/v1/common/config
 
 # Health-проверка админки
 curl http://localhost:8787/health
 
 # Вход в админку (учётная запись по умолчанию ниже)
-curl -X POST http://localhost:8787/api/auth/login \
+curl -X POST http://localhost:8787/api/v1/auth/login \
   -H "Content-Type: application/json" \
   -d '{"username":"admin","password":"admin123"}'
 ```

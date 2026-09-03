@@ -21,11 +21,11 @@ class RateLimit implements MiddlewareInterface
     private int $defaultWindow = 60;
 
     private array $sensitive = [
-        '/api/auth/login'         => ['limit' => 10, 'window' => 60],
-        '/api/auth/login-by-code' => ['limit' => 10, 'window' => 60],
-        '/api/auth/register'      => ['limit' => 5,  'window' => 60],
-        '/api/auth/forget-password' => ['limit' => 5, 'window' => 60],
-        '/api/captcha/send'       => ['limit' => 5,  'window' => 60],
+        '/api/v1/auth/login'         => ['limit' => 10, 'window' => 60],
+        '/api/v1/auth/login-by-code' => ['limit' => 10, 'window' => 60],
+        '/api/v1/auth/register'      => ['limit' => 5,  'window' => 60],
+        '/api/v1/auth/forget-password' => ['limit' => 5, 'window' => 60],
+        '/api/v1/captcha/send'       => ['limit' => 5,  'window' => 60],
     ];
 
     public function process(Request $request, callable $handler): Response

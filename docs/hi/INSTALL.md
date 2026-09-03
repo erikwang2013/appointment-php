@@ -126,13 +126,13 @@ php start.php start -d
 
 ```bash
 # बिज़नेस API
-curl http://localhost:8787/api/common/config
+curl http://localhost:8787/api/v1/common/config
 
 # प्रबंधन बैकएंड हेल्थ चेक
 curl http://localhost:8787/health
 
 # प्रबंधन बैकएंड लॉगिन (डिफ़ॉल्ट खाता पासवर्ड नीचे)
-curl -X POST http://localhost:8787/api/auth/login \
+curl -X POST http://localhost:8787/api/v1/auth/login \
   -H "Content-Type: application/json" \
   -d '{"username":"admin","password":"admin123"}'
 ```

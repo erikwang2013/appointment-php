@@ -6,7 +6,7 @@
 - **Business API** (service/): `http://localhost:8787` — provides business endpoints for the Mini Program/APP
 - **Admin API** (admin/): `http://localhost:8787` — provides endpoints for the admin Flutter Web dashboard
 - **Authentication**: Bearer Token (JWT), request header `Authorization: Bearer <token>`
-- **Versioning**: API version controlled via the `API-Version: v1` request header, not in the URL. Default v1
+- **Versioning**: version is fixed in the URL path prefix `/api/v1` (e.g. `POST /api/v1/auth/login`); URLs without the version prefix return 404
 - **ID encoding**: All ID fields in requests/responses are hashids-encoded, hiding the real database IDs externally
 - **OpenAPI docs**: generated with `hg/apidoc`, separate for admin and client
 
@@ -50,7 +50,7 @@ Paginated response:
 
 #### 1.1 Captcha
 
-**`POST /api/captcha/send`** — send SMS captcha
+**`POST /api/v1/captcha/send`** — send SMS captcha
 
 Request:
 ```json
@@ -66,7 +66,7 @@ Limits: 1 send per 60 seconds; captcha valid for 5 minutes.
 
 #### 1.2 Authentication
 
-**`POST /api/auth/register`** — register by phone number
+**`POST /api/v1/auth/register`** — register by phone number
 
 Request:
 ```json
@@ -99,7 +99,7 @@ Response:
 
 ---
 
-**`POST /api/auth/login`** — password login
+**`POST /api/v1/auth/login`** — password login
 
 Request:
 ```json
@@ -112,7 +112,7 @@ Response: same as register response, includes token and user info.
 
 ---
 
-**`POST /api/auth/login-by-code`** — captcha login
+**`POST /api/v1/auth/login-by-code`** — captcha login
 
 Request:
 ```json
@@ -125,7 +125,7 @@ Response: same as login. Unregistered users get an account created automatically
 
 ---
 
-**`POST /api/auth/forget-password`** — forgot password
+**`POST /api/v1/auth/forget-password`** — forgot password
 
 Request:
 ```json
@@ -139,7 +139,7 @@ Request:
 
 ---
 
-**`POST /api/auth/refresh`** — refresh Token
+**`POST /api/v1/auth/refresh`** — refresh Token
 
 Request header: `Authorization: Bearer <old token>`
 Response: `{"code":0,"data":{"token":"eyJhbGciOi..."}}`
@@ -148,20 +148,20 @@ Response: `{"code":0,"data":{"token":"eyJhbGciOi..."}}`
 
 #### 1.3 WeChat
 
-**`POST /api/wechat/mini-login`** — Mini Program login
+**`POST /api/v1/wechat/mini-login`** — Mini Program login
 
 Request: `{"code":"微信登录code"}`
-Notes: on first login, `/api/wechat/phone` must be called afterwards to bind the phone number.
+Notes: on first login, `/api/v1/wechat/phone` must be called afterwards to bind the phone number.
 
 ---
 
-**`POST /api/wechat/phone`** — bind phone number
+**`POST /api/v1/wechat/phone`** — bind phone number
 
 Request: `{"code":"微信手机号组件code"}`
 
 ---
 
-**`POST /api/wechat/oa-login`** — Official Account login
+**`POST /api/v1/wechat/oa-login`** — Official Account login
 
 Request: `{"code":"公众号授权code"}`
 
@@ -169,39 +169,39 @@ Request: `{"code":"公众号授权code"}`
 
 #### 1.4 Common Services
 
-**`GET /api/common/config`** — public config
+**`GET /api/v1/common/config`** — public config
 
 Response: includes agreement texts (user agreement/privacy policy/service agreement), About Us info, version number.
 
 ---
 
-**`GET /api/common/area`** — city/area list
+**`GET /api/v1/common/area`** — city/area list
 
 ---
 
 #### 1.5 Service Queries
 
-**`GET /api/service/categories`** — category list
+**`GET /api/v1/service/categories`** — category list
 
 Params: `?parent_id=0`
 
 ---
 
-**`GET /api/service/items`** — service item list
+**`GET /api/v1/service/items`** — service item list
 
 Params: `?category_id=&page=1&per_page=10&sort=sales`
 
 ---
 
-**`GET /api/service/detail/{id}`** — service details
+**`GET /api/v1/service/detail/{id}`** — service details
 
 Response includes: images/name/price/specs/duration/sales/review list.
 
 ---
 
-**`GET /api/service/products`** — product list
+**`GET /api/v1/service/products`** — product list
 
-**`GET /api/service/stores`** — store list
+**`GET /api/v1/service/stores`** — store list
 
 Params: `?lat=&lng=&city=`
 
@@ -209,20 +209,20 @@ Params: `?lat=&lng=&city=`
 
 #### 1.6 Technician Queries
 
-**`GET /api/technician/list`** — technician list
+**`GET /api/v1/technician/list`** — technician list
 
 Params: `?lat=&lng=&service_id=&page=1`
 Sorted by distance ascending; returns: avatar/name/rating/order count/favorite count/distance/earliest available time/whether serviceable.
 
 ---
 
-**`GET /api/technician/detail/{id}`** — technician details
+**`GET /api/v1/technician/detail/{id}`** — technician details
 
 Response includes: images/name/intro/rating/distance/serviceable item list/reviews.
 
 ---
 
-**`GET /api/technician/schedule/{id}`** — technician schedule
+**`GET /api/v1/technician/schedule/{id}`** — technician schedule
 
 Params: `?date=2026-05-26`
 Returns bookable time slots and availability for that date.
@@ -231,25 +231,25 @@ Returns bookable time slots and availability for that date.
 
 #### 1.7 Content
 
-**`GET /api/content/banners`** — banners
+**`GET /api/v1/content/banners`** — banners
 
 Params: `?position=home`
 
-**`GET /api/content/articles`** — announcement/article list
+**`GET /api/v1/content/articles`** — announcement/article list
 
 Params: `?type=announcement&page=1`
 
-**`GET /api/content/article/{id}`** — article details
+**`GET /api/v1/content/article/{id}`** — article details
 
 ---
 
 #### 1.8 LBS
 
-**`GET /api/lbs/nearby-stores`** — nearby stores
+**`GET /api/v1/lbs/nearby-stores`** — nearby stores
 
 Params: `?lat=&lng=&radius=5000`
 
-**`GET /api/lbs/geocode`** — reverse geocoding
+**`GET /api/v1/lbs/geocode`** — reverse geocoding
 
 Params: `?lat=&lng=`
 
@@ -263,13 +263,13 @@ All endpoints carry the `Authorization: Bearer <token>` request header.
 
 | Method | Path | Description |
 |--------|------|-------------|
-| GET | `/api/user/profile` | Get profile |
-| PUT | `/api/user/profile` | Update nickname/avatar/gender |
-| POST | `/api/user/change-password` | Change password (old_password/new_password/confirm_password) |
-| POST | `/api/user/change-phone` | Rebind phone (old_code/new_phone/new_code) |
-| POST | `/api/user/cancel-account` | Cancel account (password verification required) |
-| POST | `/api/user/logout` | Log out (token added to blacklist) |
-| POST | `/api/user/switch-role` | Switch role (role: customer/technician) |
+| GET | `/api/v1/user/profile` | Get profile |
+| PUT | `/api/v1/user/profile` | Update nickname/avatar/gender |
+| POST | `/api/v1/user/change-password` | Change password (old_password/new_password/confirm_password) |
+| POST | `/api/v1/user/change-phone` | Rebind phone (old_code/new_phone/new_code) |
+| POST | `/api/v1/user/cancel-account` | Cancel account (password verification required) |
+| POST | `/api/v1/user/logout` | Log out (token added to blacklist) |
+| POST | `/api/v1/user/switch-role` | Switch role (role: customer/technician) |
 
 Switching to technician requires an approved technician profile.
 
@@ -277,11 +277,11 @@ Switching to technician requires an approved technician profile.
 
 | Method | Path | Description |
 |--------|------|-------------|
-| GET | `/api/user/addresses` | Address list |
-| POST | `/api/user/addresses` | Add address (contact_name/contact_phone/province/city/district/detail/lat/lng/is_default) |
-| GET | `/api/user/addresses/{id}` | Address details |
-| PUT | `/api/user/addresses/{id}` | Update address |
-| DELETE | `/api/user/addresses/{id}` | Delete address |
+| GET | `/api/v1/user/addresses` | Address list |
+| POST | `/api/v1/user/addresses` | Add address (contact_name/contact_phone/province/city/district/detail/lat/lng/is_default) |
+| GET | `/api/v1/user/addresses/{id}` | Address details |
+| PUT | `/api/v1/user/addresses/{id}` | Update address |
+| DELETE | `/api/v1/user/addresses/{id}` | Delete address |
 
 Setting one as default automatically un-defaults the others.
 
@@ -289,22 +289,22 @@ Setting one as default automatically un-defaults the others.
 
 | Method | Path | Description |
 |--------|------|-------------|
-| GET | `/api/user/favorites` | Favorite list (?type=service/technician) |
-| POST | `/api/user/favorites` | Add favorite (target_type/target_id) |
-| DELETE | `/api/user/favorites/{id}` | Remove favorite |
+| GET | `/api/v1/user/favorites` | Favorite list (?type=service/technician) |
+| POST | `/api/v1/user/favorites` | Add favorite (target_type/target_id) |
+| DELETE | `/api/v1/user/favorites/{id}` | Remove favorite |
 
 #### 2.4 Feedback
 
-`POST /api/user/feedback` — submit feedback (content + images array)
+`POST /api/v1/user/feedback` — submit feedback (content + images array)
 
 #### 2.5 Referral
 
 | Method | Path | Description |
 |--------|------|-------------|
-| GET | `/api/user/referral` | Referral info (referral code/referred count/first-order count/points earned) |
-| GET | `/api/user/referral/qrcode` | Referral QR code (referral code + invite link) |
-| GET | `/api/user/referral/referred-users` | Referred user list |
-| GET | `/api/user/referral/earnings` | Distribution commission details (paginated: referee nickname/avatar/order no/amount/disbursement time) |
+| GET | `/api/v1/user/referral` | Referral info (referral code/referred count/first-order count/points earned) |
+| GET | `/api/v1/user/referral/qrcode` | Referral QR code (referral code + invite link) |
+| GET | `/api/v1/user/referral/referred-users` | Referred user list |
+| GET | `/api/v1/user/referral/earnings` | Distribution commission details (paginated: referee nickname/avatar/order no/amount/disbursement time) |
 
 **Distribution commission**: paid out after the referee's first order reaches completed; amount = paid_amount × reward_rate (appointment_system_config referral.reward_rate, default 0.05, falls back to constant on invalid value). Triple idempotency: row lock + rewarded_at null check + first-order re-check; credited as WalletTxn type=referral_reward.
 
@@ -312,8 +312,8 @@ Setting one as default automatically un-defaults the others.
 
 | Method | Path | Description |
 |--------|------|-------------|
-| POST | `/api/user/points/transfer` | Transfer points (to_user_id hashid/points) |
-| GET | `/api/user/points/transfers` | Transfer records (?direction=sent/received&page=1) |
+| POST | `/api/v1/user/points/transfer` | Transfer points (to_user_id hashid/points) |
+| GET | `/api/v1/user/points/transfers` | Transfer records (?direction=sent/received&page=1) |
 
 **Points transfer**: recipient hashid decode + existence 404, self-transfer 422, points 1-10000 422, insufficient balance via SUM aggregate 422, daily cumulative 10000 cap 422. Concurrency protection: Redis NX lock points_transfer:{user} 30s → both parties' last transaction rows lockForUpdate inside a transaction (user_id ascending to prevent mutual-transfer deadlock) → re-verify balance/cap/recipient inside the lock. Transaction records: sender type=consume/source=points_transfer negative value (balance=previous snapshot−this transfer), recipient type=earn/source=points_transfer positive value with expires_at (PointsExpiryTimer can expire normally); after commit, in-app notification to recipient type='points_received' (failure only warns).
 
@@ -321,8 +321,8 @@ Setting one as default automatically un-defaults the others.
 
 | Method | Path | Description |
 |--------|------|-------------|
-| GET | `/api/user/notify-settings` | Query notification toggles (all 5 types) |
-| PUT | `/api/user/notify-settings` | Batch update toggles (types: {service_reminder: 0/1, ...}) |
+| GET | `/api/v1/user/notify-settings` | Query notification toggles (all 5 types) |
+| PUT | `/api/v1/user/notify-settings` | Batch update toggles (types: {service_reminder: 0/1, ...}) |
 
 **Notification toggles**: appointment_user_notify_setting table (user_id+type composite unique key; missing row = default on). 5 types: service_reminder service reminders / card_expiry expiry reminders (umbrella for cards + coupons) / points_expiry points expiry / marketing (reserved) / system (cannot be off; PUT forces it to 1). Gating: notifySettingEnabled wired into the 3 timer processes ServiceReminderTimer/ExpiryReminderTimer/PointsExpiryTimer + subscribe event scenario mapping (PAY/REFUND/VERIFIED/RESCHEDULE→system always sent, REMINDER→service_reminder, EXPIRY→card_expiry); when a type is off, both in-app notifications and subscribe messages are skipped.
 
@@ -334,8 +334,8 @@ Setting one as default automatically un-defaults the others.
 
 | Method | Path | Description |
 |--------|------|-------------|
-| GET | `/api/technician/profile` | Get technician profile |
-| PUT | `/api/technician/profile` | Update profile (avatar/intro/real_name/gender/id_card/id_card_front/id_card_back) |
+| GET | `/api/v1/technician/profile` | Get technician profile |
+| PUT | `/api/v1/technician/profile` | Update profile (avatar/intro/real_name/gender/id_card/id_card_front/id_card_back) |
 
 First complete fill-in counts as an onboarding application, status=pending awaiting review.
 
@@ -343,37 +343,37 @@ First complete fill-in counts as an onboarding application, status=pending await
 
 | Method | Path | Description |
 |--------|------|-------------|
-| GET | `/api/technician/schedule` | Schedule query (?start_date=&end_date=) |
-| PUT | `/api/technician/schedule` | Set schedule (date/time_slots/status); overlapping slots 422 "与已有排班时间冲突" |
-| POST | `/api/technician/schedule/batch` | Batch schedule (Round 23): date range ≤ 7 days + weekdays filter, days with existing schedules skipped, response created/skipped |
+| GET | `/api/v1/technician/schedule` | Schedule query (?start_date=&end_date=) |
+| PUT | `/api/v1/technician/schedule` | Set schedule (date/time_slots/status); overlapping slots 422 "与已有排班时间冲突" |
+| POST | `/api/v1/technician/schedule/batch` | Batch schedule (Round 23): date range ≤ 7 days + weekdays filter, days with existing schedules skipped, response created/skipped |
 
 #### 3.3 Technician Orders
 
-`GET /api/technician/orders` — order list (?status=&page=1)
+`GET /api/v1/technician/orders` — order list (?status=&page=1)
 
 #### 3.4 Earnings
 
-`GET /api/technician/earnings` — earnings overview (today_income/pending_settlement/balance + transaction list)
+`GET /api/v1/technician/earnings` — earnings overview (today_income/pending_settlement/balance + transaction list)
 
 #### 3.5 Withdrawal
 
-`POST /api/technician/withdraw` — apply for withdrawal (amount)
+`POST /api/v1/technician/withdraw` — apply for withdrawal (amount)
 Rules: withdrawable on the 20th of each month, T+1 arrival, minimum amount/whole-hundred limits configured in admin.
 
 **In-transit reservation (2026-08-26)**: on application, balance is immediately reserved in-transit (pending/approved); before approval transfer, re-check settled − withdrawn − in-transit ≥ withdrawal amount; concurrent approvals cannot cause double payouts.
 
 #### 3.6 Review Reply (Round 18)
 
-`POST /api/technician/review/reply/{order_id}` — technician replies to review (reply). Review not found/not own → unified 404 (no existence leak); existing reply 422 (idempotent rejection, no overwrite); empty reply 422. On success, in-app notification to user (type='review_reply').
+`POST /api/v1/technician/review/reply/{order_id}` — technician replies to review (reply). Review not found/not own → unified 404 (no existence leak); existing reply 422 (idempotent rejection, no overwrite); empty reply 422. On success, in-app notification to user (type='review_reply').
 
 #### 3.7 Workbench
 
 | Method | Path | Description |
 |--------|------|-------------|
-| GET | `/api/technician/work/today` | Today's task list |
-| GET | `/api/technician/work/records` | Completed records, paginated |
-| POST | `/api/technician/work/{id}/start` | Start service |
-| POST | `/api/technician/work/{id}/complete` | Complete service |
+| GET | `/api/v1/technician/work/today` | Today's task list |
+| GET | `/api/v1/technician/work/records` | Completed records, paginated |
+| POST | `/api/v1/technician/work/{id}/start` | Start service |
+| POST | `/api/v1/technician/work/{id}/complete` | Complete service |
 
 **Today's tasks**: status ∈ [confirmed, serving], service_time is today or empty; returns service_name/price/nickname/avatar.
 
@@ -387,17 +387,17 @@ Rules: withdrawable on the 20th of each month, T+1 arrival, minimum amount/whole
 
 | Method | Path | Description |
 |--------|------|-------------|
-| POST | `/api/order` | Create order (order_type/items/store_id/technician_id/service_time/coupon_id/user_coupon_id/promotion_id/remark) |
-| GET | `/api/order/list` | Order list (?status=&page=1) |
-| GET | `/api/order/detail/{id}` | Order details |
-| POST | `/api/order/cancel/{id}` | Cancel order (reason) |
-| POST | `/api/order/pay/{id}` | Initiate payment (pay_channel: wechat/balance, use_points: optional points cash-off) |
-| POST | `/api/order/refund/{id}` | Apply for refund |
-| POST | `/api/order/verify/{id}` | Verify (code: QR code value) |
-| POST | `/api/order/reschedule/{id}` | Reschedule (new_service_time required/reason optional) |
-| GET | `/api/order/logistics/{id}` | Logistics tracking (Round 19, product orders) |
-| POST | `/api/order/review/{order_id}` | Submit review (rating 1-5/content/images) (registered in Round 19) |
-| POST | `/api/order/review/{order_id}/append` | Append review (content/images comma-separated) (Round 19) |
+| POST | `/api/v1/order` | Create order (order_type/items/store_id/technician_id/service_time/coupon_id/user_coupon_id/promotion_id/remark) |
+| GET | `/api/v1/order/list` | Order list (?status=&page=1) |
+| GET | `/api/v1/order/detail/{id}` | Order details |
+| POST | `/api/v1/order/cancel/{id}` | Cancel order (reason) |
+| POST | `/api/v1/order/pay/{id}` | Initiate payment (pay_channel: wechat/balance, use_points: optional points cash-off) |
+| POST | `/api/v1/order/refund/{id}` | Apply for refund |
+| POST | `/api/v1/order/verify/{id}` | Verify (code: QR code value) |
+| POST | `/api/v1/order/reschedule/{id}` | Reschedule (new_service_time required/reason optional) |
+| GET | `/api/v1/order/logistics/{id}` | Logistics tracking (Round 19, product orders) |
+| POST | `/api/v1/order/review/{order_id}` | Submit review (rating 1-5/content/images) (registered in Round 19) |
+| POST | `/api/v1/order/review/{order_id}/append` | Append review (content/images comma-separated) (Round 19) |
 
 **Order status**: pending → paid → confirmed → serving → completed
 
@@ -415,25 +415,25 @@ Rules: withdrawable on the 20th of each month, T+1 arrival, minimum amount/whole
 
 **Points refund**: on cancel/refund, points consumed via points_offset are returned (type=earn/source=points_refund): full on cancel, pro-rata on refund, idempotent at 5 hook points (refundOffsetPoints).
 
-**Group-buy order (Round 16)**: optionally pass `promotion_id` (hashid) when creating an order. Validation: group_buy type only, activity within validity window, caller is a participant, not full (locked after formed 422), order service matches activity; group price = original price × discount_percent/100, coupons/session cards/points stacking disabled (passing any → 422). Order stores promotion_id/participant_id; payment fully reuses `POST /api/order/pay/{id}`, with lazy detection at pay time if the activity closed (expired without forming) → order auto-cancelled and technician lock released.
+**Group-buy order (Round 16)**: optionally pass `promotion_id` (hashid) when creating an order. Validation: group_buy type only, activity within validity window, caller is a participant, not full (locked after formed 422), order service matches activity; group price = original price × discount_percent/100, coupons/session cards/points stacking disabled (passing any → 422). Order stores promotion_id/participant_id; payment fully reuses `POST /api/v1/order/pay/{id}`, with lazy detection at pay time if the activity closed (expired without forming) → order auto-cancelled and technician lock released.
 
-**Seckill order (Round 18, retired)**: ~~create order with `promotion_id` (flash_sale type)~~ — since 2026-08 the legacy FLASH_SALE channel has been removed; the store() promotion branch only handles group-buy GROUP_BUY (non-group-buy promotion 422); seckill uniformly uses the Round-24 `/api/seckill` channel (seckill_id injects stock deduction with row locks inside the store transaction), PromotionController::index filters out flash_sale, show/join return 400 for it, and the `Promotion::TYPE_FLASH_SALE` constant is kept for historical data compatibility.
+**Seckill order (Round 18, retired)**: ~~create order with `promotion_id` (flash_sale type)~~ — since 2026-08 the legacy FLASH_SALE channel has been removed; the store() promotion branch only handles group-buy GROUP_BUY (non-group-buy promotion 422); seckill uniformly uses the Round-24 `/api/v1/seckill` channel (seckill_id injects stock deduction with row locks inside the store transaction), PromotionController::index filters out flash_sale, show/join return 400 for it, and the `Promotion::TYPE_FLASH_SALE` constant is kept for historical data compatibility.
 
-**Reschedule (Round 17)**: `POST /api/order/reschedule/{id}` with new_service_time (required) + reason (optional), changing time with the same technician. Rules: own order only (not own 404), appointment type only with status pending/paid/confirmed (others 422), ≥ 6 hours before original start (aligned with the full-refund window). Concurrency protection: B1 order_lock (same mutual-exclusion family as pay/cancel/refund) → new slot technician lock Redis SETNX EX 180 (prevents overselling on concurrent reschedules) → row-lock re-read inside transaction + B2 schedule-conflict DB check (excluding this order) → update service_time + write appointment_order_reschedule record → release original slot lock, new slot lock held by this order → SCENE_RESCHEDULE subscribe message (falls back to in-app notification when unconfigured). Failed paths roll back the transaction and release the new slot lock.
+**Reschedule (Round 17)**: `POST /api/v1/order/reschedule/{id}` with new_service_time (required) + reason (optional), changing time with the same technician. Rules: own order only (not own 404), appointment type only with status pending/paid/confirmed (others 422), ≥ 6 hours before original start (aligned with the full-refund window). Concurrency protection: B1 order_lock (same mutual-exclusion family as pay/cancel/refund) → new slot technician lock Redis SETNX EX 180 (prevents overselling on concurrent reschedules) → row-lock re-read inside transaction + B2 schedule-conflict DB check (excluding this order) → update service_time + write appointment_order_reschedule record → release original slot lock, new slot lock held by this order → SCENE_RESCHEDULE subscribe message (falls back to in-app notification when unconfigured). Failed paths roll back the transaction and release the new slot lock.
 
-**Logistics tracking (Round 19)**: `GET /api/order/logistics/{id}` — only the owner can query product orders (not own/not product/not shipped → unified 404). Reads order.remark JSON (shipping_company/tracking_no/shipped_at, written by admin MallOrderController::ship() on shipment), parseShippingInfo/parseReceiver dual parsing to fall back on old formats; recipient phone masked 138****5678.
+**Logistics tracking (Round 19)**: `GET /api/v1/order/logistics/{id}` — only the owner can query product orders (not own/not product/not shipped → unified 404). Reads order.remark JSON (shipping_company/tracking_no/shipped_at, written by admin MallOrderController::ship() on shipment), parseShippingInfo/parseReceiver dual parsing to fall back on old formats; recipient phone masked 138****5678.
 
-**Reviews (Round 19)**: `POST /api/order/review/{order_id}` submits a review (rating required 1-5, content/images optional): not own 404, not completed 422, duplicate review 400. `POST /api/order/review/{order_id}/append` appends (content required, images comma-separated): review not found/not own → unified 404, not completed 422, duplicate append 422, empty content 422; on success writes append_content/append_images(JSON)/append_at and notifies the technician in-app type='review_append', response exposes the append field.
+**Reviews (Round 19)**: `POST /api/v1/order/review/{order_id}` submits a review (rating required 1-5, content/images optional): not own 404, not completed 422, duplicate review 400. `POST /api/v1/order/review/{order_id}/append` appends (content required, images comma-separated): review not found/not own → unified 404, not completed 422, duplicate append 422, empty content 422; on success writes append_content/append_images(JSON)/append_at and notifies the technician in-app type='review_append', response exposes the append field.
 
 ### 4.1 After-Sales Endpoints (JWT Required)
 
 | Method | Path | Description |
 |--------|------|-------------|
-| POST | `/api/aftersales` | Apply for after-sales (order_id hashid/type: refund\|exchange/reason); own-order check 404, only status paid+completed eligible 422, in-progress after-sales dedupe 422 |
-| GET | `/api/aftersales` | My after-sales list (?status=&page=1&limit=) |
-| GET | `/api/aftersales/{id}` | After-sales details (ownership check 404) |
+| POST | `/api/v1/aftersales` | Apply for after-sales (order_id hashid/type: refund\|exchange/reason); own-order check 404, only status paid+completed eligible 422, in-progress after-sales dedupe 422 |
+| GET | `/api/v1/aftersales` | My after-sales list (?status=&page=1&limit=) |
+| GET | `/api/v1/aftersales/{id}` | After-sales details (ownership check 404) |
 
-**After-sales status**: pending → approved / rejected. approved is status flow only; the actual refund action reuses `POST /api/order/refund/{id}`.
+**After-sales status**: pending → approved / rejected. approved is status flow only; the actual refund action reuses `POST /api/v1/order/refund/{id}`.
 
 ---
 
@@ -441,10 +441,10 @@ Rules: withdrawable on the 20th of each month, T+1 arrival, minimum amount/whole
 
 | Method | Path | Description |
 |--------|------|-------------|
-| GET | `/api/promotions` | Activity list (?type=group_buy; flash_sale filtered out) |
-| GET | `/api/promotions/{id}` | Activity details (incl. participant count/whether formed; flash_sale type 400) |
-| GET | `/api/promotions/{id}/participants` | Participant list |
-| POST | `/api/promotions/join/{id}` | Join activity (Round-15 polish: response includes discount_percent/original_price/group_price; flash_sale type 400) |
+| GET | `/api/v1/promotions` | Activity list (?type=group_buy; flash_sale filtered out) |
+| GET | `/api/v1/promotions/{id}` | Activity details (incl. participant count/whether formed; flash_sale type 400) |
+| GET | `/api/v1/promotions/{id}/participants` | Participant list |
+| POST | `/api/v1/promotions/join/{id}` | Join activity (Round-15 polish: response includes discount_percent/original_price/group_price; flash_sale type 400) |
 
 **Join rules**: group_buy locks when full (≥ min_people), new joins after formed 422; expired-without-forming lazily closes (status set to 0 on show/join). After joining, order at group price per "Group-Buy Order (Round 16)". Seckill no longer uses this channel, see "24. Seckill Endpoints".
 
@@ -454,21 +454,21 @@ Rules: withdrawable on the 20th of each month, T+1 arrival, minimum amount/whole
 
 | Method | Path | Description |
 |--------|------|-------------|
-| GET | `/api/marketing/coupons` | Coupon list (?status=available/used/expired) |
-| POST | `/api/marketing/coupons/receive` | Claim coupon (coupon_id) |
-| GET | `/api/marketing/cards` | Member card list |
-| POST | `/api/marketing/cards/buy` | Buy member card (card_id) |
-| GET | `/api/marketing/cards/my` | My session cards |
-| POST | `/api/marketing/cards/use` | Verify session card (user_card_id/service_id/remark?) |
-| GET | `/api/marketing/gift-cards` | Gift card list |
-| GET | `/api/marketing/gift-cards/my` | My gift cards (redeem records) |
-| POST | `/api/marketing/gift-cards/redeem` | Redeem gift card (cash type credits wallet balance after redemption) |
-| GET | `/api/marketing/points` | Points transactions (?type=earn/use/expire&source=order/referral/gift_card/check_in/admin) |
-| GET | `/api/marketing/points-exchange` | Points exchange goods list (on-shelf + real-time remaining stock + redeemed count) |
-| POST | `/api/marketing/points-exchange/{id}` | Redeem (type=coupon issues coupon / wallet credits / gift_card returns card secret) |
-| POST | `/api/marketing/coupons/transfer` | Generate transfer code (user_coupon_id: 8-char unique code/7-day validity) |
-| POST | `/api/marketing/coupons/claim` | Claim transferred coupon (code) |
-| GET | `/api/marketing/coupons/transfers` | Transfer records (sent pending/claimed/expired + received claimed) |
+| GET | `/api/v1/marketing/coupons` | Coupon list (?status=available/used/expired) |
+| POST | `/api/v1/marketing/coupons/receive` | Claim coupon (coupon_id) |
+| GET | `/api/v1/marketing/cards` | Member card list |
+| POST | `/api/v1/marketing/cards/buy` | Buy member card (card_id) |
+| GET | `/api/v1/marketing/cards/my` | My session cards |
+| POST | `/api/v1/marketing/cards/use` | Verify session card (user_card_id/service_id/remark?) |
+| GET | `/api/v1/marketing/gift-cards` | Gift card list |
+| GET | `/api/v1/marketing/gift-cards/my` | My gift cards (redeem records) |
+| POST | `/api/v1/marketing/gift-cards/redeem` | Redeem gift card (cash type credits wallet balance after redemption) |
+| GET | `/api/v1/marketing/points` | Points transactions (?type=earn/use/expire&source=order/referral/gift_card/check_in/admin) |
+| GET | `/api/v1/marketing/points-exchange` | Points exchange goods list (on-shelf + real-time remaining stock + redeemed count) |
+| POST | `/api/v1/marketing/points-exchange/{id}` | Redeem (type=coupon issues coupon / wallet credits / gift_card returns card secret) |
+| POST | `/api/v1/marketing/coupons/transfer` | Generate transfer code (user_coupon_id: 8-char unique code/7-day validity) |
+| POST | `/api/v1/marketing/coupons/claim` | Claim transferred coupon (code) |
+| GET | `/api/v1/marketing/coupons/transfers` | Transfer records (sent pending/claimed/expired + received claimed) |
 
 **Session cards**: cards/my returns card_id/name/type/services/total_times/used_times/remaining_times/start_at/end_at/status (computed in real time). Successful verification returns {order_id, usage_id, remaining_times}; error codes: invalid hashid 422, insufficient times 422, expired 400, not own 404, Redis dedupe 400.
 
@@ -486,9 +486,9 @@ Rules: withdrawable on the 20th of each month, T+1 arrival, minimum amount/whole
 
 | Method | Path | Description |
 |--------|------|-------------|
-| GET | `/api/notification` | Notification list (?type=order/system&page=1) |
-| PUT | `/api/notification/read/{id}` | Mark read |
-| PUT | `/api/notification/read-all` | Mark all read |
+| GET | `/api/v1/notification` | Notification list (?type=order/system&page=1) |
+| PUT | `/api/v1/notification/read/{id}` | Mark read |
+| PUT | `/api/v1/notification/read-all` | Mark all read |
 
 ---
 
@@ -496,20 +496,20 @@ Rules: withdrawable on the 20th of each month, T+1 arrival, minimum amount/whole
 
 | Method | Path | Description |
 |--------|------|-------------|
-| GET | `/api/wallet` | Wallet balance + paginated transactions |
-| POST | `/api/wallet/recharge` | Create top-up order (amount: yuan) |
-| POST | `/api/wallet/recharge/{id}/pay` | Initiate top-up payment (WeChat) |
-| POST | `/api/wallet/transfer` | Balance transfer (to_user_id hashid/amount/remark optional/client_token optional) (Round 19) |
-| GET | `/api/wallet/transfers` | Transfer records (?direction=out/in&page=1) (Round 19) |
-| GET | `/api/wallet/transfers/{id}` | Transfer details (visible to both parties only, others 404) (Round 19) |
+| GET | `/api/v1/wallet` | Wallet balance + paginated transactions |
+| POST | `/api/v1/wallet/recharge` | Create top-up order (amount: yuan) |
+| POST | `/api/v1/wallet/recharge/{id}/pay` | Initiate top-up payment (WeChat) |
+| POST | `/api/v1/wallet/transfer` | Balance transfer (to_user_id hashid/amount/remark optional/client_token optional) (Round 19) |
+| GET | `/api/v1/wallet/transfers` | Transfer records (?direction=out/in&page=1) (Round 19) |
+| GET | `/api/v1/wallet/transfers/{id}` | Transfer details (visible to both parties only, others 404) (Round 19) |
 
 **Transactions**: wallet_txn types: recharge / consume / refund / gift_card / referral_reward (distribution commission) / referral_level2 (level-2 commission) / points_exchange (points exchange credit), paginated.
 
-**Top-up**: `POST /api/wallet/recharge` with amount (yuan) creates a top-up order and returns its hashid. `POST /api/wallet/recharge/{id}/pay` initiates WeChat Pay; the response includes sign_params (same as the order payment mode); payment callbacks distinguish top-up orders from orders by the R-prefixed out_trade_no.
+**Top-up**: `POST /api/v1/wallet/recharge` with amount (yuan) creates a top-up order and returns its hashid. `POST /api/v1/wallet/recharge/{id}/pay` initiates WeChat Pay; the response includes sign_params (same as the order payment mode); payment callbacks distinguish top-up orders from orders by the R-prefixed out_trade_no.
 
 **Balance payment**: pass `pay_channel: "balance"` in the order pay request body to use wallet balance; both WeChat refunds and balance refunds credit the amount back to the wallet balance.
 
-**Balance transfer (Round 19)**: `POST /api/wallet/transfer` — recipient hashid decode + existence 404, self-transfer 422, amount 0.01-1000/transaction 422 (DECIMAL comparison, no floats), insufficient balance 422, daily cumulative 5000 yuan 422. Concurrency/idempotency: Redis NX lock wallet_transfer:{from} 30s serializes the sender → inside a transaction both wallet rows lockForUpdate in user_id ascending order (fixed order prevents deadlocks) → debit sender + credit recipient + dual WalletTxn records (transfer_out/transfer_in with balance_after snapshots) + transfer record completed + in-app notification to recipient type='balance_received' (failure only logged). client_token optional: on success SETNX 24h prevents duplicate submission (failed requests don't record the token, so retries work).
+**Balance transfer (Round 19)**: `POST /api/v1/wallet/transfer` — recipient hashid decode + existence 404, self-transfer 422, amount 0.01-1000/transaction 422 (DECIMAL comparison, no floats), insufficient balance 422, daily cumulative 5000 yuan 422. Concurrency/idempotency: Redis NX lock wallet_transfer:{from} 30s serializes the sender → inside a transaction both wallet rows lockForUpdate in user_id ascending order (fixed order prevents deadlocks) → debit sender + credit recipient + dual WalletTxn records (transfer_out/transfer_in with balance_after snapshots) + transfer record completed + in-app notification to recipient type='balance_received' (failure only logged). client_token optional: on success SETNX 24h prevents duplicate submission (failed requests don't record the token, so retries work).
 
 ---
 
@@ -517,10 +517,10 @@ Rules: withdrawable on the 20th of each month, T+1 arrival, minimum amount/whole
 
 | Method | Path | Description |
 |--------|------|-------------|
-| GET | `/api/store-manager/overview` | Today's overview (today's orders/today's revenue/in-progress/technician count/verification count) |
-| GET | `/api/store-manager/orders` | Store order list (?status=&page=&limit=) |
-| GET | `/api/store-manager/technicians` | Technician list (incl. today's schedule) |
-| GET | `/api/store-manager/revenue` | Revenue aggregation for the last 7 days |
+| GET | `/api/v1/store-manager/overview` | Today's overview (today's orders/today's revenue/in-progress/technician count/verification count) |
+| GET | `/api/v1/store-manager/orders` | Store order list (?status=&page=&limit=) |
+| GET | `/api/v1/store-manager/technicians` | Technician list (incl. today's schedule) |
+| GET | `/api/v1/store-manager/revenue` | Revenue aggregation for the last 7 days |
 
 **store_id isolation**: requireStoreId() forces the current user to be bound to a store (appointment_user.store_id), no store → 403; all queries filter by store_id.
 
@@ -530,9 +530,9 @@ Rules: withdrawable on the 20th of each month, T+1 arrival, minimum amount/whole
 
 | Method | Path | Description |
 |--------|------|-------------|
-| GET | `/api/growth` | Current growth overview (balance/level/next-tier gap/level name) |
-| GET | `/api/growth/records` | Growth transactions, paginated (?page=&limit=) |
-| GET | `/api/growth/levels` | Tier list (public, no login required) |
+| GET | `/api/v1/growth` | Current growth overview (balance/level/next-tier gap/level name) |
+| GET | `/api/v1/growth/records` | Growth transactions, paginated (?page=&limit=) |
+| GET | `/api/v1/growth/levels` | Tier list (public, no login required) |
 
 **Growth crediting**: check-in +10; review submitted +20 (appends don't credit); purchases floor(paid) 1 point per yuan (reuses status re-verification inside the payment callback for idempotency; duplicate callbacks don't double-credit).
 
@@ -540,9 +540,9 @@ Rules: withdrawable on the 20th of each month, T+1 arrival, minimum amount/whole
 
 | Method | Path | Description |
 |--------|------|-------------|
-| POST | `/api/invoices` | Apply for invoice (order_id hashid/order_type: service=service/points_exchange=points exchange; order_type defaults to service; amount and title server-side, not tamperable) |
-| GET | `/api/invoices` | Invoice list (?status=&page=) |
-| GET | `/api/invoices/{id}` | Invoice details (own only) |
+| POST | `/api/v1/invoices` | Apply for invoice (order_id hashid/order_type: service=service/points_exchange=points exchange; order_type defaults to service; amount and title server-side, not tamperable) |
+| GET | `/api/v1/invoices` | Invoice list (?status=&page=) |
+| GET | `/api/v1/invoices/{id}` | Invoice details (own only) |
 
 **Dedupe**: uk_order_type(order_id, order_type) unique key; duplicate application for the same order+type 422 (incl. MySQL 1062 catch as fallback).
 
@@ -550,37 +550,37 @@ Rules: withdrawable on the 20th of each month, T+1 arrival, minimum amount/whole
 
 | Method | Path | Description |
 |--------|------|-------------|
-| POST | `/api/tickets` | Submit ticket (title/content required) |
-| GET | `/api/tickets` | Ticket list (?status=open/closed&page=) |
-| GET | `/api/tickets/{id}` | Ticket details (own only, others 404) |
-| POST | `/api/tickets/{id}/close` | Close ticket (own/open only; optional rating 1-5 satisfaction score, out-of-range/non-integer 422, absent → NULL for compatibility) |
+| POST | `/api/v1/tickets` | Submit ticket (title/content required) |
+| GET | `/api/v1/tickets` | Ticket list (?status=open/closed&page=) |
+| GET | `/api/v1/tickets/{id}` | Ticket details (own only, others 404) |
+| POST | `/api/v1/tickets/{id}/close` | Close ticket (own/open only; optional rating 1-5 satisfaction score, out-of-range/non-integer 422, absent → NULL for compatibility) |
 
 ### 12. Appointment Calendar Endpoints (JWT Required, Round 20)
 
 | Method | Path | Description |
 |--------|------|-------------|
-| GET | `/api/calendar/technician/{id}` | Month view (?month=YYYY-MM): schedule time_slots expanded to hour slots + booked excluded |
-| GET | `/api/calendar/technician/{id}/day` | Day view (?date=YYYY-MM-DD): bookable/booked/unbookable slot details for the day |
+| GET | `/api/v1/calendar/technician/{id}` | Month view (?month=YYYY-MM): schedule time_slots expanded to hour slots + booked excluded |
+| GET | `/api/v1/calendar/technician/{id}/day` | Day view (?date=YYYY-MM-DD): bookable/booked/unbookable slot details for the day |
 
 ### 13. Invoice Title Endpoints (JWT Required, Round 21)
 
 | Method | Path | Description |
 |--------|------|-------------|
-| POST | `/api/invoice-titles` | Save title (title_type: personal/company; company requires tax_no; same user + same title duplicate 422; first one auto-default) |
-| GET | `/api/invoice-titles` | Title list (default first) |
-| PUT | `/api/invoice-titles/{id}` | Edit title (own only) |
-| DELETE | `/api/invoice-titles/{id}` | Delete title (own only; deleting the default auto-assigns the earliest one) |
-| POST | `/api/invoice-titles/{id}/default` | Set default (transaction clears other rows of the same user) |
+| POST | `/api/v1/invoice-titles` | Save title (title_type: personal/company; company requires tax_no; same user + same title duplicate 422; first one auto-default) |
+| GET | `/api/v1/invoice-titles` | Title list (default first) |
+| PUT | `/api/v1/invoice-titles/{id}` | Edit title (own only) |
+| DELETE | `/api/v1/invoice-titles/{id}` | Delete title (own only; deleting the default auto-assigns the earliest one) |
+| POST | `/api/v1/invoice-titles/{id}/default` | Set default (transaction clears other rows of the same user) |
 
-**Application integration**: POST /api/invoices supports optional title_id — resolves the title and auto-fills invoice_title/tax_no/title_type; without title_id the original manual-entry path is kept.
+**Application integration**: POST /api/v1/invoices supports optional title_id — resolves the title and auto-fills invoice_title/tax_no/title_type; without title_id the original manual-entry path is kept.
 
 ### 14. Browse History Endpoints (JWT Required, Round 21)
 
 | Method | Path | Description |
 |--------|------|-------------|
-| GET | `/api/browse-history` | Recently viewed services (join service name/cover/price/original price, viewed_at descending, per_page default 15 cap 50) |
-| DELETE | `/api/browse-history/{item_id}` | Delete one entry (own only, invalid/others 404) |
-| DELETE | `/api/browse-history` | Clear history (own only) |
+| GET | `/api/v1/browse-history` | Recently viewed services (join service name/cover/price/original price, viewed_at descending, per_page default 15 cap 50) |
+| DELETE | `/api/v1/browse-history/{item_id}` | Delete one entry (own only, invalid/others 404) |
+| DELETE | `/api/v1/browse-history` | Clear history (own only) |
 
 **Recording**: automatically recorded after a successful service-detail visit (skipped when not logged in; repeat views only refresh viewed_at, no duplicate inserts).
 
@@ -588,7 +588,7 @@ Rules: withdrawable on the 20th of each month, T+1 arrival, minimum amount/whole
 
 | Method | Path | Description |
 |--------|------|-------------|
-| GET | `/api/full-reduction-activities` | Active full-reduction activities (status=1 and within validity window, sorted by reduction descending; public endpoint) |
+| GET | `/api/v1/full-reduction-activities` | Active full-reduction activities (status=1 and within validity window, sorted by reduction descending; public endpoint) |
 
 **Order stacking rules**: full-reduction applies only to standard orders (group-buy/seckill skipped), threshold judged on the payable after coupon/session-card deduction, stacking order **coupon/session card → full reduction → tier discount**; picks the activity with the largest reduction; the discount merges into discount_amount, note appends "满减：满X减Y"; payable floor 0.01 yuan after reduction.
 
@@ -596,7 +596,7 @@ Rules: withdrawable on the 20th of each month, T+1 arrival, minimum amount/whole
 
 | Method | Path | Description |
 |--------|------|-------------|
-| GET | `/api/order/ics` | Export valid orders within 90 days (pending/paid/confirmed/serving) as iCal (RFC5545) |
+| GET | `/api/v1/order/ics` | Export valid orders within 90 days (pending/paid/confirmed/serving) as iCal (RFC5545) |
 
 **Output**: `Content-Type: text/calendar; charset=utf-8` + `Content-Disposition: attachment; filename="my-appointments.ics"`. VEVENT: UID=order ID, TZID=Asia/Shanghai, summary "预约：服务名" (falls back to "预约" when missing), description (technician/store/address, skipped when missing), LOCATION store name; text escaped per RFC5545 (\, \; \\ \n) + 75-byte line folding. No orders → valid empty calendar; exports own orders only.
 
@@ -604,18 +604,18 @@ Rules: withdrawable on the 20th of each month, T+1 arrival, minimum amount/whole
 
 | Method | Path | Description |
 |--------|------|-------------|
-| POST | `/api/technician/attendance/check-in` | Check in (same-day duplicate 422, unique index guards concurrency; after 10:00 marked late) |
-| POST | `/api/technician/attendance/check-out` | Check out (not checked in/already checked out 422, row-lock concurrency) |
-| GET | `/api/technician/attendance` | Current month attendance list + work days/total hours/average hours summary (?month=YYYY-MM, invalid 422) |
+| POST | `/api/v1/technician/attendance/check-in` | Check in (same-day duplicate 422, unique index guards concurrency; after 10:00 marked late) |
+| POST | `/api/v1/technician/attendance/check-out` | Check out (not checked in/already checked out 422, row-lock concurrency) |
+| GET | `/api/v1/technician/attendance` | Current month attendance list + work days/total hours/average hours summary (?month=YYYY-MM, invalid 422) |
 
 ### 18. Privacy Compliance Endpoints (JWT Required, Round 22)
 
 | Method | Path | Description |
 |--------|------|-------------|
-| GET | `/api/privacy/data` | Data export (grouped JSON: personal/orders/points/wallet_txns/reviews/addresses/invoices; server logs only record masked phone + row count) |
-| POST | `/api/privacy/close-request` | Apply for account closure (balance non-zero / unfinished orders / open tickets 422; sets close_status=1 + close_requested_at) |
-| POST | `/api/privacy/close-cancel` | Cancel closure application (close_status 1→0) |
-| POST | `/api/privacy/close-confirm` | Confirm closure (only after 72h; close_status=2 + close_at + phone/nickname anonymized to user{id} + status=0) |
+| GET | `/api/v1/privacy/data` | Data export (grouped JSON: personal/orders/points/wallet_txns/reviews/addresses/invoices; server logs only record masked phone + row count) |
+| POST | `/api/v1/privacy/close-request` | Apply for account closure (balance non-zero / unfinished orders / open tickets 422; sets close_status=1 + close_requested_at) |
+| POST | `/api/v1/privacy/close-cancel` | Cancel closure application (close_status 1→0) |
+| POST | `/api/v1/privacy/close-confirm` | Confirm closure (only after 72h; close_status=2 + close_at + phone/nickname anonymized to user{id} + status=0) |
 
 **Login interception**: accounts with close_status=2 get 403 "账号已注销" on login.
 
@@ -623,9 +623,9 @@ Rules: withdrawable on the 20th of each month, T+1 arrival, minimum amount/whole
 
 | Method | Path | Description |
 |--------|------|-------------|
-| GET | `/api/health-profile` | Get my health profile (empty object when none) |
-| PUT | `/api/health-profile` | Create/update (upsert, one per user; allergies/health_notes max 500 chars, preferred_technician_id existence-validated; only updates provided fields, response hashid-encoded) |
-| DELETE | `/api/health-profile` | Delete my profile (own only) |
+| GET | `/api/v1/health-profile` | Get my health profile (empty object when none) |
+| PUT | `/api/v1/health-profile` | Create/update (upsert, one per user; allergies/health_notes max 500 chars, preferred_technician_id existence-validated; only updates provided fields, response hashid-encoded) |
+| DELETE | `/api/v1/health-profile` | Delete my profile (own only) |
 
 Fields: allergies / health_notes / preferred_technician_id (nullable).
 
@@ -633,9 +633,9 @@ Fields: allergies / health_notes / preferred_technician_id (nullable).
 
 | Method | Path | Description |
 |--------|------|-------------|
-| POST | `/api/wallet/pay-password/set` | Set pay password (6 digits `\d{6}`; when already set, old password required or 422 blocks) |
-| POST | `/api/wallet/pay-password/verify` | Verify pay password (returns boolean, nothing stored) |
-| POST | `/api/wallet/pay-password/check` | Query whether set (set: true/false) |
+| POST | `/api/v1/wallet/pay-password/set` | Set pay password (6 digits `\d{6}`; when already set, old password required or 422 blocks) |
+| POST | `/api/v1/wallet/pay-password/verify` | Verify pay password (returns boolean, nothing stored) |
+| POST | `/api/v1/wallet/pay-password/check` | Query whether set (set: true/false) |
 
 Storage: password_hash() hash + pay_password_set_at; plaintext never stored.
 
@@ -643,7 +643,7 @@ Storage: password_hash() hash + pay_password_set_at; plaintext never stored.
 
 | Method | Path | Description |
 |--------|------|-------------|
-| GET | `/api/order/{id}/timeline` | Order status change timeline (descending; own only, others' orders 404 without leaking existence) |
+| GET | `/api/v1/order/{id}/timeline` | Order status change timeline (descending; own only, others' orders 404 without leaking existence) |
 
 Tracked events: submit/pay (WeChat callback markOrderPaid single consumption point)/cancel/technician confirm/refund application/refund approved/service start/service complete/timeout auto-cancel/admin operation (operator=admin), 8 change types in total.
 
@@ -651,37 +651,37 @@ Tracked events: submit/pay (WeChat callback markOrderPaid single consumption poi
 
 | Method | Path | Description |
 |--------|------|-------------|
-| GET | `/api/wheel/prizes` | Wheel prize list (hides sensitive weight/stock fields) |
-| POST | `/api/wheel/spin` | Spin once (Redis NX + row lock against concurrency; random_int weighted draw; points→earn transaction with expiry, balance→lockForUpdate credit, coupon→pending manual issuance, no-prize→lose; client_token idempotent) |
-| GET | `/api/wheel/records` | My spin records (paginated) |
+| GET | `/api/v1/wheel/prizes` | Wheel prize list (hides sensitive weight/stock fields) |
+| POST | `/api/v1/wheel/spin` | Spin once (Redis NX + row lock against concurrency; random_int weighted draw; points→earn transaction with expiry, balance→lockForUpdate credit, coupon→pending manual issuance, no-prize→lose; client_token idempotent) |
+| GET | `/api/v1/wheel/records` | My spin records (paginated) |
 
 ### 23. Guest Mode Endpoints (Round 24)
 
 | Method | Path | Description |
 |--------|------|-------------|
-| GET | `/api/guest/home` | Homepage aggregation (banners/announcements/service categories/hot services, Redis cache svc:guest:home 300s) |
-| GET | `/api/guest/services` | Service list (?category_id=hashid&sort=newest\|sales\|price&page/per_page≤50) |
-| GET | `/api/guest/services/{id}` | Service details (not found 404) |
-| GET | `/api/guest/stores` | Store list |
-| GET | `/api/guest/technicians` | Technician list (approved only; ?service_id=hashid filter; rating descending) |
+| GET | `/api/v1/guest/home` | Homepage aggregation (banners/announcements/service categories/hot services, Redis cache svc:guest:home 300s) |
+| GET | `/api/v1/guest/services` | Service list (?category_id=hashid&sort=newest\|sales\|price&page/per_page≤50) |
+| GET | `/api/v1/guest/services/{id}` | Service details (not found 404) |
+| GET | `/api/v1/guest/stores` | Store list |
+| GET | `/api/v1/guest/technicians` | Technician list (approved only; ?service_id=hashid filter; rating descending) |
 
-Not-logged-in browsing entry requiring no authentication (ApiVersion middleware only).
+Not-logged-in browsing entry requiring no authentication (public endpoints).
 
 ### 24. Seckill Endpoints (JWT Required, Round 24)
 
 | Method | Path | Description |
 |--------|------|-------------|
-| GET | `/api/seckill` | Seckill activity list (status=1 and within time window; includes sold count = appointment_order.seckill_id order count, remaining stock) |
-| GET | `/api/seckill/{id}` | Activity details (state=not_started/ongoing/ended) |
-| POST | `/api/seckill/{id}/buy` | Seckill order (client_token idempotent + Redis NX 30s against concurrency + activity validation; no longer pre-deducts stock) |
+| GET | `/api/v1/seckill` | Seckill activity list (status=1 and within time window; includes sold count = appointment_order.seckill_id order count, remaining stock) |
+| GET | `/api/v1/seckill/{id}` | Activity details (state=not_started/ongoing/ended) |
+| POST | `/api/v1/seckill/{id}/buy` | Seckill order (client_token idempotent + Redis NX 30s against concurrency + activity validation; no longer pre-deducts stock) |
 
-**Ordering rules (from 2026-08-26)**: stock uniformly deducted via row locks inside the `/api/order store()` transaction; buy only does entry validation/idempotency; seckill price = seckill_price (DB-based), no coupon/points/member-card stacking; order cancellation does not restore stock; calling `/api/order` directly with seckill_id also deducts stock.
+**Ordering rules (from 2026-08-26)**: stock uniformly deducted via row locks inside the `/api/v1/order store()` transaction; buy only does entry validation/idempotency; seckill price = seckill_price (DB-based), no coupon/points/member-card stacking; order cancellation does not restore stock; calling `/api/v1/order` directly with seckill_id also deducts stock.
 
 ### 25. APP Version Check Endpoints (Round 24)
 
 | Method | Path | Description |
 |--------|------|-------------|
-| GET | `/api/app/version?platform=android|ios` | Latest version check (invalid platform 422; no version → empty object; public endpoint) |
+| GET | `/api/v1/app/version?platform=android|ios` | Latest version check (invalid platform 422; no version → empty object; public endpoint) |
 
 Response: id/platform/version_code/version_name/force_update (1=forced)/changelog/download_url.
 
@@ -689,7 +689,7 @@ Response: id/platform/version_code/version_name/force_update (1=forced)/changelo
 
 ## 2. Admin API (admin/ :8787)
 
-Request headers: `Authorization: Bearer <admin_token>`, `API-Version: v1`
+Request headers: `Authorization: Bearer <admin_token>`; public auth endpoints versioned under the URL prefix `/api/v1`
 
 ### Dashboard
 
@@ -882,7 +882,7 @@ Permission IDs: 407-411, 420. Sold count = appointment_order.seckill_id order co
 | PUT | `/admin/versions/{id}` | Edit |
 | DELETE | `/admin/versions/{id}` | Delete |
 
-Permission IDs: 416-419. The version check endpoint /api/app/version takes the latest (max updated_at/id) among status=1 versions.
+Permission IDs: 416-419. The version check endpoint /api/v1/app/version takes the latest (max updated_at/id) among status=1 versions.
 
 ### Schedule Export (Round 24)
 

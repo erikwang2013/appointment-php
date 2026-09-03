@@ -4,7 +4,7 @@ App({
     token: null,
     userType: 'customer',
     activeRole: 'customer',
-    baseUrl: 'http://localhost:8788/api',
+    baseUrl: 'http://localhost:8788/api/v1',
     location: null
   },
   onLaunch() {

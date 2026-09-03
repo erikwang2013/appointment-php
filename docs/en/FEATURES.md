@@ -127,8 +127,8 @@ The Mini Program and APP have identical features. A unified account supports cus
 
 | Feature | Description |
 |------|------|
-| Wallet balance | GET /api/wallet balance + transactions (user_wallet/wallet_recharge/wallet_txn tables) |
-| Top-up | POST /api/wallet/recharge creates a top-up order; POST /api/wallet/recharge/{id}/pay WeChat Pay top-up, callback uses R-prefixed order number |
+| Wallet balance | GET /api/v1/wallet balance + transactions (user_wallet/wallet_recharge/wallet_txn tables) |
+| Top-up | POST /api/v1/wallet/recharge creates a top-up order; POST /api/v1/wallet/recharge/{id}/pay WeChat Pay top-up, callback uses R-prefixed order number |
 | Balance payment | Order payment channel pay_channel=balance |
 | Refund top-up | WeChat/balance refunds automatically top up the wallet (refundToBalance / creditRefundToWallet) |
 
@@ -144,8 +144,8 @@ The Mini Program and APP have identical features. A unified account supports cus
 
 | Feature | Description |
 |------|------|
-| My session cards | GET /api/marketing/cards/my real-time used_up/expired calculation |
-| Verify & deduct | POST /api/marketing/cards/use: Redis NX idempotency + lockForUpdate row lock, directly creates completed order + OrderItem + OrderPayment(pay_type='card') |
+| My session cards | GET /api/v1/marketing/cards/my real-time used_up/expired calculation |
+| Verify & deduct | POST /api/v1/marketing/cards/use: Redis NX idempotency + lockForUpdate row lock, directly creates completed order + OrderItem + OrderPayment(pay_type='card') |
 
 ### 13. Coupon Deduction (Round 9)
 
@@ -160,7 +160,7 @@ The Mini Program and APP have identical features. A unified account supports cus
 | Feature | Description |
 |------|------|
 | Redeem | redeem: cash type tops up the wallet (row lock prevents double crediting, WalletTxn type='gift_card'), gift type only marked |
-| My gift cards | GET /api/marketing/gift-cards/my |
+| My gift cards | GET /api/v1/marketing/gift-cards/my |
 
 ### 15. Points System (Rounds 9+10)
 
@@ -171,7 +171,7 @@ The Mini Program and APP have identical features. A unified account supports cus
 | Refund clawback | clawbackOrderPoints proportional clawback (3 hook points) |
 | Points for cash | Pass use_points at payment, 100 points = 1 CNY (config app.points_rate), SUM aggregate balance check, consumption record source=points_offset idempotent |
 | Points restitution (Round 15) | Cancel/refund returns points_offset points: refundOffsetPoints 5 hook points (doCancel 3 paths/doRefund WeChat transaction/creditRefundToWallet/completeOneRefundCompensation), source=points_refund idempotent |
-| Points details | GET /api/marketing/points paged + type/source filters, type unified as earn |
+| Points details | GET /api/v1/marketing/points paged + type/source filters, type unified as earn |
 
 ### 16. Mini Program Order Flow (Round 10)
 
@@ -201,8 +201,8 @@ The Mini Program and APP have identical features. A unified account supports cus
 
 | Feature | Description |
 |------|------|
-| Apply for after-sales | POST /api/aftersales: type=refund/exchange, validates own order/paid+completed/dedup per order |
-| My after-sales | GET /api/aftersales paged list + GET /api/aftersales/{id} detail |
+| Apply for after-sales | POST /api/v1/aftersales: type=refund/exchange, validates own order/paid+completed/dedup per order |
+| My after-sales | GET /api/v1/aftersales paged list + GET /api/v1/aftersales/{id} detail |
 | Review flow | Admin approve/reject (rejected requires remark); approved only transitions status, refund reuses the order refund endpoint |
 
 ### 20. Group Buy / Flash Sale (Round 15)
@@ -211,9 +211,9 @@ The Mini Program and APP have identical features. A unified account supports cus
 
 | Feature | Description |
 |------|------|
-| Activity list/detail | GET /api/promotions + /api/promotions/{id}, type filter group_buy/flash_sale |
-| Join | POST /api/promotions/join/{id}: Redis NX lock prevents oversell (flash_sale uses max_people as stock cap), duplicate join 422, group_buy full-team lock, lazy close on expiry without full team (status set to 0 on show/join) |
-| Participant list | GET /api/promotions/{id}/participants |
+| Activity list/detail | GET /api/v1/promotions + /api/v1/promotions/{id}, type filter group_buy/flash_sale |
+| Join | POST /api/v1/promotions/join/{id}: Redis NX lock prevents oversell (flash_sale uses max_people as stock cap), duplicate join 422, group_buy full-team lock, lazy close on expiry without full team (status set to 0 on show/join) |
+| Participant list | GET /api/v1/promotions/{id}/participants |
 | Status fix | PromotionParticipant status switched to integer constants 0/1/2/3 (fixes strict-mode join 1366 corruption) |
 
 ### 21. Group-Buy Ordering (Round 16)
@@ -221,7 +221,7 @@ The Mini Program and APP have identical features. A unified account supports cus
 | Feature | Description |
 |------|------|
 | Group price | join response returns discount_percent/original_price/group_price |
-| Group order | POST /api/order passes promotion_id: validates only group_buy/activity valid/caller is participant/not full/service match; group price = original × discount_percent/100, disables coupon/session-card/points stacking (422) |
+| Group order | POST /api/v1/order passes promotion_id: validates only group_buy/activity valid/caller is participant/not full/service match; group price = original × discount_percent/100, disables coupon/session-card/points stacking (422) |
 | Order marking | appointment_order new promotion_id/participant_id columns + index |
 | Failed group handling | Expiry without full team → activity closed + batch cancel of that activity's pending orders (idempotent); pay() lazy-checks closure and auto-cancels the order, releasing the technician lock |
 
@@ -233,22 +233,22 @@ The Mini Program and APP have identical features. A unified account supports cus
 | Hook point | ReferralRewardService::handleOrderCompleted hooked into WorkController::complete transaction (serving→completed sole entry; verify only reaches serving and does not trigger); failure rolls back entirely and can retry |
 | Idempotency | appointment_user_referral row lock lockForUpdate + rewarded_at null check + in-lock first-order recheck (concurrent/duplicate calls pay once) |
 | Crediting | Wallet row lock accumulation + WalletTxn type='referral_reward' (balance_after + order number remark); referral record writes reward_type/reward_amount/rewarded_at/first_order_at |
-| Details | GET /api/user/referral/earnings paged (referred user nickname/avatar/order number/amount/time) |
+| Details | GET /api/v1/user/referral/earnings paged (referred user nickname/avatar/order number/amount/time) |
 
 ### 23. Points Redemption Mall (Round 16)
 
 | Feature | Description |
 |------|------|
 | Exchange goods | appointment_points_exchange_goods: type=coupon/gift_card/wallet, points_cost/value (DECIMAL(25,2) prevents avalanche ID precision loss)/stock/status |
-| Goods list | GET /api/marketing/points-exchange: on-shelf goods + real-time remaining stock + redeemed count |
-| Exchange | POST /api/marketing/points-exchange/{id}: Redis NX lock + goods row lock prevents over-redemption; points SUM check (insufficient 422) + UserPoints type='consume' source='exchange' deduction; coupon issue / wallet credit (WalletTxn points_exchange) / gift_card card-key returned |
+| Goods list | GET /api/v1/marketing/points-exchange: on-shelf goods + real-time remaining stock + redeemed count |
+| Exchange | POST /api/v1/marketing/points-exchange/{id}: Redis NX lock + goods row lock prevents over-redemption; points SUM check (insufficient 422) + UserPoints type='consume' source='exchange' deduction; coupon issue / wallet credit (WalletTxn points_exchange) / gift_card card-key returned |
 | Idempotency | uk_user_goods unique index limits once per user per goods + in-lock recheck + 1062 fallback; exchange record snapshot appointment_user_points_exchange |
 
 ### 24. Appointment Rescheduling (Round 17)
 
 | Feature | Description |
 |------|------|
-| Endpoint | POST /api/order/reschedule/{id}: new_service_time (required) + reason (optional), same-technician time change |
+| Endpoint | POST /api/v1/order/reschedule/{id}: new_service_time (required) + reason (optional), same-technician time change |
 | Rules | Own orders only (not owner 404); appointment type only with status pending/paid/confirmed (else 422); ≥ 6 hours before original start (aligned with the full-refund window) |
 | Concurrency protection | B1 order_lock (same mutex family as pay/cancel/refund) → new-slot technician lock Redis SETNX EX 180 (concurrent reschedules prevent oversell) → in-transaction row-lock re-read + B2 schedule conflict DB check (excluding this order) |
 | Wrap-up | Update service_time + record appointment_order_reschedule (with reason) + release original/new slot locks held by this order; on failure the transaction rolls back and the new-slot lock is also released |
@@ -258,7 +258,7 @@ The Mini Program and APP have identical features. A unified account supports cus
 
 | Feature | Description |
 |------|------|
-| Endpoints | POST /api/marketing/coupons/transfer (user_coupon_id) generates an 8-character de-obfuscated unique gift code (uk_code fallback, valid 7 days); POST /api/marketing/coupons/claim (code) claims; GET /api/marketing/coupons/transfers sent (pending/claimed/expired) + received (claimed) paged |
+| Endpoints | POST /api/v1/marketing/coupons/transfer (user_coupon_id) generates an 8-character de-obfuscated unique gift code (uk_code fallback, valid 7 days); POST /api/v1/marketing/coupons/claim (code) claims; GET /api/v1/marketing/coupons/transfers sent (pending/claimed/expired) + received (claimed) paged |
 | Validation | Coupon belongs to caller/available/coupon definition not expired/not previously gifted (422); cannot claim own gifted coupon, recipient must not be the original holder |
 | Anti-abuse | Redis NX lock coupon_transfer_claim:{code} (30s) + in-transaction row-lock recheck prevents double-spend; uk_user_coupon unique index limits one gift per coupon; gifted coupons cannot be re-gifted (new coupons have no gift record, naturally blocked); lazy expiry sets expired + restores original coupon to available |
 | Claiming | In-transaction: original coupon set used + new UserCoupon created bound to recipient (coupon_id unchanged so validity unchanged) + gift record set claimed |
@@ -274,11 +274,11 @@ The Mini Program and APP have identical features. A unified account supports cus
 
 ### 27. Flash Sale Ordering (Round 18, retired)
 
-> Superseded by the Round-24 `/api/seckill` channel (store() promo branch now only handles group buying); see "43. Flash Sale".
+> Superseded by the Round-24 `/api/v1/seckill` channel (store() promo branch now only handles group buying); see "43. Flash Sale".
 
 | Feature | Description |
 |------|------|
-| Endpoint | POST /api/order passes promotion_id (flash_sale type): flash price = round(total × (100 − discount_percent)/100, 2), consistent with PromotionController's flash price |
+| Endpoint | POST /api/v1/order passes promotion_id (flash_sale type): flash price = round(total × (100 − discount_percent)/100, 2), consistent with PromotionController's flash price |
 | Validation | Type whitelist [group_buy, flash_sale] (else 422); activity ongoing; caller is participant; order service matches activity; sold out participants_count ≥ max_people 422 "已抢光"; coupon/session-card/points stacking disabled 422 |
 | Expiry | pay() lazy-check isFlashSaleClosed (same pattern as isGroupBuyClosed): flash expired → activity set to 0 + batch cancel that activity's pending orders + this order auto-cancelled + technician lock released 422 |
 
@@ -295,7 +295,7 @@ The Mini Program and APP have identical features. A unified account supports cus
 
 | Feature | Description |
 |------|------|
-| Endpoint | POST /api/technician/review/reply/{order_id} (technician-identity middleware): review missing/not own unified 404; existing reply 422 (idempotent reject, no overwrite); empty reply 422 |
+| Endpoint | POST /api/v1/technician/review/reply/{order_id} (technician-identity middleware): review missing/not own unified 404; existing reply 422 (idempotent reject, no overwrite); empty reply 422 |
 | After reply | In-app notification to user (type='review_reply', non-blocking try/catch + Log) |
 | Data | appointment_order_review idempotently gains replied_at column (reply column existed at table creation); admin review list/show exposes reply/replied_at via decorate()->toArray() |
 
@@ -311,33 +311,33 @@ The Mini Program and APP have identical features. A unified account supports cus
 
 | Feature | Description |
 |------|------|
-| Endpoint | POST /api/wallet/transfer: recipient hashid decode + existence 404, to self 422, amount 0.01-1000 per transfer 422 (DECIMAL comparison, no float), insufficient balance 422, 5000/day cumulative 422 |
+| Endpoint | POST /api/v1/wallet/transfer: recipient hashid decode + existence 404, to self 422, amount 0.01-1000 per transfer 422 (DECIMAL comparison, no float), insufficient balance 422, 5000/day cumulative 422 |
 | Concurrency/idempotency | Redis NX lock wallet_transfer:{from} 30s serializes the sender; in-transaction both wallet rows lockForUpdate by user_id ascending (fixed order prevents deadlock); client_token SETNX 24h after success prevents resubmission (failed requests don't store the token, can retry) |
 | Crediting | Deduct sender + credit recipient + WalletTxn double records (transfer_out/transfer_in with balance_after snapshot) + transfer record completed + recipient in-app notification type='balance_received' (failure only logs) |
-| Records | GET /api/wallet/transfers (direction=out/in paged) + GET /transfers/{id} (visible to both parties only 404) |
+| Records | GET /api/v1/wallet/transfers (direction=out/in paged) + GET /transfers/{id} (visible to both parties only 404) |
 
 ### 32. Points Transfer (Round 19)
 
 | Feature | Description |
 |------|------|
-| Endpoint | POST /api/user/points/transfer: recipient existence 404, to self 422, points 1-10000 422, SUM aggregate balance insufficient 422, 10000/day limit 422 |
+| Endpoint | POST /api/v1/user/points/transfer: recipient existence 404, to self 422, points 1-10000 422, SUM aggregate balance insufficient 422, 10000/day limit 422 |
 | Concurrency/idempotency | Redis NX lock points_transfer:{user} 30s; in-transaction both parties' last records lockForUpdate (user_id ascending prevents mutual-transfer deadlock) + in-lock recheck of balance/limit/recipient |
 | Record conventions | Sender type=consume source=points_transfer negative (balance=previous snapshot − this amount, same convention as points_offset/exchange); recipient type=earn source=points_transfer positive with expires_at (PointsExpiryTimer can expire normally); transfer record written in-transaction, in-app notification to recipient type='points_received' after commit |
-| Records | GET /api/user/points/transfers (direction=sent/received paged, with counterparty nickname) |
+| Records | GET /api/v1/user/points/transfers (direction=sent/received paged, with counterparty nickname) |
 
 ### 33. Review Follow-up + Submission Route Completion (Round 19)
 
 | Feature | Description |
 |------|------|
-| Follow-up | POST /api/order/review/{order_id}/append: review missing/not own unified 404, non-completed 422, duplicate follow-up 422 (rejected if either append_content/append_at is non-null), empty content 422; on success writes append_content/append_images(JSON)/append_at + technician in-app notification type='review_append' |
-| Submit review | Registered the missing POST /api/order/review/{order_id} (ReviewController::store previously had no route, unreachable); also fixed the latent TypeError: findByOrderId received int violating the string signature (aligned with the (string) cast in append), which would 500 the moment the route was registered |
+| Follow-up | POST /api/v1/order/review/{order_id}/append: review missing/not own unified 404, non-completed 422, duplicate follow-up 422 (rejected if either append_content/append_at is non-null), empty content 422; on success writes append_content/append_images(JSON)/append_at + technician in-app notification type='review_append' |
+| Submit review | Registered the missing POST /api/v1/order/review/{order_id} (ReviewController::store previously had no route, unreachable); also fixed the latent TypeError: findByOrderId received int violating the string signature (aligned with the (string) cast in append), which would 500 the moment the route was registered |
 | Data | appointment_order_review gains append_content TEXT/append_images JSON/append_at DATETIME columns (idempotent migration); response exposes append fields |
 
 ### 34. User-Side Logistics Tracking (Round 19)
 
 | Feature | Description |
 |------|------|
-| Endpoint | GET /api/order/logistics/{id}: own product orders only (not owner/not product/not shipped unified 404) |
+| Endpoint | GET /api/v1/order/logistics/{id}: own product orders only (not owner/not product/not shipped unified 404) |
 | Data | Reads order.remark JSON (shipping_company/tracking_no/shipped_at, written by admin MallOrderController::ship() on shipment); parseShippingInfo/parseReceiver double parsing covers legacy formats |
 | Masking | Recipient phone maskPhone (138****5678) prevents leakage |
 
@@ -346,7 +346,7 @@ The Mini Program and APP have identical features. A unified account supports cus
 | Feature | Description |
 |------|------|
 | Data | appointment_user_notify_setting table (user_id+type composite unique key uk_user_type, missing row = default on); 5 types: service_reminder / card_expiry (unified umbrella for cards+coupons) / points_expiry / marketing (reserved) / system (cannot be turned off, PUT forces 1) |
-| Endpoints | GET /api/user/notify-settings returns all 5 switches; PUT batch upsert produces no duplicate rows |
+| Endpoints | GET /api/v1/user/notify-settings returns all 5 switches; PUT batch upsert produces no duplicate rows |
 | Gating | NotificationReminderService::notifySettingEnabled hooks into 3 timer processes (ServiceReminderTimer/ExpiryReminderTimer cards+coupons/PointsExpiryTimer — timers insert directly into appointment_notification, bypassing the service write path, so each adds the same gate) + subscribe events (sendSubscribeForOrderEvent/Notification scenario mapping PAY/REFUND/VERIFIED/RESCHEDULE→system always sent, REMINDER→service_reminder, EXPIRY→card_expiry); when a type is off, both in-app notifications and subscribe messages are skipped |
 
 ---
@@ -470,7 +470,7 @@ Flutter Web single-page app with 21 pages: dashboard/users/roles/config/logs/ver
 
 ### 16. Store Manager Workbench (Round 15)
 
-- service /api/store-manager: overview (today's orders/revenue/in-progress/technician count/verification count) + orders (paged + status filter) + technicians (with today's schedule) + revenue (last 7 days aggregated), requireStoreId() enforces store_id isolation (403 without store)
+- service /api/v1/store-manager: overview (today's orders/revenue/in-progress/technician count/verification count) + orders (paged + status filter) + technicians (with today's schedule) + revenue (last 7 days aggregated), requireStoreId() enforces store_id isolation (403 without store)
 - admin StoreController::workbenchOverview (GET /admin/stores/workbench-overview?store_id=, consistent with service) + AppointmentOrderController order list store_id filter (hashid decode)
 - Flutter store workbench page: store dropdown + status filter + 5 overview cards + order DataTable + paging (permission 372)
 
@@ -500,7 +500,7 @@ Flutter Web single-page app with 21 pages: dashboard/users/roles/config/logs/ver
 
 ### 21. Appointment Calendar (Round 20)
 
-- CalendarController month/day views: GET /api/calendar/technician/{id} (month view) + /day (day view)
+- CalendarController month/day views: GET /api/v1/calendar/technician/{id} (month view) + /day (day view)
 - Data source: technician_schedule.time_slots JSON expanded per weekday into hour slots, appointment_order booked slots for that day excluded (status ∈ pending/paid/confirmed/serving), remaining bookable slots output
 - Purpose: visual time selection for store scheduling, frontend horizontal scroll by day + tap to select time slots
 
@@ -508,20 +508,20 @@ Flutter Web single-page app with 21 pages: dashboard/users/roles/config/logs/ver
 
 - appointment_user_growth (records) + appointment_growth_level (tier seeds 5 levels: Bronze 0/Silver 100/Gold 500/Platinum 2000/Diamond 5000)
 - Growth point accrual: check-in +10 (CheckInController); submit review +20 (ReviewController::store, follow-ups don't accrue); consumption floor(paid) 1 point per 1 CNY (WechatPayService::markOrderPaid, reuses existing payment-state recheck, naturally idempotent, duplicate callbacks don't double-accrue)
-- Endpoints: GET /api/growth (current tier overview: balance/level/next-tier gap); GET /api/growth/records (paged records); GET /api/growth/levels (public tier list, no login required)
+- Endpoints: GET /api/v1/growth (current tier overview: balance/level/next-tier gap); GET /api/v1/growth/records (paged records); GET /api/v1/growth/levels (public tier list, no login required)
 - Failure policy: each accrual point try/catch logs, does not affect the main flow
 
 ### 23. E-Invoices (Round 20)
 
 - appointment_invoice: uk_order_type(order_id,order_type) prevents duplicate applications for the same order (duplicate 422, incl. MySQL 1062 catch fallback); idx_user_created/idx_status
-- User side: POST /api/invoices (apply, amount/title carried server-side from the order, non-tamperable); GET /api/invoices (list); GET /api/invoices/{id} (detail)
+- User side: POST /api/v1/invoices (apply, amount/title carried server-side from the order, non-tamperable); GET /api/v1/invoices (list); GET /api/v1/invoices/{id} (detail)
 - Admin: InvoiceController issue (invoice: writes invoice_no + status=issued + issued_at) / reject (reject: status=rejected + reject_reason), permission 382 list/383 issue/384 reject
 - State machine: pending → issued / rejected
 
 ### 24. Support Tickets (Round 20)
 
 - appointment_ticket: user submits ticket (title/content), admin replies appended (reply_content/replied_at), user can close (closed_at)
-- User side: POST /api/tickets (submit); GET /api/tickets (list); GET /api/tickets/{id} (detail, own only); POST /api/tickets/{id}/close (close)
+- User side: POST /api/v1/tickets (submit); GET /api/v1/tickets (list); GET /api/v1/tickets/{id} (detail, own only); POST /api/v1/tickets/{id}/close (close)
 - Admin: TicketController index (list)/reply (reply), static routes defined before resource to avoid {id} shadow; permission 385 ticket reply/387 ticket list view
 - State machine: open → replied (returns to open after reply, can reply again) / closed
 
@@ -537,12 +537,12 @@ Flutter Web single-page app with 21 pages: dashboard/users/roles/config/logs/ver
 - GrowthLevel.benefits JSON shell implemented: migration seeds 5 tiers (Bronze {"discount_rate":1.0,"points_multiplier":1.0}, Silver 0.98/1.1, Gold 0.95/1.2, Platinum 0.92/1.3, Diamond 0.9/1.5)
 - Tier discount: OrderController::store applyGrowthDiscount() — standard orders only (promotion_id empty, group-buy/flash disabled); order: payable after coupon/session-card discount × discount_rate; discount amount merged into discount_amount, order remark appends "等级折扣：白银9.8折，优惠¥2.00" for traceability; floor protection: post-discount actual pay ≥0.01 CNY (≥100 in cents), otherwise discount truncated to 0
 - Points multiplier: WechatPayService::markOrderPaid growth points changed from floor(paid) to floor(paid × points_multiplier), multiplier taken at payment-time tier (accrued before crediting, this order doesn't upgrade the tier); the R20 try/catch hook points fully retained
-- Query reuse: GrowthLevel::levelForGrowth() resolves tier by cumulative growth points, reused by ordering/payment; GET /api/growth already returns benefits and next_gap (R20 implementation, no change needed)
+- Query reuse: GrowthLevel::levelForGrowth() resolves tier by cumulative growth points, reused by ordering/payment; GET /api/v1/growth already returns benefits and next_gap (R20 implementation, no change needed)
 
 ### 27. Invoice Title Management (Round 21)
 
 - appointment_invoice_title (uk_user_title(user_id, title_type, invoice_title) prevents duplicates + idx_user_default)
-- Endpoints: POST /api/invoice-titles (save, company requires tax_no, duplicate 422); GET (list, default first); PUT /{id} (edit, own only); DELETE /{id} (delete, own only); POST /{id}/default (set default, transaction zeroes other rows of the same user)
+- Endpoints: POST /api/v1/invoice-titles (save, company requires tax_no, duplicate 422); GET (list, default first); PUT /{id} (edit, own only); DELETE /{id} (delete, own only); POST /{id}/default (set default, transaction zeroes other rows of the same user)
 - Default rules: first saved auto-default; deleting the default auto-assigns the earliest one
 - Application link: InvoiceController::store optionally accepts title_id — resolves the title into invoice_title/tax_no/title_type, original manual path retained when no title_id; uk_order_type dedup logic unchanged
 
@@ -563,19 +563,19 @@ Flutter Web single-page app with 21 pages: dashboard/users/roles/config/logs/ver
 
 - appointment_browse_history (uk_user_item(user_id, item_id) unique, re-browse only refreshes viewed_at, no duplicate insert; idx_user_viewed ordering)
 - Recording hook: ServiceController::detail() records on success (try/catch + Log::warning doesn't affect the main flow; public route has no JWT, user_id null check skips anonymous)
-- Endpoints: GET /api/browse-history (join appointment_service name/cover/price/original price, viewed_at descending, per_page default 15 max 50, item_id hashid); DELETE /{item_id} (own only, invalid/other's 404); DELETE / (clear own only)
+- Endpoints: GET /api/v1/browse-history (join appointment_service name/cover/price/original price, viewed_at descending, per_page default 15 max 50, item_id hashid); DELETE /{item_id} (own only, invalid/other's 404); DELETE / (clear own only)
 
 ### 31. Full-Reduction Promotions (Round 22)
 
 - appointment_full_reduction_activity (threshold/reduction/title/status/start_at/end_at + idx_status_status_time)
 - Order stacking: standard orders only (group-buy/flash skip), threshold judged on the amount after coupon/session-card deduction, order **coupon/session card → full reduction → tier discount**; picks the activity with the largest reduction; discount merged into discount_amount + remark "满减：满X减Y"; post-reduction actual pay floor 0.01 CNY (in cents)
-- User side GET /api/full-reduction-activities (public, active ones sorted by reduction descending)
+- User side GET /api/v1/full-reduction-activities (public, active ones sorted by reduction descending)
 - admin FullReductionController: CRUD + toggle-status on/off shelf (destroy with confirmPassword)
 - Permissions: 396 list / 397 create / 398 edit / 399 on-off shelf / 400 delete (one permission record corresponds to one method.path slug, 5 routes split into 5 records)
 
 ### 32. My Appointments ICS Export (Round 22)
 
-- IcsController GET /api/order/ics: orders within 90 days with status pending/paid/confirmed/serving exported as iCal (RFC5545), own only
+- IcsController GET /api/v1/order/ics: orders within 90 days with status pending/paid/confirmed/serving exported as iCal (RFC5545), own only
 - VEVENT: UID=order ID, DTSTAMP(UTC), TZID=Asia/Shanghai, default duration 1h, summary "预约：服务名" (degenerates to "预约" when missing), description technician/store/address (skipped when missing), LOCATION; text escaping (\, \; \\ \n) + 75-byte line folding
 - No orders returns a valid empty calendar (`BEGIN:VCALENDAR` skeleton)
 
@@ -601,59 +601,59 @@ Flutter Web single-page app with 21 pages: dashboard/users/roles/config/logs/ver
 
 ### 36. Privacy Compliance (Round 22)
 
-- GET /api/privacy/data: data export (personal/orders/points/wallet_txns/reviews/addresses/invoices grouped; logs only record masked phone + counts)
+- GET /api/v1/privacy/data: data export (personal/orders/points/wallet_txns/reviews/addresses/invoices grouped; logs only record masked phone + counts)
 - Deletion loop: close-request (balance non-zero / unfinished orders / in-progress tickets 422 → close_status=1) → close-cancel (1→0) → close-confirm (after 72h → close_status=2 + close_at + phone/nickname anonymized to user{id} + status=0)
 - appointment_user gains close_status/close_requested_at/close_at (idempotent ALTER migration); AuthController login/loginByCode return 403 "账号已注销" for close_status=2
 
 ### 37. User Health Profile (Round 23)
 
-- GET/PUT/DELETE /api/health-profile: one per user (uk_user unique index), upsert only updates provided fields
+- GET/PUT/DELETE /api/v1/health-profile: one per user (uk_user unique index), upsert only updates provided fields
 - allergies/health_notes max 500 chars, preferred_technician_id existence validated, response hashid encoded
 - Migration 000504_user_health_profile; HealthProfileTest 6 tests
 
 ### 38. Wallet Pay Password (Round 23)
 
-- POST /api/wallet/pay-password/{set,verify,check}: 6-digit validation, password_hash storage + pay_password_set_at
+- POST /api/v1/wallet/pay-password/{set,verify,check}: 6-digit validation, password_hash storage + pay_password_set_at
 - Changing when already set requires the old password 422; verify only validates, no storage; check returns whether set
 - Migration 000502 (INFORMATION_SCHEMA idempotent ALTER two columns); WalletPayPasswordTest 7 tests
 
 ### 39. Technician Batch Scheduling (Round 23)
 
-- POST /api/technician/schedule/batch: date range ≤7 days + weekdays filter, days with existing schedules skipped
+- POST /api/v1/technician/schedule/batch: date range ≤7 days + weekdays filter, days with existing schedules skipped
 - Single-entry settings also enable time-slot overlap detection (422 "与已有排班时间冲突：HH:MM-HH:MM")
 - ScheduleConflictTest 5 tests
 
 ### 40. Order Status Timeline (Round 23)
 
-- GET /api/order/{id}/timeline: own only (other's 404), descending; admin order detail merges the timeline array
+- GET /api/v1/order/{id}/timeline: own only (other's 404), descending; admin order detail merges the timeline array
 - OrderStatusLog::record() static hooks for 8 change types: submit/pay/cancel/confirm/refund apply/refund approved/service start/service complete/timeout auto-cancel/admin operation (operator=admin)
 - Payment callback markOrderPaid is the single consumption point; record() internal try/catch + Log::warning never blocks the main flow
 - Migration 000501_order_status_log; OrderTimelineTest 4 tests
 
 ### 41. Points Lucky Wheel (Round 23)
 
-- GET /api/wheel/prizes (hides weight/stock); POST /api/wheel/spin: Redis NX + row lock prevents concurrency, random_int weighted draw, client_token idempotent
+- GET /api/v1/wheel/prizes (hides weight/stock); POST /api/v1/wheel/spin: Redis NX + row lock prevents concurrency, random_int weighted draw, client_token idempotent
 - Prize crediting: points→earn record (with expiry time, can be expired normally by PointsExpiryTimer), balance→lockForUpdate, coupon→pending manual issue, no-prize→lose
-- GET /api/wheel/records my records paged; admin /admin/lucky-wheel CRUD + on/off shelf + records (permissions 401-406)
+- GET /api/v1/wheel/records my records paged; admin /admin/lucky-wheel CRUD + on/off shelf + records (permissions 401-406)
 - Migrations 000503 (appointment_lucky_wheel + appointment_wheel_record + w60/w40 demo seeds) + 000505 (permission seeds); LuckyWheelTest admin 3 + service 6 tests
 
 ### 42. Guest Mode (Round 24)
 
-- GET /api/guest/{home,services,services/{id},stores,technicians}: unauthenticated browsing entry (only ApiVersion middleware)
+- GET /api/v1/guest/{home,services,services/{id},stores,technicians}: unauthenticated browsing entry (public endpoints)
 - home aggregates banners/announcements/service categories/hot services, Redis cache svc:guest:home 300s; services supports category filter + newest/sales/price sorting (page/per_page≤50); technicians only approved, service_id filterable, rating descending
 - Covered by GuestControllerTest
 
 ### 43. Flash Sale (Round 24)
 
 - appointment_seckill_activity (name/service_id/seckill_price/original_price/stock/start_at/end_at/status); sold count = appointment_order.seckill_id order count
-- GET /api/seckill (status=1 + time window), /{id} (state=not_started/ongoing/ended), POST /{id}/buy: client_token (8-64 chars, SETNX 24h) idempotency + Redis NX 30s concurrency prevention + activity validation (no stock pre-deduction since 2026-08-26)
-- Order injection: seckill_id reuses OrderController::store; stock uniformly deducted by row lock inside store() transaction (calling /api/order directly with seckill_id also deducts stock), flash price = seckill_price (DB authoritative), no coupon/points/member-card stacking; order cancellation does not restore stock; old FLASH_SALE promotion channel removed (store() promo branch now only handles group buying, PromotionController index filters flash_sale, show/join 400), flash sales only go through this channel
+- GET /api/v1/seckill (status=1 + time window), /{id} (state=not_started/ongoing/ended), POST /{id}/buy: client_token (8-64 chars, SETNX 24h) idempotency + Redis NX 30s concurrency prevention + activity validation (no stock pre-deduction since 2026-08-26)
+- Order injection: seckill_id reuses OrderController::store; stock uniformly deducted by row lock inside store() transaction (calling /api/v1/order directly with seckill_id also deducts stock), flash price = seckill_price (DB authoritative), no coupon/points/member-card stacking; order cancellation does not restore stock; old FLASH_SALE promotion channel removed (store() promo branch now only handles group buying, PromotionController index filters flash_sale, show/join 400), flash sales only go through this channel
 - admin /admin/seckill CRUD + on/off shelf + order list (permissions 407-411, 420); migration 000606 permission seeds; SeckillTest service + admin
 
 ### 44. APP Version Management & Update Check (Round 24)
 
 - appointment_app_version (platform/version_code/version_name/force_update/changelog/download_url/status)
-- GET /api/app/version?platform=android|ios public update check (invalid platform 422; latest among status=1; empty object when none)
+- GET /api/v1/app/version?platform=android|ios public update check (invalid platform 422; latest among status=1; empty object when none)
 - admin /admin/versions CRUD (permissions 416-419); migration 000609 permission seeds; VersionTest service + admin
 
 ### 45. Return-Customer Rewards (Round 24)

@@ -127,8 +127,8 @@
 
 | 기능 | 설명 |
 |------|------|
-| 지갑 잔액 | GET /api/wallet 잔액+거래 내역(user_wallet/wallet_recharge/wallet_txn 테이블) |
-| 충전 | POST /api/wallet/recharge 충전 주문 생성; POST /api/wallet/recharge/{id}/pay 위챗페이 충전, 콜백은 R 접두사 주문번호 사용 |
+| 지갑 잔액 | GET /api/v1/wallet 잔액+거래 내역(user_wallet/wallet_recharge/wallet_txn 테이블) |
+| 충전 | POST /api/v1/wallet/recharge 충전 주문 생성; POST /api/v1/wallet/recharge/{id}/pay 위챗페이 충전, 콜백은 R 접두사 주문번호 사용 |
 | 잔액 결제 | 주문 결제 채널 pay_channel=balance |
 | 환불 환충 | 위챗/잔액 환불 시 잔액 자동 환충(refundToBalance / creditRefundToWallet) |
 
@@ -144,8 +144,8 @@
 
 | 기능 | 설명 |
 |------|------|
-| 내 횟수권 | GET /api/marketing/cards/my 실시간 used_up/expired 계산 |
-| 검증 차감 | POST /api/marketing/cards/use: Redis NX 멱등 + lockForUpdate 행 잠금, completed 주문 + OrderItem + OrderPayment(pay_type='card') 직접 생성 |
+| 내 횟수권 | GET /api/v1/marketing/cards/my 실시간 used_up/expired 계산 |
+| 검증 차감 | POST /api/v1/marketing/cards/use: Redis NX 멱등 + lockForUpdate 행 잠금, completed 주문 + OrderItem + OrderPayment(pay_type='card') 직접 생성 |
 
 ### 13. 쿠폰 차감(9차 라운드)
 
@@ -160,7 +160,7 @@
 | 기능 | 설명 |
 |------|------|
 | 교환 | redeem: cash 유형 지갑 충전(행 잠금 이중 입금 방지, WalletTxn type='gift_card'), gift 유형은 표시만 |
-| 내 선물 카드 | GET /api/marketing/gift-cards/my |
+| 내 선물 카드 | GET /api/v1/marketing/gift-cards/my |
 
 ### 15. 포인트 체계(9+10차 라운드)
 
@@ -171,7 +171,7 @@
 | 환불 회수 | clawbackOrderPoints 비율별 회수(3곳 연결) |
 | 포인트 현금 전환 | 결제 시 use_points 전달, 100포인트=1원(config app.points_rate), SUM 집계 잔액 검증, 소비 거래 내역 source=points_offset 멱등 |
 | 포인트 회수(15차 라운드) | 취소/환불 시 points_offset 포인트 반환: refundOffsetPoints 5개 연결점(doCancel 3개 경로/doRefund 위챗 트랜잭션/creditRefundToWallet/completeOneRefundCompensation), source=points_refund 멱등 |
-| 포인트 명세 | GET /api/marketing/points 페이징 + type/source 필터, type은 earn으로 통일 |
+| 포인트 명세 | GET /api/v1/marketing/points 페이징 + type/source 필터, type은 earn으로 통일 |
 
 ### 16. 미니프로그램 주문 체인(10차 라운드)
 
@@ -201,8 +201,8 @@
 
 | 기능 | 설명 |
 |------|------|
-| 애프터서비스 신청 | POST /api/aftersales: type=refund/exchange, 본인 주문/paid+completed/같은 주문 중복 제거 검증 |
-| 내 애프터서비스 | GET /api/aftersales 페이징 목록 + GET /api/aftersales/{id} 상세 |
+| 애프터서비스 신청 | POST /api/v1/aftersales: type=refund/exchange, 본인 주문/paid+completed/같은 주문 중복 제거 검증 |
+| 내 애프터서비스 | GET /api/v1/aftersales 페이징 목록 + GET /api/v1/aftersales/{id} 상세 |
 | 심사 흐름 | 관리단말 approve/reject(rejected는 remark 필수); approved는 상태 전이만, 환불은 기존 주문 환불 API 사용 |
 
 ### 20. 공동구매/번개세일(15차 라운드)
@@ -211,9 +211,9 @@
 
 | 기능 | 설명 |
 |------|------|
-| 활동 목록/상세 | GET /api/promotions + /api/promotions/{id}, type 필터 group_buy/flash_sale |
-| 참여 | POST /api/promotions/join/{id}: Redis NX 잠금 초과 판매 방지(flash_sale은 max_people이 재고 상한), 중복 참여 422, group_buy 인원 만원 잠금, 만료 미만원 지연 종료(show/join 시 status 0 처리) |
-| 참여 목록 | GET /api/promotions/{id}/participants |
+| 활동 목록/상세 | GET /api/v1/promotions + /api/v1/promotions/{id}, type 필터 group_buy/flash_sale |
+| 참여 | POST /api/v1/promotions/join/{id}: Redis NX 잠금 초과 판매 방지(flash_sale은 max_people이 재고 상한), 중복 참여 422, group_buy 인원 만원 잠금, 만료 미만원 지연 종료(show/join 시 status 0 처리) |
+| 참여 목록 | GET /api/v1/promotions/{id}/participants |
 | 상태 수정 | PromotionParticipant 상태를 정수 상수 0/1/2/3으로 변경(엄격 모드에서 join 1366 손상 수정) |
 
 ### 21. 공동구매 결성 주문(16차 라운드)
@@ -221,7 +221,7 @@
 | 기능 | 설명 |
 |------|------|
 | 공동구매가 | join 응답에서 discount_percent/original_price/group_price 반환 |
-| 공동구매 주문 | POST /api/order에 promotion_id 전달: group_buy만/활동 유효/호출자가 참여자/미만원/서비스 일치 검증; 공동구매가=원가×discount_percent/100, 쿠폰/횟수권/포인트 중첩 금지(422) |
+| 공동구매 주문 | POST /api/v1/order에 promotion_id 전달: group_buy만/활동 유효/호출자가 참여자/미만원/서비스 일치 검증; 공동구매가=원가×discount_percent/100, 쿠폰/횟수권/포인트 중첩 금지(422) |
 | 주문 표시 | appointment_order에 promotion_id/participant_id 컬럼 + 인덱스 추가 |
 | 결성 실패 처리 | 만료 미만원→활동 종료+해당 활동 pending 주문 일괄 취소(멱등); pay()에서 지연 판정으로 이미 종료되면 주문 자동 취소 + 기술자 잠금 해제 |
 
@@ -233,22 +233,22 @@
 | 연결점 | ReferralRewardService::handleOrderCompleted를 WorkController::complete 트랜잭션 내 연결(serving→completed 유일 진입점, 검증 verify는 serving까지만 가므로 트리거 안 됨), 실패 시 전체 롤백 + 재시도 가능 |
 | 멱등 | appointment_user_referral 행 잠금 lockForUpdate + rewarded_at 빈값 확인 + 잠금 내 첫 주문 재검증(동시/중복 호출에도 한 번만 지급) |
 | 입금 | 지갑 행 잠금 누적 + WalletTxn type='referral_reward'(balance_after + 주문번호 remark); 추천 기록에 reward_type/reward_amount/rewarded_at/first_order_at 작성 |
-| 명세 | GET /api/user/referral/earnings 페이징(추천인 닉네임/프로필/주문번호/금액/시간) |
+| 명세 | GET /api/v1/user/referral/earnings 페이징(추천인 닉네임/프로필/주문번호/금액/시간) |
 
 ### 23. 포인트 교환 몰(16차 라운드)
 
 | 기능 | 설명 |
 |------|------|
 | 교환 상품 | appointment_points_exchange_goods: type=coupon/gift_card/wallet, points_cost/value(DECIMAL(25,2) 설계 ID 정밀도 손실 방지)/stock/status |
-| 상품 목록 | GET /api/marketing/points-exchange: 판매 중 상품 + 실시간 잔여 재고 + 교환 수 |
-| 교환 | POST /api/marketing/points-exchange/{id}: Redis NX 잠금 + 상품 행 잠금 초과 교환 방지; 포인트 SUM 검증(부족 422) + UserPoints type='consume' source='exchange' 차감; coupon 발권 / wallet 잔액 입금(WalletTxn points_exchange) / gift_card 카드 키 반환 |
+| 상품 목록 | GET /api/v1/marketing/points-exchange: 판매 중 상품 + 실시간 잔여 재고 + 교환 수 |
+| 교환 | POST /api/v1/marketing/points-exchange/{id}: Redis NX 잠금 + 상품 행 잠금 초과 교환 방지; 포인트 SUM 검증(부족 422) + UserPoints type='consume' source='exchange' 차감; coupon 발권 / wallet 잔액 입금(WalletTxn points_exchange) / gift_card 카드 키 반환 |
 | 멱등 | uk_user_goods 고유 인덱스로 같은 사용자 같은 상품 1회 제한 + 잠금 내 재검증 + 1062 폴백; 교환 기록 스냅샷 appointment_user_points_exchange |
 
 ### 24. 예약 일정 변경(17차 라운드)
 
 | 기능 | 설명 |
 |------|------|
-| API | POST /api/order/reschedule/{id}: new_service_time(필수) + reason(선택), 같은 기술자 시간 변경 |
+| API | POST /api/v1/order/reschedule/{id}: new_service_time(필수) + reason(선택), 같은 기술자 시간 변경 |
 | 규칙 | 본인 주문만(아님 404); appointment 유형이며 상태 pending/paid/confirmed만(그 외 422); 원래 서비스 시작까지 ≥ 6시간(전액 환불 창과 동일) |
 | 동시성 방어 | B1 order_lock(pay/cancel/refund와 같은 상호 배타 계열) → 새 시간대 기술자 잠금 Redis SETNX EX 180(동시 일정 변경 초과 판매 방지) → 트랜잭션 내 행 잠금 재조회 + B2 스케줄 충돌 DB 검증(본 주문 제외) |
 | 마무리 | service_time 갱신 + appointment_order_reschedule 기록(reason 포함) + 원래 시간대 잠금/새 시간대 잠금 본 주문 보유분 해제; 실패 시 트랜잭션 롤백과 동시에 새 시간대 잠금 해제 |
@@ -258,7 +258,7 @@
 
 | 기능 | 설명 |
 |------|------|
-| API | POST /api/marketing/coupons/transfer(user_coupon_id) 8자리 혼동 문자 제거 고유 양도 코드 생성(uk_code 폴백, 7일 유효); POST /api/marketing/coupons/claim(code) 수령; GET /api/marketing/coupons/transfers 발송(pending/claimed/expired)+수령(claimed) 페이징 |
+| API | POST /api/v1/marketing/coupons/transfer(user_coupon_id) 8자리 혼동 문자 제거 고유 양도 코드 생성(uk_code 폴백, 7일 유효); POST /api/v1/marketing/coupons/claim(code) 수령; GET /api/v1/marketing/coupons/transfers 발송(pending/claimed/expired)+수령(claimed) 페이징 |
 | 검증 | 쿠폰 본인 소유/available/쿠폰 정의 미만료/양도된 적 없음(422); 자신이 양도한 쿠폰 수령 불가, 수령인은 원소유자 아님 |
 | 남용 방지 | Redis NX 잠금 coupon_transfer_claim:{code}(30s) + 트랜잭션 내 행 잠금 재검증 이중 사용 방지; uk_user_coupon 고유 인덱스로 같은 쿠폰 양도 1회 제한; 양도받은 쿠폰 재양도 불가(새 쿠폰은 양도 기록이 없어 자연 차단); 지연 판정 만료 시 expired 처리 + 원래 쿠폰 available 복원 |
 | 수령 | 트랜잭션 내 원래 쿠폰 used 처리 + 새 UserCoupon 생성해 수령인 바인딩(coupon_id 동일하므로 유효기간 동일) + 양도 기록 claimed 처리 |
@@ -274,11 +274,11 @@
 
 ### 27. 번개세일 주문(18차 라운드, 폐지됨)
 
-> 24차 라운드 `/api/seckill` 채널로 대체됨(store() 프로모션 분기는 공동구매만 남음), "43. 번개세일" 참조.
+> 24차 라운드 `/api/v1/seckill` 채널로 대체됨(store() 프로모션 분기는 공동구매만 남음), "43. 번개세일" 참조.
 
 | 기능 | 설명 |
 |------|------|
-| API | POST /api/order에 promotion_id(flash_sale 유형) 전달: 번개세일가 = round(total × (100 − discount_percent)/100, 2), PromotionController 번개세일가와 동일 기준 |
+| API | POST /api/v1/order에 promotion_id(flash_sale 유형) 전달: 번개세일가 = round(total × (100 − discount_percent)/100, 2), PromotionController 번개세일가와 동일 기준 |
 | 검증 | 유형 화이트리스트 [group_buy, flash_sale]（그 외 422）; 활동 진행 중; 호출자는 참여자; 주문 서비스와 활동 일치; 매진 participants_count ≥ max_people 422 "품절"; 쿠폰/횟수권/포인트 중첩 금지 422 |
 | 만료 | pay()에서 지연 판정 isFlashSaleClosed(isGroupBuyClosed와 같은 패턴): 번개세일 만료 → 활동 0 처리 + 해당 활동 pending 주문 일괄 취소 + 본 주문 자동 취소 + 기술자 잠금 해제 422 |
 
@@ -295,7 +295,7 @@
 
 | 기능 | 설명 |
 |------|------|
-| API | POST /api/technician/review/reply/{order_id}(기술자 신원 미들웨어): 평가 없음/본인 아님 통일 404; 기존 답글 422(멱등 거절, 덮어쓰지 않음); 빈 답글 422 |
+| API | POST /api/v1/technician/review/reply/{order_id}(기술자 신원 미들웨어): 평가 없음/본인 아님 통일 404; 기존 답글 422(멱등 거절, 덮어쓰지 않음); 빈 답글 422 |
 | 답글 후 | 사용자에게 사이트 내 알림(type='review_reply', 비차단 try/catch + Log) |
 | 데이터 | appointment_order_review에 멱등 replied_at 컬럼 추가(reply 컬럼은 테이블 생성 시 존재); 관리단말 평가 list/show는 decorate()->toArray()로 reply/replied_at 노출 |
 
@@ -311,33 +311,33 @@
 
 | 기능 | 설명 |
 |------|------|
-| API | POST /api/wallet/transfer: 수령인 hashid 디코딩+존재 404, 본인 이체 422, 건당 금액 0.01-1000 422(DECIMAL 비교 float 금지), 잔액 부족 422, 일일 누적 5000원 422 |
+| API | POST /api/v1/wallet/transfer: 수령인 hashid 디코딩+존재 404, 본인 이체 422, 건당 금액 0.01-1000 422(DECIMAL 비교 float 금지), 잔액 부족 422, 일일 누적 5000원 422 |
 | 동시성/멱등 | Redis NX 잠금 wallet_transfer:{from} 30s로 송신자 직렬화; 트랜잭션 내 양쪽 user_id 오름차순 lockForUpdate 지갑 행(고정 순서 데드락 방지); client_token 성공 후 SETNX 24h 중복 제출 방지(실패 요청은 token 미기록, 재시도 가능) |
 | 입금 | 송신자 차감 + 수신자 증가 + WalletTxn 이중 거래 내역(transfer_out/transfer_in에 balance_after 스냅샷 포함) + 이체 기록 completed + 수신자 사이트 내 알림 type='balance_received'(실패 시 로그만) |
-| 기록 | GET /api/wallet/transfers(direction=out/in 페이징) + GET /transfers/{id}(양쪽만 조회 가능 404) |
+| 기록 | GET /api/v1/wallet/transfers(direction=out/in 페이징) + GET /transfers/{id}(양쪽만 조회 가능 404) |
 
 ### 32. 포인트 양도(19차 라운드)
 
 | 기능 | 설명 |
 |------|------|
-| API | POST /api/user/points/transfer: 수령인 존재 404, 본인 양도 422, 수량 1-10000 422, 잔액 SUM 집계 부족 422, 일일 누적 10000 한도 422 |
+| API | POST /api/v1/user/points/transfer: 수령인 존재 404, 본인 양도 422, 수량 1-10000 422, 잔액 SUM 집계 부족 422, 일일 누적 10000 한도 422 |
 | 동시성/멱등 | Redis NX 잠금 points_transfer:{user} 30s; 트랜잭션 내 양쪽 마지막 거래 내역 lockForUpdate(user_id 오름차순 상호 양도 데드락 방지) + 잠금 내 잔액/한도/수령인 재검증 |
 | 거래 내역 규범 | 송신자 type=consume source=points_transfer 음수(balance=이전 스냅샷-이번, points_offset/exchange와 같은 기준); 수신자 type=earn source=points_transfer 양수에 expires_at 포함(PointsExpiryTimer 정상 만료 가능); 트랜잭션 내 양도 기록 작성, commit 후 수신자에게 사이트 내 알림 type='points_received' |
-| 기록 | GET /api/user/points/transfers(direction=sent/received 페이징, 상대 닉네임) |
+| 기록 | GET /api/v1/user/points/transfers(direction=sent/received 페이징, 상대 닉네임) |
 
 ### 33. 평가 추평 + 제출 라우트 보완(19차 라운드)
 
 | 기능 | 설명 |
 |------|------|
-| 추평 | POST /api/order/review/{order_id}/append: 평가 없음/본인 아님 통일 404, 비-completed 422, 중복 추평 422(append_content/append_at 중 하나라도 비어있지 않으면 거절), 빈 내용 422; 성공 시 append_content/append_images(JSON)/append_at 작성 + 기술자 사이트 내 알림 type='review_append' |
-| 평가 제출 | POST /api/order/review/{order_id} 라우트 등록 보완(ReviewController::store 기존 라우트 없음); 잠복 TypeError도 수정: findByOrderId가 int 수신 시 string 시그니처 위반(append의 (string) 변환과 대조), 라우트 등록으로 호출 즉시 500 노출 |
+| 추평 | POST /api/v1/order/review/{order_id}/append: 평가 없음/본인 아님 통일 404, 비-completed 422, 중복 추평 422(append_content/append_at 중 하나라도 비어있지 않으면 거절), 빈 내용 422; 성공 시 append_content/append_images(JSON)/append_at 작성 + 기술자 사이트 내 알림 type='review_append' |
+| 평가 제출 | POST /api/v1/order/review/{order_id} 라우트 등록 보완(ReviewController::store 기존 라우트 없음); 잠복 TypeError도 수정: findByOrderId가 int 수신 시 string 시그니처 위반(append의 (string) 변환과 대조), 라우트 등록으로 호출 즉시 500 노출 |
 | 데이터 | appointment_order_review에 append_content TEXT/append_images JSON/append_at DATETIME 3컬럼 추가(멱등 마이그레이션); 응답에 append 필드 노출 |
 
 ### 34. 사용자 물류 추적(19차 라운드)
 
 | 기능 | 설명 |
 |------|------|
-| API | GET /api/order/logistics/{id}: 본인 product 주문만 조회 가능(아님 404/상품 아님/미발송 통일 404) |
+| API | GET /api/v1/order/logistics/{id}: 본인 product 주문만 조회 가능(아님 404/상품 아님/미발송 통일 404) |
 | 데이터 | order.remark JSON 파싱(shipping_company/tracking_no/shipped_at, admin MallOrderController::ship() 발송 시 기록); parseShippingInfo/parseReceiver 이중 파싱으로 구 형식 폴백 |
 | 마스킹 | 수령인 휴대폰번호 maskPhone(138****5678), 유출 방지 |
 
@@ -346,7 +346,7 @@
 | 기능 | 설명 |
 |------|------|
 | 데이터 | appointment_user_notify_setting 테이블(user_id+type 복합 고유 키 uk_user_type, 기본 행 없음=기본 켜짐); 5종: service_reminder 서비스 알림 / card_expiry 만료 알림(카드+쿠폰 통합 우산)/ points_expiry 포인트 만료 / marketing 마케팅(예약)/ system 시스템(끌 수 없음, PUT 강제 1) |
-| API | GET /api/user/notify-settings 5종 전체 스위치 반환; PUT 일괄 upsert 중복 행 미생성 |
+| API | GET /api/v1/user/notify-settings 5종 전체 스위치 반환; PUT 일괄 upsert 중복 행 미생성 |
 | 게이트 | NotificationReminderService::notifySettingEnabled를 3개 타이머 프로세스에 연결(ServiceReminderTimer/ExpiryReminderTimer 카드+쿠폰/PointsExpiryTimer, 타이머는 appointment_notification 테이블에 직접 삽입하므로 서비스 작성 경로를 거치지 않아 각자 동일 게이트 추가) + 구독 이벤트(sendSubscribeForOrderEvent/Notification 시나리오 매핑 PAY/REFUND/VERIFIED/RESCHEDULE→system 항상 발송, REMINDER→service_reminder, EXPIRY→card_expiry); 유형이 꺼져 있으면 사이트 내 알림과 구독 메시지를 모두 건너뜀 |
 
 ---
@@ -468,7 +468,7 @@ Flutter Web 싱글 페이지 앱, 총 21개 페이지: dashboard/사용자/역�
 
 ### 16. 매장장 작업대(15차 라운드)
 
-- service /api/store-manager: overview(오늘 주문/매출/진행 중/기술자 수/검증 수) + orders(페이징+상태 필터) + technicians(오늘 스케줄 포함) + revenue(최근 7일 집계), requireStoreId()로 store_id 강제 격리(매장 없음 403)
+- service /api/v1/store-manager: overview(오늘 주문/매출/진행 중/기술자 수/검증 수) + orders(페이징+상태 필터) + technicians(오늘 스케줄 포함) + revenue(최근 7일 집계), requireStoreId()로 store_id 강제 격리(매장 없음 403)
 - admin StoreController::workbenchOverview(GET /admin/stores/workbench-overview?store_id=, 기준은 service와 동일) + AppointmentOrderController 주문 목록 store_id 필터(hashid 디코딩)
 - Flutter 매장 작업대 페이지: 매장 드롭다운 + 상태 필터 + 개요 카드 5장 + 주문 DataTable + 페이징(권한 372)
 
@@ -498,7 +498,7 @@ Flutter Web 싱글 페이지 앱, 총 21개 페이지: dashboard/사용자/역�
 
 ### 21. 예약 월력(20차 라운드)
 
-- CalendarController 월/일 보기: GET /api/calendar/technician/{id}(월 보기) + /day(일 보기)
+- CalendarController 월/일 보기: GET /api/v1/calendar/technician/{id}(월 보기) + /day(일 보기)
 - 데이터 소스: technician_schedule.time_slots JSON을 요일별 시간 슬롯으로 전개, appointment_order의 해당일 예약 시간대 제외(status ∈ pending/paid/confirmed/serving), 남은 예약 가능 슬롯 출력
 - 용도: 매장 스케줄 시각적 선택, 프런트엔드가 날짜별 가로 스크롤 + 시간 격자 선택
 
@@ -506,20 +506,20 @@ Flutter Web 싱글 페이지 앱, 총 21개 페이지: dashboard/사용자/역�
 
 - appointment_user_growth(거래 내역) + appointment_growth_level(등급 시드 5단계: 브론즈0/실버100/골드500/플래티넘2000/다이아5000)
 - 성장값 입금점: 출석 +10(CheckInController); 평가 제출 +20(ReviewController::store, 추평은 미입금); 소비 floor(paid) 1원당 1포인트(WechatPayService::markOrderPaid, 기존 결제 상태 재검증 재사용으로 자연 멱등, 중복 콜백은 중복 입금 없음)
-- API: GET /api/growth(현재 등급 개요: balance/level/다음 등급 차액); GET /api/growth/records(거래 내역 페이징); GET /api/growth/levels(공개 등급 목록, 로그인 불필요)
+- API: GET /api/v1/growth(현재 등급 개요: balance/level/다음 등급 차액); GET /api/v1/growth/records(거래 내역 페이징); GET /api/v1/growth/levels(공개 등급 목록, 로그인 불필요)
 - 실패 전략: 모든 입금점 try/catch 로그 기록, 메인 흐름 영향 없음
 
 ### 23. 전자 세금계산서(20차 라운드)
 
 - appointment_invoice: uk_order_type(order_id,order_type) 같은 주문 중복 신청 방지(중복 신청 422, MySQL 1062 캡처 폴백 포함); idx_user_created/idx_status
-- 사용자단말: POST /api/invoices(신청, 금액/발행자는 서버가 주문에서 산출, 위변조 불가); GET /api/invoices(목록); GET /api/invoices/{id}(상세)
+- 사용자단말: POST /api/v1/invoices(신청, 금액/발행자는 서버가 주문에서 산출, 위변조 불가); GET /api/v1/invoices(목록); GET /api/v1/invoices/{id}(상세)
 - 관리단말: InvoiceController issue(발행: invoice_no + status=issued + issued_at 기록)/ reject(반려: status=rejected + reject_reason), 권한 382 목록/383 발행/384 반려
 - 상태 머신: pending → issued / rejected
 
 ### 24. 고객센터 티켓(20차 라운드)
 
 - appointment_ticket: 사용자 티켓 제출(title/content), 백엔드 답변 추가(reply_content/replied_at), 사용자 종료 가능(closed_at)
-- 사용자단말: POST /api/tickets(제출); GET /api/tickets(목록); GET /api/tickets/{id}(상세, 본인만); POST /api/tickets/{id}/close(종료)
+- 사용자단말: POST /api/v1/tickets(제출); GET /api/v1/tickets(목록); GET /api/v1/tickets/{id}(상세, 본인만); POST /api/v1/tickets/{id}/close(종료)
 - 관리단말: TicketController index(목록)/ reply(답변), 정적 라우트를 resource보다 먼저 정의해 {id} shadow 방지; 권한 385 티켓 답변/387 티켓 목록 조회
 - 상태 머신: open → replied(답변 후 open으로 복귀, 재답변 가능)/ closed
 
@@ -535,12 +535,12 @@ Flutter Web 싱글 페이지 앱, 총 21개 페이지: dashboard/사용자/역�
 - GrowthLevel.benefits JSON 실체화: 마이그레이션 시드 5단계(브론즈 {"discount_rate":1.0,"points_multiplier":1.0}, 실버 0.98/1.1, 골드 0.95/1.2, 플래티넘 0.92/1.3, 다이아 0.9/1.5)
 - 등급 할인: OrderController::store applyGrowthDiscount() —— 표준 주문만(promotion_id 비어있음, 공동구매/번개세일 중첩 금지); 순서: 쿠폰/횟수권 할인 후 결제 금액 × discount_rate; 할인액은 discount_amount에 합산, 주문 메모에 "등급 할인: 실버 9.8折, 할인 ¥2.00" 기록으로 추적 가능; 최저가 보호: 할인 후 실결제 ≥0.01원(분제 ≥100), 부족 시 할인 0으로 절사
 - 포인트 배율: WechatPayService::markOrderPaid 성장값 floor(paid)에서 floor(paid × points_multiplier)로 변경, 배율은 결제 시점 등급 기준(입금 전 누적, 본 주문은 등급 상승 없음); R20의 try/catch 연결점 완전 유지
-- 조회 재사용: GrowthLevel::levelForGrowth() 누적 성장값 기준 등급 산출, 주문/결제에서 재사용; GET /api/growth가 benefits와 next_gap 반환(R20 구현, 수정 불필요)
+- 조회 재사용: GrowthLevel::levelForGrowth() 누적 성장값 기준 등급 산출, 주문/결제에서 재사용; GET /api/v1/growth가 benefits와 next_gap 반환(R20 구현, 수정 불필요)
 
 ### 27. 세금계산서 발행자 관리(21차 라운드)
 
 - appointment_invoice_title(uk_user_title(user_id, title_type, invoice_title) 중복 방지 + idx_user_default)
-- API: POST /api/invoice-titles(저장, company는 tax_no 필수, 중복 422); GET(목록, 기본 최상단); PUT /{id}(수정, 본인만); DELETE /{id}(삭제, 본인만); POST /{id}/default(기본 설정, 트랜잭션으로 같은 사용자 다른 행 초기화)
+- API: POST /api/v1/invoice-titles(저장, company는 tax_no 필수, 중복 422); GET(목록, 기본 최상단); PUT /{id}(수정, 본인만); DELETE /{id}(삭제, 본인만); POST /{id}/default(기본 설정, 트랜잭션으로 같은 사용자 다른 행 초기화)
 - 기본 규칙: 첫 저장 자동 기본; 기본 삭제 시 가장 오래된 항목 자동 지정
 - 신청 연동: InvoiceController::store 선택 title_id로 발행자 파싱해 invoice_title/tax_no/title_type 반영, title_id 없으면 기존 수동 입력 경로 유지; uk_order_type 중복 방지 로직 미변경
 
@@ -561,19 +561,19 @@ Flutter Web 싱글 페이지 앱, 총 21개 페이지: dashboard/사용자/역�
 
 - appointment_browse_history(uk_user_item(user_id, item_id) 고유, 중복 조회는 viewed_at만 갱신, 중복 삽입 없음; idx_user_viewed 정렬)
 - 기록 연결: ServiceController::detail() 성공 후 기록(try/catch + Log::warning 메인 흐름 영향 없음; 공개 라우트는 JWT 없음, user_id 빈값 확인으로 익명 스킵)
-- API: GET /api/browse-history(appointment_service 이름/커버/가격/원가 join, viewed_at 내림차순, per_page 기본 15 상한 50, item_id hashid); DELETE /{item_id}(본인만, 비정상/타인 404); DELETE /(본인만 전체 삭제)
+- API: GET /api/v1/browse-history(appointment_service 이름/커버/가격/원가 join, viewed_at 내림차순, per_page 기본 15 상한 50, item_id hashid); DELETE /{item_id}(본인만, 비정상/타인 404); DELETE /(본인만 전체 삭제)
 
 ### 31. 만 N 원 할인 마케팅(22차 라운드)
 
 - appointment_full_reduction_activity(threshold/reduction/title/status/start_at/end_at + idx_status_status_time)
 - 주문 중첩: 표준 주문만(공동구매/번개세일 제외), 쿠폰/횟수권 차감 후 결제 금액으로 문턱 판정, 순서 **쿠폰/횟수권 → 만 N 원 할인 → 등급 할인**; 할인액이 가장 큰 활동 선택; 할인액은 discount_amount에 합산 + 메모 "만 N 원 할인: X 이상 Y 할인"; 할인 후 실결제 하한 0.01원(분제)
-- 사용자단말 GET /api/full-reduction-activities(공개, 진행 중인 활동을 할인액 내림차순)
+- 사용자단말 GET /api/v1/full-reduction-activities(공개, 진행 중인 활동을 할인액 내림차순)
 - admin FullReductionController: CRUD + toggle-status 상·하품(destroy는 confirmPassword 포함)
 - 권한: 396 목록 / 397 추가 / 398 수정 / 399 상·하품 / 400 삭제(권한 레코드 1개는 method.path slug 1개에 대응, 5개 라우트를 5개로 분리)
 
 ### 32. 내 예약 ICS 내보내기(22차 라운드)
 
-- IcsController GET /api/order/ics: 90일 내 pending/paid/confirmed/serving 주문 iCal(RFC5545) 내보내기, 본인만
+- IcsController GET /api/v1/order/ics: 90일 내 pending/paid/confirmed/serving 주문 iCal(RFC5545) 내보내기, 본인만
 - VEVENT: UID=주문 ID, DTSTAMP(UTC), TZID=Asia/Shanghai, 기본 시간 1h, 요약 "예약: 서비스명"(없으면 "예약"으로 대체), 설명 기술자/매장/주소(없으면 생략), LOCATION; 텍스트 이스케이프(\, \; \\ \n) + 75바이트 줄 접기
 - 주문 없으면 유효한 빈 캘린더(`BEGIN:VCALENDAR` 골격) 반환
 
@@ -599,59 +599,59 @@ Flutter Web 싱글 페이지 앱, 총 21개 페이지: dashboard/사용자/역�
 
 ### 36. 개인정보 컴플라이언스(22차 라운드)
 
-- GET /api/privacy/data: 데이터 내보내기(personal/orders/points/wallet_txns/reviews/addresses/invoices 그룹; 로그는 마스킹 휴대폰 번호+건수만 기록)
+- GET /api/v1/privacy/data: 데이터 내보내기(personal/orders/points/wallet_txns/reviews/addresses/invoices 그룹; 로그는 마스킹 휴대폰 번호+건수만 기록)
 - 탈퇴 클로즈드 루프: close-request(잔액 0 아님 / 미완료 주문 / 진행 중 티켓 422 → close_status=1) → close-cancel(1→0) → close-confirm(72h 경과 → close_status=2 + close_at + phone/nickname 익명화 user{id} + status=0)
 - appointment_user에 close_status/close_requested_at/close_at 추가(멱등 ALTER 마이그레이션); AuthController login/loginByCode가 close_status=2에 403 "계정이 탈퇴되었습니다" 반환
 
 ### 37. 사용자 건강 프로필(23차 라운드)
 
-- GET/PUT/DELETE /api/health-profile: 1인 1개(uk_user 고유 인덱스), upsert는 제공한 필드만 갱신
+- GET/PUT/DELETE /api/v1/health-profile: 1인 1개(uk_user 고유 인덱스), upsert는 제공한 필드만 갱신
 - allergies/health_notes 상한 500자, preferred_technician_id 존재성 검증, 응답 hashid 인코딩
 - 마이그레이션 000504_user_health_profile; HealthProfileTest 6 tests
 
 ### 38. 지갑 결제 비밀번호(23차 라운드)
 
-- POST /api/wallet/pay-password/{set,verify,check}: 6자리 숫자 검증, password_hash 저장 + pay_password_set_at
+- POST /api/v1/wallet/pay-password/{set,verify,check}: 6자리 숫자 검증, password_hash 저장 + pay_password_set_at
 - 설정된 상태에서 변경 시 기존 비밀번호 필요 422; verify는 검증만, DB 미기록; check는 설정 여부 반환
 - 마이그레이션 000502(INFORMATION_SCHEMA 멱등 ALTER 2컬럼); WalletPayPasswordTest 7 tests
 
 ### 39. 기술자 일괄 스케줄(23차 라운드)
 
-- POST /api/technician/schedule/batch: 기간 ≤7일 + weekdays 필터, 기존 스케줄 있는 날은 건너뜀
+- POST /api/v1/technician/schedule/batch: 기간 ≤7일 + weekdays 필터, 기존 스케줄 있는 날은 건너뜀
 - 단건 설정도 시간대 중복 탐지 활성(422 "기존 스케줄과 시간 충돌: HH:MM-HH:MM")
 - ScheduleConflictTest 5 tests
 
 ### 40. 주문 상태 타임라인(23차 라운드)
 
-- GET /api/order/{id}/timeline: 본인만 조회 가능(타인 404), 내림차순 반환; admin 주문 상세에 timeline 배열 병합
+- GET /api/v1/order/{id}/timeline: 본인만 조회 가능(타인 404), 내림차순 반환; admin 주문 상세에 timeline 배열 병합
 - OrderStatusLog::record() 정적 로그 8종 변경: 제출/결제/취소/확인/환불 신청/환불 승인/서비스 시작/서비스 완료/시간 초과 자동 취소/백엔드 조작(operator=admin)
 - 결제 콜백 markOrderPaid는 단일 소비점; record() 내부 try/catch + Log::warning으로 절대 메인 흐름 차단 안 함
 - 마이그레이션 000501_order_status_log; OrderTimelineTest 4 tests
 
 ### 41. 포인트 행운의 룰렛(23차 라운드)
 
-- GET /api/wheel/prizes(weight/stock 숨김); POST /api/wheel/spin: Redis NX + 행 잠금 동시성 방지, random_int 가중치 추첨, client_token 멱등
+- GET /api/v1/wheel/prizes(weight/stock 숨김); POST /api/v1/wheel/spin: Redis NX + 행 잠금 동시성 방지, random_int 가중치 추첨, client_token 멱등
 - 상품 입금: 포인트→earn 거래 내역(만료 시간 포함, PointsExpiryTimer 정상 만료 가능), 잔액→lockForUpdate, 쿠폰→pending 수동 발급, 당첨 없음→lose
-- GET /api/wheel/records 내 기록 페이징; admin /admin/lucky-wheel CRUD + 상·하품 + 기록(권한 401-406)
+- GET /api/v1/wheel/records 내 기록 페이징; admin /admin/lucky-wheel CRUD + 상·하품 + 기록(권한 401-406)
 - 마이그레이션 000503(appointment_lucky_wheel + appointment_wheel_record + w60/w40 데모 시드) + 000505(권한 시드); LuckyWheelTest admin 3 + service 6 tests
 
 ### 42. 게스트 모드(24차 라운드)
 
-- GET /api/guest/{home,services,services/{id},stores,technicians}: 인증 불필요(ApiVersion 미들웨어만)한 비로그인 조회 진입점
+- GET /api/v1/guest/{home,services,services/{id},stores,technicians}: 인증 불필요(공개 인터페이스)한 비로그인 조회 진입점
 - home은 배너/공지/서비스 분류/인기 서비스 집계, Redis 캐시 svc:guest:home 300s; services는 분류 필터 + newest/sales/price 정렬 지원(page/per_page≤50); technicians는 심사 통과만, service_id 필터 가능, 평점 내림차순
 - GuestControllerTest 커버리지
 
 ### 43. 번개세일(24차 라운드)
 
 - appointment_seckill_activity(name/service_id/seckill_price/original_price/stock/start_at/end_at/status); 판매량 = appointment_order.seckill_id 주문 수
-- GET /api/seckill(status=1 + 시간 창), /{id}(state=not_started/ongoing/ended), POST /{id}/buy: client_token(8-64자, SETNX 24h) 멱등 + Redis NX 30s 동시성 방지 + 활동 검증(2026-08-26부터 재고 선차감 없음)
-- 주문 시 seckill_id 주입해 OrderController::store 재사용; 재고는 store() 트랜잭션 내 행 잠금으로 일괄 차감(/api/order에 seckill_id 직접 전달해도 재고 차감), 번개세일가 = seckill_price(DB 기준), 쿠폰/포인트/멤버십 카드 중첩 불가; 주문 취소는 재고 미복원; 기존 프로모션 FLASH_SALE 채널 삭제(store() 프로모션 분기는 공동구매만, PromotionController index에서 flash_sale 필터, show/join 400), 번개세일은 본 채널만 사용
+- GET /api/v1/seckill(status=1 + 시간 창), /{id}(state=not_started/ongoing/ended), POST /{id}/buy: client_token(8-64자, SETNX 24h) 멱등 + Redis NX 30s 동시성 방지 + 활동 검증(2026-08-26부터 재고 선차감 없음)
+- 주문 시 seckill_id 주입해 OrderController::store 재사용; 재고는 store() 트랜잭션 내 행 잠금으로 일괄 차감(/api/v1/order에 seckill_id 직접 전달해도 재고 차감), 번개세일가 = seckill_price(DB 기준), 쿠폰/포인트/멤버십 카드 중첩 불가; 주문 취소는 재고 미복원; 기존 프로모션 FLASH_SALE 채널 삭제(store() 프로모션 분기는 공동구매만, PromotionController index에서 flash_sale 필터, show/join 400), 번개세일은 본 채널만 사용
 - admin /admin/seckill CRUD + 상·하품 + 주문 목록(권한 407-411, 420); 마이그레이션 000606 권한 시드; SeckillTest service + admin
 
 ### 44. APP 버전 관리와 업데이트 탐지(24차 라운드)
 
 - appointment_app_version(platform/version_code/version_name/force_update/changelog/download_url/status)
-- GET /api/app/version?platform=android|ios 공개 업데이트 탐지(platform 비정상 422; status=1 중 최신; 없으면 빈 객체)
+- GET /api/v1/app/version?platform=android|ios 공개 업데이트 탐지(platform 비정상 422; status=1 중 최신; 없으면 빈 객체)
 - admin /admin/versions CRUD(권한 416-419); 마이그레이션 000609 권한 시드; VersionTest service + admin
 
 ### 45. 재방문 고객 보상(24차 라운드)

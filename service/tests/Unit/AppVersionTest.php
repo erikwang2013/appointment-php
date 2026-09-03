@@ -86,7 +86,7 @@ class AppVersionTest extends TestCase
         ]);
 
         $data = $this->body((new VersionController())->index(
-            $this->makeRequest('/api/app/version?platform=android')
+            $this->makeRequest('/api/v1/app/version?platform=android')
         ))['data'];
 
         $this->assertNotEmpty($data['id']);
@@ -101,7 +101,7 @@ class AppVersionTest extends TestCase
     public function invalidPlatformReturns422(): void
     {
         $response = $this->body((new VersionController())->index(
-            $this->makeRequest('/api/app/version?platform=wp')
+            $this->makeRequest('/api/v1/app/version?platform=wp')
         ));
 
         $this->assertSame(422, $response['code']);
@@ -112,7 +112,7 @@ class AppVersionTest extends TestCase
     public function missingPlatformReturns422(): void
     {
         $response = $this->body((new VersionController())->index(
-            $this->makeRequest('/api/app/version')
+            $this->makeRequest('/api/v1/app/version')
         ));
 
         $this->assertSame(422, $response['code']);
@@ -125,7 +125,7 @@ class AppVersionTest extends TestCase
         $this->hideSeedVersions();
 
         $response = $this->body((new VersionController())->index(
-            $this->makeRequest('/api/app/version?platform=android')
+            $this->makeRequest('/api/v1/app/version?platform=android')
         ));
 
         $this->assertSame(0, $response['code']);
@@ -137,7 +137,7 @@ class AppVersionTest extends TestCase
     {
         // 演示种子 ios 版本保持上架
         $data = $this->body((new VersionController())->index(
-            $this->makeRequest('/api/app/version?platform=ios')
+            $this->makeRequest('/api/v1/app/version?platform=ios')
         ))['data'];
 
         $this->assertSame('ios', $data['platform']);

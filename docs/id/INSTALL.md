@@ -128,13 +128,13 @@ php start.php start -d
 
 ```bash
 # API bisnis
-curl http://localhost:8787/api/common/config
+curl http://localhost:8787/api/v1/common/config
 
 # Pemeriksaan kesehatan panel admin
 curl http://localhost:8787/health
 
 # Login panel admin (akun dan sandi default lihat di bawah)
-curl -X POST http://localhost:8787/api/auth/login \
+curl -X POST http://localhost:8787/api/v1/auth/login \
   -H "Content-Type: application/json" \
   -d '{"username":"admin","password":"admin123"}'
 ```

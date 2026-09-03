@@ -127,8 +127,8 @@
 
 | 功能 | 说明 |
 |------|------|
-| 钱包余额 | GET /api/wallet 余额+流水（user_wallet/wallet_recharge/wallet_txn 表） |
-| 充值 | POST /api/wallet/recharge 创建充值单；POST /api/wallet/recharge/{id}/pay 微信支付充值，回调使用 R 前缀单号 |
+| 钱包余额 | GET /api/v1/wallet 余额+流水（user_wallet/wallet_recharge/wallet_txn 表） |
+| 充值 | POST /api/v1/wallet/recharge 创建充值单；POST /api/v1/wallet/recharge/{id}/pay 微信支付充值，回调使用 R 前缀单号 |
 | 余额支付 | 订单支付渠道 pay_channel=balance |
 | 退款回充 | 微信/余额退款自动回充余额（refundToBalance / creditRefundToWallet） |
 
@@ -144,8 +144,8 @@
 
 | 功能 | 说明 |
 |------|------|
-| 我的次卡 | GET /api/marketing/cards/my 实时计算 used_up/expired |
-| 核销扣次 | POST /api/marketing/cards/use：Redis NX 幂等 + lockForUpdate 行锁，直建 completed 订单 + OrderItem + OrderPayment(pay_type='card') |
+| 我的次卡 | GET /api/v1/marketing/cards/my 实时计算 used_up/expired |
+| 核销扣次 | POST /api/v1/marketing/cards/use：Redis NX 幂等 + lockForUpdate 行锁，直建 completed 订单 + OrderItem + OrderPayment(pay_type='card') |
 
 ### 13. 优惠券抵扣（第9轮）
 
@@ -160,7 +160,7 @@
 | 功能 | 说明 |
 |------|------|
 | 兑换 | redeem：cash 类型充值到钱包（行锁防双入账，WalletTxn type='gift_card'），gift 类型仅标记 |
-| 我的礼品卡 | GET /api/marketing/gift-cards/my |
+| 我的礼品卡 | GET /api/v1/marketing/gift-cards/my |
 
 ### 15. 积分体系（第9+10轮）
 
@@ -171,7 +171,7 @@
 | 退款回扣 | clawbackOrderPoints 按比例回扣（3 处接入） |
 | 积分抵现 | 支付时传 use_points，100 积分=1 元（config app.points_rate），SUM 聚合校验余额，消费流水 source=points_offset 幂等 |
 | 积分回补（第15轮） | 取消/退款归还 points_offset 积分：refundOffsetPoints 5 挂接点（doCancel 3 路径/doRefund 微信事务/creditRefundToWallet/completeOneRefundCompensation），source=points_refund 幂等 |
-| 积分明细 | GET /api/marketing/points 分页 + type/source 过滤，type 统一为 earn |
+| 积分明细 | GET /api/v1/marketing/points 分页 + type/source 过滤，type 统一为 earn |
 
 ### 16. 小程序下单链路（第10轮）
 
@@ -201,8 +201,8 @@
 
 | 功能 | 说明 |
 |------|------|
-| 申请售后 | POST /api/aftersales：type=refund/exchange，校验本人订单/paid+completed/同单去重 |
-| 我的售后 | GET /api/aftersales 分页列表 + GET /api/aftersales/{id} 详情 |
+| 申请售后 | POST /api/v1/aftersales：type=refund/exchange，校验本人订单/paid+completed/同单去重 |
+| 我的售后 | GET /api/v1/aftersales 分页列表 + GET /api/v1/aftersales/{id} 详情 |
 | 审核流转 | 管理端 approve/reject（rejected 必填 remark）；approved 仅状态流转，退款沿用订单退款接口 |
 
 ### 20. 拼团/秒杀（第15轮）
@@ -211,9 +211,9 @@
 
 | 功能 | 说明 |
 |------|------|
-| 活动列表/详情 | GET /api/promotions + /api/promotions/{id}，type 过滤 group_buy/flash_sale |
-| 参与 | POST /api/promotions/join/{id}：Redis NX 锁防超卖（flash_sale 以 max_people 为库存上限）、重复参与 422、group_buy 满员锁定、到期未满员惰性关闭（show/join 时 status 置 0） |
-| 参与列表 | GET /api/promotions/{id}/participants |
+| 活动列表/详情 | GET /api/v1/promotions + /api/v1/promotions/{id}，type 过滤 group_buy/flash_sale |
+| 参与 | POST /api/v1/promotions/join/{id}：Redis NX 锁防超卖（flash_sale 以 max_people 为库存上限）、重复参与 422、group_buy 满员锁定、到期未满员惰性关闭（show/join 时 status 置 0） |
+| 参与列表 | GET /api/v1/promotions/{id}/participants |
 | 状态修复 | PromotionParticipant 状态改整型常量 0/1/2/3（修复严格模式下 join 1366 损坏） |
 
 ### 21. 拼团成团下单（第16轮）
@@ -221,7 +221,7 @@
 | 功能 | 说明 |
 |------|------|
 | 拼团价 | join 响应返回 discount_percent/original_price/group_price |
-| 拼团下单 | POST /api/order 传 promotion_id：校验仅 group_buy/活动有效/调用者是参与者/未满员/服务匹配；拼团价=原价×discount_percent/100，禁用优惠券/次卡/积分叠加（422） |
+| 拼团下单 | POST /api/v1/order 传 promotion_id：校验仅 group_buy/活动有效/调用者是参与者/未满员/服务匹配；拼团价=原价×discount_percent/100，禁用优惠券/次卡/积分叠加（422） |
 | 订单标记 | appointment_order 新增 promotion_id/participant_id 列 + 索引 |
 | 未成团处理 | 到期未满员→活动关闭+批量取消该活动 pending 订单（幂等）；pay() 懒判定已关闭则自动取消订单并释放技师锁 |
 
@@ -233,22 +233,22 @@
 | 挂接点 | ReferralRewardService::handleOrderCompleted 挂接 WorkController::complete 事务内（serving→completed 唯一入口，核销 verify 只到 serving 不触发），失败整体回滚可重试 |
 | 幂等 | appointment_user_referral 行锁 lockForUpdate + rewarded_at 判空 + 锁内首单复查（并发/重复调用只发一次） |
 | 入账 | 钱包行锁累加 + WalletTxn type='referral_reward'（balance_after + 订单号 remark）；推荐记录写 reward_type/reward_amount/rewarded_at/first_order_at |
-| 明细 | GET /api/user/referral/earnings 分页（被推荐人昵称/头像/订单号/金额/时间） |
+| 明细 | GET /api/v1/user/referral/earnings 分页（被推荐人昵称/头像/订单号/金额/时间） |
 
 ### 23. 积分兑换商城（第16轮）
 
 | 功能 | 说明 |
 |------|------|
 | 兑换商品 | appointment_points_exchange_goods：type=coupon/gift_card/wallet，points_cost/value（DECIMAL(25,2) 防雪崩 ID 精度丢失）/stock/status |
-| 商品列表 | GET /api/marketing/points-exchange：上架商品 + 实时剩余库存 + 已兑数 |
-| 兑换 | POST /api/marketing/points-exchange/{id}：Redis NX 锁 + 商品行锁防超兑；积分 SUM 校验（不足 422）+ UserPoints type='consume' source='exchange' 扣减；coupon 发券 / wallet 余额入账（WalletTxn points_exchange）/ gift_card 卡密返回 |
+| 商品列表 | GET /api/v1/marketing/points-exchange：上架商品 + 实时剩余库存 + 已兑数 |
+| 兑换 | POST /api/v1/marketing/points-exchange/{id}：Redis NX 锁 + 商品行锁防超兑；积分 SUM 校验（不足 422）+ UserPoints type='consume' source='exchange' 扣减；coupon 发券 / wallet 余额入账（WalletTxn points_exchange）/ gift_card 卡密返回 |
 | 幂等 | uk_user_goods 唯一索引同用户同商品限一次 + 锁内复验 + 1062 兜底；兑换记录快照 appointment_user_points_exchange |
 
 ### 24. 预约改期（第17轮）
 
 | 功能 | 说明 |
 |------|------|
-| 接口 | POST /api/order/reschedule/{id}：new_service_time（必填）+ reason（可选），同技师换时间 |
+| 接口 | POST /api/v1/order/reschedule/{id}：new_service_time（必填）+ reason（可选），同技师换时间 |
 | 规则 | 仅本人订单（非本人 404）；仅 appointment 类型且状态 pending/paid/confirmed（其余 422）；距原服务开始 ≥ 6 小时（与全额退款窗口一致） |
 | 并发防护 | B1 order_lock（与 pay/cancel/refund 同互斥族）→ 新时段技师锁 Redis SETNX EX 180（并发改期防超卖）→ 事务内行锁重读 + B2 排班冲突 DB 校验（排除本单） |
 | 收尾 | 更新 service_time + 落 appointment_order_reschedule（含 reason）+ 释放原时段锁/新时段锁本单持有；失败事务回滚同时释放新时段锁 |
@@ -258,7 +258,7 @@
 
 | 功能 | 说明 |
 |------|------|
-| 接口 | POST /api/marketing/coupons/transfer（user_coupon_id）生成 8 位去混淆字符唯一转赠码（uk_code 兜底，7 天有效）；POST /api/marketing/coupons/claim（code）领取；GET /api/marketing/coupons/transfers 发出(pending/claimed/expired)+收到(claimed) 分页 |
+| 接口 | POST /api/v1/marketing/coupons/transfer（user_coupon_id）生成 8 位去混淆字符唯一转赠码（uk_code 兜底，7 天有效）；POST /api/v1/marketing/coupons/claim（code）领取；GET /api/v1/marketing/coupons/transfers 发出(pending/claimed/expired)+收到(claimed) 分页 |
 | 校验 | 券属于本人/available/券定义未过期/未被转赠过（422）；不可领取自己转赠的券、接收人非原持有人 |
 | 防滥用 | Redis NX 锁 coupon_transfer_claim:{code}（30s）+ 事务内行锁复验防双花；uk_user_coupon 唯一索引限同一券转赠一次；被转赠券不可再转（新券无转赠记录自然拦截）；懒判定过期置 expired + 恢复原券 available |
 | 领取 | 事务内原券置 used + 生成新 UserCoupon 绑定接收人（coupon_id 不变即有效期不变）+ 转赠记录置 claimed |
@@ -274,11 +274,11 @@
 
 ### 27. 秒杀下单（第18轮，已下线）
 
-> 已被第24轮 `/api/seckill` 通道取代（store() 促销分支仅剩拼团），见「43. 秒杀」。
+> 已被第24轮 `/api/v1/seckill` 通道取代（store() 促销分支仅剩拼团），见「43. 秒杀」。
 
 | 功能 | 说明 |
 |------|------|
-| 接口 | POST /api/order 传 promotion_id（flash_sale 类型）：秒杀价 = round(total × (100 − discount_percent)/100, 2)，与 PromotionController 秒杀价口径一致 |
+| 接口 | POST /api/v1/order 传 promotion_id（flash_sale 类型）：秒杀价 = round(total × (100 − discount_percent)/100, 2)，与 PromotionController 秒杀价口径一致 |
 | 校验 | 类型白名单 [group_buy, flash_sale]（其余 422）；活动进行中；调用者是参与者；订单服务与活动匹配；售罄 participants_count ≥ max_people 422「已抢光」；禁用优惠券/次卡/积分叠加 422 |
 | 过期 | pay() 懒判定 isFlashSaleClosed（同 isGroupBuyClosed 模式）：秒杀过期 → 活动置 0 + 批量取消该活动 pending 订单 + 本单自动取消 + 释放技师锁 422 |
 
@@ -295,7 +295,7 @@
 
 | 功能 | 说明 |
 |------|------|
-| 接口 | POST /api/technician/review/reply/{order_id}（技师身份中间件）：评价不存在/非本人统一 404；已有回复 422（幂等拒绝不覆盖）；空回复 422 |
+| 接口 | POST /api/v1/technician/review/reply/{order_id}（技师身份中间件）：评价不存在/非本人统一 404；已有回复 422（幂等拒绝不覆盖）；空回复 422 |
 | 回复后 | 站内通知用户（type='review_reply'，非阻塞 try/catch + Log） |
 | 数据 | appointment_order_review 幂等补 replied_at 列（reply 列建表已有）；管理端评价 list/show 经 decorate()->toArray() 透出 reply/replied_at |
 
@@ -311,33 +311,33 @@
 
 | 功能 | 说明 |
 |------|------|
-| 接口 | POST /api/wallet/transfer：接收人 hashid 解码+存在性 404、转自己 422、金额 0.01-1000/笔 422（DECIMAL 比对禁 float）、余额不足 422、单日累计 5000 元 422 |
+| 接口 | POST /api/v1/wallet/transfer：接收人 hashid 解码+存在性 404、转自己 422、金额 0.01-1000/笔 422（DECIMAL 比对禁 float）、余额不足 422、单日累计 5000 元 422 |
 | 并发/幂等 | Redis NX 锁 wallet_transfer:{from} 30s 串行化转出方；事务内按双方 user_id 升序 lockForUpdate 钱包行（固定顺序防死锁）；client_token 成功后 SETNX 24h 防重复提交（失败请求不落 token 可重试） |
 | 入账 | 扣转出方 + 增接收方 + WalletTxn 双流水（transfer_out/transfer_in 含 balance_after 快照）+ 转账记录 completed + 接收方站内通知 type='balance_received'（失败仅记日志） |
-| 记录 | GET /api/wallet/transfers（direction=out/in 分页）+ GET /transfers/{id}（仅双方可见 404） |
+| 记录 | GET /api/v1/wallet/transfers（direction=out/in 分页）+ GET /transfers/{id}（仅双方可见 404） |
 
 ### 32. 积分转赠（第19轮）
 
 | 功能 | 说明 |
 |------|------|
-| 接口 | POST /api/user/points/transfer：接收人存在 404、转自己 422、点数 1-10000 422、余额 SUM 聚合不足 422、单日累计 10000 限额 422 |
+| 接口 | POST /api/v1/user/points/transfer：接收人存在 404、转自己 422、点数 1-10000 422、余额 SUM 聚合不足 422、单日累计 10000 限额 422 |
 | 并发/幂等 | Redis NX 锁 points_transfer:{user} 30s；事务内双方最后一条流水 lockForUpdate（user_id 升序防互转死锁）+ 锁内复验余额/限额/接收人 |
 | 流水规范 | 发送方 type=consume source=points_transfer 负值（balance=上条快照-本次，与 points_offset/exchange 同口径）；接收方 type=earn source=points_transfer 正值含 expires_at（PointsExpiryTimer 可正常过期）；事务内写转赠记录，commit 后站内通知接收方 type='points_received' |
-| 记录 | GET /api/user/points/transfers（direction=sent/received 分页，对方昵称） |
+| 记录 | GET /api/v1/user/points/transfers（direction=sent/received 分页，对方昵称） |
 
 ### 33. 评价追评 + 提交路由补全（第19轮）
 
 | 功能 | 说明 |
 |------|------|
-| 追评 | POST /api/order/review/{order_id}/append：评价不存在/非本人统一 404、非 completed 422、重复追评 422（append_content/append_at 任一非空即拒）、空内容 422；成功写 append_content/append_images(JSON)/append_at + 技师站内通知 type='review_append' |
-| 提交评价 | 补注册 POST /api/order/review/{order_id}（ReviewController::store 原无路由不可达）；顺带修复潜伏 TypeError：findByOrderId 收到 int 违反 string 签名（对照 append 的 (string) 转换），补注册即暴露调用即 500 |
+| 追评 | POST /api/v1/order/review/{order_id}/append：评价不存在/非本人统一 404、非 completed 422、重复追评 422（append_content/append_at 任一非空即拒）、空内容 422；成功写 append_content/append_images(JSON)/append_at + 技师站内通知 type='review_append' |
+| 提交评价 | 补注册 POST /api/v1/order/review/{order_id}（ReviewController::store 原无路由不可达）；顺带修复潜伏 TypeError：findByOrderId 收到 int 违反 string 签名（对照 append 的 (string) 转换），补注册即暴露调用即 500 |
 | 数据 | appointment_order_review 增 append_content TEXT/append_images JSON/append_at DATETIME 三列（幂等迁移）；响应透出 append 字段 |
 
 ### 34. 用户端物流跟踪（第19轮）
 
 | 功能 | 说明 |
 |------|------|
-| 接口 | GET /api/order/logistics/{id}：仅本人 product 订单可查（非本人/非商品/未发货统一 404） |
+| 接口 | GET /api/v1/order/logistics/{id}：仅本人 product 订单可查（非本人/非商品/未发货统一 404） |
 | 数据 | 读取 order.remark JSON（shipping_company/tracking_no/shipped_at，由 admin MallOrderController::ship() 发货时写入）；parseShippingInfo/parseReceiver 双解析兜底旧格式 |
 | 脱敏 | 收货人手机号 maskPhone（138****5678），防泄露 |
 
@@ -346,7 +346,7 @@
 | 功能 | 说明 |
 |------|------|
 | 数据 | appointment_user_notify_setting 表（user_id+type 复合唯一键 uk_user_type，缺省行=默认开）；5 类：service_reminder 服务提醒 / card_expiry 到期提醒（卡+券统一伞形）/ points_expiry 积分过期 / marketing 营销（预留）/ system 系统（不可关，PUT 强制为 1） |
-| 接口 | GET /api/user/notify-settings 返回 5 类全量开关；PUT 批量 upsert 不产生重复行 |
+| 接口 | GET /api/v1/user/notify-settings 返回 5 类全量开关；PUT 批量 upsert 不产生重复行 |
 | 门控 | NotificationReminderService::notifySettingEnabled 挂接 3 定时器进程（ServiceReminderTimer/ExpiryReminderTimer 卡+券/PointsExpiryTimer，定时器直插 appointment_notification 表不走服务写入路径故各自加同款门控）+ 订阅事件（sendSubscribeForOrderEvent/Notification 场景映射 PAY/REFUND/VERIFIED/RESCHEDULE→system 恒发，REMINDER→service_reminder，EXPIRY→card_expiry）；类型关闭时站内通知与订阅消息一并跳过 |
 
 ---
@@ -470,7 +470,7 @@ Flutter Web 单页应用，共 21 个页面：dashboard/用户/角色/配置/日
 
 ### 16. 店长工作台（第15轮）
 
-- service /api/store-manager：overview（今日订单/营收/进行中/技师数/核销数）+ orders（分页+状态筛选）+ technicians（含今日排班）+ revenue（近 7 天聚合），requireStoreId() 强制 store_id 隔离（无门店 403）
+- service /api/v1/store-manager：overview（今日订单/营收/进行中/技师数/核销数）+ orders（分页+状态筛选）+ technicians（含今日排班）+ revenue（近 7 天聚合），requireStoreId() 强制 store_id 隔离（无门店 403）
 - admin StoreController::workbenchOverview（GET /admin/stores/workbench-overview?store_id=，口径与 service 一致）+ AppointmentOrderController 订单列表 store_id 筛选（hashid 解码）
 - Flutter 门店工作台页：门店下拉 + 状态筛选 + 5 张概览卡片 + 订单 DataTable + 分页（权限 372）
 
@@ -500,7 +500,7 @@ Flutter Web 单页应用，共 21 个页面：dashboard/用户/角色/配置/日
 
 ### 21. 预约月历（第20轮）
 
-- CalendarController 月/日视图：GET /api/calendar/technician/{id}（月视图）+ /day（日视图）
+- CalendarController 月/日视图：GET /api/v1/calendar/technician/{id}（月视图）+ /day（日视图）
 - 数据源：technician_schedule.time_slots JSON 按星期展开小时槽，appointment_order 该日已约时段排除（status ∈ pending/paid/confirmed/serving），剩余可约槽位输出
 - 用途：门店排班可视化选时，前端按天横向滚动 + 时间格点选
 
@@ -508,20 +508,20 @@ Flutter Web 单页应用，共 21 个页面：dashboard/用户/角色/配置/日
 
 - appointment_user_growth（流水）+ appointment_growth_level（档位种子 5 级：青铜0/白银100/黄金500/铂金2000/钻石5000）
 - 成长值入账点：签到 +10（CheckInController）；提交评价 +20（ReviewController::store，追评不入账）；消费 floor(paid) 每 1 元 1 点（WechatPayService::markOrderPaid，复用既有支付状态复验天然幂等，重复回调不重复入账）
-- 接口：GET /api/growth（当前等级概览：balance/level/下一档差额）；GET /api/growth/records（流水分页）；GET /api/growth/levels（公开档位列表，无需登录）
+- 接口：GET /api/v1/growth（当前等级概览：balance/level/下一档差额）；GET /api/v1/growth/records（流水分页）；GET /api/v1/growth/levels（公开档位列表，无需登录）
 - 失败策略：任一入账点 try/catch 记日志，不影响主流程
 
 ### 23. 电子发票（第20轮）
 
 - appointment_invoice：uk_order_type(order_id,order_type) 防同一订单重复申请（重复申请 422，含 MySQL 1062 捕获兜底）；idx_user_created/idx_status
-- 用户端：POST /api/invoices（申请，金额/标题服务端从订单带出，不可篡改）；GET /api/invoices（列表）；GET /api/invoices/{id}（详情）
+- 用户端：POST /api/v1/invoices（申请，金额/标题服务端从订单带出，不可篡改）；GET /api/v1/invoices（列表）；GET /api/v1/invoices/{id}（详情）
 - 管理端：InvoiceController issue（开票：写 invoice_no + status=issued + issued_at）/ reject（驳回：status=rejected + reject_reason），权限 382 列表/383 开票/384 驳回
 - 状态机：pending → issued / rejected
 
 ### 24. 客服工单（第20轮）
 
 - appointment_ticket：用户提交工单（title/content），后台回复追加（reply_content/replied_at），用户可关闭（closed_at）
-- 用户端：POST /api/tickets（提交）；GET /api/tickets（列表）；GET /api/tickets/{id}（详情，仅本人）；POST /api/tickets/{id}/close（关闭）
+- 用户端：POST /api/v1/tickets（提交）；GET /api/v1/tickets（列表）；GET /api/v1/tickets/{id}（详情，仅本人）；POST /api/v1/tickets/{id}/close（关闭）
 - 管理端：TicketController index（列表）/ reply（回复），静态路由先于 resource 定义避免 {id} shadow；权限 385 工单回复/387 工单列表查看
 - 状态机：open → replied（回复后回 open 可再回）/ closed
 
@@ -537,12 +537,12 @@ Flutter Web 单页应用，共 21 个页面：dashboard/用户/角色/配置/日
 - GrowthLevel.benefits JSON 空壳落地：迁移种子 5 档（青铜 {"discount_rate":1.0,"points_multiplier":1.0}、白银 0.98/1.1、黄金 0.95/1.2、铂金 0.92/1.3、钻石 0.9/1.5）
 - 等级折扣：OrderController::store applyGrowthDiscount() —— 仅标准订单（promotion_id 为空，拼团/秒杀禁用叠加）；顺序：券/次卡优惠后应付金额 × discount_rate；折扣额并入 discount_amount，订单备注追加「等级折扣：白银9.8折，优惠¥2.00」可追溯；最低价保护：折后实付 ≥0.01 元（分制 ≥100），不足则折扣截断为 0
 - 积分倍率：WechatPayService::markOrderPaid 成长值由 floor(paid) 改 floor(paid × points_multiplier)，倍率按支付时点等级取档（入账前累计，本单不抬级）；R20 的 try/catch 挂接点完整保留
-- 查询复用：GrowthLevel::levelForGrowth() 按累计成长值取档，供下单/支付复用；GET /api/growth 已返回 benefits 与 next_gap（R20 实现，无需改）
+- 查询复用：GrowthLevel::levelForGrowth() 按累计成长值取档，供下单/支付复用；GET /api/v1/growth 已返回 benefits 与 next_gap（R20 实现，无需改）
 
 ### 27. 发票抬头管理（第21轮）
 
 - appointment_invoice_title（uk_user_title(user_id, title_type, invoice_title) 防重复 + idx_user_default）
-- 接口：POST /api/invoice-titles（保存，company 必须 tax_no，重复 422）；GET（列表，默认置顶）；PUT /{id}（编辑，仅本人）；DELETE /{id}（删除，仅本人）；POST /{id}/default（设默认，事务清零同用户其他行）
+- 接口：POST /api/v1/invoice-titles（保存，company 必须 tax_no，重复 422）；GET（列表，默认置顶）；PUT /{id}（编辑，仅本人）；DELETE /{id}（删除，仅本人）；POST /{id}/default（设默认，事务清零同用户其他行）
 - 默认规则：首条保存自动为默认；删除默认后自动指定最早一条
 - 申请联动：InvoiceController::store 可选 title_id 解析抬头带入 invoice_title/tax_no/title_type，无 title_id 时保留原手填路径；uk_order_type 防重逻辑未动
 
@@ -563,19 +563,19 @@ Flutter Web 单页应用，共 21 个页面：dashboard/用户/角色/配置/日
 
 - appointment_browse_history（uk_user_item(user_id, item_id) 唯一，重复浏览只刷 viewed_at 不重复插入；idx_user_viewed 排序）
 - 记录挂接：ServiceController::detail() 成功后记录（try/catch + Log::warning 不影响主流程；公开路由无 JWT，user_id 判空跳过匿名）
-- 接口：GET /api/browse-history（join appointment_service 名称/封面/价格/原价，viewed_at 倒序，per_page 默认 15 上限 50，item_id hashid）；DELETE /{item_id}（仅本人，非法/他人 404）；DELETE /（清空仅本人）
+- 接口：GET /api/v1/browse-history（join appointment_service 名称/封面/价格/原价，viewed_at 倒序，per_page 默认 15 上限 50，item_id hashid）；DELETE /{item_id}（仅本人，非法/他人 404）；DELETE /（清空仅本人）
 
 ### 31. 满减营销（第22轮）
 
 - appointment_full_reduction_activity（threshold/reduction/title/status/start_at/end_at + idx_status_status_time）
 - 下单叠加：仅标准订单（拼团/秒杀跳过），以券/次卡抵扣后应付金额判门槛，顺序 **券/次卡 → 满减 → 等级折扣**；取减免额最大活动；优惠额并入 discount_amount + 备注「满减：满X减Y」；满减后实付下限 0.01 元（分制）
-- 用户端 GET /api/full-reduction-activities（公开，生效中按减免额降序）
+- 用户端 GET /api/v1/full-reduction-activities（公开，生效中按减免额降序）
 - admin FullReductionController：CRUD + toggle-status 上下架（destroy 带 confirmPassword）
 - 权限：396 列表 / 397 新增 / 398 编辑 / 399 上下架 / 400 删除（一条权限记录仅对应一个 method.path slug，5 路由拆 5 条）
 
 ### 32. 我的预约 ICS 导出（第22轮）
 
-- IcsController GET /api/order/ics：90 天内 pending/paid/confirmed/serving 订单导出 iCal（RFC5545），仅本人
+- IcsController GET /api/v1/order/ics：90 天内 pending/paid/confirmed/serving 订单导出 iCal（RFC5545），仅本人
 - VEVENT：UID=订单ID、DTSTAMP(UTC)、TZID=Asia/Shanghai、默认时长 1h、摘要「预约：服务名」（缺失退化「预约」）、描述技师/门店/地址（缺失跳过）、LOCATION；文本转义（\, \; \\ \n）+ 75 字节行折叠
 - 无订单返回合法空日历（`BEGIN:VCALENDAR` 骨架）
 
@@ -601,59 +601,59 @@ Flutter Web 单页应用，共 21 个页面：dashboard/用户/角色/配置/日
 
 ### 36. 隐私合规（第22轮）
 
-- GET /api/privacy/data：数据导出（personal/orders/points/wallet_txns/reviews/addresses/invoices 分组；日志只记脱敏手机号+条数）
+- GET /api/v1/privacy/data：数据导出（personal/orders/points/wallet_txns/reviews/addresses/invoices 分组；日志只记脱敏手机号+条数）
 - 注销闭环：close-request（余额非 0 / 未完成订单 / 进行中工单 422 → close_status=1）→ close-cancel（1→0）→ close-confirm（满 72h → close_status=2 + close_at + phone/nickname 匿名化 user{id} + status=0）
 - appointment_user 加 close_status/close_requested_at/close_at（幂等 ALTER 迁移）；AuthController login/loginByCode 对 close_status=2 返回 403「账号已注销」
 
 ### 37. 用户健康档案（第23轮）
 
-- GET/PUT/DELETE /api/health-profile：一人一份（uk_user 唯一索引），upsert 只更新提供的字段
+- GET/PUT/DELETE /api/v1/health-profile：一人一份（uk_user 唯一索引），upsert 只更新提供的字段
 - allergies/health_notes 上限 500 字，preferred_technician_id 校验存在性，响应 hashid 编码
 - 迁移 000504_user_health_profile；HealthProfileTest 6 tests
 
 ### 38. 钱包支付密码（第23轮）
 
-- POST /api/wallet/pay-password/{set,verify,check}：6 位数字校验，password_hash 存储 + pay_password_set_at
+- POST /api/v1/wallet/pay-password/{set,verify,check}：6 位数字校验，password_hash 存储 + pay_password_set_at
 - 已设置时修改需旧密码 422；verify 仅校验不落库；check 返回是否已设置
 - 迁移 000502（INFORMATION_SCHEMA 幂等 ALTER 两列）；WalletPayPasswordTest 7 tests
 
 ### 39. 技师批量排班（第23轮）
 
-- POST /api/technician/schedule/batch：日期段 ≤7 天 + weekdays 过滤，已有排班的天跳过
+- POST /api/v1/technician/schedule/batch：日期段 ≤7 天 + weekdays 过滤，已有排班的天跳过
 - 单条设置同样启用时间段重叠检测（422「与已有排班时间冲突：HH:MM-HH:MM」）
 - ScheduleConflictTest 5 tests
 
 ### 40. 订单状态时间线（第23轮）
 
-- GET /api/order/{id}/timeline：仅本人可查（他人 404），倒序返回；admin 订单详情并入 timeline 数组
+- GET /api/v1/order/{id}/timeline：仅本人可查（他人 404），倒序返回；admin 订单详情并入 timeline 数组
 - OrderStatusLog::record() 静态埋点 8 类变更：提交/支付/取消/确认/退款申请/退款通过/服务开始/服务完成/超时自动取消/后台操作（operator=admin）
 - 支付回调 markOrderPaid 为单一消费点；record() 内部 try/catch + Log::warning 绝不阻塞主流程
 - 迁移 000501_order_status_log；OrderTimelineTest 4 tests
 
 ### 41. 积分幸运转盘（第23轮）
 
-- GET /api/wheel/prizes（隐藏 weight/stock）；POST /api/wheel/spin：Redis NX + 行锁防并发，random_int 权重抽取，client_token 幂等
+- GET /api/v1/wheel/prizes（隐藏 weight/stock）；POST /api/v1/wheel/spin：Redis NX + 行锁防并发，random_int 权重抽取，client_token 幂等
 - 奖品落账：积分→earn 流水（含过期时间，可被 PointsExpiryTimer 正常过期）、余额→lockForUpdate、优惠券→pending 人工发放、无奖→lose
-- GET /api/wheel/records 我的记录分页；admin /admin/lucky-wheel CRUD + 上下架 + 记录（权限 401-406）
+- GET /api/v1/wheel/records 我的记录分页；admin /admin/lucky-wheel CRUD + 上下架 + 记录（权限 401-406）
 - 迁移 000503（appointment_lucky_wheel + appointment_wheel_record + w60/w40 演示种子）+ 000505（权限种子）；LuckyWheelTest admin 3 + service 6 tests
 
 ### 42. 游客模式（第24轮）
 
-- GET /api/guest/{home,services,services/{id},stores,technicians}：无需认证（仅 ApiVersion 中间件）的未登录浏览入口
+- GET /api/v1/guest/{home,services,services/{id},stores,technicians}：无需认证（公开接口）的未登录浏览入口
 - home 聚合轮播图/公告/服务分类/热门服务，Redis 缓存 svc:guest:home 300s；services 支持分类筛选 + newest/sales/price 排序（page/per_page≤50）；technicians 仅审核通过、可 service_id 筛选、评分降序
 - GuestControllerTest 覆盖
 
 ### 43. 秒杀（第24轮）
 
 - appointment_seckill_activity（name/service_id/seckill_price/original_price/stock/start_at/end_at/status）；已售量 = appointment_order.seckill_id 订单数
-- GET /api/seckill（status=1 + 时间窗）、/{id}（state=not_started/ongoing/ended）、POST /{id}/buy：client_token（8-64 字符，SETNX 24h）幂等 + Redis NX 30s 防并发 + 活动校验（2026-08-26 起不再预扣库存）
-- 下单注入 seckill_id 复用 OrderController::store；库存统一在 store() 事务内行锁扣减（直接调 /api/order 带 seckill_id 同样扣库存），秒杀价 = seckill_price（以 DB 为准），不叠加优惠券/积分/会员卡；订单取消不回补库存；旧促销 FLASH_SALE 通道已删除（store() 促销分支仅剩拼团，PromotionController index 过滤 flash_sale、show/join 400），秒杀只走本通道
+- GET /api/v1/seckill（status=1 + 时间窗）、/{id}（state=not_started/ongoing/ended）、POST /{id}/buy：client_token（8-64 字符，SETNX 24h）幂等 + Redis NX 30s 防并发 + 活动校验（2026-08-26 起不再预扣库存）
+- 下单注入 seckill_id 复用 OrderController::store；库存统一在 store() 事务内行锁扣减（直接调 /api/v1/order 带 seckill_id 同样扣库存），秒杀价 = seckill_price（以 DB 为准），不叠加优惠券/积分/会员卡；订单取消不回补库存；旧促销 FLASH_SALE 通道已删除（store() 促销分支仅剩拼团，PromotionController index 过滤 flash_sale、show/join 400），秒杀只走本通道
 - admin /admin/seckill CRUD + 上下架 + 订单列表（权限 407-411、420）；迁移 000606 权限种子；SeckillTest service + admin
 
 ### 44. APP 版本管理与检测更新（第24轮）
 
 - appointment_app_version（platform/version_code/version_name/force_update/changelog/download_url/status）
-- GET /api/app/version?platform=android|ios 公开检测更新（platform 非法 422；status=1 中取最新；无则空对象）
+- GET /api/v1/app/version?platform=android|ios 公开检测更新（platform 非法 422；status=1 中取最新；无则空对象）
 - admin /admin/versions CRUD（权限 416-419）；迁移 000609 权限种子；VersionTest service + admin
 
 ### 45. 回头客奖励（第24轮）

@@ -8,7 +8,7 @@
 - **API bisnis** (service/): `http://localhost:8787` — menyediakan antarmuka bisnis untuk Mini Program/APP
 - **API panel admin** (admin/): `http://localhost:8787` — menyediakan antarmuka untuk Flutter Web panel admin
 - **Cara otentikasi**: Bearer Token (JWT), header permintaan `Authorization: Bearer <token>`
-- **Kontrol versi**: melalui header permintaan `API-Version: v1` mengontrol versi API, tidak tercermin di URL. Default v1
+- **Kontrol versi**: versi dikunci pada prefiks jalur URL `/api/v1` (mis. `POST /api/v1/auth/login`), URL tanpa prefiks versi langsung 404
 - **Encoding ID**: semua kolom ID dalam permintaan/respons menggunakan encoding hashids, menyembunyikan ID database asli ke luar
 - **Dokumen OpenAPI**: dihasilkan dengan `hg/apidoc`, terpisah untuk sisi admin dan klien
 
@@ -52,7 +52,7 @@ Respons paginasi:
 
 #### 1.1 Kode Verifikasi
 
-**`POST /api/captcha/send`** — kirim kode verifikasi SMS
+**`POST /api/v1/captcha/send`** — kirim kode verifikasi SMS
 
 Permintaan:
 ```json
@@ -68,7 +68,7 @@ Batas: hanya dapat mengirim 1 kali setiap 60 detik, kode verifikasi berlaku 5 me
 
 #### 1.2 Otentikasi
 
-**`POST /api/auth/register`** — registrasi nomor ponsel
+**`POST /api/v1/auth/register`** — registrasi nomor ponsel
 
 Permintaan:
 ```json
@@ -101,7 +101,7 @@ Respons:
 
 ---
 
-**`POST /api/auth/login`** — login kata sandi
+**`POST /api/v1/auth/login`** — login kata sandi
 
 Permintaan:
 ```json
@@ -114,7 +114,7 @@ Respons: sama dengan respons registrasi, berisi token dan info user.
 
 ---
 
-**`POST /api/auth/login-by-code`** — login kode verifikasi
+**`POST /api/v1/auth/login-by-code`** — login kode verifikasi
 
 Permintaan:
 ```json
@@ -127,7 +127,7 @@ Respons: sama dengan login. Pengguna belum terdaftar otomatis dibuatkan akun.
 
 ---
 
-**`POST /api/auth/forget-password`** — lupa kata sandi
+**`POST /api/v1/auth/forget-password`** — lupa kata sandi
 
 Permintaan:
 ```json
@@ -141,7 +141,7 @@ Permintaan:
 
 ---
 
-**`POST /api/auth/refresh`** — refresh Token
+**`POST /api/v1/auth/refresh`** — refresh Token
 
 Header permintaan: `Authorization: Bearer <旧token>`
 Respons: `{"code":0,"data":{"token":"eyJhbGciOi..."}}`
@@ -150,20 +150,20 @@ Respons: `{"code":0,"data":{"token":"eyJhbGciOi..."}}`
 
 #### 1.3 WeChat
 
-**`POST /api/wechat/mini-login`** — login Mini Program
+**`POST /api/v1/wechat/mini-login`** — login Mini Program
 
 Permintaan: `{"code":"微信登录code"}`
-Keterangan: login pertama perlu memanggil `/api/wechat/phone` untuk mengikat nomor ponsel.
+Keterangan: login pertama perlu memanggil `/api/v1/wechat/phone` untuk mengikat nomor ponsel.
 
 ---
 
-**`POST /api/wechat/phone`** — ikat nomor ponsel
+**`POST /api/v1/wechat/phone`** — ikat nomor ponsel
 
 Permintaan: `{"code":"微信手机号组件code"}`
 
 ---
 
-**`POST /api/wechat/oa-login`** — login Official Account
+**`POST /api/v1/wechat/oa-login`** — login Official Account
 
 Permintaan: `{"code":"公众号授权code"}`
 
@@ -171,39 +171,39 @@ Permintaan: `{"code":"公众号授权code"}`
 
 #### 1.4 Layanan Publik
 
-**`GET /api/common/config`** — konfigurasi publik
+**`GET /api/v1/common/config`** — konfigurasi publik
 
 Respons: berisi teks perjanjian (perjanjian pengguna/perjanjian privasi/perjanjian layanan), info tentang kami, nomor versi.
 
 ---
 
-**`GET /api/common/area`** — daftar area kota
+**`GET /api/v1/common/area`** — daftar area kota
 
 ---
 
 #### 1.5 Kueri Layanan
 
-**`GET /api/service/categories`** — daftar kategori
+**`GET /api/v1/service/categories`** — daftar kategori
 
 Parameter: `?parent_id=0`
 
 ---
 
-**`GET /api/service/items`** — daftar item layanan
+**`GET /api/v1/service/items`** — daftar item layanan
 
 Parameter: `?category_id=&page=1&per_page=10&sort=sales`
 
 ---
 
-**`GET /api/service/detail/{id}`** — detail layanan
+**`GET /api/v1/service/detail/{id}`** — detail layanan
 
 Respons berisi: gambar/nama/harga/spesifikasi/durasi/volume penjualan/daftar ulasan.
 
 ---
 
-**`GET /api/service/products`** — daftar produk
+**`GET /api/v1/service/products`** — daftar produk
 
-**`GET /api/service/stores`** — daftar toko
+**`GET /api/v1/service/stores`** — daftar toko
 
 Parameter: `?lat=&lng=&city=`
 
@@ -211,20 +211,20 @@ Parameter: `?lat=&lng=&city=`
 
 #### 1.6 Kueri Teknisi
 
-**`GET /api/technician/list`** — daftar teknisi
+**`GET /api/v1/technician/list`** — daftar teknisi
 
 Parameter: `?lat=&lng=&service_id=&page=1`
 Urutkan berdasarkan jarak dekat ke jauh, mengembalikan: avatar/nama/rating/jumlah pesanan/jumlah favorit/jarak/waktu tercepat bisa dijanjikan/apakah bisa melayani.
 
 ---
 
-**`GET /api/technician/detail/{id}`** — detail teknisi
+**`GET /api/v1/technician/detail/{id}`** — detail teknisi
 
 Respons berisi: gambar/nama/pengenalan/rating/jarak/daftar item layanan/ulasan.
 
 ---
 
-**`GET /api/technician/schedule/{id}`** — jadwal teknisi
+**`GET /api/v1/technician/schedule/{id}`** — jadwal teknisi
 
 Parameter: `?date=2026-05-26`
 Mengembalikan slot waktu yang dapat dijanjikan dan status tersedia pada tanggal tersebut.
@@ -233,25 +233,25 @@ Mengembalikan slot waktu yang dapat dijanjikan dan status tersedia pada tanggal 
 
 #### 1.7 Konten
 
-**`GET /api/content/banners`** — banner
+**`GET /api/v1/content/banners`** — banner
 
 Parameter: `?position=home`
 
-**`GET /api/content/articles`** — daftar pengumuman/artikel
+**`GET /api/v1/content/articles`** — daftar pengumuman/artikel
 
 Parameter: `?type=announcement&page=1`
 
-**`GET /api/content/article/{id}`** — detail artikel
+**`GET /api/v1/content/article/{id}`** — detail artikel
 
 ---
 
 #### 1.8 LBS
 
-**`GET /api/lbs/nearby-stores`** — toko terdekat
+**`GET /api/v1/lbs/nearby-stores`** — toko terdekat
 
 Parameter: `?lat=&lng=&radius=5000`
 
-**`GET /api/lbs/geocode`** — reverse geocoding
+**`GET /api/v1/lbs/geocode`** — reverse geocoding
 
 Parameter: `?lat=&lng=`
 
@@ -265,13 +265,13 @@ Semua antarmuka membawa header `Authorization: Bearer <token>`
 
 | Metode | Jalur | Keterangan |
 |------|------|------|
-| GET | `/api/user/profile` | dapatkan info pribadi |
-| PUT | `/api/user/profile` | perbarui nama panggilan/avatar/jenis kelamin |
-| POST | `/api/user/change-password` | ubah kata sandi (old_password/new_password/confirm_password) |
-| POST | `/api/user/change-phone` | ganti ponsel (old_code/new_phone/new_code) |
-| POST | `/api/user/cancel-account` | hapus akun (perlu verifikasi kata sandi) |
-| POST | `/api/user/logout` | keluar login (token masuk blacklist) |
-| POST | `/api/user/switch-role` | alih identitas (role: customer/technician) |
+| GET | `/api/v1/user/profile` | dapatkan info pribadi |
+| PUT | `/api/v1/user/profile` | perbarui nama panggilan/avatar/jenis kelamin |
+| POST | `/api/v1/user/change-password` | ubah kata sandi (old_password/new_password/confirm_password) |
+| POST | `/api/v1/user/change-phone` | ganti ponsel (old_code/new_phone/new_code) |
+| POST | `/api/v1/user/cancel-account` | hapus akun (perlu verifikasi kata sandi) |
+| POST | `/api/v1/user/logout` | keluar login (token masuk blacklist) |
+| POST | `/api/v1/user/switch-role` | alih identitas (role: customer/technician) |
 
 Alih ke technician perlu memiliki arsip teknisi berstatus approved.
 
@@ -279,11 +279,11 @@ Alih ke technician perlu memiliki arsip teknisi berstatus approved.
 
 | Metode | Jalur | Keterangan |
 |------|------|------|
-| GET | `/api/user/addresses` | daftar alamat |
-| POST | `/api/user/addresses` | tambah alamat (contact_name/contact_phone/province/city/district/detail/lat/lng/is_default) |
-| GET | `/api/user/addresses/{id}` | detail alamat |
-| PUT | `/api/user/addresses/{id}` | perbarui alamat |
-| DELETE | `/api/user/addresses/{id}` | hapus alamat |
+| GET | `/api/v1/user/addresses` | daftar alamat |
+| POST | `/api/v1/user/addresses` | tambah alamat (contact_name/contact_phone/province/city/district/detail/lat/lng/is_default) |
+| GET | `/api/v1/user/addresses/{id}` | detail alamat |
+| PUT | `/api/v1/user/addresses/{id}` | perbarui alamat |
+| DELETE | `/api/v1/user/addresses/{id}` | hapus alamat |
 
 Saat diatur sebagai default otomatis membatalkan alamat default lain.
 
@@ -291,22 +291,22 @@ Saat diatur sebagai default otomatis membatalkan alamat default lain.
 
 | Metode | Jalur | Keterangan |
 |------|------|------|
-| GET | `/api/user/favorites` | daftar favorit (?type=service/technician) |
-| POST | `/api/user/favorites` | tambah favorit (target_type/target_id) |
-| DELETE | `/api/user/favorites/{id}` | batalkan favorit |
+| GET | `/api/v1/user/favorites` | daftar favorit (?type=service/technician) |
+| POST | `/api/v1/user/favorites` | tambah favorit (target_type/target_id) |
+| DELETE | `/api/v1/user/favorites/{id}` | batalkan favorit |
 
 #### 2.4 Masukan
 
-`POST /api/user/feedback` — submit masukan (content + array images)
+`POST /api/v1/user/feedback` — submit masukan (content + array images)
 
 #### 2.5 Promosi Referral
 
 | Metode | Jalur | Keterangan |
 |------|------|------|
-| GET | `/api/user/referral` | info promosi (kode referral/jumlah direkomendasikan/jumlah pesanan pertama/poin didapat) |
-| GET | `/api/user/referral/qrcode` | kode QR promosi (kode referral + tautan undangan) |
-| GET | `/api/user/referral/referred-users` | daftar pengguna yang direkomendasikan |
-| GET | `/api/user/referral/earnings` | detail komisi referral (paginasi: nama panggilan/avatar/nomor pesanan/jumlah/waktu ter-referral) |
+| GET | `/api/v1/user/referral` | info promosi (kode referral/jumlah direkomendasikan/jumlah pesanan pertama/poin didapat) |
+| GET | `/api/v1/user/referral/qrcode` | kode QR promosi (kode referral + tautan undangan) |
+| GET | `/api/v1/user/referral/referred-users` | daftar pengguna yang direkomendasikan |
+| GET | `/api/v1/user/referral/earnings` | detail komisi referral (paginasi: nama panggilan/avatar/nomor pesanan/jumlah/waktu ter-referral) |
 
 **Komisi referral**: setelah pesanan pertama ter-referral completed, jumlah = paid_amount × reward_rate (appointment_system_config referral.reward_rate, default 0.05, nilai ilegal jatuh konstanta). Row lock + cek kosong rewarded_at + periksa ulang pesanan pertama tiga lapis idempoten; pencatatan WalletTxn type=referral_reward.
 
@@ -314,8 +314,8 @@ Saat diatur sebagai default otomatis membatalkan alamat default lain.
 
 | Metode | Jalur | Keterangan |
 |------|------|------|
-| POST | `/api/user/points/transfer` | transfer poin (to_user_id hashid/points) |
-| GET | `/api/user/points/transfers` | catatan transfer (?direction=sent/received&page=1) |
+| POST | `/api/v1/user/points/transfer` | transfer poin (to_user_id hashid/points) |
+| GET | `/api/v1/user/points/transfers` | catatan transfer (?direction=sent/received&page=1) |
 
 **Transfer poin**: decode hashid penerima + keberadaan 404, ke diri sendiri 422, jumlah poin 1-10000 422, saldo SUM agregat kurang 422, batas akumulasi harian 10000 422. Proteksi bersamaan: kunci Redis NX points_transfer:{user} 30s → dalam transaksi lockForUpdate transaksi terakhir kedua pihak (ascending user_id cegah deadlock transfer timbal balik) → verifikasi ulang dalam kunci saldo/batas/penerima. Standar transaksi: pengirim type=consume/source=points_transfer negatif (balance=snapshot sebelumnya-berkurang), penerima type=earn/source=points_transfer positif termasuk expires_at (PointsExpiryTimer bisa kedaluwarsa normal); setelah commit notifikasi situs penerima type='points_received' (gagal hanya warn).
 
@@ -323,8 +323,8 @@ Saat diatur sebagai default otomatis membatalkan alamat default lain.
 
 | Metode | Jalur | Keterangan |
 |------|------|------|
-| GET | `/api/user/notify-settings` | kueri saklar notifikasi (5 jenis lengkap) |
-| PUT | `/api/user/notify-settings` | perbarui saklar massal (types: {service_reminder: 0/1, ...}) |
+| GET | `/api/v1/user/notify-settings` | kueri saklar notifikasi (5 jenis lengkap) |
+| PUT | `/api/v1/user/notify-settings` | perbarui saklar massal (types: {service_reminder: 0/1, ...}) |
 
 **Saklar notifikasi**: tabel appointment_user_notify_setting (kunci unik gabungan user_id+type, baris default kosong=default nyala). 5 jenis: service_reminder pengingat layanan / card_expiry pengingat kedaluwarsa (kartu+kupon payung seragam) / points_expiry kedaluwarsa poin / marketing pemasaran (cadangan) / system sistem (tidak bisa dimatikan, PUT paksa 1). Gerbang: notifySettingEnabled pasang 3 proses timer ServiceReminderTimer/ExpiryReminderTimer/PointsExpiryTimer + pemetaan skenario event subscription (PAY/REFUND/VERIFIED/RESCHEDULE→system selalu kirim, REMINDER→service_reminder, EXPIRY→card_expiry); jenis dimatikan notifikasi situs dan subscription message sama-sama dilewati.
 
@@ -336,8 +336,8 @@ Saat diatur sebagai default otomatis membatalkan alamat default lain.
 
 | Metode | Jalur | Keterangan |
 |------|------|------|
-| GET | `/api/technician/profile` | dapatkan arsip teknisi |
-| PUT | `/api/technician/profile` | perbarui arsip (avatar/intro/real_name/gender/id_card/id_card_front/id_card_back) |
+| GET | `/api/v1/technician/profile` | dapatkan arsip teknisi |
+| PUT | `/api/v1/technician/profile` | perbarui arsip (avatar/intro/real_name/gender/id_card/id_card_front/id_card_back) |
 
 Pengisian lengkap pertama kali dianggap permohonan pendaftaran, status=pending menunggu audit.
 
@@ -345,37 +345,37 @@ Pengisian lengkap pertama kali dianggap permohonan pendaftaran, status=pending m
 
 | Metode | Jalur | Keterangan |
 |------|------|------|
-| GET | `/api/technician/schedule` | kueri jadwal (?start_date=&end_date=) |
-| PUT | `/api/technician/schedule` | atur jadwal (date/time_slots/status), tumpang tindih slot waktu 422「Konflik dengan jadwal yang ada」 |
-| POST | `/api/technician/schedule/batch` | jadwal massal (ronde ke-23): rentang tanggal ≤7 hari + filter weekdays, hari sudah ada jadwal dilewati, respons created/skipped |
+| GET | `/api/v1/technician/schedule` | kueri jadwal (?start_date=&end_date=) |
+| PUT | `/api/v1/technician/schedule` | atur jadwal (date/time_slots/status), tumpang tindih slot waktu 422「Konflik dengan jadwal yang ada」 |
+| POST | `/api/v1/technician/schedule/batch` | jadwal massal (ronde ke-23): rentang tanggal ≤7 hari + filter weekdays, hari sudah ada jadwal dilewati, respons created/skipped |
 
 #### 3.3 Pesanan Teknisi
 
-`GET /api/technician/orders` — daftar pesanan (?status=&page=1)
+`GET /api/v1/technician/orders` — daftar pesanan (?status=&page=1)
 
 #### 3.4 Pendapatan
 
-`GET /api/technician/earnings` — ringkasan pendapatan (today_income/pending_settlement/balance + daftar transaksi)
+`GET /api/v1/technician/earnings` — ringkasan pendapatan (today_income/pending_settlement/balance + daftar transaksi)
 
 #### 3.5 Penarikan Dana
 
-`POST /api/technician/withdraw` — ajukan penarikan (amount)
+`POST /api/v1/technician/withdraw` — ajukan penarikan (amount)
 Aturan: setiap tanggal 20 bisa menarik, T+1 masuk, jumlah minimum/batas kelipatan ratus dikonfigurasi backend.
 
 **Reservasi dalam perjalanan (2026-08-26)**: saat pengajuan saldo langsung dipotong dicadangkan dalam perjalanan (pending/approved); sebelum transfer persetujuan verifikasi ulang settled − withdrawn − dalam perjalanan ≥ jumlah penarikan; persetujuan bersamaan tidak akan transfer ganda.
 
 #### 3.6 Balasan Ulasan (ronde ke-18)
 
-`POST /api/technician/review/reply/{order_id}` — balas ulasan teknisi (reply). Ulasan tidak ada/bukan sendiri seragam 404 (tidak bocorkan keberadaan); sudah ada balasan 422 (tolak idempoten tanpa timpa); balasan kosong 422. Balasan sukses notifikasi situs pengguna (type='review_reply').
+`POST /api/v1/technician/review/reply/{order_id}` — balas ulasan teknisi (reply). Ulasan tidak ada/bukan sendiri seragam 404 (tidak bocorkan keberadaan); sudah ada balasan 422 (tolak idempoten tanpa timpa); balasan kosong 422. Balasan sukses notifikasi situs pengguna (type='review_reply').
 
 #### 3.6 Workbench
 
 | Metode | Jalur | Keterangan |
 |------|------|------|
-| GET | `/api/technician/work/today` | daftar tugas hari ini |
-| GET | `/api/technician/work/records` | catatan selesai paginasi |
-| POST | `/api/technician/work/{id}/start` | mulai layanan |
-| POST | `/api/technician/work/{id}/complete` | selesaikan layanan |
+| GET | `/api/v1/technician/work/today` | daftar tugas hari ini |
+| GET | `/api/v1/technician/work/records` | catatan selesai paginasi |
+| POST | `/api/v1/technician/work/{id}/start` | mulai layanan |
+| POST | `/api/v1/technician/work/{id}/complete` | selesaikan layanan |
 
 **Tugas hari ini**: status ∈ [confirmed, serving], service_time hari ini atau kosong, mengembalikan service_name/price/nickname/avatar.
 
@@ -389,17 +389,17 @@ Aturan: setiap tanggal 20 bisa menarik, T+1 masuk, jumlah minimum/batas kelipata
 
 | Metode | Jalur | Keterangan |
 |------|------|------|
-| POST | `/api/order` | buat pesanan (order_type/items/store_id/technician_id/service_time/coupon_id/user_coupon_id/promotion_id/remark) |
-| GET | `/api/order/list` | daftar pesanan (?status=&page=1) |
-| GET | `/api/order/detail/{id}` | detail pesanan |
-| POST | `/api/order/cancel/{id}` | batalkan pesanan (reason) |
-| POST | `/api/order/pay/{id}` | inisiasi pembayaran (pay_channel: wechat/balance, use_points: poin setara uang opsional) |
-| POST | `/api/order/refund/{id}` | ajukan refund |
-| POST | `/api/order/verify/{id}` | verifikasi (code: nilai kode QR) |
-| POST | `/api/order/reschedule/{id}` | ganti jadwal janji temu (new_service_time wajib/reason opsional) |
-| GET | `/api/order/logistics/{id}` | pelacakan logistik (ronde ke-19, pesanan product) |
-| POST | `/api/order/review/{order_id}` | submit ulasan (rating 1-5/content/images) (registrasi lengkap ronde ke-19) |
-| POST | `/api/order/review/{order_id}/append` | ulasan susulan (content/images dipisah koma) (ronde ke-19) |
+| POST | `/api/v1/order` | buat pesanan (order_type/items/store_id/technician_id/service_time/coupon_id/user_coupon_id/promotion_id/remark) |
+| GET | `/api/v1/order/list` | daftar pesanan (?status=&page=1) |
+| GET | `/api/v1/order/detail/{id}` | detail pesanan |
+| POST | `/api/v1/order/cancel/{id}` | batalkan pesanan (reason) |
+| POST | `/api/v1/order/pay/{id}` | inisiasi pembayaran (pay_channel: wechat/balance, use_points: poin setara uang opsional) |
+| POST | `/api/v1/order/refund/{id}` | ajukan refund |
+| POST | `/api/v1/order/verify/{id}` | verifikasi (code: nilai kode QR) |
+| POST | `/api/v1/order/reschedule/{id}` | ganti jadwal janji temu (new_service_time wajib/reason opsional) |
+| GET | `/api/v1/order/logistics/{id}` | pelacakan logistik (ronde ke-19, pesanan product) |
+| POST | `/api/v1/order/review/{order_id}` | submit ulasan (rating 1-5/content/images) (registrasi lengkap ronde ke-19) |
+| POST | `/api/v1/order/review/{order_id}/append` | ulasan susulan (content/images dipisah koma) (ronde ke-19) |
 
 **Status pesanan**: pending(待支付) → paid(已支付) → confirmed(已确认) → serving(服务中) → completed(已完成)
 
@@ -417,25 +417,25 @@ Aturan: setiap tanggal 20 bisa menarik, T+1 masuk, jumlah minimum/batas kelipata
 
 **Isi ulang poin**: saat batalkan/refund kembalikan poin yang dikonsumsi points_offset (type=earn/source=points_refund): batal penuh, refund proporsional, 5 titik pemasangan idempoten (refundOffsetPoints).
 
-**Pemesanan belanja bersama (ronde ke-16)**: buat pesanan opsional kirim `promotion_id` (hashid). Validasi: hanya tipe group_buy, dalam masa berlaku aktivitas, pemanggil adalah peserta, belum penuh (sudah terbentuk terkunci 422), layanan pesanan cocok aktivitas; harga belanja bersama = harga asli × discount_percent/100, larang tumpuk kupon/kartu kunjungan/poin (kirim salah satu 422). Pesanan masuk DB promotion_id/participant_id; pembayaran sepenuhnya pakai ulang `POST /api/order/pay/{id}`, saat pay malas menilai aktivitas sudah tutup (kedaluwarsa belum terbentuk) → pesanan otomatis dibatalkan dan lepaskan kunci teknisi.
+**Pemesanan belanja bersama (ronde ke-16)**: buat pesanan opsional kirim `promotion_id` (hashid). Validasi: hanya tipe group_buy, dalam masa berlaku aktivitas, pemanggil adalah peserta, belum penuh (sudah terbentuk terkunci 422), layanan pesanan cocok aktivitas; harga belanja bersama = harga asli × discount_percent/100, larang tumpuk kupon/kartu kunjungan/poin (kirim salah satu 422). Pesanan masuk DB promotion_id/participant_id; pembayaran sepenuhnya pakai ulang `POST /api/v1/order/pay/{id}`, saat pay malas menilai aktivitas sudah tutup (kedaluwarsa belum terbentuk) → pesanan otomatis dibatalkan dan lepaskan kunci teknisi.
 
-**Pemesanan flash sale (ronde ke-18, sudah dimatikan)**: ~~buat pesanan kirim `promotion_id` (tipe flash_sale)~~ —— mulai 2026-08 kanal promosi lama FLASH_SALE dihapus, cabang promosi store() tinggal GROUP_BUY belanja bersama (non belanja bersama promotion 422); flash sale seragam lewat kanal `/api/seckill` ronde ke-24 (seckill_id injeksi ke store, potong stok row lock dalam transaksi), PromotionController::index filter flash_sale, show/join untuk itu mengembalikan 400, konstanta `Promotion::TYPE_FLASH_SALE` dipertahankan kompatibel data historis.
+**Pemesanan flash sale (ronde ke-18, sudah dimatikan)**: ~~buat pesanan kirim `promotion_id` (tipe flash_sale)~~ —— mulai 2026-08 kanal promosi lama FLASH_SALE dihapus, cabang promosi store() tinggal GROUP_BUY belanja bersama (non belanja bersama promotion 422); flash sale seragam lewat kanal `/api/v1/seckill` ronde ke-24 (seckill_id injeksi ke store, potong stok row lock dalam transaksi), PromotionController::index filter flash_sale, show/join untuk itu mengembalikan 400, konstanta `Promotion::TYPE_FLASH_SALE` dipertahankan kompatibel data historis.
 
-**Ganti jadwal janji temu (ronde ke-17)**: `POST /api/order/reschedule/{id}` kirim new_service_time (wajib) + reason (opsional), ganti waktu teknisi sama. Aturan: hanya pesanan sendiri (bukan sendiri 404), hanya tipe appointment dan status pending/paid/confirmed bisa ganti (lainnya 422), jarak mulai layanan asli ≥ 6 jam (selaras jendela refund penuh) baru bisa ganti. Proteksi bersamaan: B1 order_lock (keluarga mutual exclusion sama dengan pay/cancel/refund) → kunci teknisi slot baru Redis SETNX EX 180 (cegah oversold ganti jadwal bersamaan) → row lock baca ulang dalam transaksi + validasi DB konflik jadwal B2 (kecuali pesanan ini) → perbarui service_time + tulis catatan appointment_order_reschedule → lepaskan kunci slot lama, kunci slot baru dipegang pesanan ini → subscription message SCENE_RESCHEDULE (tidak dikonfigurasi degradasi notifikasi situs). Jalur gagal rollback transaksi sekaligus lepaskan kunci slot baru.
+**Ganti jadwal janji temu (ronde ke-17)**: `POST /api/v1/order/reschedule/{id}` kirim new_service_time (wajib) + reason (opsional), ganti waktu teknisi sama. Aturan: hanya pesanan sendiri (bukan sendiri 404), hanya tipe appointment dan status pending/paid/confirmed bisa ganti (lainnya 422), jarak mulai layanan asli ≥ 6 jam (selaras jendela refund penuh) baru bisa ganti. Proteksi bersamaan: B1 order_lock (keluarga mutual exclusion sama dengan pay/cancel/refund) → kunci teknisi slot baru Redis SETNX EX 180 (cegah oversold ganti jadwal bersamaan) → row lock baca ulang dalam transaksi + validasi DB konflik jadwal B2 (kecuali pesanan ini) → perbarui service_time + tulis catatan appointment_order_reschedule → lepaskan kunci slot lama, kunci slot baru dipegang pesanan ini → subscription message SCENE_RESCHEDULE (tidak dikonfigurasi degradasi notifikasi situs). Jalur gagal rollback transaksi sekaligus lepaskan kunci slot baru.
 
-**Pelacakan logistik (ronde ke-19)**: `GET /api/order/logistics/{id}` — hanya pesanan product sendiri yang bisa dilihat (bukan sendiri/bukan barang/belum kirim seragam 404). Baca order.remark JSON (shipping_company/tracking_no/shipped_at, ditulis saat pengiriman oleh admin MallOrderController::ship()), parseShippingInfo/parseReceiver dua parsing fallback format lama; nomor ponsel penerima deidentifikasi 138****5678.
+**Pelacakan logistik (ronde ke-19)**: `GET /api/v1/order/logistics/{id}` — hanya pesanan product sendiri yang bisa dilihat (bukan sendiri/bukan barang/belum kirim seragam 404). Baca order.remark JSON (shipping_company/tracking_no/shipped_at, ditulis saat pengiriman oleh admin MallOrderController::ship()), parseShippingInfo/parseReceiver dua parsing fallback format lama; nomor ponsel penerima deidentifikasi 138****5678.
 
-**Ulasan (ronde ke-19)**: `POST /api/order/review/{order_id}` submit ulasan (rating wajib 1-5, content/images opsional): bukan sendiri 404, non-completed 422, ulasan duplikat 400. `POST /api/order/review/{order_id}/append` ulasan susulan (content wajib, images dipisah koma): ulasan tidak ada/bukan sendiri seragam 404, non-completed 422, ulasan susulan duplikat 422, konten kosong 422; sukses tulis append_content/append_images(JSON)/append_at dan notifikasi situs teknisi type='review_append', respons tampilkan kolom append.
+**Ulasan (ronde ke-19)**: `POST /api/v1/order/review/{order_id}` submit ulasan (rating wajib 1-5, content/images opsional): bukan sendiri 404, non-completed 422, ulasan duplikat 400. `POST /api/v1/order/review/{order_id}/append` ulasan susulan (content wajib, images dipisah koma): ulasan tidak ada/bukan sendiri seragam 404, non-completed 422, ulasan susulan duplikat 422, konten kosong 422; sukses tulis append_content/append_images(JSON)/append_at dan notifikasi situs teknisi type='review_append', respons tampilkan kolom append.
 
 ### 4.1 Antarmuka Purna Jual (perlu otentikasi JWT)
 
 | Metode | Jalur | Keterangan |
 |------|------|------|
-| POST | `/api/aftersales` | ajukan purna jual (order_id hashid/type: refund|exchange/reason), validasi pesanan sendiri 404, status paid+completed baru bisa diajukan 422, purna jual berlangsung pesanan sama deduplikasi 422 |
-| GET | `/api/aftersales` | daftar purna jual saya (?status=&page=1&limit=) |
-| GET | `/api/aftersales/{id}` | detail purna jual (validasi kepemilikan 404) |
+| POST | `/api/v1/aftersales` | ajukan purna jual (order_id hashid/type: refund|exchange/reason), validasi pesanan sendiri 404, status paid+completed baru bisa diajukan 422, purna jual berlangsung pesanan sama deduplikasi 422 |
+| GET | `/api/v1/aftersales` | daftar purna jual saya (?status=&page=1&limit=) |
+| GET | `/api/v1/aftersales/{id}` | detail purna jual (validasi kepemilikan 404) |
 
-**Status purna jual**: pending(待审核) → approved(通过) / rejected(拒绝). approved hanya peralihan status, tindakan refund tetap memakai `POST /api/order/refund/{id}`.
+**Status purna jual**: pending(待审核) → approved(通过) / rejected(拒绝). approved hanya peralihan status, tindakan refund tetap memakai `POST /api/v1/order/refund/{id}`.
 
 ---
 
@@ -443,10 +443,10 @@ Aturan: setiap tanggal 20 bisa menarik, T+1 masuk, jumlah minimum/batas kelipata
 
 | Metode | Jalur | Keterangan |
 |------|------|------|
-| GET | `/api/promotions` | daftar aktivitas (?type=group_buy；flash_sale sudah difilter tidak kembali) |
-| GET | `/api/promotions/{id}` | detail aktivitas (termasuk jumlah peserta/apakah sudah terbentuk; tipe flash_sale 400) |
-| GET | `/api/promotions/{id}/participants` | daftar peserta |
-| POST | `/api/promotions/join/{id}` | ikut aktivitas (sempurna ronde ke-15: respons berisi discount_percent/original_price/group_price; tipe flash_sale 400) |
+| GET | `/api/v1/promotions` | daftar aktivitas (?type=group_buy；flash_sale sudah difilter tidak kembali) |
+| GET | `/api/v1/promotions/{id}` | detail aktivitas (termasuk jumlah peserta/apakah sudah terbentuk; tipe flash_sale 400) |
+| GET | `/api/v1/promotions/{id}/participants` | daftar peserta |
+| POST | `/api/v1/promotions/join/{id}` | ikut aktivitas (sempurna ronde ke-15: respons berisi discount_percent/original_price/group_price; tipe flash_sale 400) |
 
 **Aturan partisipasi**: group_buy penuh (≥min_people) terkunci, setelah terbentuk peserta baru 422; kedaluwarsa belum penuh tutup malas (saat show/join status set 0). Setelah join pesan dengan harga belanja bersama lihat「Pemesanan belanja bersama (ronde ke-16)」. Flash sale tidak lagi lewat kanal ini, lihat「24. Antarmuka Flash Sale」.
 
@@ -456,21 +456,21 @@ Aturan: setiap tanggal 20 bisa menarik, T+1 masuk, jumlah minimum/batas kelipata
 
 | Metode | Jalur | Keterangan |
 |------|------|------|
-| GET | `/api/marketing/coupons` | daftar kupon (?status=available/used/expired) |
-| POST | `/api/marketing/coupons/receive` | ambil kupon (coupon_id) |
-| GET | `/api/marketing/cards` | daftar kartu member |
-| POST | `/api/marketing/cards/buy` | beli kartu member (card_id) |
-| GET | `/api/marketing/cards/my` | daftar kartu kunjungan saya |
-| POST | `/api/marketing/cards/use` | verifikasi kartu kunjungan (user_card_id/service_id/remark?) |
-| GET | `/api/marketing/gift-cards` | daftar kartu hadiah |
-| GET | `/api/marketing/gift-cards/my` | kartu hadiah saya (catatan redeem) |
-| POST | `/api/marketing/gift-cards/redeem` | tukar kartu hadiah (tipe cash setelah tukar top-up saldo dompet) |
-| GET | `/api/marketing/points` | transaksi poin (?type=earn/use/expire&source=order/referral/gift_card/check_in/admin) |
-| GET | `/api/marketing/points-exchange` | daftar barang tukar poin (tayang + sisa stok real-time + jumlah sudah ditukar) |
-| POST | `/api/marketing/points-exchange/{id}` | tukar (type=coupon terbit kupon / wallet masuk saldo / gift_card kembalikan kode) |
-| POST | `/api/marketing/coupons/transfer` | hasilkan kode transfer (user_coupon_id: kode unik 8 digit/berlaku 7 hari) |
-| POST | `/api/marketing/coupons/claim` | klaim kupon transfer (code) |
-| GET | `/api/marketing/coupons/transfers` | catatan transfer (terkirim pending/claimed/expired + diterima claimed) |
+| GET | `/api/v1/marketing/coupons` | daftar kupon (?status=available/used/expired) |
+| POST | `/api/v1/marketing/coupons/receive` | ambil kupon (coupon_id) |
+| GET | `/api/v1/marketing/cards` | daftar kartu member |
+| POST | `/api/v1/marketing/cards/buy` | beli kartu member (card_id) |
+| GET | `/api/v1/marketing/cards/my` | daftar kartu kunjungan saya |
+| POST | `/api/v1/marketing/cards/use` | verifikasi kartu kunjungan (user_card_id/service_id/remark?) |
+| GET | `/api/v1/marketing/gift-cards` | daftar kartu hadiah |
+| GET | `/api/v1/marketing/gift-cards/my` | kartu hadiah saya (catatan redeem) |
+| POST | `/api/v1/marketing/gift-cards/redeem` | tukar kartu hadiah (tipe cash setelah tukar top-up saldo dompet) |
+| GET | `/api/v1/marketing/points` | transaksi poin (?type=earn/use/expire&source=order/referral/gift_card/check_in/admin) |
+| GET | `/api/v1/marketing/points-exchange` | daftar barang tukar poin (tayang + sisa stok real-time + jumlah sudah ditukar) |
+| POST | `/api/v1/marketing/points-exchange/{id}` | tukar (type=coupon terbit kupon / wallet masuk saldo / gift_card kembalikan kode) |
+| POST | `/api/v1/marketing/coupons/transfer` | hasilkan kode transfer (user_coupon_id: kode unik 8 digit/berlaku 7 hari) |
+| POST | `/api/v1/marketing/coupons/claim` | klaim kupon transfer (code) |
+| GET | `/api/v1/marketing/coupons/transfers` | catatan transfer (terkirim pending/claimed/expired + diterima claimed) |
 
 **Kartu kunjungan**: cards/my mengembalikan card_id/name/type/services/total_times/used_times/remaining_times/start_at/end_at/status (perhitungan real-time). Verifikasi sukses mengembalikan {order_id, usage_id, remaining_times}; kode error: hashid tidak valid 422, jumlah kurang 422, sudah kedaluwarsa 400, bukan sendiri 404, cegah duplikat Redis 400.
 
@@ -488,9 +488,9 @@ Aturan: setiap tanggal 20 bisa menarik, T+1 masuk, jumlah minimum/batas kelipata
 
 | Metode | Jalur | Keterangan |
 |------|------|------|
-| GET | `/api/notification` | daftar notifikasi (?type=order/system&page=1) |
-| PUT | `/api/notification/read/{id}` | tandai sudah baca |
-| PUT | `/api/notification/read-all` | semua sudah baca |
+| GET | `/api/v1/notification` | daftar notifikasi (?type=order/system&page=1) |
+| PUT | `/api/v1/notification/read/{id}` | tandai sudah baca |
+| PUT | `/api/v1/notification/read-all` | semua sudah baca |
 
 ---
 
@@ -498,20 +498,20 @@ Aturan: setiap tanggal 20 bisa menarik, T+1 masuk, jumlah minimum/batas kelipata
 
 | Metode | Jalur | Keterangan |
 |------|------|------|
-| GET | `/api/wallet` | saldo dompet + transaksi paginasi |
-| POST | `/api/wallet/recharge` | buat slip top-up (amount: yuan) |
-| POST | `/api/wallet/recharge/{id}/pay` | inisiasi pembayaran slip top-up (WeChat) |
-| POST | `/api/wallet/transfer` | transfer saldo (to_user_id hashid/amount/remark opsional/client_token opsional) (ronde ke-19) |
-| GET | `/api/wallet/transfers` | catatan transfer (?direction=out/in&page=1) (ronde ke-19) |
-| GET | `/api/wallet/transfers/{id}` | detail transfer (hanya kedua pihak terlihat, orang lain 404) (ronde ke-19) |
+| GET | `/api/v1/wallet` | saldo dompet + transaksi paginasi |
+| POST | `/api/v1/wallet/recharge` | buat slip top-up (amount: yuan) |
+| POST | `/api/v1/wallet/recharge/{id}/pay` | inisiasi pembayaran slip top-up (WeChat) |
+| POST | `/api/v1/wallet/transfer` | transfer saldo (to_user_id hashid/amount/remark opsional/client_token opsional) (ronde ke-19) |
+| GET | `/api/v1/wallet/transfers` | catatan transfer (?direction=out/in&page=1) (ronde ke-19) |
+| GET | `/api/v1/wallet/transfers/{id}` | detail transfer (hanya kedua pihak terlihat, orang lain 404) (ronde ke-19) |
 
 **Transaksi**: tipe wallet_txn: recharge / consume / refund / gift_card / referral_reward(komisi referral) / referral_level2(komisi referral level dua) / points_exchange(pencatatan tukar poin), dikembalikan paginasi.
 
-**Top-up**: `POST /api/wallet/recharge` kirim amount (yuan) buat slip top-up, kembalikan hashid slip top-up. `POST /api/wallet/recharge/{id}/pay` inisiasi pembayaran WeChat, respons berisi sign_params (pola sama pembayaran pesanan); callback pembayaran membedakan slip top-up dan pesanan dengan out_trade_no prefiks R.
+**Top-up**: `POST /api/v1/wallet/recharge` kirim amount (yuan) buat slip top-up, kembalikan hashid slip top-up. `POST /api/v1/wallet/recharge/{id}/pay` inisiasi pembayaran WeChat, respons berisi sign_params (pola sama pembayaran pesanan); callback pembayaran membedakan slip top-up dan pesanan dengan out_trade_no prefiks R.
 
 **Pembayaran saldo**: badan permintaan pembayaran pesanan kirim `pay_channel: "balance"` pakai saldo dompet; refund WeChat dan refund saldo sama-sama isi ulang jumlah ke saldo dompet.
 
-**Transfer saldo (ronde ke-19)**: `POST /api/wallet/transfer` — decode hashid penerima + keberadaan 404, ke diri sendiri 422, jumlah 0.01-1000/per transaksi 422 (perbandingan DECIMAL larang float), saldo kurang 422, akumulasi harian 5000 yuan 422. Bersamaan/idempoten: kunci Redis NX wallet_transfer:{from} 30s serialkan pengirim → dalam transaksi lockForUpdate baris dompet kedua pihak urutan ascending user_id (urutan tetap cegah deadlock) → potong pengirim + tambah penerima + WalletTxn dua transaksi (transfer_out/transfer_in termasuk snapshot balance_after) + catatan transfer completed + notifikasi situs penerima type='balance_received' (gagal hanya catat log). client_token opsional: sukses SETNX 24 jam cegah submit duplikat (permintaan gagal tidak tulis token bisa retry).
+**Transfer saldo (ronde ke-19)**: `POST /api/v1/wallet/transfer` — decode hashid penerima + keberadaan 404, ke diri sendiri 422, jumlah 0.01-1000/per transaksi 422 (perbandingan DECIMAL larang float), saldo kurang 422, akumulasi harian 5000 yuan 422. Bersamaan/idempoten: kunci Redis NX wallet_transfer:{from} 30s serialkan pengirim → dalam transaksi lockForUpdate baris dompet kedua pihak urutan ascending user_id (urutan tetap cegah deadlock) → potong pengirim + tambah penerima + WalletTxn dua transaksi (transfer_out/transfer_in termasuk snapshot balance_after) + catatan transfer completed + notifikasi situs penerima type='balance_received' (gagal hanya catat log). client_token opsional: sukses SETNX 24 jam cegah submit duplikat (permintaan gagal tidak tulis token bisa retry).
 
 ---
 
@@ -519,10 +519,10 @@ Aturan: setiap tanggal 20 bisa menarik, T+1 masuk, jumlah minimum/batas kelipata
 
 | Metode | Jalur | Keterangan |
 |------|------|------|
-| GET | `/api/store-manager/overview` | ringkasan hari ini (jumlah pesanan hari ini/pendapatan hari ini/berlangsung/jumlah teknisi/jumlah verifikasi) |
-| GET | `/api/store-manager/orders` | daftar pesanan toko (?status=&page=&limit=) |
-| GET | `/api/store-manager/technicians` | daftar teknisi (termasuk jadwal hari ini) |
-| GET | `/api/store-manager/revenue` | agregat pendapatan 7 hari terakhir |
+| GET | `/api/v1/store-manager/overview` | ringkasan hari ini (jumlah pesanan hari ini/pendapatan hari ini/berlangsung/jumlah teknisi/jumlah verifikasi) |
+| GET | `/api/v1/store-manager/orders` | daftar pesanan toko (?status=&page=&limit=) |
+| GET | `/api/v1/store-manager/technicians` | daftar teknisi (termasuk jadwal hari ini) |
+| GET | `/api/v1/store-manager/revenue` | agregat pendapatan 7 hari terakhir |
 
 **Isolasi store_id**: requireStoreId() paksa pengguna saat ini terikat toko (appointment_user.store_id), tanpa toko 403; semua kueri difilter berdasarkan store_id.
 
@@ -532,9 +532,9 @@ Aturan: setiap tanggal 20 bisa menarik, T+1 masuk, jumlah minimum/batas kelipata
 
 | Metode | Jalur | Keterangan |
 |------|------|------|
-| GET | `/api/growth` | ringkasan pertumbuhan saat ini (balance/level/selisih tingkatan berikutnya/nama level) |
-| GET | `/api/growth/records` | transaksi nilai pertumbuhan paginasi (?page=&limit=) |
-| GET | `/api/growth/levels` | daftar tingkatan (publik, tidak perlu login) |
+| GET | `/api/v1/growth` | ringkasan pertumbuhan saat ini (balance/level/selisih tingkatan berikutnya/nama level) |
+| GET | `/api/v1/growth/records` | transaksi nilai pertumbuhan paginasi (?page=&limit=) |
+| GET | `/api/v1/growth/levels` | daftar tingkatan (publik, tidak perlu login) |
 
 **Pencatatan nilai pertumbuhan**: check-in +10; submit ulasan +20 (ulasan susulan tidak masuk); konsumsi floor(paid) setiap 1 yuan 1 poin (dalam callback pembayaran pakai ulang verifikasi status idempoten, callback duplikat tidak masuk ulang).
 
@@ -542,9 +542,9 @@ Aturan: setiap tanggal 20 bisa menarik, T+1 masuk, jumlah minimum/batas kelipata
 
 | Metode | Jalur | Keterangan |
 |------|------|------|
-| POST | `/api/invoices` | ajukan faktur (order_id hashid/order_type: service=layanan/points_exchange=tukar poin/order_type default service; jumlah dan judul dibawa keluar server, tidak bisa diubah) |
-| GET | `/api/invoices` | daftar faktur (?status=&page=) |
-| GET | `/api/invoices/{id}` | detail faktur (hanya sendiri) |
+| POST | `/api/v1/invoices` | ajukan faktur (order_id hashid/order_type: service=layanan/points_exchange=tukar poin/order_type default service; jumlah dan judul dibawa keluar server, tidak bisa diubah) |
+| GET | `/api/v1/invoices` | daftar faktur (?status=&page=) |
+| GET | `/api/v1/invoices/{id}` | detail faktur (hanya sendiri) |
 
 **Anti duplikat**: kunci unik uk_order_type(order_id, order_type), pesanan sama tipe sama pengajuan ulang 422 (termasuk tangkap MySQL 1062 fallback).
 
@@ -552,37 +552,37 @@ Aturan: setiap tanggal 20 bisa menarik, T+1 masuk, jumlah minimum/batas kelipata
 
 | Metode | Jalur | Keterangan |
 |------|------|------|
-| POST | `/api/tickets` | submit tiket (title/content wajib) |
-| GET | `/api/tickets` | daftar tiket (?status=open/closed&page=) |
-| GET | `/api/tickets/{id}` | detail tiket (hanya sendiri, orang lain 404) |
-| POST | `/api/tickets/{id}/close` | tutup tiket (hanya sendiri/hanya open; rating kepuasan opsional 1-5, di luar batas/bukan bilangan bulat 422, tidak diberikan kompatibel NULL) |
+| POST | `/api/v1/tickets` | submit tiket (title/content wajib) |
+| GET | `/api/v1/tickets` | daftar tiket (?status=open/closed&page=) |
+| GET | `/api/v1/tickets/{id}` | detail tiket (hanya sendiri, orang lain 404) |
+| POST | `/api/v1/tickets/{id}/close` | tutup tiket (hanya sendiri/hanya open; rating kepuasan opsional 1-5, di luar batas/bukan bilangan bulat 422, tidak diberikan kompatibel NULL) |
 
 ### 12. Antarmuka Kalender Bulanan (perlu otentikasi JWT, ronde ke-20)
 
 | Metode | Jalur | Keterangan |
 |------|------|------|
-| GET | `/api/calendar/technician/{id}` | tampilan bulan (?month=YYYY-MM): time_slots jadwal diperluas ke slot jam + sudah dijanjikan dikecualikan |
-| GET | `/api/calendar/technician/{id}/day` | tampilan hari (?date=YYYY-MM-DD): detail slot bisa dijanjikan/sudah dijanjikan/tidak bisa dijanjikan hari itu |
+| GET | `/api/v1/calendar/technician/{id}` | tampilan bulan (?month=YYYY-MM): time_slots jadwal diperluas ke slot jam + sudah dijanjikan dikecualikan |
+| GET | `/api/v1/calendar/technician/{id}/day` | tampilan hari (?date=YYYY-MM-DD): detail slot bisa dijanjikan/sudah dijanjikan/tidak bisa dijanjikan hari itu |
 
 ### 13. Antarmuka Judul Faktur (perlu otentikasi JWT, ronde ke-21)
 
 | Metode | Jalur | Keterangan |
 |------|------|------|
-| POST | `/api/invoice-titles` | simpan judul (title_type: personal/company; company wajib tax_no; pengguna sama judul sama duplikat 422; pertama otomatis default) |
-| GET | `/api/invoice-titles` | daftar judul (default di atas) |
-| PUT | `/api/invoice-titles/{id}` | edit judul (hanya sendiri) |
-| DELETE | `/api/invoice-titles/{id}` | hapus judul (hanya sendiri; hapus default otomatis tunjuk paling awal) |
-| POST | `/api/invoice-titles/{id}/default` | set default (transaksi nolkan baris lain pengguna sama) |
+| POST | `/api/v1/invoice-titles` | simpan judul (title_type: personal/company; company wajib tax_no; pengguna sama judul sama duplikat 422; pertama otomatis default) |
+| GET | `/api/v1/invoice-titles` | daftar judul (default di atas) |
+| PUT | `/api/v1/invoice-titles/{id}` | edit judul (hanya sendiri) |
+| DELETE | `/api/v1/invoice-titles/{id}` | hapus judul (hanya sendiri; hapus default otomatis tunjuk paling awal) |
+| POST | `/api/v1/invoice-titles/{id}/default` | set default (transaksi nolkan baris lain pengguna sama) |
 
-**Kaitan pengajuan**: POST /api/invoices dukung title_id opsional —— parse judul otomatis bawa masuk invoice_title/tax_no/title_type, tanpa title_id pertahankan jalur isi manual asli.
+**Kaitan pengajuan**: POST /api/v1/invoices dukung title_id opsional —— parse judul otomatis bawa masuk invoice_title/tax_no/title_type, tanpa title_id pertahankan jalur isi manual asli.
 
 ### 14. Antarmuka Jejak Penjelajahan (perlu otentikasi JWT, ronde ke-21)
 
 | Metode | Jalur | Keterangan |
 |------|------|------|
-| GET | `/api/browse-history` | layanan yang baru dijelajahi (join nama layanan/sampul/harga/harga asli, viewed_at urut turun, per_page default 15 batas atas 50) |
-| DELETE | `/api/browse-history/{item_id}` | hapus satu (hanya sendiri, ilegal/punya orang lain 404) |
-| DELETE | `/api/browse-history` | kosongkan jejak (hanya sendiri) |
+| GET | `/api/v1/browse-history` | layanan yang baru dijelajahi (join nama layanan/sampul/harga/harga asli, viewed_at urut turun, per_page default 15 batas atas 50) |
+| DELETE | `/api/v1/browse-history/{item_id}` | hapus satu (hanya sendiri, ilegal/punya orang lain 404) |
+| DELETE | `/api/v1/browse-history` | kosongkan jejak (hanya sendiri) |
 
 **Waktu pencatatan**: setelah akses antarmuka detail layanan sukses otomatis dicatat (belum login dilewati; jelajah duplikat hanya refresh viewed_at tidak insert ulang).
 
@@ -590,7 +590,7 @@ Aturan: setiap tanggal 20 bisa menarik, T+1 masuk, jumlah minimum/batas kelipata
 
 | Metode | Jalur | Keterangan |
 |------|------|------|
-| GET | `/api/full-reduction-activities` | daftar aktivitas potongan berlangsung (status=1 dan waktu dalam masa berlaku, urut pengurangan turun; antarmuka publik) |
+| GET | `/api/v1/full-reduction-activities` | daftar aktivitas potongan berlangsung (status=1 dan waktu dalam masa berlaku, urut pengurangan turun; antarmuka publik) |
 
 **Aturan tumpuk saat order**: potongan hanya berlaku pesanan standar (belanja bersama/flash sale lewati), ambang (threshold) dinilai dari jumlah terutang setelah potongan kupon/kartu kunjungan, urutan tumpuk **kupon/kartu kunjungan → potongan → diskon level**; ambil aktivitas pengurangan terbesar; jumlah diskon masuk discount_amount, catatan tambah「Potongan: beli X potong Y」; batas bawah bayar aktual setelah potongan 0.01 yuan.
 
@@ -598,7 +598,7 @@ Aturan: setiap tanggal 20 bisa menarik, T+1 masuk, jumlah minimum/batas kelipata
 
 | Metode | Jalur | Keterangan |
 |------|------|------|
-| GET | `/api/order/ics` | ekspor pesanan berlaku 90 hari (pending/paid/confirmed/serving) sebagai iCal (RFC5545) |
+| GET | `/api/v1/order/ics` | ekspor pesanan berlaku 90 hari (pending/paid/confirmed/serving) sebagai iCal (RFC5545) |
 
 **Output**: `Content-Type: text/calendar; charset=utf-8` + `Content-Disposition: attachment; filename="my-appointments.ics"`. VEVENT: UID=ID pesanan, TZID=Asia/Shanghai, ringkasan「Janji temu: nama layanan」(hilang degradasi「Janji temu」), keterangan (teknisi/toko/alamat, hilang lewati), LOCATION nama toko; teks escape sesuai RFC5545 (\, \; \\ \n) + lipat baris 75 byte. Tanpa pesanan kembalikan kalender kosong legal; hanya ekspor pesanan sendiri.
 
@@ -606,18 +606,18 @@ Aturan: setiap tanggal 20 bisa menarik, T+1 masuk, jumlah minimum/batas kelipata
 
 | Metode | Jalur | Keterangan |
 |------|------|------|
-| POST | `/api/technician/attendance/check-in` | check-in masuk kerja (hari sama duplikat 422, indeks unik fallback bersamaan; >10:00 tandai terlambat) |
-| POST | `/api/technician/attendance/check-out` | check-out pulang kerja (belum masuk/sudah pulang 422, row lock bersamaan) |
-| GET | `/api/technician/attendance` | daftar kehadiran bulan ini + ringkasan hari hadir/jam kerja total/jam kerja rata-rata (?month=YYYY-MM, ilegal 422) |
+| POST | `/api/v1/technician/attendance/check-in` | check-in masuk kerja (hari sama duplikat 422, indeks unik fallback bersamaan; >10:00 tandai terlambat) |
+| POST | `/api/v1/technician/attendance/check-out` | check-out pulang kerja (belum masuk/sudah pulang 422, row lock bersamaan) |
+| GET | `/api/v1/technician/attendance` | daftar kehadiran bulan ini + ringkasan hari hadir/jam kerja total/jam kerja rata-rata (?month=YYYY-MM, ilegal 422) |
 
 ### 18. Antarmuka Kepatuhan Privasi (perlu otentikasi JWT, ronde ke-22)
 
 | Metode | Jalur | Keterangan |
 |------|------|------|
-| GET | `/api/privacy/data` | ekspor data (kelompok JSON personal/orders/points/wallet_txns/reviews/addresses/invoices; log server hanya catat nomor ponsel deidentifikasi+jumlah) |
-| POST | `/api/privacy/close-request` | ajukan penghapusan (saldo bukan 0 / pesanan belum selesai / tiket berlangsung 422; set close_status=1 + close_requested_at) |
-| POST | `/api/privacy/close-cancel` | batalkan pengajuan penghapusan (close_status 1→0) |
-| POST | `/api/privacy/close-confirm` | konfirmasi penghapusan (genap 72 jam baru bisa; close_status=2 + close_at + phone/nickname anonimisasi user{id} + status=0) |
+| GET | `/api/v1/privacy/data` | ekspor data (kelompok JSON personal/orders/points/wallet_txns/reviews/addresses/invoices; log server hanya catat nomor ponsel deidentifikasi+jumlah) |
+| POST | `/api/v1/privacy/close-request` | ajukan penghapusan (saldo bukan 0 / pesanan belum selesai / tiket berlangsung 422; set close_status=1 + close_requested_at) |
+| POST | `/api/v1/privacy/close-cancel` | batalkan pengajuan penghapusan (close_status 1→0) |
+| POST | `/api/v1/privacy/close-confirm` | konfirmasi penghapusan (genap 72 jam baru bisa; close_status=2 + close_at + phone/nickname anonimisasi user{id} + status=0) |
 
 **Intersepsi login**: akun close_status=2 login mengembalikan 403「Akun telah dihapus」.
 
@@ -625,9 +625,9 @@ Aturan: setiap tanggal 20 bisa menarik, T+1 masuk, jumlah minimum/batas kelipata
 
 | Metode | Jalur | Keterangan |
 |------|------|------|
-| GET | `/api/health-profile` | kueri arsip kesehatan saya (tanpa arsip kembalikan objek kosong) |
-| PUT | `/api/health-profile` | buat/perbarui (upsert, satu orang satu; allergies/health_notes batas atas 500 karakter, preferred_technician_id validasi keberadaan; hanya perbarui kolom yang diberikan, respons encode hashid) |
-| DELETE | `/api/health-profile` | hapus arsip saya (hanya sendiri) |
+| GET | `/api/v1/health-profile` | kueri arsip kesehatan saya (tanpa arsip kembalikan objek kosong) |
+| PUT | `/api/v1/health-profile` | buat/perbarui (upsert, satu orang satu; allergies/health_notes batas atas 500 karakter, preferred_technician_id validasi keberadaan; hanya perbarui kolom yang diberikan, respons encode hashid) |
+| DELETE | `/api/v1/health-profile` | hapus arsip saya (hanya sendiri) |
 
 Kolom: allergies(riwayat alergi)/health_notes(catatan kesehatan)/preferred_technician_id(teknisi preferensi, bisa kosong).
 
@@ -635,9 +635,9 @@ Kolom: allergies(riwayat alergi)/health_notes(catatan kesehatan)/preferred_techn
 
 | Metode | Jalur | Keterangan |
 |------|------|------|
-| POST | `/api/wallet/pay-password/set` | set kata sandi pembayaran (6 digit angka `\d{6}`; sudah diatur perlu kirim kata sandi lama 422 intersepsi) |
-| POST | `/api/wallet/pay-password/verify` | validasi kata sandi pembayaran (benar/salah kembalikan boolean, tidak masuk DB) |
-| POST | `/api/wallet/pay-password/check` | kueri apakah sudah diatur (set: true/false) |
+| POST | `/api/v1/wallet/pay-password/set` | set kata sandi pembayaran (6 digit angka `\d{6}`; sudah diatur perlu kirim kata sandi lama 422 intersepsi) |
+| POST | `/api/v1/wallet/pay-password/verify` | validasi kata sandi pembayaran (benar/salah kembalikan boolean, tidak masuk DB) |
+| POST | `/api/v1/wallet/pay-password/check` | kueri apakah sudah diatur (set: true/false) |
 
 Penyimpanan: hash password_hash() + pay_password_set_at, tidak pernah menyimpan teks polos.
 
@@ -645,7 +645,7 @@ Penyimpanan: hash password_hash() + pay_password_set_at, tidak pernah menyimpan 
 
 | Metode | Jalur | Keterangan |
 |------|------|------|
-| GET | `/api/order/{id}/timeline` | garis waktu perubahan status pesanan (urut turun; hanya sendiri, pesanan orang lain 404 tidak bocorkan keberadaan) |
+| GET | `/api/v1/order/{id}/timeline` | garis waktu perubahan status pesanan (urut turun; hanya sendiri, pesanan orang lain 404 tidak bocorkan keberadaan) |
 
 Titik tanam: submit/pembayaran (callback WeChat markOrderPaid titik konsumsi tunggal)/batal/konfirmasi teknisi/pengajuan refund/refund lulus/mulai layanan/selesai layanan/batal otomatis timeout/operasi backend (operator=admin) total 8 jenis perubahan.
 
@@ -653,37 +653,37 @@ Titik tanam: submit/pembayaran (callback WeChat markOrderPaid titik konsumsi tun
 
 | Metode | Jalur | Keterangan |
 |------|------|------|
-| GET | `/api/wheel/prizes` | daftar hadiah roda (sembunyikan kolom sensitif weight/stock) |
-| POST | `/api/wheel/spin` | undian sekali (Redis NX + row lock cegah bersamaan; undian berbobot random_int; poin→transaksi earn termasuk waktu kedaluwarsa, saldo→pencatatan lockForUpdate, kupon→pending terbit manual, tanpa hadiah→lose; client_token idempoten) |
-| GET | `/api/wheel/records` | catatan undian saya (paginasi) |
+| GET | `/api/v1/wheel/prizes` | daftar hadiah roda (sembunyikan kolom sensitif weight/stock) |
+| POST | `/api/v1/wheel/spin` | undian sekali (Redis NX + row lock cegah bersamaan; undian berbobot random_int; poin→transaksi earn termasuk waktu kedaluwarsa, saldo→pencatatan lockForUpdate, kupon→pending terbit manual, tanpa hadiah→lose; client_token idempoten) |
+| GET | `/api/v1/wheel/records` | catatan undian saya (paginasi) |
 
 ### 23. Antarmuka Mode Tamu (ronde ke-24)
 
 | Metode | Jalur | Keterangan |
 |------|------|------|
-| GET | `/api/guest/home` | agregat beranda (banner/pengumuman/kategori layanan/layanan populer, cache Redis svc:guest:home 300s) |
-| GET | `/api/guest/services` | daftar layanan (?category_id=hashid&sort=newest|sales|price&page/per_page≤50) |
-| GET | `/api/guest/services/{id}` | detail layanan (tidak ada 404) |
-| GET | `/api/guest/stores` | daftar toko |
-| GET | `/api/guest/technicians` | daftar teknisi (hanya lolos audit; filter ?service_id=hashid; rating urut turun) |
+| GET | `/api/v1/guest/home` | agregat beranda (banner/pengumuman/kategori layanan/layanan populer, cache Redis svc:guest:home 300s) |
+| GET | `/api/v1/guest/services` | daftar layanan (?category_id=hashid&sort=newest|sales|price&page/per_page≤50) |
+| GET | `/api/v1/guest/services/{id}` | detail layanan (tidak ada 404) |
+| GET | `/api/v1/guest/stores` | daftar toko |
+| GET | `/api/v1/guest/technicians` | daftar teknisi (hanya lolos audit; filter ?service_id=hashid; rating urut turun) |
 
-Pintu masuk jelajah tanpa login tanpa otentikasi (hanya middleware ApiVersion).
+Pintu masuk jelajah tanpa login tanpa otentikasi (antarmuka publik).
 
 ### 24. Antarmuka Flash Sale (perlu otentikasi JWT, ronde ke-24)
 
 | Metode | Jalur | Keterangan |
 |------|------|------|
-| GET | `/api/seckill` | daftar aktivitas flash sale (status=1 dan dalam jendela waktu; termasuk jumlah terjual = jumlah pesanan appointment_order.seckill_id, sisa stok) |
-| GET | `/api/seckill/{id}` | detail aktivitas (state=not_started/ongoing/ended) |
-| POST | `/api/seckill/{id}/buy` | pesan flash sale (client_token idempoten + Redis NX 30s cegah bersamaan + validasi aktivitas; tidak lagi pre-deduct stok) |
+| GET | `/api/v1/seckill` | daftar aktivitas flash sale (status=1 dan dalam jendela waktu; termasuk jumlah terjual = jumlah pesanan appointment_order.seckill_id, sisa stok) |
+| GET | `/api/v1/seckill/{id}` | detail aktivitas (state=not_started/ongoing/ended) |
+| POST | `/api/v1/seckill/{id}/buy` | pesan flash sale (client_token idempoten + Redis NX 30s cegah bersamaan + validasi aktivitas; tidak lagi pre-deduct stok) |
 
-**Aturan pemesanan (mulai 2026-08-26)**: stok seragam dipotong row lock dalam transaksi `/api/order store()`, buy hanya validasi pintu masuk/idempoten; harga flash sale = seckill_price (berdasarkan DB), tidak tumpuk kupon/poin/kartu member; pembatalan pesanan tidak isi ulang stok; panggil langsung `/api/order` bawa seckill_id juga potong stok.
+**Aturan pemesanan (mulai 2026-08-26)**: stok seragam dipotong row lock dalam transaksi `/api/v1/order store()`, buy hanya validasi pintu masuk/idempoten; harga flash sale = seckill_price (berdasarkan DB), tidak tumpuk kupon/poin/kartu member; pembatalan pesanan tidak isi ulang stok; panggil langsung `/api/v1/order` bawa seckill_id juga potong stok.
 
 ### 25. Antarmuka Pemeriksaan Versi APP (ronde ke-24)
 
 | Metode | Jalur | Keterangan |
 |------|------|------|
-| GET | `/api/app/version?platform=android|ios` | pemeriksaan versi terbaru (platform ilegal 422; tanpa versi kembalikan objek kosong; antarmuka publik) |
+| GET | `/api/v1/app/version?platform=android|ios` | pemeriksaan versi terbaru (platform ilegal 422; tanpa versi kembalikan objek kosong; antarmuka publik) |
 
 Respons: id/platform/version_code/version_name/force_update(1=paksa)/changelog/download_url.
 
@@ -691,7 +691,7 @@ Respons: id/platform/version_code/version_name/force_update(1=paksa)/changelog/d
 
 ## II. API Panel Admin (admin/ :8787)
 
-Header permintaan: `Authorization: Bearer <admin_token>`, `API-Version: v1`
+Header permintaan: `Authorization: Bearer <admin_token>`; versi antarmuka autentikasi publik mengikuti prefiks URL `/api/v1`
 
 ### Dashboard
 
@@ -884,7 +884,7 @@ ID izin: 407-411、420. Jumlah terjual = jumlah pesanan appointment_order.seckil
 | PUT | `/admin/versions/{id}` | edit |
 | DELETE | `/admin/versions/{id}` | hapus |
 
-ID izin: 416-419. Antarmuka deteksi pembaruan /api/app/version ambil versi terbaru (updated_at/id terbesar) di status=1.
+ID izin: 416-419. Antarmuka deteksi pembaruan /api/v1/app/version ambil versi terbaru (updated_at/id terbesar) di status=1.
 
 ### Ekspor Jadwal (ronde ke-24)
 

@@ -101,7 +101,7 @@ Events: `order_update` / `technician_online` / `system_notice`
 iOS (APNs): apns_key_id/team_id/bundle_id/.p8-Datei konfigurieren  
 Android (FCM): fcm_server_key konfigurieren
 
-APP-Geräteregistrierung: `POST /api/user/device/register {"platform":"ios","device_token":"..."}`
+APP-Geräteregistrierung: `POST /api/v1/user/device/register {"platform":"ios","device_token":"..."}`
 
 ---
 

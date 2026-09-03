@@ -127,8 +127,8 @@
 
 | Функция | Описание |
 |------|------|
-| Баланс кошелька | GET /api/wallet — баланс + история (таблицы user_wallet/wallet_recharge/wallet_txn) |
-| Пополнение | POST /api/wallet/recharge создаёт платёжное поручение; POST /api/wallet/recharge/{id}/pay — пополнение через WeChat Pay, в колбэке номер с префиксом R |
+| Баланс кошелька | GET /api/v1/wallet — баланс + история (таблицы user_wallet/wallet_recharge/wallet_txn) |
+| Пополнение | POST /api/v1/wallet/recharge создаёт платёжное поручение; POST /api/v1/wallet/recharge/{id}/pay — пополнение через WeChat Pay, в колбэке номер с префиксом R |
 | Оплата балансом | Канал оплаты заказа pay_channel=balance |
 | Возврат на баланс | Автоматический возврат на баланс при возврате WeChat/балансом (refundToBalance / creditRefundToWallet) |
 
@@ -144,8 +144,8 @@
 
 | Функция | Описание |
 |------|------|
-| Мои карты посещений | GET /api/marketing/cards/my — расчёт used_up/expired в реальном времени |
-| Подтверждение со списанием | POST /api/marketing/cards/use: идемпотентность Redis NX + блокировка строк lockForUpdate, прямое создание заказа completed + OrderItem + OrderPayment(pay_type='card') |
+| Мои карты посещений | GET /api/v1/marketing/cards/my — расчёт used_up/expired в реальном времени |
+| Подтверждение со списанием | POST /api/v1/marketing/cards/use: идемпотентность Redis NX + блокировка строк lockForUpdate, прямое создание заказа completed + OrderItem + OrderPayment(pay_type='card') |
 
 ### 13. Скидка по купонам (раунд 9)
 
@@ -160,7 +160,7 @@
 | Функция | Описание |
 |------|------|
 | Обмен | redeem: тип cash зачисляет на кошелёк (блокировка строк против двойного зачисления, WalletTxn type='gift_card'), тип gift только помечается |
-| Мои подарочные карты | GET /api/marketing/gift-cards/my |
+| Мои подарочные карты | GET /api/v1/marketing/gift-cards/my |
 
 ### 15. Бонусная система (раунды 9+10)
 
@@ -171,7 +171,7 @@
 | Возврат списывает | clawbackOrderPoints списывает пропорционально (3 точки подключения) |
 | Бонусы в зачёт оплаты | При оплате передаётся use_points, 100 бонусов = 1 юань (config app.points_rate), проверка баланса агрегатом SUM, запись расхода source=points_offset идемпотентна |
 | Возврат бонусов (раунд 15) | При отмене/возврате возвращаются points_offset: refundOffsetPoints в 5 точках подключения (doCancel 3 пути/doRefund транзакция WeChat/creditRefundToWallet/completeOneRefundCompensation), source=points_refund идемпотентно |
-| Детализация бонусов | GET /api/marketing/points — пагинация + фильтр type/source, type единообразно earn |
+| Детализация бонусов | GET /api/v1/marketing/points — пагинация + фильтр type/source, type единообразно earn |
 
 ### 16. Цепочка заказа в мини-программе (раунд 10)
 
@@ -201,8 +201,8 @@
 
 | Функция | Описание |
 |------|------|
-| Заявка на послепродажное обслуживание | POST /api/aftersales: type=refund/exchange, проверка своего заказа/paid+completed/дедупликация в рамках одного заказа |
-| Мои заявки | GET /api/aftersales пагинация + GET /api/aftersales/{id} детали |
+| Заявка на послепродажное обслуживание | POST /api/v1/aftersales: type=refund/exchange, проверка своего заказа/paid+completed/дедупликация в рамках одного заказа |
+| Мои заявки | GET /api/v1/aftersales пагинация + GET /api/v1/aftersales/{id} детали |
 | Поток проверки | В админке approve/reject (при rejected обязателен remark); approved — только смена статуса, возврат идёт существующим интерфейсом возврата заказа |
 
 ### 20. Групповые покупки/распродажа (раунд 15)
@@ -211,9 +211,9 @@
 
 | Функция | Описание |
 |------|------|
-| Список/детали акций | GET /api/promotions + /api/promotions/{id}, фильтр type group_buy/flash_sale |
-| Участие | POST /api/promotions/join/{id}: блокировка Redis NX против перепродажи (для flash_sale max_people — верхний предел запаса), повторное участие — 422, блокировка group_buy при заполнении, ленивое закрытие при истечении без заполнения (status ставится 0 при show/join) |
-| Список участников | GET /api/promotions/{id}/participants |
+| Список/детали акций | GET /api/v1/promotions + /api/v1/promotions/{id}, фильтр type group_buy/flash_sale |
+| Участие | POST /api/v1/promotions/join/{id}: блокировка Redis NX против перепродажи (для flash_sale max_people — верхний предел запаса), повторное участие — 422, блокировка group_buy при заполнении, ленивое закрытие при истечении без заполнения (status ставится 0 при show/join) |
+| Список участников | GET /api/v1/promotions/{id}/participants |
 | Исправление статусов | Статус PromotionParticipant переведён на целочисленные константы 0/1/2/3 (исправлено повреждение join 1366 в строгом режиме) |
 
 ### 21. Заказ по групповой покупке при формировании группы (раунд 16)
@@ -221,7 +221,7 @@
 | Функция | Описание |
 |------|------|
 | Групповая цена | join в ответе возвращает discount_percent/original_price/group_price |
-| Групповой заказ | POST /api/order с promotion_id: проверки — только group_buy/акция активна/вызывающий — участник/не заполнена/услуга совпадает; групповая цена = исходная × discount_percent/100, купоны/карты посещений/бонусы запрещены к суммированию (422) |
+| Групповой заказ | POST /api/v1/order с promotion_id: проверки — только group_buy/акция активна/вызывающий — участник/не заполнена/услуга совпадает; групповая цена = исходная × discount_percent/100, купоны/карты посещений/бонусы запрещены к суммированию (422) |
 | Пометка заказа | В appointment_order добавлены колонки promotion_id/participant_id + индексы |
 | Несформированная группа | По истечении без заполнения — акция закрывается + массовая отмена pending-заказов акции (идемпотентно); pay() лениво определяет закрытие и автоматически отменяет заказ и освобождает блокировку мастера |
 
@@ -233,22 +233,22 @@
 | Точка подключения | ReferralRewardService::handleOrderCompleted подключается в транзакции WorkController::complete (serving→completed — единственный вход; подтверждение verify идёт только до serving и не запускает), при сбое — полный откат с возможностью повтора |
 | Идемпотентность | lockForUpdate по appointment_user_referral + проверка rewarded_at на пустоту + повторная проверка первого заказа внутри блокировки (при параллелизме/повторных вызовах выдача только одна) |
 | Зачисление | Блокировка строк кошелька с накоплением + WalletTxn type='referral_reward' (balance_after + номер заказа в remark); в запись приглашения пишутся reward_type/reward_amount/rewarded_at/first_order_at |
-| Детализация | GET /api/user/referral/earnings — пагинация (никнейм/аватар приглашённого/номер заказа/сумма/время) |
+| Детализация | GET /api/v1/user/referral/earnings — пагинация (никнейм/аватар приглашённого/номер заказа/сумма/время) |
 
 ### 23. Магазин обмена бонусов (раунд 16)
 
 | Функция | Описание |
 |------|------|
 | Товары обмена | appointment_points_exchange_goods: type=coupon/gift_card/wallet, points_cost/value (DECIMAL(25,2) против потери точности ID при снежной лавине)/stock/status |
-| Список товаров | GET /api/marketing/points-exchange: опубликованные товары + остаток запаса в реальном времени + количество обменов |
-| Обмен | POST /api/marketing/points-exchange/{id}: блокировка Redis NX + блокировка строк товара против перевыдачи; проверка SUM бонусов (недостаточно — 422) + списание UserPoints type='consume' source='exchange'; coupon выдаёт купон / wallet зачисляет (WalletTxn points_exchange) / gift_card возвращает карту |
+| Список товаров | GET /api/v1/marketing/points-exchange: опубликованные товары + остаток запаса в реальном времени + количество обменов |
+| Обмен | POST /api/v1/marketing/points-exchange/{id}: блокировка Redis NX + блокировка строк товара против перевыдачи; проверка SUM бонусов (недостаточно — 422) + списание UserPoints type='consume' source='exchange'; coupon выдаёт купон / wallet зачисляет (WalletTxn points_exchange) / gift_card возвращает карту |
 | Идемпотентность | Уникальный индекс uk_user_goods — один пользователь на один товар максимум один обмен + повторная проверка внутри блокировки + запасной перехват 1062; запись обмена со снимком в appointment_user_points_exchange |
 
 ### 24. Перенос записи (раунд 17)
 
 | Функция | Описание |
 |------|------|
-| Интерфейс | POST /api/order/reschedule/{id}: new_service_time (обязательно) + reason (опционально), смена времени у того же мастера |
+| Интерфейс | POST /api/v1/order/reschedule/{id}: new_service_time (обязательно) + reason (опционально), смена времени у того же мастера |
 | Правила | Только свой заказ (не свой — 404); только тип appointment и статус pending/paid/confirmed (иначе 422); до начала исходной услуги ≥ 6 часов (совпадает с окном полного возврата) |
 | Защита от параллелизма | B1 order_lock (та же группа взаимного исключения, что pay/cancel/refund) → блокировка мастера на новый слот Redis SETNX EX 180 (параллельные переносы против перепродажи) → блокировка строк с повторным чтением в транзакции + проверка конфликтов расписания B2 в БД (с исключением данного заказа) |
 | Завершение | Обновление service_time + запись в appointment_order_reschedule (включая reason) + снятие блокировки исходного слота/удерживаемой блокировки нового слота данного заказа; при сбое транзакция откатывается и блокировка нового слота снимается |
@@ -258,7 +258,7 @@
 
 | Функция | Описание |
 |------|------|
-| Интерфейсы | POST /api/marketing/coupons/transfer (user_coupon_id) генерирует 8-значный код передачи без мешающих символов (uk_code как запасной, действует 7 дней); POST /api/marketing/coupons/claim (code) — получение; GET /api/marketing/coupons/transfers — отправленные (pending/claimed/expired) + полученные (claimed), пагинация |
+| Интерфейсы | POST /api/v1/marketing/coupons/transfer (user_coupon_id) генерирует 8-значный код передачи без мешающих символов (uk_code как запасной, действует 7 дней); POST /api/v1/marketing/coupons/claim (code) — получение; GET /api/v1/marketing/coupons/transfers — отправленные (pending/claimed/expired) + полученные (claimed), пагинация |
 | Проверки | Купон свой/available/определение купона не истекло/не передавался ранее (422); нельзя получить переданный самому себе купон, получатель не исходный владелец |
 | Против злоупотреблений | Блокировка Redis NX coupon_transfer_claim:{code} (30с) + повторная проверка блокировкой строк в транзакции против двойного списания; уникальный индекс uk_user_coupon ограничивает одну передачу одного купона; полученный купон нельзя передавать дальше (у нового купона нет записи передачи — естественная блокировка); ленивое определение истечения ставит expired + возвращает исходному купону available |
 | Получение | В транзакции исходный купон ставится used + создаётся новый UserCoupon, привязанный к получателю (coupon_id не меняется — срок действия не меняется) + запись передачи ставится claimed |
@@ -274,11 +274,11 @@
 
 ### 27. Заказ по распродаже (раунд 18, отключено)
 
-> Заменено каналом `/api/seckill` из раунда 24 (в ветке акций store() остались только групповые покупки), см. «43. Распродажа».
+> Заменено каналом `/api/v1/seckill` из раунда 24 (в ветке акций store() остались только групповые покупки), см. «43. Распродажа».
 
 | Функция | Описание |
 |------|------|
-| Интерфейс | POST /api/order с promotion_id (тип flash_sale): цена распродажи = round(total × (100 − discount_percent)/100, 2), трактовка совпадает с ценой распродажи PromotionController |
+| Интерфейс | POST /api/v1/order с promotion_id (тип flash_sale): цена распродажи = round(total × (100 − discount_percent)/100, 2), трактовка совпадает с ценой распродажи PromotionController |
 | Проверки | Белый список типов [group_buy, flash_sale] (иначе 422); акция в процессе; вызывающий — участник; услуга заказа совпадает с акцией; распродано participants_count ≥ max_people — 422 «Всё разобрано»; купоны/карты посещений/бонусы запрещены к суммированию — 422 |
 | Истечение | pay() лениво определяет isFlashSaleClosed (по той же модели, что isGroupBuyClosed): распродажа истекла → акция ставится 0 + массовая отмена pending-заказов акции + автоматическая отмена данного заказа + снятие блокировки мастера — 422 |
 
@@ -295,7 +295,7 @@
 
 | Функция | Описание |
 |------|------|
-| Интерфейс | POST /api/technician/review/reply/{order_id} (middleware роли мастера): отзыв не существует/не свой — единообразно 404; уже есть ответ — 422 (идемпотентный отказ без перезаписи); пустой ответ — 422 |
+| Интерфейс | POST /api/v1/technician/review/reply/{order_id} (middleware роли мастера): отзыв не существует/не свой — единообразно 404; уже есть ответ — 422 (идемпотентный отказ без перезаписи); пустой ответ — 422 |
 | После ответа | Внутрисайтовое уведомление пользователю (type='review_reply', неблокирующий try/catch + Log) |
 | Данные | В appointment_order_review идемпотентно добавлена колонка replied_at (колонка reply была в таблице изначально); в админке list/show отзывов через decorate()->toArray() отдаются reply/replied_at |
 
@@ -311,33 +311,33 @@
 
 | Функция | Описание |
 |------|------|
-| Интерфейс | POST /api/wallet/transfer: декодирование hashid получателя + проверка существования — 404, перевод себе — 422, сумма 0.01-1000 за операцию — 422 (сравнение DECIMAL, float запрещён), нехватка баланса — 422, дневной накопительный лимит 5000 юаней — 422 |
+| Интерфейс | POST /api/v1/wallet/transfer: декодирование hashid получателя + проверка существования — 404, перевод себе — 422, сумма 0.01-1000 за операцию — 422 (сравнение DECIMAL, float запрещён), нехватка баланса — 422, дневной накопительный лимит 5000 юаней — 422 |
 | Параллелизм/идемпотентность | Блокировка Redis NX wallet_transfer:{from} 30с сериализует отправителя; в транзакции lockForUpdate по кошелькам обеих сторон в порядке возрастания user_id (фиксированный порядок против взаимоблокировок); после успеха client_token SETNX на 24ч против повторной отправки (неудачные запросы не оставляют токен — можно повторить) |
 | Зачисление | Списание у отправителя + зачисление получателю + двойная запись WalletTxn (transfer_out/transfer_in со снимком balance_after) + запись перевода completed + внутрисайтовое уведомление получателю type='balance_received' (при сбое — только запись в лог) |
-| Записи | GET /api/wallet/transfers (пагинация direction=out/in) + GET /transfers/{id} (видят только обе стороны — иначе 404) |
+| Записи | GET /api/v1/wallet/transfers (пагинация direction=out/in) + GET /transfers/{id} (видят только обе стороны — иначе 404) |
 
 ### 32. Передача бонусов (раунд 19)
 
 | Функция | Описание |
 |------|------|
-| Интерфейс | POST /api/user/points/transfer: получатель существует — 404, себе — 422, количество 1-10000 — 422, баланс SUM недостаточен — 422, дневной лимит 10000 — 422 |
+| Интерфейс | POST /api/v1/user/points/transfer: получатель существует — 404, себе — 422, количество 1-10000 — 422, баланс SUM недостаточен — 422, дневной лимит 10000 — 422 |
 | Параллелизм/идемпотентность | Блокировка Redis NX points_transfer:{user} 30с; в транзакции lockForUpdate по последним записям обеих сторон (возрастание user_id против взаимоблокировок при взаимных переводах) + повторная проверка баланса/лимита/получателя внутри блокировки |
 | Нормы записей | Отправитель type=consume source=points_transfer отрицательное (balance = предыдущий снимок − текущая, та же трактовка, что points_offset/exchange); получатель type=earn source=points_transfer положительное с expires_at (PointsExpiryTimer нормально истекает); в транзакции пишется запись перевода, после commit — внутрисайтовое уведомление получателю type='points_received' |
-| Записи | GET /api/user/points/transfers (пагинация direction=sent/received, никнейм контрагента) |
+| Записи | GET /api/v1/user/points/transfers (пагинация direction=sent/received, никнейм контрагента) |
 
 ### 33. Дополнение к отзыву + дорегистрация маршрута отправки (раунд 19)
 
 | Функция | Описание |
 |------|------|
-| Дополнение | POST /api/order/review/{order_id}/append: отзыв не существует/не свой — единообразно 404, не completed — 422, повторное дополнение — 422 (если append_content/append_at непустые — отказ), пустое содержание — 422; при успехе пишутся append_content/append_images(JSON)/append_at + внутрисайтовое уведомление мастеру type='review_append' |
-| Отправка отзыва | Дозарегистрирован POST /api/order/review/{order_id} (у ReviewController::store исходно не было маршрута — был недоступен); заодно исправлен скрытый TypeError: findByOrderId получал int при сигнатуре string (по аналогии с приведением (string) в append), дорегистрация сразу выдала бы 500 при вызове |
+| Дополнение | POST /api/v1/order/review/{order_id}/append: отзыв не существует/не свой — единообразно 404, не completed — 422, повторное дополнение — 422 (если append_content/append_at непустые — отказ), пустое содержание — 422; при успехе пишутся append_content/append_images(JSON)/append_at + внутрисайтовое уведомление мастеру type='review_append' |
+| Отправка отзыва | Дозарегистрирован POST /api/v1/order/review/{order_id} (у ReviewController::store исходно не было маршрута — был недоступен); заодно исправлен скрытый TypeError: findByOrderId получал int при сигнатуре string (по аналогии с приведением (string) в append), дорегистрация сразу выдала бы 500 при вызове |
 | Данные | В appointment_order_review добавлены три колонки append_content TEXT/append_images JSON/append_at DATETIME (идемпотентная миграция); в ответе отдаются поля append |
 
 ### 34. Отслеживание доставки в пользовательской части (раунд 19)
 
 | Функция | Описание |
 |------|------|
-| Интерфейс | GET /api/order/logistics/{id}: только свои заказы product (не свой/не товар/не отправлен — единообразно 404) |
+| Интерфейс | GET /api/v1/order/logistics/{id}: только свои заказы product (не свой/не товар/не отправлен — единообразно 404) |
 | Данные | Чтение order.remark JSON (shipping_company/tracking_no/shipped_at, пишутся при отправке в admin MallOrderController::ship()); parseShippingInfo/parseReceiver — двойной разбор с запасом под старый формат |
 | Маскирование | Телефон получателя maskPhone (138****5678) против утечки |
 
@@ -346,7 +346,7 @@
 | Функция | Описание |
 |------|------|
 | Данные | Таблица appointment_user_notify_setting (составной уникальный ключ user_id+type uk_user_type, отсутствующая строка = включено по умолчанию); 5 типов: service_reminder напоминание об услуге / card_expiry напоминание об истечении (зонт для карт и купонов) / points_expiry истечение бонусов / marketing маркетинг (задел) / system системные (нельзя отключить, PUT принудительно ставит 1) |
-| Интерфейсы | GET /api/user/notify-settings возвращает все 5 переключателей; PUT — массовый upsert без дублирующих строк |
+| Интерфейсы | GET /api/v1/user/notify-settings возвращает все 5 переключателей; PUT — массовый upsert без дублирующих строк |
 | Управление | NotificationReminderService::notifySettingEnabled подключается к 3 таймерным процессам (ServiceReminderTimer/ExpiryReminderTimer карты+купоны/PointsExpiryTimer; таймеры пишут прямо в appointment_notification минуя сервисный путь записи, поэтому каждый добавляет такую же проверку) + события подписки (sendSubscribeForOrderEvent/Notification: сценарии PAY/REFUND/VERIFIED/RESCHEDULE→system всегда отправляются, REMINDER→service_reminder, EXPIRY→card_expiry); при выключенном типе пропускаются и внутрисайтовые уведомления, и подписочные сообщения |
 
 ---
@@ -468,7 +468,7 @@ Flutter Web — одностраничное приложение, всего 21
 
 ### 16. Рабочее место управляющего (раунд 15)
 
-- service /api/store-manager: overview (сегодняшние заказы/выручка/в процессе/мастера/подтверждения) + orders (пагинация + фильтр статусов) + technicians (включая сегодняшнее расписание) + revenue (агрегат за 7 дней), requireStoreId() принудительно изолирует store_id (без филиала — 403)
+- service /api/v1/store-manager: overview (сегодняшние заказы/выручка/в процессе/мастера/подтверждения) + orders (пагинация + фильтр статусов) + technicians (включая сегодняшнее расписание) + revenue (агрегат за 7 дней), requireStoreId() принудительно изолирует store_id (без филиала — 403)
 - admin StoreController::workbenchOverview (GET /admin/stores/workbench-overview?store_id=, трактовка как в service) + фильтр по store_id в списке заказов AppointmentOrderController (декодирование hashid)
 - Страница рабочего места филиала Flutter: выпадающий список филиалов + фильтр статусов + 5 карточек обзора + DataTable заказов + пагинация (право 372)
 
@@ -498,7 +498,7 @@ Flutter Web — одностраничное приложение, всего 21
 
 ### 21. Календарь записи (раунд 20)
 
-- CalendarController вид месяц/день: GET /api/calendar/technician/{id} (месяц) + /day (день)
+- CalendarController вид месяц/день: GET /api/v1/calendar/technician/{id} (месяц) + /day (день)
 - Источник данных: time_slots JSON из technician_schedule разворачивается по дням недели в часовые слоты, занятые слоты appointment_order этого дня исключаются (status ∈ pending/paid/confirmed/serving), выводятся оставшиеся доступные слоты
 - Назначение: визуальный выбор времени по расписанию филиала, фронтенд — горизонтальная прокрутка по дням + выбор точки времени
 
@@ -506,20 +506,20 @@ Flutter Web — одностраничное приложение, всего 21
 
 - appointment_user_growth (записи) + appointment_growth_level (сид 5 уровней: бронза 0/серебро 100/золото 500/платина 2000/бриллиант 5000)
 - Точки начисления роста: отметка +10 (CheckInController); отправка отзыва +20 (ReviewController::store, дополнение не начисляет); покупки floor(paid) — 1 балл за каждый юань (WechatPayService::markOrderPaid, переиспользование существующей проверки статуса оплаты даёт естественную идемпотентность, повторный колбэк не начисляет повторно)
-- Интерфейсы: GET /api/growth (обзор текущего уровня: balance/level/разница до следующего); GET /api/growth/records (пагинация записей); GET /api/growth/levels (публичный список уровней, вход не нужен)
+- Интерфейсы: GET /api/v1/growth (обзор текущего уровня: balance/level/разница до следующего); GET /api/v1/growth/records (пагинация записей); GET /api/v1/growth/levels (публичный список уровней, вход не нужен)
 - Стратегия при сбое: любая точка начисления в try/catch с записью в лог, основной процесс не страдает
 
 ### 23. Электронные счета (раунд 20)
 
 - appointment_invoice: uk_order_type(order_id,order_type) против повторной заявки на один заказ (повторная заявка — 422, включая запасной перехват MySQL 1062); idx_user_created/idx_status
-- Пользовательская часть: POST /api/invoices (заявка, сумма/реквизиты берутся с сервера из заказа, подделать нельзя); GET /api/invoices (список); GET /api/invoices/{id} (детали)
+- Пользовательская часть: POST /api/v1/invoices (заявка, сумма/реквизиты берутся с сервера из заказа, подделать нельзя); GET /api/v1/invoices (список); GET /api/v1/invoices/{id} (детали)
 - Админка: InvoiceController issue (выписка: invoice_no + status=issued + issued_at) / reject (отклонение: status=rejected + reject_reason), права 382 список/383 выписка/384 отклонение
 - Конечный автомат: pending → issued / rejected
 
 ### 24. Тикеты поддержки (раунд 20)
 
 - appointment_ticket: пользователь создаёт тикет (title/content), в админке добавляются ответы (reply_content/replied_at), пользователь может закрыть (closed_at)
-- Пользовательская часть: POST /api/tickets (создание); GET /api/tickets (список); GET /api/tickets/{id} (детали, только свои); POST /api/tickets/{id}/close (закрытие)
+- Пользовательская часть: POST /api/v1/tickets (создание); GET /api/v1/tickets (список); GET /api/v1/tickets/{id} (детали, только свои); POST /api/v1/tickets/{id}/close (закрытие)
 - Админка: TicketController index (список) / reply (ответ), статические маршруты определяются раньше resource против затенения {id}; права 385 ответ на тикет/387 просмотр списка тикетов
 - Конечный автомат: open → replied (после ответа возвращается в open, можно отвечать снова) / closed
 
@@ -535,12 +535,12 @@ Flutter Web — одностраничное приложение, всего 21
 - Реализация пустого JSON GrowthLevel.benefits: сид миграции 5 уровней (бронза {"discount_rate":1.0,"points_multiplier":1.0}, серебро 0.98/1.1, золото 0.95/1.2, платина 0.92/1.3, бриллиант 0.9/1.5)
 - Скидка уровня: в OrderController::store applyGrowthDiscount() — только стандартные заказы (promotion_id пуст, для групповых/распродажи суммирование запрещено); порядок: сумма к оплате после купона/карты посещений × discount_rate; сумма скидки включается в discount_amount, в примечание заказа добавляется «Скидка уровня: серебро −2%, скидка ¥2.00» для трассируемости; защита минимальной цены: фактическая оплата после скидки ≥0.01 юаня (в фэнях ≥100), при недостатке скидка обрезается до 0
 - Множитель бонусов: в WechatPayService::markOrderPaid рост изменён с floor(paid) на floor(paid × points_multiplier), множитель берётся по уровню на момент оплаты (начисление до зачисления, этот заказ уровень не повышает); точки подключения try/catch из R20 полностью сохранены
-- Переиспользование запросов: GrowthLevel::levelForGrowth() берёт уровень по накопленному росту, используется при заказе/оплате; GET /api/growth уже возвращает benefits и next_gap (реализовано в R20, менять не нужно)
+- Переиспользование запросов: GrowthLevel::levelForGrowth() берёт уровень по накопленному росту, используется при заказе/оплате; GET /api/v1/growth уже возвращает benefits и next_gap (реализовано в R20, менять не нужно)
 
 ### 27. Управление реквизитами счёта (раунд 21)
 
 - appointment_invoice_title (uk_user_title(user_id, title_type, invoice_title) против дублей + idx_user_default)
-- Интерфейсы: POST /api/invoice-titles (сохранение, company обязательно с tax_no, повтор — 422); GET (список, по умолчанию вверху); PUT /{id} (редактирование, только свои); DELETE /{id} (удаление, только свои); POST /{id}/default (установка по умолчанию, в транзакции обнуляются остальные строки пользователя)
+- Интерфейсы: POST /api/v1/invoice-titles (сохранение, company обязательно с tax_no, повтор — 422); GET (список, по умолчанию вверху); PUT /{id} (редактирование, только свои); DELETE /{id} (удаление, только свои); POST /{id}/default (установка по умолчанию, в транзакции обнуляются остальные строки пользователя)
 - Правила по умолчанию: первая сохранённая автоматически становится по умолчанию; после удаления по умолчанию автоматически назначается самая ранняя
 - Связь с заявкой: InvoiceController::store опционально принимает title_id, реквизиты подтягиваются в invoice_title/tax_no/title_type, при отсутствии title_id сохраняется прежний путь ручного ввода; логика защиты uk_order_type не тронута
 
@@ -561,19 +561,19 @@ Flutter Web — одностраничное приложение, всего 21
 
 - appointment_browse_history (uk_user_item(user_id, item_id) уникальный — повторный просмотр только обновляет viewed_at без повторной вставки; idx_user_viewed для сортировки)
 - Подключение записи: ServiceController::detail() записывает после успеха (try/catch + Log::warning без влияния на основной процесс; публичный маршрут без JWT, при пустом user_id аноним пропускается)
-- Интерфейсы: GET /api/browse-history (join appointment_service — название/обложка/цена/исходная цена, сортировка viewed_at по убыванию, per_page по умолчанию 15, максимум 50, item_id в hashid); DELETE /{item_id} (только свои, чужие/недопустимые — 404); DELETE / (очистка только своих)
+- Интерфейсы: GET /api/v1/browse-history (join appointment_service — название/обложка/цена/исходная цена, сортировка viewed_at по убыванию, per_page по умолчанию 15, максимум 50, item_id в hashid); DELETE /{item_id} (только свои, чужие/недопустимые — 404); DELETE / (очистка только своих)
 
 ### 31. Акция «скидка при достижении суммы» (раунд 22)
 
 - appointment_full_reduction_activity (threshold/reduction/title/status/start_at/end_at + idx_status_status_time)
 - Наложение при заказе: только стандартные заказы (групповые/распродажа пропускаются), порог считается по сумме к оплате после купона/карты посещений, порядок **купон/карта посещений → скидка при достижении → скидка уровня**; берётся акция с максимальной суммой скидки; сумма скидки включается в discount_amount + примечание «Скидка при достижении: при сумме X скидка Y»; нижний предел фактической оплаты после скидки 0.01 юаня (в фэнях)
-- Пользовательская часть GET /api/full-reduction-activities (публичный, действующие по убыванию суммы скидки)
+- Пользовательская часть GET /api/v1/full-reduction-activities (публичный, действующие по убыванию суммы скидки)
 - admin FullReductionController: CRUD + toggle-status вкл-выкл (destroy с confirmPassword)
 - Права: 396 список / 397 добавление / 398 редактирование / 399 вкл-выкл / 400 удаление (одна запись права соответствует одному slug method.path, 5 маршрутов — 5 записей)
 
 ### 32. Экспорт моих записей в ICS (раунд 22)
 
-- IcsController GET /api/order/ics: заказы за 90 дней со статусами pending/paid/confirmed/serving экспортируются в iCal (RFC5545), только свои
+- IcsController GET /api/v1/order/ics: заказы за 90 дней со статусами pending/paid/confirmed/serving экспортируются в iCal (RFC5545), только свои
 - VEVENT: UID=ID заказа, DTSTAMP(UTC), TZID=Asia/Shanghai, длительность по умолчанию 1ч, сводка «Запись: название услуги» (при отсутствии — «Запись»), описание мастер/филиал/адрес (отсутствующие пропускаются), LOCATION; экранирование текста (\, \; \\ \n) + перенос строк по 75 байтам
 - При отсутствии заказов возвращается корректный пустой календарь (скелет `BEGIN:VCALENDAR`)
 
@@ -599,59 +599,59 @@ Flutter Web — одностраничное приложение, всего 21
 
 ### 36. Конфиденциальность (раунд 22)
 
-- GET /api/privacy/data: экспорт данных (группы personal/orders/points/wallet_txns/reviews/addresses/invoices; в лог — только маскированный телефон + количество)
+- GET /api/v1/privacy/data: экспорт данных (группы personal/orders/points/wallet_txns/reviews/addresses/invoices; в лог — только маскированный телефон + количество)
 - Замкнутый цикл удаления: close-request (баланс не 0 / незавершённые заказы / активные тикеты — 422 → close_status=1) → close-cancel (1→0) → close-confirm (прошло 72ч → close_status=2 + close_at + анонимизация phone/nickname в user{id} + status=0)
 - В appointment_user добавлены close_status/close_requested_at/close_at (идемпотентная миграция ALTER); AuthController login/loginByCode для close_status=2 возвращает 403 «Учётная запись удалена»
 
 ### 37. Медицинский профиль пользователя (раунд 23)
 
-- GET/PUT/DELETE /api/health-profile: один профиль на человека (уникальный индекс uk_user), upsert обновляет только переданные поля
+- GET/PUT/DELETE /api/v1/health-profile: один профиль на человека (уникальный индекс uk_user), upsert обновляет только переданные поля
 - allergies/health_notes до 500 знаков, preferred_technician_id проверяется на существование, ответ в hashid-кодировке
 - Миграция 000504_user_health_profile; HealthProfileTest 6 tests
 
 ### 38. Платёжный пароль кошелька (раунд 23)
 
-- POST /api/wallet/pay-password/{set,verify,check}: проверка 6 цифр, хранение password_hash + pay_password_set_at
+- POST /api/v1/wallet/pay-password/{set,verify,check}: проверка 6 цифр, хранение password_hash + pay_password_set_at
 - При установленном пароле смена требует старый пароль — 422; verify только проверяет без записи; check возвращает, установлен ли
 - Миграция 000502 (идемпотентный ALTER двух колонок через INFORMATION_SCHEMA); WalletPayPasswordTest 7 tests
 
 ### 39. Массовое составление расписания мастера (раунд 23)
 
-- POST /api/technician/schedule/batch: диапазон дат ≤7 дней + фильтр weekdays, дни с существующим расписанием пропускаются
+- POST /api/v1/technician/schedule/batch: диапазон дат ≤7 дней + фильтр weekdays, дни с существующим расписанием пропускаются
 - Одиночная установка тоже включает проверку перекрытия временных слотов (422 «Конфликт с существующим расписанием: HH:MM-HH:MM»)
 - ScheduleConflictTest 5 tests
 
 ### 40. Таймлайн статусов заказа (раунд 23)
 
-- GET /api/order/{id}/timeline: только свои (чужие — 404), возврат по убыванию; в админке детали заказа включают массив timeline
+- GET /api/v1/order/{id}/timeline: только свои (чужие — 404), возврат по убыванию; в админке детали заказа включают массив timeline
 - OrderStatusLog::record() — статические точки записи 8 типов изменений: отправка/оплата/отмена/подтверждение/заявка на возврат/возврат одобрен/начало услуги/завершение услуги/автоотмена по таймауту/операция админки (operator=admin)
 - Платёжный колбэк markOrderPaid — единая точка расхода; внутри record() try/catch + Log::warning никогда не блокирует основной процесс
 - Миграция 000501_order_status_log; OrderTimelineTest 4 tests
 
 ### 41. Колесо удачи за бонусы (раунд 23)
 
-- GET /api/wheel/prizes (скрыты weight/stock); POST /api/wheel/spin: Redis NX + блокировка строк против параллелизма, взвешенный выбор random_int, идемпотентность client_token
+- GET /api/v1/wheel/prizes (скрыты weight/stock); POST /api/v1/wheel/spin: Redis NX + блокировка строк против параллелизма, взвешенный выбор random_int, идемпотентность client_token
 - Зачисление призов: бонусы → запись earn (с временем истечения, нормально истекает через PointsExpiryTimer), баланс → lockForUpdate, купон → pending ручная выдача, без выигрыша → lose
-- GET /api/wheel/records — мои записи с пагинацией; admin /admin/lucky-wheel CRUD + вкл-выкл + записи (права 401-406)
+- GET /api/v1/wheel/records — мои записи с пагинацией; admin /admin/lucky-wheel CRUD + вкл-выкл + записи (права 401-406)
 - Миграции 000503 (appointment_lucky_wheel + appointment_wheel_record + демо-сид w60/w40) + 000505 (сид прав); LuckyWheelTest admin 3 + service 6 tests
 
 ### 42. Гостевой режим (раунд 24)
 
-- GET /api/guest/{home,services,services/{id},stores,technicians}: вход без аутентификации (только middleware ApiVersion) для просмотра без входа
+- GET /api/v1/guest/{home,services,services/{id},stores,technicians}: вход без аутентификации (публичный интерфейс) для просмотра без входа
 - home агрегирует карусель/объявления/категории услуг/популярные услуги, кэш Redis svc:guest:home 300с; services поддерживает фильтр категорий + сортировку newest/sales/price (page/per_page≤50); technicians — только одобренные, фильтр по service_id, рейтинг по убыванию
 - Покрытие GuestControllerTest
 
 ### 43. Распродажа (раунд 24)
 
 - appointment_seckill_activity (name/service_id/seckill_price/original_price/stock/start_at/end_at/status); продано = количество заказов appointment_order.seckill_id
-- GET /api/seckill (status=1 + временное окно), /{id} (state=not_started/ongoing/ended), POST /{id}/buy: идемпотентность client_token (8-64 символа, SETNX 24ч) + Redis NX 30с против параллелизма + проверка акции (с 2026-08-26 предварительное резервирование запаса отменено)
-- При заказе подставляется seckill_id с переиспользованием OrderController::store; запас единообразно списывается блокировкой строк внутри транзакции store() (прямой вызов /api/order с seckill_id тоже списывает запас), цена распродажи = seckill_price (по данным БД), купоны/бонусы/карты участника не суммируются; при отмене заказа запас не восполняется; старый канал FLASH_SALE удалён (в ветке акций store() остались только групповые покупки, PromotionController index фильтрует flash_sale, show/join — 400), распродажа идёт только этим каналом
+- GET /api/v1/seckill (status=1 + временное окно), /{id} (state=not_started/ongoing/ended), POST /{id}/buy: идемпотентность client_token (8-64 символа, SETNX 24ч) + Redis NX 30с против параллелизма + проверка акции (с 2026-08-26 предварительное резервирование запаса отменено)
+- При заказе подставляется seckill_id с переиспользованием OrderController::store; запас единообразно списывается блокировкой строк внутри транзакции store() (прямой вызов /api/v1/order с seckill_id тоже списывает запас), цена распродажи = seckill_price (по данным БД), купоны/бонусы/карты участника не суммируются; при отмене заказа запас не восполняется; старый канал FLASH_SALE удалён (в ветке акций store() остались только групповые покупки, PromotionController index фильтрует flash_sale, show/join — 400), распродажа идёт только этим каналом
 - admin /admin/seckill CRUD + вкл-выкл + список заказов (права 407-411, 420); миграция 000606 сид прав; SeckillTest service + admin
 
 ### 44. Управление версиями APP и проверка обновлений (раунд 24)
 
 - appointment_app_version (platform/version_code/version_name/force_update/changelog/download_url/status)
-- GET /api/app/version?platform=android|ios — публичная проверка обновлений (недопустимая platform — 422; из status=1 берётся последняя; нет — пустой объект)
+- GET /api/v1/app/version?platform=android|ios — публичная проверка обновлений (недопустимая platform — 422; из status=1 берётся последняя; нет — пустой объект)
 - admin /admin/versions CRUD (права 416-419); миграция 000609 сид прав; VersionTest service + admin
 
 ### 45. Награда постоянному клиенту (раунд 24)

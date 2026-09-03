@@ -149,7 +149,7 @@ class GuestTest extends TestCase
     #[Test] public function services_returns_paginated_list(): void
     {
         $resp = $this->body($this->guest()->services(
-            $this->makeRequest('/api/guest/services?page=1&per_page=5')
+            $this->makeRequest('/api/v1/guest/services?page=1&per_page=5')
         ));
 
         $this->assertSame(0, $resp['code']);
@@ -166,7 +166,7 @@ class GuestTest extends TestCase
         $service  = $this->makeService($category->id, '游客分类专属服务');
 
         $resp = $this->body($this->guest()->services(
-            $this->makeRequest('/api/guest/services?category_id=' . $this->hashidOf($category->id))
+            $this->makeRequest('/api/v1/guest/services?category_id=' . $this->hashidOf($category->id))
         ));
 
         $this->assertSame(0, $resp['code']);
@@ -230,7 +230,7 @@ class GuestTest extends TestCase
     #[Test] public function technicians_returns_list_with_rating(): void
     {
         $resp = $this->body($this->guest()->technicians(
-            $this->makeRequest('/api/guest/technicians?per_page=5')
+            $this->makeRequest('/api/v1/guest/technicians?per_page=5')
         ));
 
         $this->assertSame(0, $resp['code']);
@@ -260,7 +260,7 @@ class GuestTest extends TestCase
         $this->track('appointment_technician_service', $tsId);
 
         $resp = $this->body($this->guest()->technicians(
-            $this->makeRequest('/api/guest/technicians?service_id=' . $this->hashidOf($service->id))
+            $this->makeRequest('/api/v1/guest/technicians?service_id=' . $this->hashidOf($service->id))
         ));
 
         $this->assertSame(0, $resp['code']);
@@ -274,7 +274,7 @@ class GuestTest extends TestCase
     #[Test] public function endpoints_compatible_with_token(): void
     {
         // 带 token（user_id 注入）请求同样可用——游客模式与登录态并存
-        $request = $this->makeRequest('/api/guest/services?page=1', '12345');
+        $request = $this->makeRequest('/api/v1/guest/services?page=1', '12345');
         $resp    = $this->body($this->guest()->services($request));
 
         $this->assertSame(0, $resp['code']);

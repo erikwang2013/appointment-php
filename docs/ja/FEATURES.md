@@ -127,8 +127,8 @@
 
 | 機能 | 説明 |
 |------|------|
-| ウォレット残高 | GET /api/wallet 残高+取引履歴（user_wallet/wallet_recharge/wallet_txn テーブル） |
-| チャージ | POST /api/wallet/recharge チャージ注文作成；POST /api/wallet/recharge/{id}/pay 微信決済チャージ、コールバックは R プレフィックス注文番号を使用 |
+| ウォレット残高 | GET /api/v1/wallet 残高+取引履歴（user_wallet/wallet_recharge/wallet_txn テーブル） |
+| チャージ | POST /api/v1/wallet/recharge チャージ注文作成；POST /api/v1/wallet/recharge/{id}/pay 微信決済チャージ、コールバックは R プレフィックス注文番号を使用 |
 | 残高払い | 注文支払いチャネル pay_channel=balance |
 | 返金回充 | 微信/残高返金は残高へ自動回充（refundToBalance / creditRefundToWallet） |
 
@@ -144,8 +144,8 @@
 
 | 機能 | 説明 |
 |------|------|
-| マイ回数券 | GET /api/marketing/cards/my で used_up/expired をリアルタイム計算 |
-| 核销で回数減算 | POST /api/marketing/cards/use：Redis NX 冪等 + lockForUpdate 行ロック、completed 注文 + OrderItem + OrderPayment(pay_type='card') を直接作成 |
+| マイ回数券 | GET /api/v1/marketing/cards/my で used_up/expired をリアルタイム計算 |
+| 核销で回数減算 | POST /api/v1/marketing/cards/use：Redis NX 冪等 + lockForUpdate 行ロック、completed 注文 + OrderItem + OrderPayment(pay_type='card') を直接作成 |
 
 ### 13. クーポン割引（第9ラウンド）
 
@@ -160,7 +160,7 @@
 | 機能 | 説明 |
 |------|------|
 | 交換 | redeem：cash タイプはウォレットにチャージ（行ロックで二重入金防止、WalletTxn type='gift_card'）、gift タイプはマークのみ |
-| マイギフトカード | GET /api/marketing/gift-cards/my |
+| マイギフトカード | GET /api/v1/marketing/gift-cards/my |
 
 ### 15. ポイント体系（第9+10ラウンド）
 
@@ -171,7 +171,7 @@
 | 返金回収 | clawbackOrderPoints が比例回収（3 箇所接続） |
 | ポイント現金化 | 支払い時 use_points を渡し、100ポイント=1元（config app.points_rate）、SUM 集計で残高検証、消費流水 source=points_offset 冪等 |
 | ポイント回補（第15ラウンド） | キャンセル/返金で points_offset ポイントを返却：refundOffsetPoints 5 接続点（doCancel 3 経路/doRefund 微信トランザクション/creditRefundToWallet/completeOneRefundCompensation）、source=points_refund 冪等 |
-| ポイント明細 | GET /api/marketing/points ページング + type/source フィルタ、type は earn に統一 |
+| ポイント明細 | GET /api/v1/marketing/points ページング + type/source フィルタ、type は earn に統一 |
 
 ### 16. ミニプログラム注文チェーン（第10ラウンド）
 
@@ -201,8 +201,8 @@
 
 | 機能 | 説明 |
 |------|------|
-| アフターサービス申請 | POST /api/aftersales：type=refund/exchange、本人注文/paid+completed/同一注文の重複申請を検証 |
-| マイアフターサービス | GET /api/aftersales ページング一覧 + GET /api/aftersales/{id} 詳細 |
+| アフターサービス申請 | POST /api/v1/aftersales：type=refund/exchange、本人注文/paid+completed/同一注文の重複申請を検証 |
+| マイアフターサービス | GET /api/v1/aftersales ページング一覧 + GET /api/v1/aftersales/{id} 詳細 |
 | 審査フロー | 管理端 approve/reject（rejected は remark 必須）；approved はステータス遷移のみ、返金は注文返金 API を踏襲 |
 
 ### 20. グループ購入/タイムセール（第15ラウンド）
@@ -211,9 +211,9 @@
 
 | 機能 | 説明 |
 |------|------|
-| 活動一覧/詳細 | GET /api/promotions + /api/promotions/{id}、type で group_buy/flash_sale をフィルタ |
-| 参加 | POST /api/promotions/join/{id}：Redis NX ロックで過剰販売防止（flash_sale は max_people を在庫上限に）、重複参加は 422、group_buy 満員ロック、期限までに満員でない場合は遅延クローズ（show/join 時に status を 0 に） |
-| 参加者一覧 | GET /api/promotions/{id}/participants |
+| 活動一覧/詳細 | GET /api/v1/promotions + /api/v1/promotions/{id}、type で group_buy/flash_sale をフィルタ |
+| 参加 | POST /api/v1/promotions/join/{id}：Redis NX ロックで過剰販売防止（flash_sale は max_people を在庫上限に）、重複参加は 422、group_buy 満員ロック、期限までに満員でない場合は遅延クローズ（show/join 時に status を 0 に） |
+| 参加者一覧 | GET /api/v1/promotions/{id}/participants |
 | ステータス修正 | PromotionParticipant のステータスを整数定数 0/1/2/3 に変更（厳密モードで join 1366 破損を修正） |
 
 ### 21. グループ購入成团注文（第16ラウンド）
@@ -221,7 +221,7 @@
 | 機能 | 説明 |
 |------|------|
 | グループ価格 | join レスポンスで discount_percent/original_price/group_price を返却 |
-| グループ購入注文 | POST /api/order に promotion_id を渡す：group_buy のみ/活動有効/呼び出し者が参加者/未満員/サービス一致を検証；グループ価格=原価×discount_percent/100、クーポン/回数券/ポイントの併用は無効（422） |
+| グループ購入注文 | POST /api/v1/order に promotion_id を渡す：group_buy のみ/活動有効/呼び出し者が参加者/未満員/サービス一致を検証；グループ価格=原価×discount_percent/100、クーポン/回数券/ポイントの併用は無効（422） |
 | 注文マーク | appointment_order に promotion_id/participant_id カラム + インデックス追加 |
 | 未成团処理 | 期限までに満員でない→活動クローズ+該当活動の pending 注文を一括キャンセル（冪等）；pay() の遅延判定でクローズ済みなら注文を自動キャンセルしスタッフロックを解放 |
 
@@ -233,22 +233,22 @@
 | 接続点 | ReferralRewardService::handleOrderCompleted を WorkController::complete のトランザクション内に接続（serving→completed の唯一入口、核销 verify は serving まででトリガーしない）、失敗時は全体ロールバックで再試行可 |
 | 冪等 | appointment_user_referral 行ロック lockForUpdate + rewarded_at 空判定 + ロック内の初回注文再確認（並行/重複呼び出しでも 1 回のみ支給） |
 | 入金 | ウォレット行ロックで加算 + WalletTxn type='referral_reward'（balance_after + 注文番号 remark）；紹介記録に reward_type/reward_amount/rewarded_at/first_order_at を書き込み |
-| 明細 | GET /api/user/referral/earnings ページング（被紹介者ニックネーム/アバター/注文番号/金額/時間） |
+| 明細 | GET /api/v1/user/referral/earnings ページング（被紹介者ニックネーム/アバター/注文番号/金額/時間） |
 
 ### 23. ポイント交換モール（第16ラウンド）
 
 | 機能 | 説明 |
 |------|------|
 | 交換商品 | appointment_points_exchange_goods：type=coupon/gift_card/wallet、points_cost/value（DECIMAL(25,2) でスノーフレーク ID の精度損失を防止）/stock/status |
-| 商品一覧 | GET /api/marketing/points-exchange：公開商品 + リアルタイム残り在庫 + 交換済み数 |
-| 交換 | POST /api/marketing/points-exchange/{id}：Redis NX ロック + 商品行ロックで超過交換防止；ポイント SUM 検証（不足は 422）+ UserPoints type='consume' source='exchange' で減算；coupon 発行 / wallet 残高入金（WalletTxn points_exchange）/ gift_card カードキー返却 |
+| 商品一覧 | GET /api/v1/marketing/points-exchange：公開商品 + リアルタイム残り在庫 + 交換済み数 |
+| 交換 | POST /api/v1/marketing/points-exchange/{id}：Redis NX ロック + 商品行ロックで超過交換防止；ポイント SUM 検証（不足は 422）+ UserPoints type='consume' source='exchange' で減算；coupon 発行 / wallet 残高入金（WalletTxn points_exchange）/ gift_card カードキー返却 |
 | 冪等 | uk_user_goods 一意インデックスで同一ユーザー同一商品は 1 回限り + ロック内再確認 + 1062 フォールバック；交換記録は appointment_user_points_exchange にスナップショット |
 
 ### 24. 予約変更（第17ラウンド）
 
 | 機能 | 説明 |
 |------|------|
-| API | POST /api/order/reschedule/{id}：new_service_time（必須）+ reason（任意）、同一スタッフで時間変更 |
+| API | POST /api/v1/order/reschedule/{id}：new_service_time（必須）+ reason（任意）、同一スタッフで時間変更 |
 | ルール | 本人注文のみ（本人以外 404）；appointment タイプかつ pending/paid/confirmed のみ（その他 422）；元サービス開始まで ≥ 6 時間（全額返金ウィンドウと一致） |
 | 並行防御 | B1 order_lock（pay/cancel/refund と同一の相互排他族）→ 新時間帯のスタッフロック Redis SETNX EX 180（並行変更の過剰販売防止）→ トランザクション内行ロック再読 + B2 シフト重複 DB 検証（本注文を除外） |
 | 締め | service_time 更新 + appointment_order_reschedule 記録（reason 含む）+ 元時間帯ロック/新時間帯ロックの本注文分を解放；失敗時はトランザクションをロールバックし新時間帯ロックも解放 |
@@ -258,7 +258,7 @@
 
 | 機能 | 説明 |
 |------|------|
-| API | POST /api/marketing/coupons/transfer（user_coupon_id）で 8 桁の難読化一意贈与コードを生成（uk_code で二重防止、7日有効）；POST /api/marketing/coupons/claim（code）で受領；GET /api/marketing/coupons/transfers 送信済み(pending/claimed/expired)+受領済み(claimed) ページング |
+| API | POST /api/v1/marketing/coupons/transfer（user_coupon_id）で 8 桁の難読化一意贈与コードを生成（uk_code で二重防止、7日有効）；POST /api/v1/marketing/coupons/claim（code）で受領；GET /api/v1/marketing/coupons/transfers 送信済み(pending/claimed/expired)+受領済み(claimed) ページング |
 | 検証 | クーポンが本人所有/available/券定義が期限内/贈与済みでない（422）；自分が贈与したクーポンの受領不可、受領者は元所有者でないこと |
 | 乱用防止 | Redis NX ロック coupon_transfer_claim:{code}（30s）+ トランザクション内行ロック再確認で二重引き換え防止；uk_user_coupon 一意インデックスで同一クーポンの贈与は 1 回限り；譲受済みクーポンは再贈与不可（新券には贈与記録がなく自然にブロック）；遅延判定で期限切れは expired に + 元クーポンを available に復元 |
 | 受領 | トランザクション内で元クーポンを used に + 受領者に紐づく新規 UserCoupon を生成（coupon_id 不変=有効期限不変）+ 贈与記録を claimed に |
@@ -274,11 +274,11 @@
 
 ### 27. 秒杀注文（第18ラウンド、廃止）
 
-> 第24ラウンドの `/api/seckill` チャネルに置換済み（store() のプロモーション分岐はグループ購入のみ残存）、「43. 秒杀」を参照。
+> 第24ラウンドの `/api/v1/seckill` チャネルに置換済み（store() のプロモーション分岐はグループ購入のみ残存）、「43. 秒杀」を参照。
 
 | 機能 | 説明 |
 |------|------|
-| API | POST /api/order に promotion_id（flash_sale タイプ）を渡す：秒杀価格 = round(total × (100 − discount_percent)/100, 2)、PromotionController の秒杀価格口径と一致 |
+| API | POST /api/v1/order に promotion_id（flash_sale タイプ）を渡す：秒杀価格 = round(total × (100 − discount_percent)/100, 2)、PromotionController の秒杀価格口径と一致 |
 | 検証 | タイプ白リスト [group_buy, flash_sale]（その他 422）；活動進行中；呼び出し者が参加者；注文サービスと活動が一致；売り切れは participants_count ≥ max_people で 422「売り切れました」；クーポン/回数券/ポイントの併用は無効 422 |
 | 期限切れ | pay() の遅延判定 isFlashSaleClosed（isGroupBuyClosed と同パターン）：秒杀期限切れ → 活動を 0 に + 該当活動の pending 注文を一括キャンセル + 本注文を自動キャンセル + スタッフロック解放 422 |
 
@@ -295,7 +295,7 @@
 
 | 機能 | 説明 |
 |------|------|
-| API | POST /api/technician/review/reply/{order_id}（スタッフ身分ミドルウェア）：評価なし/本人以外は一律 404；返信済みは 422（冪等拒否、上書きしない）；空返信 422 |
+| API | POST /api/v1/technician/review/reply/{order_id}（スタッフ身分ミドルウェア）：評価なし/本人以外は一律 404；返信済みは 422（冪等拒否、上書きしない）；空返信 422 |
 | 返信後 | ユーザーにサイト内通知（type='review_reply'、非ブロッキング try/catch + Log） |
 | データ | appointment_order_review に replied_at カラムを冪等追加（reply カラムは建表時から存在）；管理端の評価 list/show は decorate()->toArray() 経由で reply/replied_at を透過出力 |
 
@@ -311,33 +311,33 @@
 
 | 機能 | 説明 |
 |------|------|
-| API | POST /api/wallet/transfer：受取人 hashid デコード+存在性 404、自分への送金 422、金額 0.01-1000/件 422（DECIMAL 比較で float 禁止）、残高不足 422、1 日累計 5000 元 422 |
+| API | POST /api/v1/wallet/transfer：受取人 hashid デコード+存在性 404、自分への送金 422、金額 0.01-1000/件 422（DECIMAL 比較で float 禁止）、残高不足 422、1 日累計 5000 元 422 |
 | 並行/冪等 | Redis NX ロック wallet_transfer:{from} 30s で送金元を直列化；トランザクション内で双方の user_id 昇順に lockForUpdate ウォレット行（固定順でデッドロック防止）；client_token 成功後に SETNX 24h で重複提出防止（失敗リクエストは token を残さず再試行可） |
 | 入金 | 送金元を減算 + 受取人を加算 + WalletTxn 二重取引履歴（transfer_out/transfer_in、balance_after スナップショット含む）+ 送金記録 completed + 受取人にサイト内通知 type='balance_received'（失敗はログのみ） |
-| 記録 | GET /api/wallet/transfers（direction=out/in ページング）+ GET /transfers/{id}（双方のみ可視 404） |
+| 記録 | GET /api/v1/wallet/transfers（direction=out/in ページング）+ GET /transfers/{id}（双方のみ可視 404） |
 
 ### 32. ポイント贈与（第19ラウンド）
 
 | 機能 | 説明 |
 |------|------|
-| API | POST /api/user/points/transfer：受取人存在 404、自分への贈与 422、ポイント 1-10000 422、残高 SUM 集計不足 422、1 日累計 10000 上限 422 |
+| API | POST /api/v1/user/points/transfer：受取人存在 404、自分への贈与 422、ポイント 1-10000 422、残高 SUM 集計不足 422、1 日累計 10000 上限 422 |
 | 並行/冪等 | Redis NX ロック points_transfer:{user} 30s；トランザクション内で双方の最終取引履歴 lockForUpdate（user_id 昇順で相互贈与デッドロック防止）+ ロック内で残高/上限/受取人を再確認 |
 | 取引履歴仕様 | 送信側 type=consume source=points_transfer 負値（balance=前スナップショット-今回分、points_offset/exchange と同一口径）；受取側 type=earn source=points_transfer 正値、expires_at 含む（PointsExpiryTimer が正常に期限切れ処理）；トランザクション内で贈与記録を書き込み、commit 後に受取人へサイト内通知 type='points_received' |
-| 記録 | GET /api/user/points/transfers（direction=sent/received ページング、相手のニックネーム付き） |
+| 記録 | GET /api/v1/user/points/transfers（direction=sent/received ページング、相手のニックネーム付き） |
 
 ### 33. 評価追記 + 提出ルート補完（第19ラウンド）
 
 | 機能 | 説明 |
 |------|------|
-| 追記 | POST /api/order/review/{order_id}/append：評価なし/本人以外は一律 404、非 completed 422、重複追記 422（append_content/append_at のいずれか非空で拒否）、空内容 422；成功で append_content/append_images(JSON)/append_at を書き込み + スタッフにサイト内通知 type='review_append' |
-| 評価提出 | POST /api/order/review/{order_id} のルートを補完登録（ReviewController::store は元々ルート未登録で到達不能）；あわせて潜伏 TypeError を修正：findByOrderId が int を受け取り string シグネチャに違反（append の (string) 変換と対照）、ルート補完で即座に 500 を曝露するため |
+| 追記 | POST /api/v1/order/review/{order_id}/append：評価なし/本人以外は一律 404、非 completed 422、重複追記 422（append_content/append_at のいずれか非空で拒否）、空内容 422；成功で append_content/append_images(JSON)/append_at を書き込み + スタッフにサイト内通知 type='review_append' |
+| 評価提出 | POST /api/v1/order/review/{order_id} のルートを補完登録（ReviewController::store は元々ルート未登録で到達不能）；あわせて潜伏 TypeError を修正：findByOrderId が int を受け取り string シグネチャに違反（append の (string) 変換と対照）、ルート補完で即座に 500 を曝露するため |
 | データ | appointment_order_review に append_content TEXT/append_images JSON/append_at DATETIME の三カラム追加（冪等マイグレーション）；レスポンスに append フィールドを透過出力 |
 
 ### 34. ユーザー端物流追跡（第19ラウンド）
 
 | 機能 | 説明 |
 |------|------|
-| API | GET /api/order/logistics/{id}：本人の product 注文のみ照会可（本人以外/非商品/未発送は一律 404） |
+| API | GET /api/v1/order/logistics/{id}：本人の product 注文のみ照会可（本人以外/非商品/未発送は一律 404） |
 | データ | order.remark JSON を読み取り（shipping_company/tracking_no/shipped_at、admin MallOrderController::ship() の発送時に書き込み）；parseShippingInfo/parseReceiver の二重解析で旧形式もフォールバック |
 | マスク | 受取人携帯番号は maskPhone（138****5678）で表示、漏洩防止 |
 
@@ -346,7 +346,7 @@
 | 機能 | 説明 |
 |------|------|
 | データ | appointment_user_notify_setting テーブル（user_id+type 複合一意キー uk_user_type、行なし=デフォルトオン）；5 種：service_reminder サービスリマインダー / card_expiry 期限リマインダー（カード+クーポン統一の傘）/ points_expiry ポイント期限切れ / marketing マーケティング（予約）/ system システム（オフ不可、PUT で強制 1） |
-| API | GET /api/user/notify-settings で 5 種の全量スイッチを返却；PUT でバッチ upsert、重複行を生成しない |
+| API | GET /api/v1/user/notify-settings で 5 種の全量スイッチを返却；PUT でバッチ upsert、重複行を生成しない |
 | ゲーティング | NotificationReminderService::notifySettingEnabled を 3 タイマープロセス（ServiceReminderTimer/ExpiryReminderTimer カード+クーポン/PointsExpiryTimer、タイマーは appointment_notification テーブルに直接挿入するためサービス書き込み経路を通らないので各々同じゲートを追加）+ 購読イベント（sendSubscribeForOrderEvent/Notification シナリオマッピング PAY/REFUND/VERIFIED/RESCHEDULE→system は常時送信、REMINDER→service_reminder、EXPIRY→card_expiry）に接続；タイプがオフのときはサイト内通知と購読メッセージの両方をスキップ |
 
 ---
@@ -468,7 +468,7 @@ Flutter Web シングルページアプリ、全 21 ページ：dashboard/ユー
 
 ### 16. 店長ワークベンチ（第15ラウンド）
 
-- service /api/store-manager：overview（今日の注文/売上/進行中/スタッフ数/核销数）+ orders（ページング+ステータスフィルタ）+ technicians（今日のシフト含む）+ revenue（直近 7 日集計）、requireStoreId() で store_id 分離を強制（店舗なし 403）
+- service /api/v1/store-manager：overview（今日の注文/売上/進行中/スタッフ数/核销数）+ orders（ページング+ステータスフィルタ）+ technicians（今日のシフト含む）+ revenue（直近 7 日集計）、requireStoreId() で store_id 分離を強制（店舗なし 403）
 - admin StoreController::workbenchOverview（GET /admin/stores/workbench-overview?store_id=、口径は service と一致）+ AppointmentOrderController 注文一覧の store_id フィルタ（hashid デコード）
 - Flutter 店舗ワークベンチページ：店舗ドロップダウン + ステータスフィルタ + 概要カード 5 枚 + 注文 DataTable + ページング（権限 372）
 
@@ -498,7 +498,7 @@ Flutter Web シングルページアプリ、全 21 ページ：dashboard/ユー
 
 ### 21. 予約カレンダー（第20ラウンド）
 
-- CalendarController 月/日表示：GET /api/calendar/technician/{id}（月表示）+ /day（日表示）
+- CalendarController 月/日表示：GET /api/v1/calendar/technician/{id}（月表示）+ /day（日表示）
 - データソース：technician_schedule.time_slots JSON を曜日ごとに時間枠へ展開、appointment_order の当日予約済み時間帯を除外（status ∈ pending/paid/confirmed/serving）、残りの予約可能枠を出力
 - 用途：店舗シフトの可視化による時間選択、フロントは日単位で横スクロール + 時間グリッド選択
 
@@ -506,20 +506,20 @@ Flutter Web シングルページアプリ、全 21 ページ：dashboard/ユー
 
 - appointment_user_growth（取引履歴）+ appointment_growth_level（ランクシード 5 級：青銅0/銀100/金500/プラチナ2000/ダイヤ5000）
 - 成長値入金点：チェックイン +10（CheckInController）；評価提出 +20（ReviewController::store、追記は入金なし）；消費 floor(paid) で 1 元ごと 1 ポイント（WechatPayService::markOrderPaid、既存の支払いステータス再確認を再利用し自然に冪等、重複コールバックで重複入金なし）
-- API：GET /api/growth（現在レベル概要：balance/level/次ランクまでの差額）；GET /api/growth/records（取引履歴ページング）；GET /api/growth/levels（公開ランク一覧、ログイン不要）
+- API：GET /api/v1/growth（現在レベル概要：balance/level/次ランクまでの差額）；GET /api/v1/growth/records（取引履歴ページング）；GET /api/v1/growth/levels（公開ランク一覧、ログイン不要）
 - 失敗ポリシー：任意の入金点は try/catch でログ記録、メインフローに影響なし
 
 ### 23. 電子領収書（第20ラウンド）
 
 - appointment_invoice：uk_order_type(order_id,order_type) で同一注文の重複申請防止（重複申請 422、MySQL 1062 キャッチのフォールバック含む）；idx_user_created/idx_status
-- ユーザー端：POST /api/invoices（申請、金額/名義はサーバー側で注文から導出、改ざん不可）；GET /api/invoices（一覧）；GET /api/invoices/{id}（詳細）
+- ユーザー端：POST /api/v1/invoices（申請、金額/名義はサーバー側で注文から導出、改ざん不可）；GET /api/v1/invoices（一覧）；GET /api/v1/invoices/{id}（詳細）
 - 管理端：InvoiceController issue（発行：invoice_no + status=issued + issued_at を書き込み）/ reject（却下：status=rejected + reject_reason）、権限 382 一覧/383 発行/384 却下
 - ステートマシン：pending → issued / rejected
 
 ### 24. カスタマーサポートチケット（第20ラウンド）
 
 - appointment_ticket：ユーザーがチケットを提出（title/content）、バックエンドが返信を追記（reply_content/replied_at）、ユーザーがクローズ可能（closed_at）
-- ユーザー端：POST /api/tickets（提出）；GET /api/tickets（一覧）；GET /api/tickets/{id}（詳細、本人のみ）；POST /api/tickets/{id}/close（クローズ）
+- ユーザー端：POST /api/v1/tickets（提出）；GET /api/v1/tickets（一覧）；GET /api/v1/tickets/{id}（詳細、本人のみ）；POST /api/v1/tickets/{id}/close（クローズ）
 - 管理端：TicketController index（一覧）/ reply（返信）、静的ルートを resource より先に定義し {id} shadow を回避；権限 385 チケット返信/387 チケット一覧表示
 - ステートマシン：open → replied（返信後は open に戻り再返信可）/ closed
 
@@ -535,12 +535,12 @@ Flutter Web シングルページアプリ、全 21 ページ：dashboard/ユー
 - GrowthLevel.benefits JSON の中身を実装：マイグレーションシード 5 ランク（青銅 {"discount_rate":1.0,"points_multiplier":1.0}、銀 0.98/1.1、金 0.95/1.2、プラチナ 0.92/1.3、ダイヤ 0.9/1.5）
 - レベル割引：OrderController::store applyGrowthDiscount() —— 標準注文のみ（promotion_id 空、グループ購入/秒杀は併用無効）；順序：クーポン/回数券割引後の支払額 × discount_rate；割引額は discount_amount に合算、注文備考に「レベル割引：銀9.8割、割引¥2.00」を追記し追跡可能；最低価格保護：割引後実払い ≥0.01 元（分制 ≥100）、不足時は割引を 0 に切り捨て
 - ポイント倍率：WechatPayService::markOrderPaid の成長値を floor(paid) から floor(paid × points_multiplier) に変更、倍率は支払い時点のレベルで取得（入金前に累計、本注文では昇格しない）；R20 の try/catch 接続点は完全に保持
-- クエリ再利用：GrowthLevel::levelForGrowth() が累計成長値でランクを取得し、注文/支払いで再利用；GET /api/growth は benefits と next_gap を既に返却（R20 実装、変更不要）
+- クエリ再利用：GrowthLevel::levelForGrowth() が累計成長値でランクを取得し、注文/支払いで再利用；GET /api/v1/growth は benefits と next_gap を既に返却（R20 実装、変更不要）
 
 ### 27. 領収書名義管理（第21ラウンド）
 
 - appointment_invoice_title（uk_user_title(user_id, title_type, invoice_title) で重複防止 + idx_user_default）
-- API：POST /api/invoice-titles（保存、company は tax_no 必須、重複 422）；GET（一覧、デフォルトを先頭に）；PUT /{id}（編集、本人のみ）；DELETE /{id}（削除、本人のみ）；POST /{id}/default（デフォルト設定、トランザクションで同ユーザーの他行をクリア）
+- API：POST /api/v1/invoice-titles（保存、company は tax_no 必須、重複 422）；GET（一覧、デフォルトを先頭に）；PUT /{id}（編集、本人のみ）；DELETE /{id}（削除、本人のみ）；POST /{id}/default（デフォルト設定、トランザクションで同ユーザーの他行をクリア）
 - デフォルトルール：先頭の保存が自動でデフォルト；デフォルト削除後は最も古い 1 件を自動指定
 - 申請連携：InvoiceController::store は任意の title_id を解析して名義を invoice_title/tax_no/title_type に引き継ぎ、title_id なしの場合は手入力を維持；uk_order_type の重複防止ロジックは変更なし
 
@@ -561,19 +561,19 @@ Flutter Web シングルページアプリ、全 21 ページ：dashboard/ユー
 
 - appointment_browse_history（uk_user_item(user_id, item_id) 一意、重複閲覧は viewed_at の更新のみで重複挿入なし；idx_user_viewed でソート）
 - 記録接続：ServiceController::detail() 成功後に記録（try/catch + Log::warning でメインフローに影響なし；公開ルートは JWT なし、user_id 空判定で匿名はスキップ）
-- API：GET /api/browse-history（appointment_service の名称/カバー/価格/原価を join、viewed_at 降順、per_page デフォルト 15 上限 50、item_id は hashid）；DELETE /{item_id}（本人のみ、不正/他人は 404）；DELETE /（全削除は本人のみ）
+- API：GET /api/v1/browse-history（appointment_service の名称/カバー/価格/原価を join、viewed_at 降順、per_page デフォルト 15 上限 50、item_id は hashid）；DELETE /{item_id}（本人のみ、不正/他人は 404）；DELETE /（全削除は本人のみ）
 
 ### 31. 満額割引マーケティング（第22ラウンド）
 
 - appointment_full_reduction_activity（threshold/reduction/title/status/start_at/end_at + idx_status_status_time）
 - 注文時併用：標準注文のみ（グループ購入/秒杀はスキップ）、クーポン/回数券割引後の支払額で閾値を判定、順序は **クーポン/回数券 → 満額割引 → レベル割引**；割引額最大の活動を採用；割引額は discount_amount に合算 + 備考「満額割引：満X減Y」；満額割引後の実払い下限 0.01 元（分制）
-- ユーザー端 GET /api/full-reduction-activities（公開、有効中を割引額降順）
+- ユーザー端 GET /api/v1/full-reduction-activities（公開、有効中を割引額降順）
 - admin FullReductionController：CRUD + toggle-status 公開/非公開（destroy は confirmPassword 付き）
 - 権限：396 一覧 / 397 新規 / 398 編集 / 399 公開/非公開 / 400 削除（1 権限レコードは 1 つの method.path slug のみ、5 ルートは 5 件に分割）
 
 ### 32. マイ予約 ICS エクスポート（第22ラウンド）
 
-- IcsController GET /api/order/ics：90 日以内の pending/paid/confirmed/serving 注文を iCal（RFC5545）でエクスポート、本人のみ
+- IcsController GET /api/v1/order/ics：90 日以内の pending/paid/confirmed/serving 注文を iCal（RFC5545）でエクスポート、本人のみ
 - VEVENT：UID=注文ID、DTSTAMP(UTC)、TZID=Asia/Shanghai、デフォルト時間 1h、サマリー「予約：サービス名」（欠落時は「予約」に退化）、説明はスタッフ/店舗/住所（欠落時はスキップ）、LOCATION；テキストエスケープ（\, \; \\ \n）+ 75 バイト行折り畳み
 - 注文なしは有効な空カレンダーを返却（`BEGIN:VCALENDAR` 骨格）
 
@@ -599,59 +599,59 @@ Flutter Web シングルページアプリ、全 21 ページ：dashboard/ユー
 
 ### 36. プライバシーコンプライアンス（第22ラウンド）
 
-- GET /api/privacy/data：データエクスポート（personal/orders/points/wallet_txns/reviews/addresses/invoices グループ；ログはマスク済み携帯番号+件数のみ記録）
+- GET /api/v1/privacy/data：データエクスポート（personal/orders/points/wallet_txns/reviews/addresses/invoices グループ；ログはマスク済み携帯番号+件数のみ記録）
 - 削除クローズドループ：close-request（残高非 0 / 未完了注文 / 進行中チケットは 422 → close_status=1）→ close-cancel（1→0）→ close-confirm（72h 経過 → close_status=2 + close_at + phone/nickname を user{id} に匿名化 + status=0）
 - appointment_user に close_status/close_requested_at/close_at を追加（冪等 ALTER マイグレーション）；AuthController login/loginByCode は close_status=2 に対して 403「アカウントは削除されました」を返却
 
 ### 37. ユーザー健康プロフィール（第23ラウンド）
 
-- GET/PUT/DELETE /api/health-profile：一人 1 件（uk_user 一意インデックス）、upsert は提供されたフィールドのみ更新
+- GET/PUT/DELETE /api/v1/health-profile：一人 1 件（uk_user 一意インデックス）、upsert は提供されたフィールドのみ更新
 - allergies/health_notes は上限 500 文字、preferred_technician_id は存在性を検証、レスポンスは hashid エンコード
 - マイグレーション 000504_user_health_profile；HealthProfileTest 6 tests
 
 ### 38. ウォレット支払いパスワード（第23ラウンド）
 
-- POST /api/wallet/pay-password/{set,verify,check}：6 桁数字検証、password_hash 保存 + pay_password_set_at
+- POST /api/v1/wallet/pay-password/{set,verify,check}：6 桁数字検証、password_hash 保存 + pay_password_set_at
 - 設定済みの場合の変更は旧パスワード必須 422；verify は検証のみで落庫なし；check は設定済みかどうかを返却
 - マイグレーション 000502（INFORMATION_SCHEMA 冪等 ALTER 二カラム）；WalletPayPasswordTest 7 tests
 
 ### 39. スタッフ一括シフト（第23ラウンド）
 
-- POST /api/technician/schedule/batch：日付範囲 ≤7 日 + weekdays フィルタ、既存シフトのある日はスキップ
+- POST /api/v1/technician/schedule/batch：日付範囲 ≤7 日 + weekdays フィルタ、既存シフトのある日はスキップ
 - 単条設定も時間帯重複検出を有効化（422「既存シフトと時間が衝突：HH:MM-HH:MM」）
 - ScheduleConflictTest 5 tests
 
 ### 40. 注文ステータスタイムライン（第23ラウンド）
 
-- GET /api/order/{id}/timeline：本人のみ照会可（他人 404）、降順で返却；admin 注文詳細に timeline 配列を統合
+- GET /api/v1/order/{id}/timeline：本人のみ照会可（他人 404）、降順で返却；admin 注文詳細に timeline 配列を統合
 - OrderStatusLog::record() 静的埋め込み 8 種の変更：提出/支払い/キャンセル/確認/返金申請/返金通過/サービス開始/サービス完了/タイムアウト自動キャンセル/バックエンド操作（operator=admin）
 - 支払いコールバック markOrderPaid が単一消費点；record() 内部は try/catch + Log::warning でメインフローを絶対にブロックしない
 - マイグレーション 000501_order_status_log；OrderTimelineTest 4 tests
 
 ### 41. ポイントラッキーくじ（第23ラウンド）
 
-- GET /api/wheel/prizes（weight/stock は非表示）；POST /api/wheel/spin：Redis NX + 行ロックで並行防止、random_int 重み付き抽選、client_token 冪等
+- GET /api/v1/wheel/prizes（weight/stock は非表示）；POST /api/v1/wheel/spin：Redis NX + 行ロックで並行防止、random_int 重み付き抽選、client_token 冪等
 - 景品の入金：ポイント→earn 取引履歴（有効期限付き、PointsExpiryTimer が正常に期限切れ処理）、残高→lockForUpdate、クーポン→pending 手動発行、はずれ→lose
-- GET /api/wheel/records マイ記録ページング；admin /admin/lucky-wheel CRUD + 公開/非公開 + 記録（権限 401-406）
+- GET /api/v1/wheel/records マイ記録ページング；admin /admin/lucky-wheel CRUD + 公開/非公開 + 記録（権限 401-406）
 - マイグレーション 000503（appointment_lucky_wheel + appointment_wheel_record + w60/w40 デモシード）+ 000505（権限シード）；LuckyWheelTest admin 3 + service 6 tests
 
 ### 42. ゲストモード（第24ラウンド）
 
-- GET /api/guest/{home,services,services/{id},stores,technicians}：認証不要（ApiVersion ミドルウェアのみ）の未ログイン閲覧入口
+- GET /api/v1/guest/{home,services,services/{id},stores,technicians}：認証不要（公開インターフェース）の未ログイン閲覧入口
 - home はバナー/お知らせ/サービス分類/人気サービスを集約、Redis キャッシュ svc:guest:home 300s；services はカテゴリフィルタ + newest/sales/price ソート（page/per_page≤50）；technicians は審査通過のみ、service_id フィルタ可、評価降順
 - GuestControllerTest でカバー
 
 ### 43. 秒杀（第24ラウンド）
 
 - appointment_seckill_activity（name/service_id/seckill_price/original_price/stock/start_at/end_at/status）；販売済み数 = appointment_order.seckill_id の注文数
-- GET /api/seckill（status=1 + 時間窓）、/{id}（state=not_started/ongoing/ended）、POST /{id}/buy：client_token（8-64 文字、SETNX 24h）冪等 + Redis NX 30s 並行防止 + 活動検証（2026-08-26 より在庫の予約減算なし）
-- 注文に seckill_id を注入して OrderController::store を再利用；在庫は一律 store() トランザクション内の行ロックで減算（/api/order を seckill_id 付きで直接呼んでも在庫は減る）、秒杀価格 = seckill_price（DB 基準）、クーポン/ポイント/会員カードは併用不可；注文キャンセルで在庫は戻さない；旧プロモーション FLASH_SALE チャネルは削除済み（store() のプロモーション分岐はグループ購入のみ、PromotionController index は flash_sale をフィルタ、show/join 400）、秒杀は本チャネルのみ
+- GET /api/v1/seckill（status=1 + 時間窓）、/{id}（state=not_started/ongoing/ended）、POST /{id}/buy：client_token（8-64 文字、SETNX 24h）冪等 + Redis NX 30s 並行防止 + 活動検証（2026-08-26 より在庫の予約減算なし）
+- 注文に seckill_id を注入して OrderController::store を再利用；在庫は一律 store() トランザクション内の行ロックで減算（/api/v1/order を seckill_id 付きで直接呼んでも在庫は減る）、秒杀価格 = seckill_price（DB 基準）、クーポン/ポイント/会員カードは併用不可；注文キャンセルで在庫は戻さない；旧プロモーション FLASH_SALE チャネルは削除済み（store() のプロモーション分岐はグループ購入のみ、PromotionController index は flash_sale をフィルタ、show/join 400）、秒杀は本チャネルのみ
 - admin /admin/seckill CRUD + 公開/非公開 + 注文一覧（権限 407-411、420）；マイグレーション 000606 権限シード；SeckillTest service + admin
 
 ### 44. APP バージョン管理と更新検知（第24ラウンド）
 
 - appointment_app_version（platform/version_code/version_name/force_update/changelog/download_url/status）
-- GET /api/app/version?platform=android|ios 公開の更新検知（platform 不正 422；status=1 から最新を取得；なければ空オブジェクト）
+- GET /api/v1/app/version?platform=android|ios 公開の更新検知（platform 不正 422；status=1 から最新を取得；なければ空オブジェクト）
 - admin /admin/versions CRUD（権限 416-419）；マイグレーション 000609 権限シード；VersionTest service + admin
 
 ### 45. リピーター特典（第24ラウンド）

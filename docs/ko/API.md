@@ -6,7 +6,7 @@
 - **비즈니스 API** (service/): `http://localhost:8787` — 미니프로그램/APP에 비즈니스 인터페이스 제공
 - **관리 백엔드 API** (admin/): `http://localhost:8787` — 관리 백엔드 Flutter Web에 인터페이스 제공
 - **인증 방식**: Bearer Token (JWT), 요청 헤더 `Authorization: Bearer <token>`
-- **버전 제어**: 요청 헤더 `API-Version: v1`로 API 버전 제어, URL에 표시하지 않음. 기본 v1
+- **버전 제어**: 버전은 URL 경로 접두사 `/api/v1`에 고정됨(예: `POST /api/v1/auth/login`), URL에 버전 접두사가 없으면 404
 - **ID 인코딩**: 모든 요청/응답의 ID 필드는 hashids 인코딩 사용, 실제 데이터베이스 ID 외부 노출 방지
 - **OpenAPI 문서**: `hg/apidoc`로 생성, 관리단말과 클라이언트 분리
 
@@ -50,7 +50,7 @@ Swagger UI 등의 도구로 위 주소를 가져와 대화형 문서를 볼 수 
 
 #### 1.1 인증코드
 
-**`POST /api/captcha/send`** — 문자 인증코드 발송
+**`POST /api/v1/captcha/send`** — 문자 인증코드 발송
 
 요청:
 ```json
@@ -66,7 +66,7 @@ Swagger UI 등의 도구로 위 주소를 가져와 대화형 문서를 볼 수 
 
 #### 1.2 인증
 
-**`POST /api/auth/register`** — 휴대폰 번호 가입
+**`POST /api/v1/auth/register`** — 휴대폰 번호 가입
 
 요청:
 ```json
@@ -99,7 +99,7 @@ Swagger UI 등의 도구로 위 주소를 가져와 대화형 문서를 볼 수 
 
 ---
 
-**`POST /api/auth/login`** — 비밀번호 로그인
+**`POST /api/v1/auth/login`** — 비밀번호 로그인
 
 요청:
 ```json
@@ -112,7 +112,7 @@ Swagger UI 등의 도구로 위 주소를 가져와 대화형 문서를 볼 수 
 
 ---
 
-**`POST /api/auth/login-by-code`** — 인증코드 로그인
+**`POST /api/v1/auth/login-by-code`** — 인증코드 로그인
 
 요청:
 ```json
@@ -125,7 +125,7 @@ Swagger UI 등의 도구로 위 주소를 가져와 대화형 문서를 볼 수 
 
 ---
 
-**`POST /api/auth/forget-password`** — 비밀번호 찾기
+**`POST /api/v1/auth/forget-password`** — 비밀번호 찾기
 
 요청:
 ```json
@@ -139,7 +139,7 @@ Swagger UI 등의 도구로 위 주소를 가져와 대화형 문서를 볼 수 
 
 ---
 
-**`POST /api/auth/refresh`** — Token 갱신
+**`POST /api/v1/auth/refresh`** — Token 갱신
 
 요청 헤더: `Authorization: Bearer <기존 token>`
 응답: `{"code":0,"data":{"token":"eyJhbGciOi..."}}`
@@ -148,20 +148,20 @@ Swagger UI 등의 도구로 위 주소를 가져와 대화형 문서를 볼 수 
 
 #### 1.3 위챗
 
-**`POST /api/wechat/mini-login`** — 미니프로그램 로그인
+**`POST /api/v1/wechat/mini-login`** — 미니프로그램 로그인
 
 요청: `{"code":"위챗 로그인 code"}`
-설명: 첫 로그인 후 `/api/wechat/phone`을 호출해 휴대폰 번호를 바인딩해야 합니다.
+설명: 첫 로그인 후 `/api/v1/wechat/phone`을 호출해 휴대폰 번호를 바인딩해야 합니다.
 
 ---
 
-**`POST /api/wechat/phone`** — 휴대폰 번호 바인딩
+**`POST /api/v1/wechat/phone`** — 휴대폰 번호 바인딩
 
 요청: `{"code":"위챗 휴대폰 번호 컴포넌트 code"}`
 
 ---
 
-**`POST /api/wechat/oa-login`** — 공식 계정 로그인
+**`POST /api/v1/wechat/oa-login`** — 공식 계정 로그인
 
 요청: `{"code":"공식 계정 인증 code"}`
 
@@ -169,39 +169,39 @@ Swagger UI 등의 도구로 위 주소를 가져와 대화형 문서를 볼 수 
 
 #### 1.4 공용 서비스
 
-**`GET /api/common/config`** — 공용 설정
+**`GET /api/v1/common/config`** — 공용 설정
 
 응답: 약관 텍스트(사용자 약관/개인정보 약관/서비스 약관), 회사 소개 정보, 버전 번호 포함.
 
 ---
 
-**`GET /api/common/area`** — 도시 지역 목록
+**`GET /api/v1/common/area`** — 도시 지역 목록
 
 ---
 
 #### 1.5 서비스 조회
 
-**`GET /api/service/categories`** — 분류 목록
+**`GET /api/v1/service/categories`** — 분류 목록
 
 파라미터: `?parent_id=0`
 
 ---
 
-**`GET /api/service/items`** — 서비스 항목 목록
+**`GET /api/v1/service/items`** — 서비스 항목 목록
 
 파라미터: `?category_id=&page=1&per_page=10&sort=sales`
 
 ---
 
-**`GET /api/service/detail/{id}`** — 서비스 상세
+**`GET /api/v1/service/detail/{id}`** — 서비스 상세
 
 응답 포함: 이미지/이름/가격/규격/시간/판매량/평가 목록.
 
 ---
 
-**`GET /api/service/products`** — 상품 목록
+**`GET /api/v1/service/products`** — 상품 목록
 
-**`GET /api/service/stores`** — 매장 목록
+**`GET /api/v1/service/stores`** — 매장 목록
 
 파라미터: `?lat=&lng=&city=`
 
@@ -209,20 +209,20 @@ Swagger UI 등의 도구로 위 주소를 가져와 대화형 문서를 볼 수 
 
 #### 1.6 기술자 조회
 
-**`GET /api/technician/list`** — 기술자 목록
+**`GET /api/v1/technician/list`** — 기술자 목록
 
 파라미터: `?lat=&lng=&service_id=&page=1`
 거리 가까운 순으로 정렬, 반환: 프로필/이름/평점/주문 수/즐겨찾기 수/거리/최초 예약 가능 시간/서비스 가능 여부.
 
 ---
 
-**`GET /api/technician/detail/{id}`** — 기술자 상세
+**`GET /api/v1/technician/detail/{id}`** — 기술자 상세
 
 응답 포함: 이미지/이름/소개/평점/거리/제공 가능 서비스 항목 목록/평가.
 
 ---
 
-**`GET /api/technician/schedule/{id}`** — 기술자 스케줄
+**`GET /api/v1/technician/schedule/{id}`** — 기술자 스케줄
 
 파라미터: `?date=2026-05-26`
 해당 날짜의 예약 가능 시간대와 사용 가능 상태 반환.
@@ -231,25 +231,25 @@ Swagger UI 등의 도구로 위 주소를 가져와 대화형 문서를 볼 수 
 
 #### 1.7 콘텐츠
 
-**`GET /api/content/banners`** — 배너
+**`GET /api/v1/content/banners`** — 배너
 
 파라미터: `?position=home`
 
-**`GET /api/content/articles`** — 공지/게시글 목록
+**`GET /api/v1/content/articles`** — 공지/게시글 목록
 
 파라미터: `?type=announcement&page=1`
 
-**`GET /api/content/article/{id}`** — 게시글 상세
+**`GET /api/v1/content/article/{id}`** — 게시글 상세
 
 ---
 
 #### 1.8 LBS
 
-**`GET /api/lbs/nearby-stores`** — 주변 매장
+**`GET /api/v1/lbs/nearby-stores`** — 주변 매장
 
 파라미터: `?lat=&lng=&radius=5000`
 
-**`GET /api/lbs/geocode`** — 역지오코딩
+**`GET /api/v1/lbs/geocode`** — 역지오코딩
 
 파라미터: `?lat=&lng=`
 
@@ -263,13 +263,13 @@ Swagger UI 등의 도구로 위 주소를 가져와 대화형 문서를 볼 수 
 
 | 메서드 | 경로 | 설명 |
 |------|------|------|
-| GET | `/api/user/profile` | 개인 정보 조회 |
-| PUT | `/api/user/profile` | 닉네임/프로필/성별 갱신 |
-| POST | `/api/user/change-password` | 비밀번호 변경 (old_password/new_password/confirm_password) |
-| POST | `/api/user/change-phone` | 휴대폰 번호 변경 (old_code/new_phone/new_code) |
-| POST | `/api/user/cancel-account` | 계정 탈퇴 (비밀번호 검증 필요) |
-| POST | `/api/user/logout` | 로그아웃 (token 블랙리스트 추가) |
-| POST | `/api/user/switch-role` | 신원 전환 (role: customer/technician) |
+| GET | `/api/v1/user/profile` | 개인 정보 조회 |
+| PUT | `/api/v1/user/profile` | 닉네임/프로필/성별 갱신 |
+| POST | `/api/v1/user/change-password` | 비밀번호 변경 (old_password/new_password/confirm_password) |
+| POST | `/api/v1/user/change-phone` | 휴대폰 번호 변경 (old_code/new_phone/new_code) |
+| POST | `/api/v1/user/cancel-account` | 계정 탈퇴 (비밀번호 검증 필요) |
+| POST | `/api/v1/user/logout` | 로그아웃 (token 블랙리스트 추가) |
+| POST | `/api/v1/user/switch-role` | 신원 전환 (role: customer/technician) |
 
 technician으로 전환하려면 approved 상태의 기술자 프로필이 있어야 합니다.
 
@@ -277,11 +277,11 @@ technician으로 전환하려면 approved 상태의 기술자 프로필이 있�
 
 | 메서드 | 경로 | 설명 |
 |------|------|------|
-| GET | `/api/user/addresses` | 주소 목록 |
-| POST | `/api/user/addresses` | 주소 추가 (contact_name/contact_phone/province/city/district/detail/lat/lng/is_default) |
-| GET | `/api/user/addresses/{id}` | 주소 상세 |
-| PUT | `/api/user/addresses/{id}` | 주소 갱신 |
-| DELETE | `/api/user/addresses/{id}` | 주소 삭제 |
+| GET | `/api/v1/user/addresses` | 주소 목록 |
+| POST | `/api/v1/user/addresses` | 주소 추가 (contact_name/contact_phone/province/city/district/detail/lat/lng/is_default) |
+| GET | `/api/v1/user/addresses/{id}` | 주소 상세 |
+| PUT | `/api/v1/user/addresses/{id}` | 주소 갱신 |
+| DELETE | `/api/v1/user/addresses/{id}` | 주소 삭제 |
 
 기본으로 설정하면 다른 기본 주소가 자동 해제됩니다.
 
@@ -289,22 +289,22 @@ technician으로 전환하려면 approved 상태의 기술자 프로필이 있�
 
 | 메서드 | 경로 | 설명 |
 |------|------|------|
-| GET | `/api/user/favorites` | 즐겨찾기 목록 (?type=service/technician) |
-| POST | `/api/user/favorites` | 즐겨찾기 추가 (target_type/target_id) |
-| DELETE | `/api/user/favorites/{id}` | 즐겨찾기 취소 |
+| GET | `/api/v1/user/favorites` | 즐겨찾기 목록 (?type=service/technician) |
+| POST | `/api/v1/user/favorites` | 즐겨찾기 추가 (target_type/target_id) |
+| DELETE | `/api/v1/user/favorites/{id}` | 즐겨찾기 취소 |
 
 #### 2.4 의견 피드백
 
-`POST /api/user/feedback` — 피드백 제출 (content + images 배열)
+`POST /api/v1/user/feedback` — 피드백 제출 (content + images 배열)
 
 #### 2.5 홍보 추천
 
 | 메서드 | 경로 | 설명 |
 |------|------|------|
-| GET | `/api/user/referral` | 홍보 정보 (추천 코드/추천 인원/첫 주문 인원/획득 포인트) |
-| GET | `/api/user/referral/qrcode` | 홍보 QR 코드 (추천 코드+초대 링크) |
-| GET | `/api/user/referral/referred-users` | 추천한 사용자 목록 |
-| GET | `/api/user/referral/earnings` | 유통 수수료 명세 (페이징: 추천받은 사람 닉네임/프로필/주문번호/금액/지급 시간) |
+| GET | `/api/v1/user/referral` | 홍보 정보 (추천 코드/추천 인원/첫 주문 인원/획득 포인트) |
+| GET | `/api/v1/user/referral/qrcode` | 홍보 QR 코드 (추천 코드+초대 링크) |
+| GET | `/api/v1/user/referral/referred-users` | 추천한 사용자 목록 |
+| GET | `/api/v1/user/referral/earnings` | 유통 수수료 명세 (페이징: 추천받은 사람 닉네임/프로필/주문번호/금액/지급 시간) |
 
 **유통 수수료**: 추천인의 첫 주문 completed 후 지급, 금액 = paid_amount × reward_rate(appointment_system_config referral.reward_rate, 기본 0.05, 비정상 값은 상수로 폴백). 행 잠금 + rewarded_at 빈값 확인 + 첫 주문 재검증 3중 멱등; 입금은 WalletTxn type=referral_reward.
 
@@ -312,8 +312,8 @@ technician으로 전환하려면 approved 상태의 기술자 프로필이 있�
 
 | 메서드 | 경로 | 설명 |
 |------|------|------|
-| POST | `/api/user/points/transfer` | 포인트 양도 (to_user_id hashid/points) |
-| GET | `/api/user/points/transfers` | 양도 기록 (?direction=sent/received&page=1) |
+| POST | `/api/v1/user/points/transfer` | 포인트 양도 (to_user_id hashid/points) |
+| GET | `/api/v1/user/points/transfers` | 양도 기록 (?direction=sent/received&page=1) |
 
 **포인트 양도**: 수령인 hashid 디코딩+존재 404, 본인 양도 422, 수량 1-10000 422, 잔액 SUM 집계 부족 422, 일일 누적 10000 한도 422. 동시성 방어: Redis NX 잠금 points_transfer:{user} 30s → 트랜잭션 내 양쪽 마지막 거래 내역 lockForUpdate(user_id 오름차순 상호 양도 데드락 방지) → 잠금 내 잔액/한도/수령인 재검증. 거래 내역 규범: 송신자 type=consume/source=points_transfer 음수(balance=이전 스냅샷-이번), 수신자 type=earn/source=points_transfer 양수에 expires_at 포함(PointsExpiryTimer 정상 만료 가능); commit 후 수신자에게 사이트 내 알림 type='points_received'(실패 시 warn만).
 
@@ -321,8 +321,8 @@ technician으로 전환하려면 approved 상태의 기술자 프로필이 있�
 
 | 메서드 | 경로 | 설명 |
 |------|------|------|
-| GET | `/api/user/notify-settings` | 알림 스위치 조회(5종 전체) |
-| PUT | `/api/user/notify-settings` | 스위치 일괄 갱신 (types: {service_reminder: 0/1, ...}) |
+| GET | `/api/v1/user/notify-settings` | 알림 스위치 조회(5종 전체) |
+| PUT | `/api/v1/user/notify-settings` | 스위치 일괄 갱신 (types: {service_reminder: 0/1, ...}) |
 
 **알림 스위치**: appointment_user_notify_setting 테이블(user_id+type 복합 고유 키, 기본 행 없음=기본 켜짐). 5종: service_reminder 서비스 알림 / card_expiry 만료 알림(카드+쿠폰 통합 우산)/ points_expiry 포인트 만료 / marketing 마케팅(예약)/ system 시스템(끌 수 없음, PUT 강제 1). 게이트: notifySettingEnabled를 ServiceReminderTimer/ExpiryReminderTimer/PointsExpiryTimer 3개 타이머 프로세스 + 구독 이벤트 시나리오 매핑에 연결(PAY/REFUND/VERIFIED/RESCHEDULE→system 항상 발송, REMINDER→service_reminder, EXPIRY→card_expiry); 유형이 꺼져 있으면 사이트 내 알림과 구독 메시지를 모두 건너뜀.
 
@@ -334,8 +334,8 @@ technician으로 전환하려면 approved 상태의 기술자 프로필이 있�
 
 | 메서드 | 경로 | 설명 |
 |------|------|------|
-| GET | `/api/technician/profile` | 기술자 프로필 조회 |
-| PUT | `/api/technician/profile` | 프로필 갱신 (avatar/intro/real_name/gender/id_card/id_card_front/id_card_back) |
+| GET | `/api/v1/technician/profile` | 기술자 프로필 조회 |
+| PUT | `/api/v1/technician/profile` | 프로필 갱신 (avatar/intro/real_name/gender/id_card/id_card_front/id_card_back) |
 
 최초 전체 입력은 입점 신청으로 간주, status=pending 심사 대기.
 
@@ -343,37 +343,37 @@ technician으로 전환하려면 approved 상태의 기술자 프로필이 있�
 
 | 메서드 | 경로 | 설명 |
 |------|------|------|
-| GET | `/api/technician/schedule` | 스케줄 조회 (?start_date=&end_date=) |
-| PUT | `/api/technician/schedule` | 스케줄 설정 (date/time_slots/status), 시간대 중복 422「기존 스케줄과 시간 충돌」 |
-| POST | `/api/technician/schedule/batch` | 일괄 스케줄(23차 라운드): 기간 ≤7일 + weekdays 필터, 기존 스케줄 있는 날은 건너뜀, 응답 created/skipped |
+| GET | `/api/v1/technician/schedule` | 스케줄 조회 (?start_date=&end_date=) |
+| PUT | `/api/v1/technician/schedule` | 스케줄 설정 (date/time_slots/status), 시간대 중복 422「기존 스케줄과 시간 충돌」 |
+| POST | `/api/v1/technician/schedule/batch` | 일괄 스케줄(23차 라운드): 기간 ≤7일 + weekdays 필터, 기존 스케줄 있는 날은 건너뜀, 응답 created/skipped |
 
 #### 3.3 기술자 주문
 
-`GET /api/technician/orders` — 주문 목록 (?status=&page=1)
+`GET /api/v1/technician/orders` — 주문 목록 (?status=&page=1)
 
 #### 3.4 수익
 
-`GET /api/technician/earnings` — 수익 개요 (today_income/pending_settlement/balance + 거래 내역 목록)
+`GET /api/v1/technician/earnings` — 수익 개요 (today_income/pending_settlement/balance + 거래 내역 목록)
 
 #### 3.5 출금
 
-`POST /api/technician/withdraw` — 출금 신청 (amount)
+`POST /api/v1/technician/withdraw` — 출금 신청 (amount)
 규칙: 매월 20일 출금 가능, T+1 입금, 최저 금액/100원 단위 제한은 백엔드 설정.
 
 **진행 중 예약(2026-08-26)**: 신청 시 잔액에서 바로 진행 중(pending/approved) 예약을 차감; 승인 이체 전 settled − withdrawn − 진행 중 ≥ 출금액 재확인; 동시 승인 시 이중 출금 없음.
 
 #### 3.6 평가 답글(18차 라운드)
 
-`POST /api/technician/review/reply/{order_id}` — 기술자 평가 답글 (reply). 평가 없음/본인 아님 통일 404(존재성 비노출); 기존 답글 422(멱등 거절, 덮어쓰지 않음); 빈 답글 422. 답글 성공 시 사용자에게 사이트 내 알림(type='review_reply').
+`POST /api/v1/technician/review/reply/{order_id}` — 기술자 평가 답글 (reply). 평가 없음/본인 아님 통일 404(존재성 비노출); 기존 답글 422(멱등 거절, 덮어쓰지 않음); 빈 답글 422. 답글 성공 시 사용자에게 사이트 내 알림(type='review_reply').
 
 #### 3.7 작업대
 
 | 메서드 | 경로 | 설명 |
 |------|------|------|
-| GET | `/api/technician/work/today` | 오늘의 작업 목록 |
-| GET | `/api/technician/work/records` | 완료 기록 페이징 |
-| POST | `/api/technician/work/{id}/start` | 서비스 시작 |
-| POST | `/api/technician/work/{id}/complete` | 서비스 완료 |
+| GET | `/api/v1/technician/work/today` | 오늘의 작업 목록 |
+| GET | `/api/v1/technician/work/records` | 완료 기록 페이징 |
+| POST | `/api/v1/technician/work/{id}/start` | 서비스 시작 |
+| POST | `/api/v1/technician/work/{id}/complete` | 서비스 완료 |
 
 **오늘의 작업**: status ∈ [confirmed, serving], service_time이 오늘이거나 빈값, service_name/price/nickname/avatar 반환.
 
@@ -387,17 +387,17 @@ technician으로 전환하려면 approved 상태의 기술자 프로필이 있�
 
 | 메서드 | 경로 | 설명 |
 |------|------|------|
-| POST | `/api/order` | 주문 생성 (order_type/items/store_id/technician_id/service_time/coupon_id/user_coupon_id/promotion_id/remark) |
-| GET | `/api/order/list` | 주문 목록 (?status=&page=1) |
-| GET | `/api/order/detail/{id}` | 주문 상세 |
-| POST | `/api/order/cancel/{id}` | 주문 취소 (reason) |
-| POST | `/api/order/pay/{id}` | 결제 요청 (pay_channel: wechat/balance, use_points: 포인트 현금 전환 선택) |
-| POST | `/api/order/refund/{id}` | 환불 신청 |
-| POST | `/api/order/verify/{id}` | 검증 (code: QR 코드 값) |
-| POST | `/api/order/reschedule/{id}` | 예약 일정 변경 (new_service_time 필수/reason 선택) |
-| GET | `/api/order/logistics/{id}` | 물류 추적(19차 라운드, product 주문) |
-| POST | `/api/order/review/{order_id}` | 평가 제출 (rating 1-5/content/images)(19차 라운드 라우트 등록) |
-| POST | `/api/order/review/{order_id}/append` | 평가 추평 (content/images 콤마 구분)(19차 라운드) |
+| POST | `/api/v1/order` | 주문 생성 (order_type/items/store_id/technician_id/service_time/coupon_id/user_coupon_id/promotion_id/remark) |
+| GET | `/api/v1/order/list` | 주문 목록 (?status=&page=1) |
+| GET | `/api/v1/order/detail/{id}` | 주문 상세 |
+| POST | `/api/v1/order/cancel/{id}` | 주문 취소 (reason) |
+| POST | `/api/v1/order/pay/{id}` | 결제 요청 (pay_channel: wechat/balance, use_points: 포인트 현금 전환 선택) |
+| POST | `/api/v1/order/refund/{id}` | 환불 신청 |
+| POST | `/api/v1/order/verify/{id}` | 검증 (code: QR 코드 값) |
+| POST | `/api/v1/order/reschedule/{id}` | 예약 일정 변경 (new_service_time 필수/reason 선택) |
+| GET | `/api/v1/order/logistics/{id}` | 물류 추적(19차 라운드, product 주문) |
+| POST | `/api/v1/order/review/{order_id}` | 평가 제출 (rating 1-5/content/images)(19차 라운드 라우트 등록) |
+| POST | `/api/v1/order/review/{order_id}/append` | 평가 추평 (content/images 콤마 구분)(19차 라운드) |
 
 **주문 상태**: pending(결제 대기) → paid(결제됨) → confirmed(확인됨) → serving(서비스 중) → completed(완료)
 
@@ -415,25 +415,25 @@ technician으로 전환하려면 approved 상태의 기술자 프로필이 있�
 
 **포인트 회수**: 취소/환불 시 points_offset으로 소비한 포인트 반환(type=earn/source=points_refund): 취소는 전액, 환불은 비율대로, 5개 연결점 멱등(refundOffsetPoints).
 
-**공동구매 주문(16차 라운드)**: 주문 생성 시 `promotion_id`(hashid) 선택 전달. 검증: group_buy 유형만, 활동 유효 기간 내, 호출자는 참여자, 미만원(결성 후 잠금 422), 주문 서비스와 활동 일치; 공동구매가 = 원가 × discount_percent/100, 쿠폰/횟수권/포인트 중첩 금지(하나라도 전달 시 422). 주문에 promotion_id/participant_id 저장; 결제는 `POST /api/order/pay/{id}` 완전 재사용, pay 시 활동 종료를 지연 판정(만료 미결성) → 주문 자동 취소 + 기술자 잠금 해제.
+**공동구매 주문(16차 라운드)**: 주문 생성 시 `promotion_id`(hashid) 선택 전달. 검증: group_buy 유형만, 활동 유효 기간 내, 호출자는 참여자, 미만원(결성 후 잠금 422), 주문 서비스와 활동 일치; 공동구매가 = 원가 × discount_percent/100, 쿠폰/횟수권/포인트 중첩 금지(하나라도 전달 시 422). 주문에 promotion_id/participant_id 저장; 결제는 `POST /api/v1/order/pay/{id}` 완전 재사용, pay 시 활동 종료를 지연 판정(만료 미결성) → 주문 자동 취소 + 기술자 잠금 해제.
 
-**번개세일 주문(18차 라운드, 폐지됨)**: ~~주문 생성 시 `promotion_id`(flash_sale 유형) 전달~~ — 2026-08부터 기존 프로모션 FLASH_SALE 채널 삭제, store() 프로모션 분기는 공동구매 GROUP_BUY만(비공동구매 promotion 422); 번개세일은 통일된 24차 라운드 `/api/seckill` 채널로 처리(seckill_id를 store 트랜잭션 내 행 잠금 재고 차감에 주입), PromotionController::index에서 flash_sale 필터, show/join은 400 반환, `Promotion::TYPE_FLASH_SALE` 상수는 이력 데이터 호환을 위해 유지.
+**번개세일 주문(18차 라운드, 폐지됨)**: ~~주문 생성 시 `promotion_id`(flash_sale 유형) 전달~~ — 2026-08부터 기존 프로모션 FLASH_SALE 채널 삭제, store() 프로모션 분기는 공동구매 GROUP_BUY만(비공동구매 promotion 422); 번개세일은 통일된 24차 라운드 `/api/v1/seckill` 채널로 처리(seckill_id를 store 트랜잭션 내 행 잠금 재고 차감에 주입), PromotionController::index에서 flash_sale 필터, show/join은 400 반환, `Promotion::TYPE_FLASH_SALE` 상수는 이력 데이터 호환을 위해 유지.
 
-**예약 일정 변경(17차 라운드)**: `POST /api/order/reschedule/{id}`에 new_service_time(필수) + reason(선택) 전달, 같은 기술자 시간 변경. 규칙: 본인 주문만(아님 404), appointment 유형이며 상태 pending/paid/confirmed만 변경 가능(그 외 422), 원래 서비스 시작까지 ≥ 6시간(전액 환불 창과 동일)일 때만 변경 가능. 동시성 방어: B1 order_lock(pay/cancel/refund와 같은 상호 배타 계열) → 새 시간대 기술자 잠금 Redis SETNX EX 180(동시 일정 변경 초과 판매 방지) → 트랜잭션 내 행 잠금 재조회 + B2 스케줄 충돌 DB 검증(본 주문 제외) → service_time 갱신 + appointment_order_reschedule 기록 → 원래 시간대 잠금 해제, 새 시간대 잠금은 본 주문이 보유 → SCENE_RESCHEDULE 구독 메시지(미설정 시 사이트 내 알림으로 대체). 실패 경로는 트랜잭션 롤백과 동시에 새 시간대 잠금 해제.
+**예약 일정 변경(17차 라운드)**: `POST /api/v1/order/reschedule/{id}`에 new_service_time(필수) + reason(선택) 전달, 같은 기술자 시간 변경. 규칙: 본인 주문만(아님 404), appointment 유형이며 상태 pending/paid/confirmed만 변경 가능(그 외 422), 원래 서비스 시작까지 ≥ 6시간(전액 환불 창과 동일)일 때만 변경 가능. 동시성 방어: B1 order_lock(pay/cancel/refund와 같은 상호 배타 계열) → 새 시간대 기술자 잠금 Redis SETNX EX 180(동시 일정 변경 초과 판매 방지) → 트랜잭션 내 행 잠금 재조회 + B2 스케줄 충돌 DB 검증(본 주문 제외) → service_time 갱신 + appointment_order_reschedule 기록 → 원래 시간대 잠금 해제, 새 시간대 잠금은 본 주문이 보유 → SCENE_RESCHEDULE 구독 메시지(미설정 시 사이트 내 알림으로 대체). 실패 경로는 트랜잭션 롤백과 동시에 새 시간대 잠금 해제.
 
-**물류 추적(19차 라운드)**: `GET /api/order/logistics/{id}` — 본인 product 주문만 조회 가능(아님/상품 아님/미발송 통일 404). order.remark JSON 파싱(shipping_company/tracking_no/shipped_at, admin MallOrderController::ship() 발송 시 기록), parseShippingInfo/parseReceiver 이중 파싱으로 구 형식 폴백; 수령인 휴대폰 번호 마스킹 138****5678.
+**물류 추적(19차 라운드)**: `GET /api/v1/order/logistics/{id}` — 본인 product 주문만 조회 가능(아님/상품 아님/미발송 통일 404). order.remark JSON 파싱(shipping_company/tracking_no/shipped_at, admin MallOrderController::ship() 발송 시 기록), parseShippingInfo/parseReceiver 이중 파싱으로 구 형식 폴백; 수령인 휴대폰 번호 마스킹 138****5678.
 
-**평가(19차 라운드)**: `POST /api/order/review/{order_id}` 평가 제출(rating 필수 1-5, content/images 선택): 본인 아님 404, 비-completed 422, 중복 평가 400. `POST /api/order/review/{order_id}/append` 추평(content 필수, images 콤마 구분): 평가 없음/본인 아님 통일 404, 비-completed 422, 중복 추평 422, 빈 내용 422; 성공 시 append_content/append_images(JSON)/append_at 기록 + 기술자에게 사이트 내 알림 type='review_append', 응답에 append 필드 노출.
+**평가(19차 라운드)**: `POST /api/v1/order/review/{order_id}` 평가 제출(rating 필수 1-5, content/images 선택): 본인 아님 404, 비-completed 422, 중복 평가 400. `POST /api/v1/order/review/{order_id}/append` 추평(content 필수, images 콤마 구분): 평가 없음/본인 아님 통일 404, 비-completed 422, 중복 추평 422, 빈 내용 422; 성공 시 append_content/append_images(JSON)/append_at 기록 + 기술자에게 사이트 내 알림 type='review_append', 응답에 append 필드 노출.
 
 ### 4.1 애프터서비스 인터페이스(JWT 인증 필요)
 
 | 메서드 | 경로 | 설명 |
 |------|------|------|
-| POST | `/api/aftersales` | 애프터서비스 신청 (order_id hashid/type: refund|exchange/reason), 본인 주문 검증 404, 상태 paid+completed만 신청 가능 422, 같은 주문 진행 중 애프터서비스 중복 제거 422 |
-| GET | `/api/aftersales` | 내 애프터서비스 목록 (?status=&page=1&limit=) |
-| GET | `/api/aftersales/{id}` | 애프터서비스 상세(소유권 검증 404) |
+| POST | `/api/v1/aftersales` | 애프터서비스 신청 (order_id hashid/type: refund|exchange/reason), 본인 주문 검증 404, 상태 paid+completed만 신청 가능 422, 같은 주문 진행 중 애프터서비스 중복 제거 422 |
+| GET | `/api/v1/aftersales` | 내 애프터서비스 목록 (?status=&page=1&limit=) |
+| GET | `/api/v1/aftersales/{id}` | 애프터서비스 상세(소유권 검증 404) |
 
-**애프터서비스 상태**: pending(심사 대기) → approved(승인) / rejected(거절). approved는 상태 전이만, 환불 동작은 `POST /api/order/refund/{id}` 사용.
+**애프터서비스 상태**: pending(심사 대기) → approved(승인) / rejected(거절). approved는 상태 전이만, 환불 동작은 `POST /api/v1/order/refund/{id}` 사용.
 
 ---
 
@@ -441,10 +441,10 @@ technician으로 전환하려면 approved 상태의 기술자 프로필이 있�
 
 | 메서드 | 경로 | 설명 |
 |------|------|------|
-| GET | `/api/promotions` | 활동 목록 (?type=group_buy; flash_sale은 필터되어 미반환) |
-| GET | `/api/promotions/{id}` | 활동 상세(참여 인원/결성 여부 포함; flash_sale 유형 400) |
-| GET | `/api/promotions/{id}/participants` | 참여 목록 |
-| POST | `/api/promotions/join/{id}` | 활동 참여(15차 라운드 보완: 응답에 discount_percent/original_price/group_price 포함; flash_sale 유형 400) |
+| GET | `/api/v1/promotions` | 활동 목록 (?type=group_buy; flash_sale은 필터되어 미반환) |
+| GET | `/api/v1/promotions/{id}` | 활동 상세(참여 인원/결성 여부 포함; flash_sale 유형 400) |
+| GET | `/api/v1/promotions/{id}/participants` | 참여 목록 |
+| POST | `/api/v1/promotions/join/{id}` | 활동 참여(15차 라운드 보완: 응답에 discount_percent/original_price/group_price 포함; flash_sale 유형 400) |
 
 **참여 규칙**: group_buy 만원(≥min_people) 잠금, 결성 후 새 참여 422; 만료 미만원 지연 종료(show/join 시 status 0 처리). join 후 공동구매가 주문은 「공동구매 주문(16차 라운드)」 참조. 번개세일은 더 이상 본 채널을 사용하지 않음, 「24. 번개세일 인터페이스」 참조.
 
@@ -454,21 +454,21 @@ technician으로 전환하려면 approved 상태의 기술자 프로필이 있�
 
 | 메서드 | 경로 | 설명 |
 |------|------|------|
-| GET | `/api/marketing/coupons` | 쿠폰 목록 (?status=available/used/expired) |
-| POST | `/api/marketing/coupons/receive` | 쿠폰 수령 (coupon_id) |
-| GET | `/api/marketing/cards` | 멤버십 카드 목록 |
-| POST | `/api/marketing/cards/buy` | 멤버십 카드 구매 (card_id) |
-| GET | `/api/marketing/cards/my` | 내 횟수권 목록 |
-| POST | `/api/marketing/cards/use` | 횟수권 검증 (user_card_id/service_id/remark?) |
-| GET | `/api/marketing/gift-cards` | 선물 카드 목록 |
-| GET | `/api/marketing/gift-cards/my` | 내 선물 카드 (redeem 기록) |
-| POST | `/api/marketing/gift-cards/redeem` | 선물 카드 교환 (cash 유형 교환 후 지갑 잔액 충전) |
-| GET | `/api/marketing/points` | 포인트 거래 내역 (?type=earn/use/expire&source=order/referral/gift_card/check_in/admin) |
-| GET | `/api/marketing/points-exchange` | 포인트 교환 상품 목록(판매 중 + 실시간 잔여 재고 + 교환 수) |
-| POST | `/api/marketing/points-exchange/{id}` | 교환 (type=coupon 발권 / wallet 입금 / gift_card 카드 키 반환) |
-| POST | `/api/marketing/coupons/transfer` | 양도 코드 생성 (user_coupon_id: 8자리 고유 코드/7일 유효) |
-| POST | `/api/marketing/coupons/claim` | 양도 쿠폰 수령 (code) |
-| GET | `/api/marketing/coupons/transfers` | 양도 기록 (발송 pending/claimed/expired + 수령 claimed) |
+| GET | `/api/v1/marketing/coupons` | 쿠폰 목록 (?status=available/used/expired) |
+| POST | `/api/v1/marketing/coupons/receive` | 쿠폰 수령 (coupon_id) |
+| GET | `/api/v1/marketing/cards` | 멤버십 카드 목록 |
+| POST | `/api/v1/marketing/cards/buy` | 멤버십 카드 구매 (card_id) |
+| GET | `/api/v1/marketing/cards/my` | 내 횟수권 목록 |
+| POST | `/api/v1/marketing/cards/use` | 횟수권 검증 (user_card_id/service_id/remark?) |
+| GET | `/api/v1/marketing/gift-cards` | 선물 카드 목록 |
+| GET | `/api/v1/marketing/gift-cards/my` | 내 선물 카드 (redeem 기록) |
+| POST | `/api/v1/marketing/gift-cards/redeem` | 선물 카드 교환 (cash 유형 교환 후 지갑 잔액 충전) |
+| GET | `/api/v1/marketing/points` | 포인트 거래 내역 (?type=earn/use/expire&source=order/referral/gift_card/check_in/admin) |
+| GET | `/api/v1/marketing/points-exchange` | 포인트 교환 상품 목록(판매 중 + 실시간 잔여 재고 + 교환 수) |
+| POST | `/api/v1/marketing/points-exchange/{id}` | 교환 (type=coupon 발권 / wallet 입금 / gift_card 카드 키 반환) |
+| POST | `/api/v1/marketing/coupons/transfer` | 양도 코드 생성 (user_coupon_id: 8자리 고유 코드/7일 유효) |
+| POST | `/api/v1/marketing/coupons/claim` | 양도 쿠폰 수령 (code) |
+| GET | `/api/v1/marketing/coupons/transfers` | 양도 기록 (발송 pending/claimed/expired + 수령 claimed) |
 
 **횟수권**: cards/my가 card_id/name/type/services/total_times/used_times/remaining_times/start_at/end_at/status 반환(실시간 계산). 검증 성공 시 {order_id, usage_id, remaining_times} 반환; 오류 코드: 잘못된 hashid 422, 횟수 부족 422, 이미 만료 400, 본인 아님 404, Redis 중복 방지 400.
 
@@ -486,9 +486,9 @@ technician으로 전환하려면 approved 상태의 기술자 프로필이 있�
 
 | 메서드 | 경로 | 설명 |
 |------|------|------|
-| GET | `/api/notification` | 알림 목록 (?type=order/system&page=1) |
-| PUT | `/api/notification/read/{id}` | 읽음 표시 |
-| PUT | `/api/notification/read-all` | 전체 읽음 |
+| GET | `/api/v1/notification` | 알림 목록 (?type=order/system&page=1) |
+| PUT | `/api/v1/notification/read/{id}` | 읽음 표시 |
+| PUT | `/api/v1/notification/read-all` | 전체 읽음 |
 
 ---
 
@@ -496,20 +496,20 @@ technician으로 전환하려면 approved 상태의 기술자 프로필이 있�
 
 | 메서드 | 경로 | 설명 |
 |------|------|------|
-| GET | `/api/wallet` | 지갑 잔액 + 거래 내역 페이징 |
-| POST | `/api/wallet/recharge` | 충전 주문 생성 (amount: 원) |
-| POST | `/api/wallet/recharge/{id}/pay` | 충전 주문 결제 요청 (위챗) |
-| POST | `/api/wallet/transfer` | 잔액 이체 (to_user_id hashid/amount/remark 선택/client_token 선택)(19차 라운드) |
-| GET | `/api/wallet/transfers` | 이체 기록 (?direction=out/in&page=1)(19차 라운드) |
-| GET | `/api/wallet/transfers/{id}` | 이체 상세(양쪽만 조회 가능, 타인 404)(19차 라운드) |
+| GET | `/api/v1/wallet` | 지갑 잔액 + 거래 내역 페이징 |
+| POST | `/api/v1/wallet/recharge` | 충전 주문 생성 (amount: 원) |
+| POST | `/api/v1/wallet/recharge/{id}/pay` | 충전 주문 결제 요청 (위챗) |
+| POST | `/api/v1/wallet/transfer` | 잔액 이체 (to_user_id hashid/amount/remark 선택/client_token 선택)(19차 라운드) |
+| GET | `/api/v1/wallet/transfers` | 이체 기록 (?direction=out/in&page=1)(19차 라운드) |
+| GET | `/api/v1/wallet/transfers/{id}` | 이체 상세(양쪽만 조회 가능, 타인 404)(19차 라운드) |
 
 **거래 내역**: wallet_txn 유형: recharge / consume / refund / gift_card / referral_reward(유통 수수료) / referral_level2(2단계 수수료) / points_exchange(포인트 교환 입금), 페이징 반환.
 
-**충전**: `POST /api/wallet/recharge`에 amount(원) 전달해 충전 주문 생성, 충전 주문 hashid 반환. `POST /api/wallet/recharge/{id}/pay`로 위챗 결제 요청, 응답에 sign_params 포함(주문 결제 방식과 동일); 결제 콜백은 R 접두사 out_trade_no로 충전 주문과 주문을 구분.
+**충전**: `POST /api/v1/wallet/recharge`에 amount(원) 전달해 충전 주문 생성, 충전 주문 hashid 반환. `POST /api/v1/wallet/recharge/{id}/pay`로 위챗 결제 요청, 응답에 sign_params 포함(주문 결제 방식과 동일); 결제 콜백은 R 접두사 out_trade_no로 충전 주문과 주문을 구분.
 
 **잔액 결제**: 주문 결제 요청 본문에 `pay_channel: "balance"` 전달 시 지갑 잔액 사용; 위챗 환불과 잔액 환불 모두 금액을 지갑 잔액으로 환충.
 
-**잔액 이체(19차 라운드)**: `POST /api/wallet/transfer` — 수령인 hashid 디코딩+존재 404, 본인 이체 422, 건당 금액 0.01-1000 422(DECIMAL 비교 float 금지), 잔액 부족 422, 일일 누적 5000원 422. 동시성/멱등: Redis NX 잠금 wallet_transfer:{from} 30s로 송신자 직렬화 → 트랜잭션 내 양쪽 지갑 행을 user_id 오름차순 lockForUpdate(고정 순서 데드락 방지) → 송신자 차감 + 수신자 증가 + WalletTxn 이중 거래 내역(transfer_out/transfer_in에 balance_after 스냅샷 포함) + 이체 기록 completed + 수신자 사이트 내 알림 type='balance_received'(실패 시 로그만). client_token 선택: 성공 후 SETNX 24h 중복 제출 방지(실패 요청은 token 미기록, 재시도 가능).
+**잔액 이체(19차 라운드)**: `POST /api/v1/wallet/transfer` — 수령인 hashid 디코딩+존재 404, 본인 이체 422, 건당 금액 0.01-1000 422(DECIMAL 비교 float 금지), 잔액 부족 422, 일일 누적 5000원 422. 동시성/멱등: Redis NX 잠금 wallet_transfer:{from} 30s로 송신자 직렬화 → 트랜잭션 내 양쪽 지갑 행을 user_id 오름차순 lockForUpdate(고정 순서 데드락 방지) → 송신자 차감 + 수신자 증가 + WalletTxn 이중 거래 내역(transfer_out/transfer_in에 balance_after 스냅샷 포함) + 이체 기록 completed + 수신자 사이트 내 알림 type='balance_received'(실패 시 로그만). client_token 선택: 성공 후 SETNX 24h 중복 제출 방지(실패 요청은 token 미기록, 재시도 가능).
 
 ---
 
@@ -517,10 +517,10 @@ technician으로 전환하려면 approved 상태의 기술자 프로필이 있�
 
 | 메서드 | 경로 | 설명 |
 |------|------|------|
-| GET | `/api/store-manager/overview` | 오늘의 개요 (오늘 주문 수/오늘 매출/진행 중/기술자 수/검증 수) |
-| GET | `/api/store-manager/orders` | 매장 주문 목록 (?status=&page=&limit=) |
-| GET | `/api/store-manager/technicians` | 기술자 목록(오늘 스케줄 포함) |
-| GET | `/api/store-manager/revenue` | 최근 7일 매출 집계 |
+| GET | `/api/v1/store-manager/overview` | 오늘의 개요 (오늘 주문 수/오늘 매출/진행 중/기술자 수/검증 수) |
+| GET | `/api/v1/store-manager/orders` | 매장 주문 목록 (?status=&page=&limit=) |
+| GET | `/api/v1/store-manager/technicians` | 기술자 목록(오늘 스케줄 포함) |
+| GET | `/api/v1/store-manager/revenue` | 최근 7일 매출 집계 |
 
 **store_id 격리**: requireStoreId()가 현재 사용자의 매장 바인딩을 강제(appointment_user.store_id), 매장 없음 403; 모든 조회는 store_id로 필터.
 
@@ -530,9 +530,9 @@ technician으로 전환하려면 approved 상태의 기술자 프로필이 있�
 
 | 메서드 | 경로 | 설명 |
 |------|------|------|
-| GET | `/api/growth` | 현재 성장 개요 (balance/등급/다음 등급 차액/등급 이름) |
-| GET | `/api/growth/records` | 성장값 거래 내역 페이징 (?page=&limit=) |
-| GET | `/api/growth/levels` | 등급 목록(공개, 로그인 불필요) |
+| GET | `/api/v1/growth` | 현재 성장 개요 (balance/등급/다음 등급 차액/등급 이름) |
+| GET | `/api/v1/growth/records` | 성장값 거래 내역 페이징 (?page=&limit=) |
+| GET | `/api/v1/growth/levels` | 등급 목록(공개, 로그인 불필요) |
 
 **성장값 입금**: 출석 +10; 평가 제출 +20(추평은 미입금); 소비 floor(paid) 1원당 1포인트(결제 콜백 내 상태 재검증 멱등 재사용, 중복 콜백 중복 입금 없음).
 
@@ -540,9 +540,9 @@ technician으로 전환하려면 approved 상태의 기술자 프로필이 있�
 
 | 메서드 | 경로 | 설명 |
 |------|------|------|
-| POST | `/api/invoices` | 세금계산서 신청 (order_id hashid/order_type: service=서비스/points_exchange=포인트 교환/order_type 기본 service; 금액과 발행자는 서버가 산출, 위변조 불가) |
-| GET | `/api/invoices` | 세금계산서 목록 (?status=&page=) |
-| GET | `/api/invoices/{id}` | 세금계산서 상세(본인만) |
+| POST | `/api/v1/invoices` | 세금계산서 신청 (order_id hashid/order_type: service=서비스/points_exchange=포인트 교환/order_type 기본 service; 금액과 발행자는 서버가 산출, 위변조 불가) |
+| GET | `/api/v1/invoices` | 세금계산서 목록 (?status=&page=) |
+| GET | `/api/v1/invoices/{id}` | 세금계산서 상세(본인만) |
 
 **중복 방지**: uk_order_type(order_id, order_type) 고유 키, 같은 주문 같은 유형 중복 신청 422(MySQL 1062 캡처 폴백 포함).
 
@@ -550,37 +550,37 @@ technician으로 전환하려면 approved 상태의 기술자 프로필이 있�
 
 | 메서드 | 경로 | 설명 |
 |------|------|------|
-| POST | `/api/tickets` | 티켓 제출 (title/content 필수) |
-| GET | `/api/tickets` | 티켓 목록 (?status=open/closed&page=) |
-| GET | `/api/tickets/{id}` | 티켓 상세(본인만, 타인 404) |
-| POST | `/api/tickets/{id}/close` | 티켓 종료(본인만/open만; 선택 rating 1-5 만족도 평가, 범위 초과/비정수 422, 미제공 시 NULL 호환) |
+| POST | `/api/v1/tickets` | 티켓 제출 (title/content 필수) |
+| GET | `/api/v1/tickets` | 티켓 목록 (?status=open/closed&page=) |
+| GET | `/api/v1/tickets/{id}` | 티켓 상세(본인만, 타인 404) |
+| POST | `/api/v1/tickets/{id}/close` | 티켓 종료(본인만/open만; 선택 rating 1-5 만족도 평가, 범위 초과/비정수 422, 미제공 시 NULL 호환) |
 
 ### 12. 예약 월력 인터페이스(JWT 인증 필요, 20차 라운드)
 
 | 메서드 | 경로 | 설명 |
 |------|------|------|
-| GET | `/api/calendar/technician/{id}` | 월 보기 (?month=YYYY-MM): 스케줄 time_slots 시간 슬롯 전개 + 예약 제외 |
-| GET | `/api/calendar/technician/{id}/day` | 일 보기 (?date=YYYY-MM-DD): 당일 예약 가능/예약됨/불가 슬롯 명세 |
+| GET | `/api/v1/calendar/technician/{id}` | 월 보기 (?month=YYYY-MM): 스케줄 time_slots 시간 슬롯 전개 + 예약 제외 |
+| GET | `/api/v1/calendar/technician/{id}/day` | 일 보기 (?date=YYYY-MM-DD): 당일 예약 가능/예약됨/불가 슬롯 명세 |
 
 ### 13. 세금계산서 발행자 인터페이스(JWT 인증 필요, 21차 라운드)
 
 | 메서드 | 경로 | 설명 |
 |------|------|------|
-| POST | `/api/invoice-titles` | 발행자 저장 (title_type: personal/company; company는 tax_no 필수; 같은 사용자 같은 발행자 중복 422; 첫 항목 자동 기본) |
-| GET | `/api/invoice-titles` | 발행자 목록(기본 최상단) |
-| PUT | `/api/invoice-titles/{id}` | 발행자 수정(본인만) |
-| DELETE | `/api/invoice-titles/{id}` | 발행자 삭제(본인만; 기본 삭제 시 가장 오래된 항목 자동 지정) |
-| POST | `/api/invoice-titles/{id}/default` | 기본 설정(트랜잭션으로 같은 사용자 다른 행 초기화) |
+| POST | `/api/v1/invoice-titles` | 발행자 저장 (title_type: personal/company; company는 tax_no 필수; 같은 사용자 같은 발행자 중복 422; 첫 항목 자동 기본) |
+| GET | `/api/v1/invoice-titles` | 발행자 목록(기본 최상단) |
+| PUT | `/api/v1/invoice-titles/{id}` | 발행자 수정(본인만) |
+| DELETE | `/api/v1/invoice-titles/{id}` | 발행자 삭제(본인만; 기본 삭제 시 가장 오래된 항목 자동 지정) |
+| POST | `/api/v1/invoice-titles/{id}/default` | 기본 설정(트랜잭션으로 같은 사용자 다른 행 초기화) |
 
-**신청 연동**: POST /api/invoices에서 선택 title_id 지원 — 발행자 파싱으로 invoice_title/tax_no/title_type 자동 반영, title_id 없으면 기존 수동 입력 경로 유지.
+**신청 연동**: POST /api/v1/invoices에서 선택 title_id 지원 — 발행자 파싱으로 invoice_title/tax_no/title_type 자동 반영, title_id 없으면 기존 수동 입력 경로 유지.
 
 ### 14. 조회 이력 인터페이스(JWT 인증 필요, 21차 라운드)
 
 | 메서드 | 경로 | 설명 |
 |------|------|------|
-| GET | `/api/browse-history` | 최근 조회 서비스(서비스 이름/커버/가격/원가 join, viewed_at 내림차순, per_page 기본 15 상한 50) |
-| DELETE | `/api/browse-history/{item_id}` | 단건 삭제(본인만, 비정상/타인 404) |
-| DELETE | `/api/browse-history` | 이력 전체 삭제(본인만) |
+| GET | `/api/v1/browse-history` | 최근 조회 서비스(서비스 이름/커버/가격/원가 join, viewed_at 내림차순, per_page 기본 15 상한 50) |
+| DELETE | `/api/v1/browse-history/{item_id}` | 단건 삭제(본인만, 비정상/타인 404) |
+| DELETE | `/api/v1/browse-history` | 이력 전체 삭제(본인만) |
 
 **기록 시점**: 서비스 상세 인터페이스 접근 성공 후 자동 기록(비로그인 스킵; 중복 조회는 viewed_at만 갱신, 중복 삽입 없음).
 
@@ -588,7 +588,7 @@ technician으로 전환하려면 approved 상태의 기술자 프로필이 있�
 
 | 메서드 | 경로 | 설명 |
 |------|------|------|
-| GET | `/api/full-reduction-activities` | 진행 중인 만 N 원 할인 활동 목록(status=1이고 유효 기간 내, 할인액 내림차순; 공개 인터페이스) |
+| GET | `/api/v1/full-reduction-activities` | 진행 중인 만 N 원 할인 활동 목록(status=1이고 유효 기간 내, 할인액 내림차순; 공개 인터페이스) |
 
 **주문 중첩 규칙**: 만 N 원 할인은 표준 주문만 적용(공동구매/번개세일 제외), 쿠폰/횟수권 차감 후 결제 금액으로 문턱(threshold) 판정, 중첩 순서 **쿠폰/횟수권 → 만 N 원 할인 → 등급 할인**; 할인액이 가장 큰 활동 선택; 할인액은 discount_amount에 합산, 메모에「만 N 원 할인: X 이상 Y 할인」추가; 할인 후 실결제 하한 0.01원.
 
@@ -596,7 +596,7 @@ technician으로 전환하려면 approved 상태의 기술자 프로필이 있�
 
 | 메서드 | 경로 | 설명 |
 |------|------|------|
-| GET | `/api/order/ics` | 90일 내 유효 주문(pending/paid/confirmed/serving)을 iCal(RFC5545)로 내보내기 |
+| GET | `/api/v1/order/ics` | 90일 내 유효 주문(pending/paid/confirmed/serving)을 iCal(RFC5545)로 내보내기 |
 
 **출력**: `Content-Type: text/calendar; charset=utf-8` + `Content-Disposition: attachment; filename="my-appointments.ics"`. VEVENT: UID=주문 ID, TZID=Asia/Shanghai, 요약「예약: 서비스명」(없으면「예약」으로 대체), 설명(기술자/매장/주소, 없으면 생략), LOCATION 매장 이름; 텍스트는 RFC5545 이스케이프(\, \; \\ \n) + 75바이트 줄 접기. 주문 없으면 유효한 빈 캘린더 반환; 본인 주문만 내보냄.
 
@@ -604,18 +604,18 @@ technician으로 전환하려면 approved 상태의 기술자 프로필이 있�
 
 | 메서드 | 경로 | 설명 |
 |------|------|------|
-| POST | `/api/technician/attendance/check-in` | 출근 체크인(당일 중복 422, 고유 인덱스 동시성 폴백; >10:00 지각 표시) |
-| POST | `/api/technician/attendance/check-out` | 퇴근 체크인(출근 안 함/퇴근 완료 422, 행 잠금 동시성) |
-| GET | `/api/technician/attendance` | 해당 월 근태 목록 + 출근 일수/총 근무 시간/평균 근무 시간 집계(?month=YYYY-MM, 비정상 422) |
+| POST | `/api/v1/technician/attendance/check-in` | 출근 체크인(당일 중복 422, 고유 인덱스 동시성 폴백; >10:00 지각 표시) |
+| POST | `/api/v1/technician/attendance/check-out` | 퇴근 체크인(출근 안 함/퇴근 완료 422, 행 잠금 동시성) |
+| GET | `/api/v1/technician/attendance` | 해당 월 근태 목록 + 출근 일수/총 근무 시간/평균 근무 시간 집계(?month=YYYY-MM, 비정상 422) |
 
 ### 18. 개인정보 컴플라이언스 인터페이스(JWT 인증 필요, 22차 라운드)
 
 | 메서드 | 경로 | 설명 |
 |------|------|------|
-| GET | `/api/privacy/data` | 데이터 내보내기(personal/orders/points/wallet_txns/reviews/addresses/invoices 그룹 JSON; 서버 로그는 마스킹 휴대폰 번호+건수만 기록) |
-| POST | `/api/privacy/close-request` | 탈퇴 신청(잔액 0 아님 / 미완료 주문 / 진행 중 티켓 422; close_status=1 + close_requested_at 설정) |
-| POST | `/api/privacy/close-cancel` | 탈퇴 신청 취소(close_status 1→0) |
-| POST | `/api/privacy/close-confirm` | 탈퇴 확인(72h 경과 후 가능; close_status=2 + close_at + phone/nickname 익명화 user{id} + status=0) |
+| GET | `/api/v1/privacy/data` | 데이터 내보내기(personal/orders/points/wallet_txns/reviews/addresses/invoices 그룹 JSON; 서버 로그는 마스킹 휴대폰 번호+건수만 기록) |
+| POST | `/api/v1/privacy/close-request` | 탈퇴 신청(잔액 0 아님 / 미완료 주문 / 진행 중 티켓 422; close_status=1 + close_requested_at 설정) |
+| POST | `/api/v1/privacy/close-cancel` | 탈퇴 신청 취소(close_status 1→0) |
+| POST | `/api/v1/privacy/close-confirm` | 탈퇴 확인(72h 경과 후 가능; close_status=2 + close_at + phone/nickname 익명화 user{id} + status=0) |
 
 **로그인 차단**: close_status=2인 계정 로그인 시 403「계정이 탈퇴되었습니다」.
 
@@ -623,9 +623,9 @@ technician으로 전환하려면 approved 상태의 기술자 프로필이 있�
 
 | 메서드 | 경로 | 설명 |
 |------|------|------|
-| GET | `/api/health-profile` | 내 건강 프로필 조회(프로필 없으면 빈 객체) |
-| PUT | `/api/health-profile` | 생성/갱신(upsert, 1인 1개; allergies/health_notes 상한 500자, preferred_technician_id 존재성 검증; 제공한 필드만 갱신, 응답 hashid 인코딩) |
-| DELETE | `/api/health-profile` | 내 프로필 삭제(본인만) |
+| GET | `/api/v1/health-profile` | 내 건강 프로필 조회(프로필 없으면 빈 객체) |
+| PUT | `/api/v1/health-profile` | 생성/갱신(upsert, 1인 1개; allergies/health_notes 상한 500자, preferred_technician_id 존재성 검증; 제공한 필드만 갱신, 응답 hashid 인코딩) |
+| DELETE | `/api/v1/health-profile` | 내 프로필 삭제(본인만) |
 
 필드: allergies(알레르기 이력)/health_notes(건강 메모)/preferred_technician_id(선호 기술자, 빈값 가능).
 
@@ -633,9 +633,9 @@ technician으로 전환하려면 approved 상태의 기술자 프로필이 있�
 
 | 메서드 | 경로 | 설명 |
 |------|------|------|
-| POST | `/api/wallet/pay-password/set` | 결제 비밀번호 설정(6자리 숫자 `\d{6}`; 설정된 상태에서 변경 시 기존 비밀번호 필요 422 차단) |
-| POST | `/api/wallet/pay-password/verify` | 결제 비밀번호 검증(정확/오류 불리언 반환, DB 미기록) |
-| POST | `/api/wallet/pay-password/check` | 설정 여부 조회(set: true/false) |
+| POST | `/api/v1/wallet/pay-password/set` | 결제 비밀번호 설정(6자리 숫자 `\d{6}`; 설정된 상태에서 변경 시 기존 비밀번호 필요 422 차단) |
+| POST | `/api/v1/wallet/pay-password/verify` | 결제 비밀번호 검증(정확/오류 불리언 반환, DB 미기록) |
+| POST | `/api/v1/wallet/pay-password/check` | 설정 여부 조회(set: true/false) |
 
 저장: password_hash() 해시 + pay_password_set_at, 절대 평문 저장 안 함.
 
@@ -643,7 +643,7 @@ technician으로 전환하려면 approved 상태의 기술자 프로필이 있�
 
 | 메서드 | 경로 | 설명 |
 |------|------|------|
-| GET | `/api/order/{id}/timeline` | 주문 상태 변경 타임라인(내림차순; 본인만, 타인 주문 404 존재성 비노출) |
+| GET | `/api/v1/order/{id}/timeline` | 주문 상태 변경 타임라인(내림차순; 본인만, 타인 주문 404 존재성 비노출) |
 
 로그: 제출/결제(위챗 콜백 markOrderPaid 단일 소비점)/취소/기술자 확인/환불 신청/환불 승인/서비스 시작/서비스 완료/시간 초과 자동 취소/백엔드 조작(operator=admin) 총 8종 변경.
 
@@ -651,37 +651,37 @@ technician으로 전환하려면 approved 상태의 기술자 프로필이 있�
 
 | 메서드 | 경로 | 설명 |
 |------|------|------|
-| GET | `/api/wheel/prizes` | 룰렛 상품 목록(weight/stock 민감 필드 숨김) |
-| POST | `/api/wheel/spin` | 1회 추첨(Redis NX + 행 잠금 동시성 방지; random_int 가중치 추첨; 포인트→earn 거래 내역 만료 시간 포함, 잔액→lockForUpdate 입금, 쿠폰→pending 수동 발급, 당첨 없음→lose; client_token 멱등) |
-| GET | `/api/wheel/records` | 내 추첨 기록(페이징) |
+| GET | `/api/v1/wheel/prizes` | 룰렛 상품 목록(weight/stock 민감 필드 숨김) |
+| POST | `/api/v1/wheel/spin` | 1회 추첨(Redis NX + 행 잠금 동시성 방지; random_int 가중치 추첨; 포인트→earn 거래 내역 만료 시간 포함, 잔액→lockForUpdate 입금, 쿠폰→pending 수동 발급, 당첨 없음→lose; client_token 멱등) |
+| GET | `/api/v1/wheel/records` | 내 추첨 기록(페이징) |
 
 ### 23. 게스트 모드 인터페이스(24차 라운드)
 
 | 메서드 | 경로 | 설명 |
 |------|------|------|
-| GET | `/api/guest/home` | 홈 집계(배너/공지/서비스 분류/인기 서비스, Redis 캐시 svc:guest:home 300s) |
-| GET | `/api/guest/services` | 서비스 목록 (?category_id=hashid&sort=newest|sales|price&page/per_page≤50) |
-| GET | `/api/guest/services/{id}` | 서비스 상세(없음 404) |
-| GET | `/api/guest/stores` | 매장 목록 |
-| GET | `/api/guest/technicians` | 기술자 목록(심사 통과만; ?service_id=hashid 필터; 평점 내림차순) |
+| GET | `/api/v1/guest/home` | 홈 집계(배너/공지/서비스 분류/인기 서비스, Redis 캐시 svc:guest:home 300s) |
+| GET | `/api/v1/guest/services` | 서비스 목록 (?category_id=hashid&sort=newest|sales|price&page/per_page≤50) |
+| GET | `/api/v1/guest/services/{id}` | 서비스 상세(없음 404) |
+| GET | `/api/v1/guest/stores` | 매장 목록 |
+| GET | `/api/v1/guest/technicians` | 기술자 목록(심사 통과만; ?service_id=hashid 필터; 평점 내림차순) |
 
-인증 불필요(ApiVersion 미들웨어만)한 비로그인 조회 진입점.
+인증 불필요(공개 인터페이스)한 비로그인 조회 진입점.
 
 ### 24. 번개세일 인터페이스(JWT 인증 필요, 24차 라운드)
 
 | 메서드 | 경로 | 설명 |
 |------|------|------|
-| GET | `/api/seckill` | 번개세일 활동 목록(status=1이고 시간 창 내; 판매량 = appointment_order.seckill_id 주문 수, 잔여 재고 포함) |
-| GET | `/api/seckill/{id}` | 활동 상세(state=not_started/ongoing/ended) |
-| POST | `/api/seckill/{id}/buy` | 번개세일 주문(client_token 멱등 + Redis NX 30s 동시성 방지 + 활동 검증; 재고 선차감 없음) |
+| GET | `/api/v1/seckill` | 번개세일 활동 목록(status=1이고 시간 창 내; 판매량 = appointment_order.seckill_id 주문 수, 잔여 재고 포함) |
+| GET | `/api/v1/seckill/{id}` | 활동 상세(state=not_started/ongoing/ended) |
+| POST | `/api/v1/seckill/{id}/buy` | 번개세일 주문(client_token 멱등 + Redis NX 30s 동시성 방지 + 활동 검증; 재고 선차감 없음) |
 
-**주문 규칙(2026-08-26부터)**: 재고는 통일적으로 `/api/order store()` 트랜잭션 내 행 잠금으로 차감, buy는 진입 검증/멱등만 수행; 번개세일가 = seckill_price(DB 기준), 쿠폰/포인트/멤버십 카드 중첩 불가; 주문 취소는 재고 미복원; `/api/order`에 seckill_id를 직접 전달해도 재고 차감.
+**주문 규칙(2026-08-26부터)**: 재고는 통일적으로 `/api/v1/order store()` 트랜잭션 내 행 잠금으로 차감, buy는 진입 검증/멱등만 수행; 번개세일가 = seckill_price(DB 기준), 쿠폰/포인트/멤버십 카드 중첩 불가; 주문 취소는 재고 미복원; `/api/v1/order`에 seckill_id를 직접 전달해도 재고 차감.
 
 ### 25. APP 버전 확인 인터페이스(24차 라운드)
 
 | 메서드 | 경로 | 설명 |
 |------|------|------|
-| GET | `/api/app/version?platform=android|ios` | 최신 버전 확인(platform 비정상 422; 버전 없으면 빈 객체; 공개 인터페이스) |
+| GET | `/api/v1/app/version?platform=android|ios` | 최신 버전 확인(platform 비정상 422; 버전 없으면 빈 객체; 공개 인터페이스) |
 
 응답: id/platform/version_code/version_name/force_update(1=강제)/changelog/download_url.
 
@@ -689,7 +689,7 @@ technician으로 전환하려면 approved 상태의 기술자 프로필이 있�
 
 ## 2. 관리 백엔드 API (admin/ :8787)
 
-요청 헤더: `Authorization: Bearer <admin_token>`, `API-Version: v1`
+요청 헤더: `Authorization: Bearer <admin_token>`; 공개 인증 인터페이스 버전은 URL 접두사 `/api/v1`을 따름
 
 ### 대시보드
 
@@ -882,7 +882,7 @@ technician으로 전환하려면 approved 상태의 기술자 프로필이 있�
 | PUT | `/admin/versions/{id}` | 수정 |
 | DELETE | `/admin/versions/{id}` | 삭제 |
 
-권한 ID: 416-419. 업데이트 확인 인터페이스 /api/app/version은 status=1 중 최신(updated_at/id 최대) 버전 조회.
+권한 ID: 416-419. 업데이트 확인 인터페이스 /api/v1/app/version은 status=1 중 최신(updated_at/id 최대) 버전 조회.
 
 ### 스케줄 내보내기(24차 라운드)
 

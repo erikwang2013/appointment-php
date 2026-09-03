@@ -16,7 +16,7 @@ use support\Response;
 /**
  * AuthController 注册接口系统初始化保护测试（第 4 轮审计 S1）
  *
- * 背景：/api/auth/register 此前无鉴权即可创建 status=1 管理员并签发 token。
+ * 背景：/api/v1/auth/register 此前无鉴权即可创建 status=1 管理员并签发 token。
  * 修复后注册接口仅在系统未初始化时可用（ADMIN_REGISTER_ENABLED=1 显式开启，
  * 安装向导阶段使用），否则返回 410。
  *
@@ -37,7 +37,7 @@ class AuthControllerTest extends TestCase
         $head = "Host: localhost\r\n"
             . "Content-Type: application/x-www-form-urlencoded\r\n"
             . "Content-Length: " . strlen($body) . "\r\n";
-        return new Request("POST /api/auth/register HTTP/1.1\r\n" . $head . "\r\n" . $body);
+        return new Request("POST /api/v1/auth/register HTTP/1.1\r\n" . $head . "\r\n" . $body);
     }
 
     private function body(Response $response): array

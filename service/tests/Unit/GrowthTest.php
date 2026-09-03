@@ -27,9 +27,9 @@ use Webman\Http\Response;
  * - 签到成长值入账（+10, type=signin）
  * - 评价成长值入账（+20, type=review）
  * - 消费成长值入账（floor(实付金额) 元=1 点, type=consume；重复回调不重复入账）
- * - GET /api/growth 返回累计成长值、当前等级、下一等级进度、权益
- * - GET /api/growth/records 分页 + type 过滤（倒序）
- * - GET /api/growth/levels 公开等级列表
+ * - GET /api/v1/growth 返回累计成长值、当前等级、下一等级进度、权益
+ * - GET /api/v1/growth/records 分页 + type 过滤（倒序）
+ * - GET /api/v1/growth/levels 公开等级列表
  *
  * 依赖真实 DB（与 PointsFlowTest 同基建）。
  */

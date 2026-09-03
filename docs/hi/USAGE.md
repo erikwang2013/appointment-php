@@ -99,7 +99,7 @@ ws://localhost:8282
 iOS (APNs): apns_key_id/team_id/bundle_id/.p8 फ़ाइल कॉन्फ़िगर करें
 Android (FCM): fcm_server_key कॉन्फ़िगर करें
 
-APP डिवाइस पंजीकरण: `POST /api/user/device/register {"platform":"ios","device_token":"..."}`
+APP डिवाइस पंजीकरण: `POST /api/v1/user/device/register {"platform":"ios","device_token":"..."}`
 
 ---
 

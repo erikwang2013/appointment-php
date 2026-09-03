@@ -126,13 +126,13 @@ php start.php start -d
 
 ```bash
 # 业务 API
-curl http://localhost:8787/api/common/config
+curl http://localhost:8787/api/v1/common/config
 
 # 管理后台健康检查
 curl http://localhost:8787/health
 
 # 管理后台登录（默认账号密码见下方）
-curl -X POST http://localhost:8787/api/auth/login \
+curl -X POST http://localhost:8787/api/v1/auth/login \
   -H "Content-Type: application/json" \
   -d '{"username":"admin","password":"admin123"}'
 ```

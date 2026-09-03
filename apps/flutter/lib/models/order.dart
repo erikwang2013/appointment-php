@@ -16,7 +16,7 @@ class OrderModel {
   final String? storeAddress;
   final String? remark;
   final List<OrderItem>? items;
-  // M4: 服务端仅认 user_coupon_id（用户领券记录 id，来自 GET /api/marketing/coupons 列表顶层 id）
+  // M4: 服务端仅认 user_coupon_id（用户领券记录 id，来自 GET /api/v1/marketing/coupons 列表顶层 id）
   final String? userCouponId;
   final double? couponDiscount;
   final String? createdAt;

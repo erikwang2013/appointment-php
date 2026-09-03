@@ -42,7 +42,7 @@ class AftersaleTest extends TestCase
             $head = "Host: localhost\r\n"
                 . "Content-Type: application/x-www-form-urlencoded\r\n"
                 . "Content-Length: 0\r\n";
-            return new Request("GET /api/aftersales{$query} HTTP/1.1\r\n" . $head . "\r\n");
+            return new Request("GET /api/v1/aftersales{$query} HTTP/1.1\r\n" . $head . "\r\n");
         }
         $body = http_build_query($post);
         $head = "Host: localhost\r\n"

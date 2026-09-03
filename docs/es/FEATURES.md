@@ -127,8 +127,8 @@ Las funciones del mini programa y de la APP del extremo de usuario son idéntica
 
 | Función | Descripción |
 |------|------|
-| Saldo de la billetera | GET /api/wallet saldo + historial (tablas user_wallet/wallet_recharge/wallet_txn) |
-| Recarga | POST /api/wallet/recharge crea la orden de recarga; POST /api/wallet/recharge/{id}/pay pago de recarga con WeChat Pay, la devolución de llamada usa el número de pedido con prefijo R |
+| Saldo de la billetera | GET /api/v1/wallet saldo + historial (tablas user_wallet/wallet_recharge/wallet_txn) |
+| Recarga | POST /api/v1/wallet/recharge crea la orden de recarga; POST /api/v1/wallet/recharge/{id}/pay pago de recarga con WeChat Pay, la devolución de llamada usa el número de pedido con prefijo R |
 | Pago con saldo | Canal de pago del pedido pay_channel=balance |
 | Reintegro en reembolso | Los reembolsos de WeChat/saldo recargan automáticamente el saldo (refundToBalance / creditRefundToWallet) |
 
@@ -144,8 +144,8 @@ Las funciones del mini programa y de la APP del extremo de usuario son idéntica
 
 | Función | Descripción |
 |------|------|
-| Mi tarjeta por uso | GET /api/marketing/cards/my calcula en tiempo real used_up/expired |
-| Verificación y descuento de usos | POST /api/marketing/cards/use: Redis NX idempotente + bloqueo de fila lockForUpdate, crea directamente pedido completed + OrderItem + OrderPayment(pay_type='card') |
+| Mi tarjeta por uso | GET /api/v1/marketing/cards/my calcula en tiempo real used_up/expired |
+| Verificación y descuento de usos | POST /api/v1/marketing/cards/use: Redis NX idempotente + bloqueo de fila lockForUpdate, crea directamente pedido completed + OrderItem + OrderPayment(pay_type='card') |
 
 ### 13. Descuento con cupones (Ronda 9)
 
@@ -160,7 +160,7 @@ Las funciones del mini programa y de la APP del extremo de usuario son idéntica
 | Función | Descripción |
 |------|------|
 | Canje | redeem: el tipo cash recarga en la billetera (bloqueo de fila contra doble ingreso, WalletTxn type='gift_card'), el tipo gift solo se marca |
-| Mi tarjeta regalo | GET /api/marketing/gift-cards/my |
+| Mi tarjeta regalo | GET /api/v1/marketing/gift-cards/my |
 
 ### 15. Sistema de puntos (Rondas 9+10)
 
@@ -171,7 +171,7 @@ Las funciones del mini programa y de la APP del extremo de usuario son idéntica
 | Recuperación al reembolsar | clawbackOrderPoints recupera proporcionalmente (3 puntos de integración) |
 | Puntos como efectivo | Pasar use_points al pagar, 100 puntos = 1 yuan (config app.points_rate), validación de saldo con agregación SUM, historial de consumo source=points_offset idempotente |
 | Recuperación de puntos (Ronda 15) | La cancelación/reembolso devuelve los puntos points_offset: refundOffsetPoints con 5 puntos de enganche (doCancel 3 rutas/doRefund transacción WeChat/creditRefundToWallet/completeOneRefundCompensation), source=points_refund idempotente |
-| Detalle de puntos | GET /api/marketing/points paginación + filtro type/source, type unificado a earn |
+| Detalle de puntos | GET /api/v1/marketing/points paginación + filtro type/source, type unificado a earn |
 
 ### 16. Cadena de pedidos del mini programa (Ronda 10)
 
@@ -201,8 +201,8 @@ Las funciones del mini programa y de la APP del extremo de usuario son idéntica
 
 | Función | Descripción |
 |------|------|
-| Solicitar posventa | POST /api/aftersales: type=refund/exchange, validación de pedido propio/paid+completed/deduplicación por pedido |
-| Mi posventa | GET /api/aftersales lista paginada + GET /api/aftersales/{id} detalle |
+| Solicitar posventa | POST /api/v1/aftersales: type=refund/exchange, validación de pedido propio/paid+completed/deduplicación por pedido |
+| Mi posventa | GET /api/v1/aftersales lista paginada + GET /api/v1/aftersales/{id} detalle |
 | Flujo de revisión | approve/reject en el extremo de administración (rejected requiere remark); approved solo cambia el estado, el reembolso reutiliza la interfaz de reembolso de pedidos |
 
 ### 20. Compra grupal / oferta flash (Ronda 15)
@@ -211,9 +211,9 @@ Las funciones del mini programa y de la APP del extremo de usuario son idéntica
 
 | Función | Descripción |
 |------|------|
-| Lista/detalle de actividades | GET /api/promotions + /api/promotions/{id}, filtro de tipo group_buy/flash_sale |
-| Participación | POST /api/promotions/join/{id}: bloqueo Redis NX contra sobreventa (flash_sale usa max_people como límite de stock), participación repetida 422, group_buy bloqueado al llenarse, cierre diferido si no se llena al vencer (show/join ponen status 0) |
-| Lista de participantes | GET /api/promotions/{id}/participants |
+| Lista/detalle de actividades | GET /api/v1/promotions + /api/v1/promotions/{id}, filtro de tipo group_buy/flash_sale |
+| Participación | POST /api/v1/promotions/join/{id}: bloqueo Redis NX contra sobreventa (flash_sale usa max_people como límite de stock), participación repetida 422, group_buy bloqueado al llenarse, cierre diferido si no se llena al vencer (show/join ponen status 0) |
+| Lista de participantes | GET /api/v1/promotions/{id}/participants |
 | Corrección de estados | PromotionParticipant cambia a constantes enteras 0/1/2/3 (corrige el daño de join 1366 en modo estricto) |
 
 ### 21. Pedido de compra grupal (Ronda 16)
@@ -221,7 +221,7 @@ Las funciones del mini programa y de la APP del extremo de usuario son idéntica
 | Función | Descripción |
 |------|------|
 | Precio de grupo | La respuesta de join devuelve discount_percent/original_price/group_price |
-| Pedido de grupo | POST /api/order pasando promotion_id: valida solo group_buy / actividad vigente / el llamante es participante / no está lleno / el servicio coincide; precio de grupo = precio original × discount_percent/100, prohibidos cupones/tarjetas por uso/puntos superpuestos (422) |
+| Pedido de grupo | POST /api/v1/order pasando promotion_id: valida solo group_buy / actividad vigente / el llamante es participante / no está lleno / el servicio coincide; precio de grupo = precio original × discount_percent/100, prohibidos cupones/tarjetas por uso/puntos superpuestos (422) |
 | Marcado del pedido | appointment_order añade columnas promotion_id/participant_id + índices |
 | Manejo de grupo no formado | Al vencer sin llenarse → cierre de la actividad + cancelación por lotes de los pedidos pending de esa actividad (idempotente); pay() determina de forma diferida si está cerrado y cancela automáticamente el pedido liberando el bloqueo del técnico |
 
@@ -233,22 +233,22 @@ Las funciones del mini programa y de la APP del extremo de usuario son idéntica
 | Puntos de enganche | ReferralRewardService::handleOrderCompleted enganchado dentro de la transacción de WorkController::complete (entrada única serving→completed, la verificación solo llega a serving y no lo activa), el fallo revierte todo y es reintentable |
 | Idempotencia | appointment_user_referral bloqueo de fila lockForUpdate + comprobación de rewarded_at vacío + re-verificación del primer pedido dentro del bloqueo (concurrencia/llamadas repetidas solo emiten una vez) |
 | Ingreso | Bloqueo de fila de billetera acumulado + WalletTxn type='referral_reward' (balance_after + número de pedido en remark); el registro de recomendación escribe reward_type/reward_amount/rewarded_at/first_order_at |
-| Detalle | GET /api/user/referral/earnings paginado (apodo/avatar del recomendado/número de pedido/importe/hora) |
+| Detalle | GET /api/v1/user/referral/earnings paginado (apodo/avatar del recomendado/número de pedido/importe/hora) |
 
 ### 23. Tienda de canje de puntos (Ronda 16)
 
 | Función | Descripción |
 |------|------|
 | Productos de canje | appointment_points_exchange_goods: type=coupon/gift_card/wallet, points_cost/value (DECIMAL(25,2) contra pérdida de precisión de ID de avalancha)/stock/status |
-| Lista de productos | GET /api/marketing/points-exchange: productos en venta + stock restante en tiempo real + cantidad canjeada |
-| Canje | POST /api/marketing/points-exchange/{id}: bloqueo Redis NX + bloqueo de fila del producto contra sobrecanje; validación SUM de puntos (422 si insuficiente) + deducción de UserPoints type='consume' source='exchange'; coupon emite cupón / wallet ingresa saldo (WalletTxn points_exchange) / gift_card devuelve tarjeta con código |
+| Lista de productos | GET /api/v1/marketing/points-exchange: productos en venta + stock restante en tiempo real + cantidad canjeada |
+| Canje | POST /api/v1/marketing/points-exchange/{id}: bloqueo Redis NX + bloqueo de fila del producto contra sobrecanje; validación SUM de puntos (422 si insuficiente) + deducción de UserPoints type='consume' source='exchange'; coupon emite cupón / wallet ingresa saldo (WalletTxn points_exchange) / gift_card devuelve tarjeta con código |
 | Idempotencia | Índice único uk_user_goods limita una vez por usuario y producto + re-verificación dentro del bloqueo + respaldo 1062; el registro de canje es instantánea en appointment_user_points_exchange |
 
 ### 24. Reprogramación de reservas (Ronda 17)
 
 | Función | Descripción |
 |------|------|
-| Interfaz | POST /api/order/reschedule/{id}: new_service_time (obligatorio) + reason (opcional), cambia de hora con el mismo técnico |
+| Interfaz | POST /api/v1/order/reschedule/{id}: new_service_time (obligatorio) + reason (opcional), cambia de hora con el mismo técnico |
 | Reglas | Solo pedidos propios (404 si no es propio); solo tipo appointment con estado pending/paid/confirmed (resto 422); ≥ 6 horas antes del inicio del servicio original (alineado con la ventana de reembolso completo) |
 | Protección de concurrencia | B1 order_lock (misma familia de exclusión mutua que pay/cancel/refund) → bloqueo del técnico en el nuevo horario con Redis SETNX EX 180 (contra sobreventa en reprogramación concurrente) → re-lectura con bloqueo de fila dentro de la transacción + validación DB de conflicto de horarios B2 (excluyendo este pedido) |
 | Cierre | Actualiza service_time + registra appointment_order_reschedule (con reason) + libera el bloqueo del horario original/la tenencia de este pedido del bloqueo del nuevo horario; en caso de fallo, la transacción revierte y también libera el bloqueo del nuevo horario |
@@ -258,7 +258,7 @@ Las funciones del mini programa y de la APP del extremo de usuario son idéntica
 
 | Función | Descripción |
 |------|------|
-| Interfaces | POST /api/marketing/coupons/transfer (user_coupon_id) genera un código de transferencia único de 8 caracteres sin ambigüedad (respaldo uk_code, válido 7 días); POST /api/marketing/coupons/claim (code) para recibir; GET /api/marketing/coupons/transfers emitidos (pending/claimed/expired) + recibidos (claimed) paginado |
+| Interfaces | POST /api/v1/marketing/coupons/transfer (user_coupon_id) genera un código de transferencia único de 8 caracteres sin ambigüedad (respaldo uk_code, válido 7 días); POST /api/v1/marketing/coupons/claim (code) para recibir; GET /api/v1/marketing/coupons/transfers emitidos (pending/claimed/expired) + recibidos (claimed) paginado |
 | Validación | Cupón propio/available/definición del cupón sin caducar/no transferido antes (422); no se puede recibir un cupón transferido por uno mismo, el receptor no puede ser el titular original |
 | Contra abuso | Bloqueo Redis NX coupon_transfer_claim:{code} (30 s) + re-verificación con bloqueo de fila dentro de la transacción contra doble gasto; índice único uk_user_coupon limita una transferencia por cupón; los cupones transferidos no se pueden volver a transferir (el cupón nuevo no tiene registro de transferencia y queda bloqueado de forma natural); determinación diferida de caducidad → expired + restauración del cupón original a available |
 | Recepción | Dentro de la transacción el cupón original pasa a used + se crea un nuevo UserCoupon vinculado al receptor (coupon_id sin cambios, es decir, la validez no cambia) + el registro de transferencia pasa a claimed |
@@ -274,11 +274,11 @@ Las funciones del mini programa y de la APP del extremo de usuario son idéntica
 
 ### 27. Pedido flash (Ronda 18, retirado)
 
-> Sustituido por el canal `/api/seckill` de la Ronda 24 (la rama promocional de store() solo conserva la compra grupal), ver «43. Oferta flash».
+> Sustituido por el canal `/api/v1/seckill` de la Ronda 24 (la rama promocional de store() solo conserva la compra grupal), ver «43. Oferta flash».
 
 | Función | Descripción |
 |------|------|
-| Interfaz | POST /api/order pasando promotion_id (tipo flash_sale): precio flash = round(total × (100 − discount_percent)/100, 2), coherente con el criterio de precio flash de PromotionController |
+| Interfaz | POST /api/v1/order pasando promotion_id (tipo flash_sale): precio flash = round(total × (100 − discount_percent)/100, 2), coherente con el criterio de precio flash de PromotionController |
 | Validación | Lista blanca de tipos [group_buy, flash_sale] (resto 422); actividad en curso; el llamante es participante; el servicio del pedido coincide con la actividad; agotado participants_count ≥ max_people 422 «se ha agotado»; prohibidos cupones/tarjetas por uso/puntos superpuestos 422 |
 | Caducidad | pay() determina de forma diferida isFlashSaleClosed (mismo patrón que isGroupBuyClosed): flash caducado → actividad a 0 + cancelación por lotes de los pedidos pending de la actividad + cancelación automática de este pedido + liberación del bloqueo del técnico 422 |
 
@@ -295,7 +295,7 @@ Las funciones del mini programa y de la APP del extremo de usuario son idéntica
 
 | Función | Descripción |
 |------|------|
-| Interfaz | POST /api/technician/review/reply/{order_id} (middleware de identidad de técnico): evaluación inexistente/no propia unificada en 404; respuesta existente 422 (rechazo idempotente sin sobrescribir); respuesta vacía 422 |
+| Interfaz | POST /api/v1/technician/review/reply/{order_id} (middleware de identidad de técnico): evaluación inexistente/no propia unificada en 404; respuesta existente 422 (rechazo idempotente sin sobrescribir); respuesta vacía 422 |
 | Tras responder | Notificación interna al usuario (type='review_reply', try/catch no bloqueante + Log) |
 | Datos | appointment_order_review añade idempotentemente la columna replied_at (la columna reply ya existía al crear la tabla); en el panel, la lista/detalle de evaluaciones expone reply/replied_at a través de decorate()->toArray() |
 
@@ -311,33 +311,33 @@ Las funciones del mini programa y de la APP del extremo de usuario son idéntica
 
 | Función | Descripción |
 |------|------|
-| Interfaz | POST /api/wallet/transfer: decodificación hashid del receptor + existencia 404, transferirse a uno mismo 422, importe 0.01-1000 por operación 422 (comparación DECIMAL, prohibido float), saldo insuficiente 422, límite diario acumulado de 5000 yuanes 422 |
+| Interfaz | POST /api/v1/wallet/transfer: decodificación hashid del receptor + existencia 404, transferirse a uno mismo 422, importe 0.01-1000 por operación 422 (comparación DECIMAL, prohibido float), saldo insuficiente 422, límite diario acumulado de 5000 yuanes 422 |
 | Concurrencia/idempotencia | Bloqueo Redis NX wallet_transfer:{from} 30 s serializa al emisor; dentro de la transacción lockForUpdate de las filas de billetera por user_id ascendente de ambas partes (orden fijo contra deadlocks); tras el éxito SETNX de client_token 24 h contra envíos duplicados (las solicitudes fallidas no registran token y se pueden reintentar) |
 | Ingreso | Deduce al emisor + suma al receptor + doble historial WalletTxn (transfer_out/transfer_in con instantánea balance_after) + registro de transferencia completed + notificación interna al receptor type='balance_received' (el fallo solo registra log) |
-| Registros | GET /api/wallet/transfers (direction=out/in paginado) + GET /transfers/{id} (404 si no es de ninguna de las dos partes) |
+| Registros | GET /api/v1/wallet/transfers (direction=out/in paginado) + GET /transfers/{id} (404 si no es de ninguna de las dos partes) |
 
 ### 32. Transferencia de puntos (Ronda 19)
 
 | Función | Descripción |
 |------|------|
-| Interfaz | POST /api/user/points/transfer: receptor inexistente 404, transferirse a uno mismo 422, puntos 1-10000 422, saldo insuficiente por agregación SUM 422, límite diario acumulado de 10000 422 |
+| Interfaz | POST /api/v1/user/points/transfer: receptor inexistente 404, transferirse a uno mismo 422, puntos 1-10000 422, saldo insuficiente por agregación SUM 422, límite diario acumulado de 10000 422 |
 | Concurrencia/idempotencia | Bloqueo Redis NX points_transfer:{user} 30 s; dentro de la transacción lockForUpdate del último historial de ambas partes (user_id ascendente contra deadlocks por transferencias mutuas) + re-verificación dentro del bloqueo de saldo/límite/receptor |
 | Norma del historial | Emisor type=consume source=points_transfer negativo (balance = instantánea anterior − esta, mismo criterio que points_offset/exchange); receptor type=earn source=points_transfer positivo con expires_at (PointsExpiryTimer puede caducarlo normalmente); registro de transferencia escrito dentro de la transacción, tras commit notificación interna al receptor type='points_received' |
-| Registros | GET /api/user/points/transfers (direction=sent/received paginado, apodo de la contraparte) |
+| Registros | GET /api/v1/user/points/transfers (direction=sent/received paginado, apodo de la contraparte) |
 
 ### 33. Evaluación complementaria + completar ruta de envío (Ronda 19)
 
 | Función | Descripción |
 |------|------|
-| Evaluación complementaria | POST /api/order/review/{order_id}/append: evaluación inexistente/no propia unificada en 404, no completed 422, complemento repetido 422 (si append_content/append_at tiene algún valor no vacío se rechaza), contenido vacío 422; al tener éxito escribe append_content/append_images(JSON)/append_at + notificación interna al técnico type='review_append' |
-| Envío de evaluación | Completa el registro de POST /api/order/review/{order_id} (ReviewController::store no tenía ruta y era inalcanzable); de paso corrige el TypeError latente: findByOrderId recibía int violando la firma de string (comparar con la conversión (string) de append), el registro expone que la llamada devolvía 500 |
+| Evaluación complementaria | POST /api/v1/order/review/{order_id}/append: evaluación inexistente/no propia unificada en 404, no completed 422, complemento repetido 422 (si append_content/append_at tiene algún valor no vacío se rechaza), contenido vacío 422; al tener éxito escribe append_content/append_images(JSON)/append_at + notificación interna al técnico type='review_append' |
+| Envío de evaluación | Completa el registro de POST /api/v1/order/review/{order_id} (ReviewController::store no tenía ruta y era inalcanzable); de paso corrige el TypeError latente: findByOrderId recibía int violando la firma de string (comparar con la conversión (string) de append), el registro expone que la llamada devolvía 500 |
 | Datos | appointment_order_review añade tres columnas append_content TEXT/append_images JSON/append_at DATETIME (migración idempotente); la respuesta expone los campos append |
 
 ### 34. Seguimiento logístico del extremo de usuario (Ronda 19)
 
 | Función | Descripción |
 |------|------|
-| Interfaz | GET /api/order/logistics/{id}: solo consultable por pedidos de producto propios (no propio/no producto/no enviado unificados en 404) |
+| Interfaz | GET /api/v1/order/logistics/{id}: solo consultable por pedidos de producto propios (no propio/no producto/no enviado unificados en 404) |
 | Datos | Lee el JSON de order.remark (shipping_company/tracking_no/shipped_at, escrito por admin MallOrderController::ship() al enviar); parseShippingInfo/parseReceiver doble análisis con respaldo al formato antiguo |
 | Desidentificación | Teléfono del receptor con maskPhone (138\*\*\*\*5678), contra fugas |
 
@@ -346,7 +346,7 @@ Las funciones del mini programa y de la APP del extremo de usuario son idéntica
 | Función | Descripción |
 |------|------|
 | Datos | Tabla appointment_user_notify_setting (clave compuesta única user_id+type uk_user_type, fila ausente = activado por defecto); 5 tipos: service_reminder recordatorio de servicio / card_expiry recordatorio de caducidad (tarjetas + cupones bajo el mismo paraguas) / points_expiry caducidad de puntos / marketing marketing (reservado) / system sistema (no se puede desactivar, PUT lo fuerza a 1) |
-| Interfaces | GET /api/user/notify-settings devuelve los 5 interruptores completos; PUT upsert por lotes sin filas duplicadas |
+| Interfaces | GET /api/v1/user/notify-settings devuelve los 5 interruptores completos; PUT upsert por lotes sin filas duplicadas |
 | Control | NotificationReminderService::notifySettingEnabled enganchado a 3 procesos de temporizador (ServiceReminderTimer/ExpiryReminderTimer tarjetas+cupones/PointsExpiryTimer, los temporizadores insertan directamente en appointment_notification sin pasar por la ruta de escritura del servicio, por lo que cada uno añade el mismo tipo de control) + eventos de suscripción (sendSubscribeForOrderEvent/Notification, mapeo de escenarios PAY/REFUND/VERIFIED/RESCHEDULE→system siempre se envía, REMINDER→service_reminder, EXPIRY→card_expiry); cuando el tipo está desactivado, se omiten tanto las notificaciones internas como los mensajes de suscripción |
 
 ---
@@ -468,7 +468,7 @@ Aplicación de una sola página en Flutter Web, 21 páginas en total: dashboard/
 
 ### 16. Panel de trabajo del gerente de tienda (Ronda 15)
 
-- service /api/store-manager: overview (pedidos de hoy/ingresos/en curso/número de técnicos/número de verificaciones) + orders (paginación + filtro de estado) + technicians (con horarios de hoy) + revenue (agregación de los últimos 7 días), requireStoreId() fuerza el aislamiento por store_id (403 sin tienda)
+- service /api/v1/store-manager: overview (pedidos de hoy/ingresos/en curso/número de técnicos/número de verificaciones) + orders (paginación + filtro de estado) + technicians (con horarios de hoy) + revenue (agregación de los últimos 7 días), requireStoreId() fuerza el aislamiento por store_id (403 sin tienda)
 - admin StoreController::workbenchOverview (GET /admin/stores/workbench-overview?store_id=, criterio coherente con service) + filtro store_id en la lista de pedidos de AppointmentOrderController (decodificación hashid)
 - Página Flutter del panel de trabajo de tienda: desplegable de tienda + filtro de estado + 5 tarjetas de resumen + DataTable de pedidos + paginación (permiso 372)
 
@@ -498,7 +498,7 @@ Aplicación de una sola página en Flutter Web, 21 páginas en total: dashboard/
 
 ### 21. Calendario de reservas (Ronda 20)
 
-- CalendarController vistas mensual/diaria: GET /api/calendar/technician/{id} (vista mensual) + /day (vista diaria)
+- CalendarController vistas mensual/diaria: GET /api/v1/calendar/technician/{id} (vista mensual) + /day (vista diaria)
 - Fuente de datos: time_slots JSON de technician_schedule expandido en intervalos horarios por día de la semana, exclusión de los horarios ya reservados de appointment_order ese día (status ∈ pending/paid/confirmed/serving), salida de los intervalos restantes disponibles
 - Uso: selección visual de horarios con horarios de tienda, el frontend se desplaza horizontalmente por días + selección por celda de hora
 
@@ -506,20 +506,20 @@ Aplicación de una sola página en Flutter Web, 21 páginas en total: dashboard/
 
 - appointment_user_growth (historial) + appointment_growth_level (semillas de niveles: 5 niveles — bronce 0 / plata 100 / oro 500 / platino 2000 / diamante 5000)
 - Puntos de ingreso de crecimiento: registro diario +10 (CheckInController); envío de evaluación +20 (ReviewController::store, las evaluaciones complementarias no ingresan); consumo floor(paid) 1 punto por cada yuan (WechatPayService::markOrderPaid, reutiliza la re-verificación de estado de pago existente, idempotente de forma natural, las devoluciones de llamada repetidas no ingresan de nuevo)
-- Interfaces: GET /api/growth (resumen del nivel actual: balance/level/diferencia al siguiente nivel); GET /api/growth/records (historial paginado); GET /api/growth/levels (lista pública de niveles, sin necesidad de inicio de sesión)
+- Interfaces: GET /api/v1/growth (resumen del nivel actual: balance/level/diferencia al siguiente nivel); GET /api/v1/growth/records (historial paginado); GET /api/v1/growth/levels (lista pública de niveles, sin necesidad de inicio de sesión)
 - Estrategia de fallo: cualquier punto de ingreso con try/catch y log, sin afectar el flujo principal
 
 ### 23. Factura electrónica (Ronda 20)
 
 - appointment_invoice: uk_order_type(order_id,order_type) contra solicitudes duplicadas del mismo pedido (solicitud duplicada 422, con captura de respaldo de MySQL 1062); idx_user_created/idx_status
-- Extremo de usuario: POST /api/invoices (solicitud, importe/título aportados por el servidor desde el pedido, no manipulables); GET /api/invoices (lista); GET /api/invoices/{id} (detalle)
+- Extremo de usuario: POST /api/v1/invoices (solicitud, importe/título aportados por el servidor desde el pedido, no manipulables); GET /api/v1/invoices (lista); GET /api/v1/invoices/{id} (detalle)
 - Extremo de administración: InvoiceController issue (emitir: escribe invoice_no + status=issued + issued_at) / reject (rechazar: status=rejected + reject_reason), permiso 382 lista / 383 emisión / 384 rechazo
 - Máquina de estados: pending → issued / rejected
 
 ### 24. Tickets de atención al cliente (Ronda 20)
 
 - appointment_ticket: el usuario envía el ticket (title/content), el panel responde añadiendo (reply_content/replied_at), el usuario puede cerrarlo (closed_at)
-- Extremo de usuario: POST /api/tickets (enviar); GET /api/tickets (lista); GET /api/tickets/{id} (detalle, solo propio); POST /api/tickets/{id}/close (cerrar)
+- Extremo de usuario: POST /api/v1/tickets (enviar); GET /api/v1/tickets (lista); GET /api/v1/tickets/{id} (detalle, solo propio); POST /api/v1/tickets/{id}/close (cerrar)
 - Extremo de administración: TicketController index (lista) / reply (respuesta), rutas estáticas definidas antes de resource para evitar la sombra de {id}; permiso 385 respuesta de tickets / 387 visualización de la lista de tickets
 - Máquina de estados: open → replied (tras responder vuelve a open y puede responderse de nuevo) / closed
 
@@ -535,12 +535,12 @@ Aplicación de una sola página en Flutter Web, 21 páginas en total: dashboard/
 - El esqueleto JSON de GrowthLevel.benefits toma forma: semillas de migración con 5 niveles (bronce {"discount_rate":1.0,"points_multiplier":1.0}, plata 0.98/1.1, oro 0.95/1.2, platino 0.92/1.3, diamante 0.9/1.5)
 - Descuento por nivel: OrderController::store applyGrowthDiscount() — solo pedidos estándar (promotion_id vacío, prohibida la superposición en compra grupal/flash); orden: importe a pagar tras cupón/tarjeta por uso × discount_rate; el importe del descuento se suma a discount_amount, el pedido añade la nota «descuento por nivel: plata 9,8 %, ahorro ¥2.00» trazable; protección de precio mínimo: pago real tras descuento ≥0.01 yuanes (≥100 en céntimos), si no llega el descuento se trunca a 0
 - Multiplicador de puntos: WechatPayService::markOrderPaid cambia el crecimiento de floor(paid) a floor(paid × points_multiplier), el multiplicador se toma por el nivel en el momento del pago (se acumula antes del ingreso, este pedido no sube de nivel); el punto de enganche try/catch de R20 se conserva íntegro
-- Reutilización de consultas: GrowthLevel::levelForGrowth() toma el nivel por crecimiento acumulado, reutilizable en pedido/pago; GET /api/growth ya devuelve benefits y next_gap (implementado en R20, sin cambios)
+- Reutilización de consultas: GrowthLevel::levelForGrowth() toma el nivel por crecimiento acumulado, reutilizable en pedido/pago; GET /api/v1/growth ya devuelve benefits y next_gap (implementado en R20, sin cambios)
 
 ### 27. Gestión de títulos de factura (Ronda 21)
 
 - appointment_invoice_title (uk_user_title(user_id, title_type, invoice_title) contra duplicados + idx_user_default)
-- Interfaces: POST /api/invoice-titles (guardar, company requiere tax_no, duplicado 422); GET (lista, el predeterminado arriba); PUT /{id} (editar, solo propio); DELETE /{id} (eliminar, solo propio); POST /{id}/default (establecer predeterminado, transacción limpia las otras filas del mismo usuario)
+- Interfaces: POST /api/v1/invoice-titles (guardar, company requiere tax_no, duplicado 422); GET (lista, el predeterminado arriba); PUT /{id} (editar, solo propio); DELETE /{id} (eliminar, solo propio); POST /{id}/default (establecer predeterminado, transacción limpia las otras filas del mismo usuario)
 - Regla de predeterminado: la primera fila guardada es predeterminada automáticamente; al eliminar el predeterminado se asigna automáticamente la más antigua
 - Vinculación en la solicitud: InvoiceController::store acepta title_id opcional que resuelve el título e incorpora invoice_title/tax_no/title_type, sin title_id se conserva la ruta de relleno manual original; la lógica contra duplicados de uk_order_type no se toca
 
@@ -561,19 +561,19 @@ Aplicación de una sola página en Flutter Web, 21 páginas en total: dashboard/
 
 - appointment_browse_history (único uk_user_item(user_id, item_id), la navegación repetida solo actualiza viewed_at sin insertar de nuevo; idx_user_viewed para ordenación)
 - Enganche de registro: ServiceController::detail() registra tras el éxito (try/catch + Log::warning sin afectar el flujo principal; las rutas públicas no tienen JWT, si user_id está vacío se salta el anónimo)
-- Interfaces: GET /api/browse-history (join de appointment_service nombre/portada/precio/precio original, viewed_at descendente, per_page por defecto 15 máximo 50, item_id hashid); DELETE /{item_id} (solo propio, inválido/ajeno 404); DELETE / (vaciar solo lo propio)
+- Interfaces: GET /api/v1/browse-history (join de appointment_service nombre/portada/precio/precio original, viewed_at descendente, per_page por defecto 15 máximo 50, item_id hashid); DELETE /{item_id} (solo propio, inválido/ajeno 404); DELETE / (vaciar solo lo propio)
 
 ### 31. Marketing de reducción de importe (Ronda 22)
 
 - appointment_full_reduction_activity (threshold/reduction/title/status/start_at/end_at + idx_status_status_time)
 - Superposición en el pedido: solo pedidos estándar (compra grupal/flash saltan), el umbral se juzga sobre el importe a pagar tras el descuento de cupón/tarjeta por uso, orden **cupón/tarjeta por uso → reducción de importe → descuento por nivel**; se toma la actividad de mayor reducción; el importe del descuento se suma a discount_amount + nota «reducción de importe: por X, descuento Y»; pago real tras reducción con mínimo de 0.01 yuanes (en céntimos)
-- Extremo de usuario GET /api/full-reduction-activities (público, activas ordenadas por importe de reducción descendente)
+- Extremo de usuario GET /api/v1/full-reduction-activities (público, activas ordenadas por importe de reducción descendente)
 - admin FullReductionController: CRUD + toggle-status alta y baja (destroy con confirmPassword)
 - Permisos: 396 lista / 397 crear / 398 editar / 399 alta y baja / 400 eliminar (un registro de permiso corresponde a un solo slug method.path, 5 rutas divididas en 5 registros)
 
 ### 32. Exportación ICS de mis reservas (Ronda 22)
 
-- IcsController GET /api/order/ics: exportación iCal (RFC5545) de los pedidos pending/paid/confirmed/serving de los últimos 90 días, solo propios
+- IcsController GET /api/v1/order/ics: exportación iCal (RFC5545) de los pedidos pending/paid/confirmed/serving de los últimos 90 días, solo propios
 - VEVENT: UID=ID del pedido, DTSTAMP(UTC), TZID=Asia/Shanghai, duración por defecto 1 h, resumen «Reserva: nombre del servicio» (degradación a «Reserva» si falta), descripción del técnico/tienda/dirección (salta si falta), LOCATION; escape de texto (\, \; \\ \n) + plegado de líneas de 75 bytes
 - Sin pedidos devuelve un calendario vacío válido (esqueleto `BEGIN:VCALENDAR`)
 
@@ -599,59 +599,59 @@ Aplicación de una sola página en Flutter Web, 21 páginas en total: dashboard/
 
 ### 36. Cumplimiento de privacidad (Ronda 22)
 
-- GET /api/privacy/data: exportación de datos (agrupada por personal/orders/points/wallet_txns/reviews/addresses/invoices; el log solo registra el teléfono desidentificado + la cantidad)
+- GET /api/v1/privacy/data: exportación de datos (agrupada por personal/orders/points/wallet_txns/reviews/addresses/invoices; el log solo registra el teléfono desidentificado + la cantidad)
 - Cierre completo: close-request (saldo distinto de 0 / pedidos sin completar / tickets en curso 422 → close_status=1) → close-cancel (1→0) → close-confirm (tras 72 h → close_status=2 + close_at + teléfono/apodo anonimizados a user{id} + status=0)
 - appointment_user añade close_status/close_requested_at/close_at (migración ALTER idempotente); AuthController login/loginByCode devuelven 403 «cuenta cancelada» para close_status=2
 
 ### 37. Perfil de salud del usuario (Ronda 23)
 
-- GET/PUT/DELETE /api/health-profile: uno por persona (índice único uk_user), upsert solo actualiza los campos proporcionados
+- GET/PUT/DELETE /api/v1/health-profile: uno por persona (índice único uk_user), upsert solo actualiza los campos proporcionados
 - allergies/health_notes con límite de 500 caracteres, preferred_technician_id valida existencia, respuesta con codificación hashid
 - Migración 000504_user_health_profile; HealthProfileTest 6 tests
 
 ### 38. Contraseña de pago de la billetera (Ronda 23)
 
-- POST /api/wallet/pay-password/{set,verify,check}: validación de 6 dígitos, almacenamiento de password_hash + pay_password_set_at
+- POST /api/v1/wallet/pay-password/{set,verify,check}: validación de 6 dígitos, almacenamiento de password_hash + pay_password_set_at
 - Si ya está establecida, modificar requiere la contraseña antigua 422; verify solo valida sin escribir; check devuelve si está establecida
 - Migración 000502 (ALTER idempotente de dos columnas con INFORMATION_SCHEMA); WalletPayPasswordTest 7 tests
 
 ### 39. Horarios masivos de técnicos (Ronda 23)
 
-- POST /api/technician/schedule/batch: tramo de fechas ≤7 días + filtro weekdays, los días con horarios existentes se saltan
+- POST /api/v1/technician/schedule/batch: tramo de fechas ≤7 días + filtro weekdays, los días con horarios existentes se saltan
 - La configuración individual también activa la detección de intervalos superpuestos (422 «conflicto con el horario existente: HH:MM-HH:MM»)
 - ScheduleConflictTest 5 tests
 
 ### 40. Línea de tiempo de estados de pedido (Ronda 23)
 
-- GET /api/order/{id}/timeline: solo consultable por el propio usuario (ajeno 404), devuelto en orden descendente; el detalle de pedido de admin incorpora el array timeline
+- GET /api/v1/order/{id}/timeline: solo consultable por el propio usuario (ajeno 404), devuelto en orden descendente; el detalle de pedido de admin incorpora el array timeline
 - OrderStatusLog::record() con 8 tipos de puntos de marcado estáticos: envío/pago/cancelación/confirmación/solicitud de reembolso/reembolso aprobado/inicio del servicio/servicio completado/cancelación automática por tiempo de espera/operación del panel (operator=admin)
 - La devolución de llamada de pago markOrderPaid es el único punto de consumo; record() interno con try/catch + Log::warning que nunca bloquea el flujo principal
 - Migración 000501_order_status_log; OrderTimelineTest 4 tests
 
 ### 41. Ruleta de la suerte de puntos (Ronda 23)
 
-- GET /api/wheel/prizes (oculta weight/stock); POST /api/wheel/spin: Redis NX + bloqueo de fila contra concurrencia, sorteo ponderado con random_int, idempotencia client_token
+- GET /api/v1/wheel/prizes (oculta weight/stock); POST /api/v1/wheel/spin: Redis NX + bloqueo de fila contra concurrencia, sorteo ponderado con random_int, idempotencia client_token
 - Ingreso de premios: puntos → historial earn (con fecha de caducidad, puede caducar normalmente con PointsExpiryTimer), saldo → lockForUpdate, cupón → pending de emisión manual, sin premio → lose
-- GET /api/wheel/records mis registros paginados; admin /admin/lucky-wheel CRUD + alta y baja + registros (permisos 401-406)
+- GET /api/v1/wheel/records mis registros paginados; admin /admin/lucky-wheel CRUD + alta y baja + registros (permisos 401-406)
 - Migraciones 000503 (appointment_lucky_wheel + appointment_wheel_record + semillas de demostración w60/w40) + 000505 (semillas de permisos); LuckyWheelTest admin 3 + service 6 tests
 
 ### 42. Modo invitado (Ronda 24)
 
-- GET /api/guest/{home,services,services/{id},stores,technicians}: entradas de navegación sin inicio de sesión que no requieren autenticación (solo middleware ApiVersion)
+- GET /api/v1/guest/{home,services,services/{id},stores,technicians}: entradas de navegación sin inicio de sesión que no requieren autenticación (interfaz pública)
 - home agrega banners/anuncios/categorías de servicios/servicios populares, caché Redis svc:guest:home 300 s; services soporta filtro por categoría + ordenación newest/sales/price (page/per_page≤50); technicians solo aprobados, filtrable por service_id, puntuación descendente
 - Cubierto por GuestControllerTest
 
 ### 43. Oferta flash (Ronda 24)
 
 - appointment_seckill_activity (name/service_id/seckill_price/original_price/stock/start_at/end_at/status); vendidos = número de pedidos de appointment_order.seckill_id
-- GET /api/seckill (status=1 + ventana de tiempo), /{id} (state=not_started/ongoing/ended), POST /{id}/buy: idempotencia client_token (8-64 caracteres, SETNX 24 h) + Redis NX 30 s contra concurrencia + validación de la actividad (desde 2026-08-26 ya no se reserva stock de antemano)
-- El pedido inyecta seckill_id reutilizando OrderController::store; el stock se reduce uniformemente con bloqueo de fila dentro de la transacción de store() (llamar directamente a /api/order con seckill_id también descuenta stock), precio flash = seckill_price (según DB), sin superposición de cupones/puntos/tarjetas de membresía; la cancelación del pedido no repone el stock; el antiguo canal de promoción FLASH_SALE se ha eliminado (la rama promocional de store() solo conserva la compra grupal, PromotionController index filtra flash_sale, show/join 400), las ofertas flash solo pasan por este canal
+- GET /api/v1/seckill (status=1 + ventana de tiempo), /{id} (state=not_started/ongoing/ended), POST /{id}/buy: idempotencia client_token (8-64 caracteres, SETNX 24 h) + Redis NX 30 s contra concurrencia + validación de la actividad (desde 2026-08-26 ya no se reserva stock de antemano)
+- El pedido inyecta seckill_id reutilizando OrderController::store; el stock se reduce uniformemente con bloqueo de fila dentro de la transacción de store() (llamar directamente a /api/v1/order con seckill_id también descuenta stock), precio flash = seckill_price (según DB), sin superposición de cupones/puntos/tarjetas de membresía; la cancelación del pedido no repone el stock; el antiguo canal de promoción FLASH_SALE se ha eliminado (la rama promocional de store() solo conserva la compra grupal, PromotionController index filtra flash_sale, show/join 400), las ofertas flash solo pasan por este canal
 - admin /admin/seckill CRUD + alta y baja + lista de pedidos (permisos 407-411, 420); migración 000606 semillas de permisos; SeckillTest service + admin
 
 ### 44. Gestión de versiones de APP y detección de actualizaciones (Ronda 24)
 
 - appointment_app_version (platform/version_code/version_name/force_update/changelog/download_url/status)
-- GET /api/app/version?platform=android|ios detección pública de actualizaciones (platform inválido 422; de status=1 toma la más reciente; si no hay, objeto vacío)
+- GET /api/v1/app/version?platform=android|ios detección pública de actualizaciones (platform inválido 422; de status=1 toma la más reciente; si no hay, objeto vacío)
 - admin /admin/versions CRUD (permisos 416-419); migración 000609 semillas de permisos; VersionTest service + admin
 
 ### 45. Recompensa de cliente habitual (Ronda 24)
