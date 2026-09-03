@@ -6,6 +6,7 @@ declare(strict_types=1);
 namespace app\wallet\v1\controller;
 
 use app\common\BaseController;
+use app\common\Money;
 use app\model\Notification;
 use app\model\User;
 use app\model\UserWallet;
@@ -198,8 +199,9 @@ class WalletTransferController extends BaseController
             }
 
             $receiverWallet = $wallets[$receiverId];
-            $senderWallet->balance   = round((float) $senderWallet->balance - $amount, 2);
-            $receiverWallet->balance = round((float) $receiverWallet->balance + $amount, 2);
+            // 余额增减走 string 域，落库前还原 number（值已 round 2 位，float 化无损）
+            $senderWallet->balance   = (float) Money::round(Money::sub((string) $senderWallet->balance, (string) $amount), 2);
+            $receiverWallet->balance = (float) Money::round(Money::add((string) $receiverWallet->balance, (string) $amount), 2);
             $senderWallet->save();
             $receiverWallet->save();
 

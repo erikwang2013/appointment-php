@@ -95,14 +95,15 @@ class TechnicianWithdrawalService
                 ->selectRaw('status, SUM(amount) AS total')
                 ->groupBy('status')
                 ->pluck('total', 'status');
-            $available = (float)($summary['settled'] ?? 0) - (float)($summary['withdrawn'] ?? 0);
+            // 余额/在途走 string 域（SUM 结果即 DECIMAL string），比较用 bccomp 防浮点丢分
+            $available = (string)($summary['settled'] ?? 0);
             // 同技师其他在途申请（pending/approved）仍占用余额：并发审批下两笔同时通过只会都拒绝，
             // 不会双打款；口径与申请侧预留一致（sum(settled) - sum(withdrawn) - 在途）
-            $inFlight = (float) TechnicianWithdrawal::where('technician_id', $w->technician_id)
+            $inFlight = (string) TechnicianWithdrawal::where('technician_id', $w->technician_id)
                 ->where('id', '!=', $w->id)
                 ->whereIn('status', ['pending', 'approved'])
                 ->sum('amount');
-            if ($available - $inFlight < (float) $w->amount) {
+            if (Money::cmp(Money::sub($available, $inFlight), $w->amount) < 0) {
                 Log::warning('[Withdrawal] insufficient balance, withdrawal_no: ' . $w->withdrawal_no
                     . ', available: ' . $available . ', in-flight: ' . $inFlight . ', amount: ' . $w->amount);
                 return ['success' => false, 'message' => '可提现余额不足，无法转账'];
@@ -172,8 +173,8 @@ class TechnicianWithdrawalService
             $w->save();
 
             // 扣减可提现余额：按 created_at 顺序核销 settled 收益为 withdrawn，累计至本次实际到账金额
-            $remaining = (float) $w->actual_amount;
-            if ($remaining > 0) {
+            $remaining = (string) $w->actual_amount;
+            if (Money::cmp($remaining, '0') > 0) {
                 $earnings = TechnicianEarning::where('technician_id', $w->technician_id)
                     ->where('status', 'settled')
                     ->orderBy('created_at')
@@ -183,11 +184,11 @@ class TechnicianWithdrawalService
 
                 $ids = [];
                 foreach ($earnings as $earning) {
-                    if ($remaining <= 0) {
+                    if (Money::cmp($remaining, '0') <= 0) {
                         break;
                     }
                     $ids[] = $earning->id;
-                    $remaining -= (float) $earning->amount;
+                    $remaining = Money::sub($remaining, (string) $earning->amount);
                 }
                 if ($ids) {
                     TechnicianEarning::whereIn('id', $ids)

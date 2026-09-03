@@ -5,6 +5,7 @@ declare(strict_types=1);
 
 namespace app\order\v1\controller;
 
+use app\common\Money;
 use app\model\MemberCardUsage;
 use app\model\Order;
 use app\model\OrderPayment;
@@ -100,7 +101,7 @@ trait OrderCompensateTrait
                     Db::rollBack();
                     return false;
                 }
-                $wallet->balance = round((float) $wallet->balance + (float) $locked->amount, 2);
+                $wallet->balance = (float) Money::round(Money::add((string) $wallet->balance, (string) $locked->amount), 2);
                 $wallet->save();
                 WalletTxn::create([
                     'user_id'       => $order->user_id,

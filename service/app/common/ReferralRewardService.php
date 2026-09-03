@@ -56,7 +56,7 @@ class ReferralRewardService
             return;
         }
 
-        $amount = round($paidAmount * self::getRewardRate(), 2);
+        $amount = (float) Money::round(Money::mul((string) $paidAmount, (string) self::getRewardRate()), 2);
         if ($amount <= 0) {
             return;
         }
@@ -108,7 +108,7 @@ class ReferralRewardService
                 return; // 一级推荐人无上上级 → 不发放
             }
 
-            $amount = round($paidAmount * self::getLevel2Rate(), 2);
+            $amount = (float) Money::round(Money::mul((string) $paidAmount, (string) self::getLevel2Rate()), 2);
             if ($amount <= 0) {
                 return;
             }
@@ -165,7 +165,7 @@ class ReferralRewardService
             ]);
         }
 
-        $wallet->balance = round((float) $wallet->balance + $amount, 2);
+        $wallet->balance = (float) Money::round(Money::add((string) $wallet->balance, (string) $amount), 2);
         $wallet->save();
 
         WalletTxn::create([

@@ -7,6 +7,7 @@ declare(strict_types=1);
 
 namespace app\admin\controller;
 
+use app\common\Money;
 use app\model\Order;
 use app\model\OrderPayment;
 use app\model\OrderRefund;
@@ -85,7 +86,8 @@ class ReportController extends BaseController
                 ->whereDate('refunded_at', '>=', $start)
                 ->whereDate('refunded_at', '<=', $end)->sum('amount'),
         ];
-        $summary['net_revenue'] = round($summary['payment_amount'] - $summary['refund_amount'], 2);
+        // 净营收 = 支付 - 退款，减法走 string 域防浮点丢分，输出还原 number
+        $summary['net_revenue'] = (float) Money::round(Money::sub((string) $summary['payment_amount'], (string) $summary['refund_amount']), 2);
         $summary['payment_amount'] = round($summary['payment_amount'], 2);
         $summary['refund_amount'] = round($summary['refund_amount'], 2);
 
@@ -114,7 +116,7 @@ class ReportController extends BaseController
                 'order_count'   => (int) ($dailyOrders[$date]['count'] ?? 0),
                 'payment_amount' => $paid,
                 'refund_amount' => $refund,
-                'net_revenue'   => round($paid - $refund, 2),
+                'net_revenue'   => (float) Money::round(Money::sub((string) $paid, (string) $refund), 2),
             ];
             $cursor = strtotime('+1 day', $cursor);
         }

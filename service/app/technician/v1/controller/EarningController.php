@@ -6,6 +6,7 @@ declare(strict_types=1);
 namespace app\technician\v1\controller;
 
 use app\common\BaseController;
+use app\common\Money;
 use app\model\TechnicianEarning;
 use Webman\Http\Request;
 
@@ -35,13 +36,13 @@ class EarningController extends BaseController
             ->pluck('total', 'status');
 
         // 待结算 (status=pending)
-        $pendingSettlement = (float)($summary['pending'] ?? 0);
+        $pendingSettlement = (string)($summary['pending'] ?? 0);
 
-        // 已结算 - 已提现 = 可用余额
-        $settledTotal = (float)($summary['settled'] ?? 0);
-        $withdrawnTotal = (float)($summary['withdrawn'] ?? 0);
+        // 已结算 - 已提现 = 可用余额（string 域减法，输出位点再还原 number）
+        $settledTotal = (string)($summary['settled'] ?? 0);
+        $withdrawnTotal = (string)($summary['withdrawn'] ?? 0);
 
-        $balance = $settledTotal - $withdrawnTotal;
+        $balance = Money::sub($settledTotal, $withdrawnTotal);
 
         // 今日收入 (type=commission, status in pending/settled, 当日)
         // 聚合条件含 type + 日期维度，无法并入上述 status 分组，独立一次 SUM
@@ -63,7 +64,7 @@ class EarningController extends BaseController
                 'summary' => [
                     'today_income' => (float)$todayIncome,
                     'pending_settlement' => (float)$pendingSettlement,
-                    'balance' => round($balance, 2),
+                    'balance' => (float)Money::round($balance, 2),
                 ],
                 'earnings' => $this->encodeIds($earnings->items()),
                 'meta' => [

@@ -7,6 +7,7 @@ declare(strict_types=1);
 
 namespace app\admin\controller;
 
+use app\common\Money;
 use app\common\TechnicianWithdrawalService;
 use app\model\TechnicianWithdrawal;
 use InvalidArgumentException;
@@ -132,7 +133,7 @@ class WithdrawalController extends BaseController
             $withdrawal->store_approved_at = $now;
             $withdrawal->audit_remark      = $remark;
 
-            if ($amount < 500) {
+            if (Money::cmp((string) $amount, '500') < 0) {
                 // 小额自动完成
                 $withdrawal->status    = 'approved';
                 $withdrawal->audited_at = $now;
@@ -151,7 +152,7 @@ class WithdrawalController extends BaseController
                 return $this->fail('审批状态已变化', 422);
             }
 
-            if ($amount < 500) {
+            if (Money::cmp((string) $amount, '500') < 0) {
                 // 小额自动完成：审批全部通过，发起微信转账（失败返回错误，提现记录已置 failed）
                 $transfer = (new TechnicianWithdrawalService())->approveAndTransfer($withdrawal);
                 if (!$transfer['success']) {
@@ -162,7 +163,7 @@ class WithdrawalController extends BaseController
             return $this->success($withdrawal->toArray(), '店长审批通过，等待财务审批');
         }
 
-        if (empty($withdrawal->finance_approved_at) && $amount >= 500) {
+        if (empty($withdrawal->finance_approved_at) && Money::cmp((string) $amount, '500') >= 0) {
             // Level 2: 财务审批
             $withdrawal->finance_approved_at = $now;
             $withdrawal->status              = 'approved';

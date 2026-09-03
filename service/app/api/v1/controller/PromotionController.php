@@ -6,6 +6,7 @@ declare(strict_types=1);
 namespace app\api\v1\controller;
 
 use app\common\BaseController;
+use app\common\Money;
 use app\model\Promotion;
 use app\model\PromotionParticipant;
 use support\Db;
@@ -96,8 +97,9 @@ class PromotionController extends BaseController
         }
 
         $data = $promotion->toArray();
-        $data['discounted_price'] = round(
-            ($promotion->service->price ?? 0) * (1 - $promotion->discount_percent / 100),
+        // 拼团展示价 = 原价 × (1 - 折扣%)，string 域运算防展示半分误差
+        $data['discounted_price'] = (float) Money::round(
+            Money::mul((string) ($promotion->service->price ?? 0), (string) Money::sub('1', Money::div((string) $promotion->discount_percent, '100'))),
             2
         );
 
@@ -222,7 +224,7 @@ class PromotionController extends BaseController
                 // 拼团折扣信息（下单时传 promotion_id 以拼团价结算）
                 'discount_percent' => $promotion->discount_percent,
                 'original_price' => $originalPrice,
-                'group_price' => round($originalPrice * $promotion->discount_percent / 100, 2),
+                'group_price' => (float) Money::round(Money::div(Money::mul((string) $originalPrice, (string) $promotion->discount_percent), '100'), 2),
             ], '参与成功');
         } finally {
             // 仅持有者释放（token 校验），防止误删他人锁

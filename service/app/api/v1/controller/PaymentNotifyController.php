@@ -6,6 +6,7 @@ declare(strict_types=1);
 namespace app\api\v1\controller;
 
 use app\common\BaseController;
+use app\common\Money;
 use app\common\NotificationReminderService;
 use app\common\WechatPayService;
 use app\model\Notification;
@@ -213,8 +214,8 @@ class PaymentNotifyController extends BaseController
                 ]);
             }
 
-            $wallet->balance = round((float) $wallet->balance + (float) $recharge->amount, 2);
-            $wallet->total_recharge = round((float) $wallet->total_recharge + (float) $recharge->amount, 2);
+            $wallet->balance = (float) Money::round(Money::add((string) $wallet->balance, (string) $recharge->amount), 2);
+            $wallet->total_recharge = (float) Money::round(Money::add((string) $wallet->total_recharge, (string) $recharge->amount), 2);
             $wallet->save();
 
             $recharge->status = WalletRecharge::STATUS_PAID;

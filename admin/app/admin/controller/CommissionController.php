@@ -7,6 +7,7 @@ declare(strict_types=1);
 
 namespace app\admin\controller;
 
+use app\common\Money;
 use app\model\TechnicianProfile;
 use app\model\TechnicianEarning;
 use support\Request;
@@ -54,7 +55,8 @@ class CommissionController extends BaseController
                                ->where('type', 'penalty')->sum('amount');
                            $data['pending_amount'] = TechnicianEarning::where('technician_id', $tId)
                                ->where('status', 'pending')->sum('amount');
-                           $data['balance'] = $data['total_commission'] + $data['total_bonus'] - $data['total_penalty'];
+                           // balance = 佣金 + 奖金 - 罚金：SUM 为 DECIMAL string，三段链走 string 域
+                           $data['balance'] = (float) Money::round(Money::sub(Money::add($data['total_commission'], $data['total_bonus']), $data['total_penalty']), 2);
 
                            if (isset($data['real_name'])) {
                                $data['real_name'] = mb_substr($data['real_name'], 0, 1) . '**';

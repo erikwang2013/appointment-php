@@ -98,10 +98,10 @@ class WechatProfitSharingService
             return ['status' => 'skipped', 'order_id' => $orderId, 'message' => '该订单已存在分账记录'];
         }
 
-        // 金额规则：实付 × 比例（默认 0.7 可配），平台留存剩余
+        // 金额规则：实付 × 比例（默认 0.7 可配），平台留存剩余；string 域乘法防浮点丢分
         $ratio  = max(0.0, min(1.0, $this->receiverRatio));
-        $amount = round($paid * $ratio, 2);
-        if ($amount <= 0 || $amount > $paid) {
+        $amount = (float) Money::round(Money::mul((string) $paid, (string) $ratio), 2);
+        if (Money::cmp((string) $amount, '0') <= 0 || Money::cmp((string) $amount, (string) $paid) > 0) {
             Log::error('[ProfitSharing] amount invalid, order: ' . $order->order_no . ', paid: ' . $paid . ', amount: ' . $amount);
             return ['status' => ProfitSharing::STATUS_FAILED, 'order_id' => $orderId, 'message' => '分账金额校验失败'];
         }
@@ -231,7 +231,7 @@ class WechatProfitSharingService
                 [
                     'type'        => 'PERSONAL_OPENID',
                     'account'     => $receiver['openid'],
-                    'amount'      => (int) round($amount * 100),
+                    'amount'      => Money::toFen($amount),
                     'description' => '订单分账',
                 ],
             ],

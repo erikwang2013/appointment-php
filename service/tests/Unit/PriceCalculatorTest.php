@@ -304,6 +304,24 @@ class PriceCalculatorTest extends TestCase
         $this->assertSame(80.0, $result['paid_amount']);
     }
 
+    #[Test] public function calculate_percent_coupon_fractional_percent_rounds_half_cent_exact(): void
+    {
+        // 3.3%（二进制不可精确表）在 15 元（1500 分）上折扣 = 49.5 分：
+        // bc 链精确十进制半进位进位到 50 分（0.50 元）；旧浮点 (int) round(1500 * 3.3 / 100)
+        // = round(49.49999…) = 49 分（0.49 元）——半分之差来自 float 3.3 的表示误差，bcmath 改造修正此点
+        $coupon = $this->makeCoupon('percent', 3.3, 0);
+        $userId = $this->newUserId();
+        $uc = $this->makeUserCoupon($userId, $coupon);
+
+        $result = PriceCalculator::calculate(
+            [$this->item('S1', 15)],
+            ['user_id' => $userId, 'user_coupon_id' => $uc->id]
+        );
+
+        $this->assertSame(0.5, $result['discount_amount']);
+        $this->assertSame(14.5, $result['paid_amount']);
+    }
+
     #[Test] public function calculate_rejects_unsupported_coupon_type(): void
     {
         $coupon = $this->makeCoupon('cashback', 5, 0);

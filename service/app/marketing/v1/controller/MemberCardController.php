@@ -6,6 +6,7 @@ declare(strict_types=1);
 namespace app\marketing\v1\controller;
 
 use app\common\BaseController;
+use app\common\Money;
 use app\model\MemberCard;
 use app\model\User;
 use app\model\UserMemberCard;
@@ -99,8 +100,8 @@ class MemberCardController extends BaseController
                 return $this->error('余额不足');
             }
 
-            $wallet->balance = round((float) $wallet->balance - $price, 2);
-            $wallet->total_consume = round((float) $wallet->total_consume + $price, 2);
+            $wallet->balance = (float) Money::round(Money::sub((string) $wallet->balance, (string) $price), 2);
+            $wallet->total_consume = (float) Money::round(Money::add((string) $wallet->total_consume, (string) $price), 2);
             $wallet->save();
 
             WalletTxn::create([

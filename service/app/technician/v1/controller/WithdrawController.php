@@ -6,6 +6,7 @@ declare(strict_types=1);
 namespace app\technician\v1\controller;
 
 use app\common\BaseController;
+use app\common\Money;
 use app\model\TechnicianEarning;
 use app\model\TechnicianWithdrawal;
 use Webman\Http\Request;
@@ -23,7 +24,8 @@ class WithdrawController extends BaseController
     public function store(Request $request)
     {
         $technicianId = $request->technician_id;
-        $amount = (float)$request->input('amount', 0);
+        // 入口 normalize 到 2dp（防 9.995 类长尾金额穿透校验链）
+        $amount = (float) Money::round($request->input('amount', 0), 2);
         $accountType = $request->input('account_type', 'wechat');
         $accountName = trim($request->input('account_name', ''));
         $accountNo = trim($request->input('account_no', ''));
@@ -36,7 +38,7 @@ class WithdrawController extends BaseController
 
         // 校验金额
         $minAmount = 10.00;
-        if ($amount < $minAmount) {
+        if (Money::cmp($amount, $minAmount) < 0) {
             return $this->error("提现金额不能低于{$minAmount}元");
         }
 
@@ -51,23 +53,24 @@ class WithdrawController extends BaseController
             ->groupBy('status')
             ->pluck('total', 'status');
 
-        $settledTotal = (float)($summary['settled'] ?? 0);
-        $withdrawnTotal = (float)($summary['withdrawn'] ?? 0);
+        $settledTotal = (string)($summary['settled'] ?? 0);
+        $withdrawnTotal = (string)($summary['withdrawn'] ?? 0);
 
         // 在途提现预留（pending/approved 未打款仍占用可提余额），防多笔申请叠加超提
-        $pendingTotal = (float) TechnicianWithdrawal::where('technician_id', $technicianId)
+        $pendingTotal = (string) TechnicianWithdrawal::where('technician_id', $technicianId)
             ->whereIn('status', ['pending', 'approved'])
             ->sum('amount');
 
-        $balance = $settledTotal - $withdrawnTotal - $pendingTotal;
+        // 三段减法链走 string 域精度，避免浮点逐级丢分
+        $balance = Money::sub(Money::sub($settledTotal, $withdrawnTotal), $pendingTotal);
 
-        if ($amount > $balance) {
+        if (Money::cmp($amount, $balance) > 0) {
             return $this->error('可提现余额不足');
         }
 
         // 计算手续费（示例：1%）
-        $commissionFee = round($amount * 0.01, 2);
-        $actualAmount = round($amount - $commissionFee, 2);
+        $commissionFee = Money::round(Money::mul((string)$amount, '0.01'), 2);
+        $actualAmount = Money::round(Money::sub((string)$amount, $commissionFee), 2);
 
         // 创建提现记录
         $withdrawal = TechnicianWithdrawal::create([

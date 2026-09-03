@@ -82,7 +82,7 @@ class WechatPayService
     {
         $tradeType = $params['trade_type'] ?? 'JSAPI';
 
-        $totalFee = (int) round(($params['total_fee'] ?? 0) * 100);
+        $totalFee = Money::toFen($params['total_fee'] ?? 0);
 
         $data = [
             'appid'            => $this->appId,
@@ -193,8 +193,8 @@ class WechatPayService
      */
     public function refund(string $outTradeNo, string $outRefundNo, float $totalFee, float $refundFee): array
     {
-        $totalFeeFen  = (int) round($totalFee * 100);
-        $refundFeeFen = (int) round($refundFee * 100);
+        $totalFeeFen  = Money::toFen($totalFee);
+        $refundFeeFen = Money::toFen($refundFee);
 
         $data = [
             'appid'         => $this->appId,
@@ -279,7 +279,7 @@ class WechatPayService
      */
     public function transferToWallet(string $openid, string $partnerTradeNo, float $amount, string $desc = '技师提现'): array
     {
-        $amountFen = (int) round($amount * 100);
+        $amountFen = Money::toFen($amount);
 
         $data = [
             'mch_appid'        => $this->appId,
@@ -611,7 +611,7 @@ class WechatPayService
             // 金额强比对（转分，防浮点误差/跨单错配/篡改回调）：回调实付必须等于订单应付，
             // 否则拒绝且不改支付状态（充值分支 handleRechargeNotify 已有同等比对）
             $dueAmount = $order ? (float) $order->paid_amount : (float) $payment->amount;
-            if ($totalFee > 0 && (int) round($totalFee * 100) !== (int) round($dueAmount * 100)) {
+            if ($totalFee > 0 && Money::toFen($totalFee) !== Money::toFen($dueAmount)) {
                 \support\Db::rollBack();
                 Log::error('[WechatPay markOrderPaid] amount mismatch, out_trade_no: ' . $outTradeNo
                     . ', callback total_fee: ' . $totalFee . ', order paid_amount: ' . $dueAmount);
@@ -872,7 +872,7 @@ class WechatPayService
             ->first();
         if ($payment) {
             $order = \app\model\Order::find($payment->order_id);
-            if ($order && (int) round($totalAmount * 100) !== (int) round((float) $order->paid_amount * 100)) {
+            if ($order && Money::toFen($totalAmount) !== Money::toFen((float) $order->paid_amount)) {
                 Log::error('[Alipay notify] amount mismatch, out_trade_no: ' . $outTradeNo
                     . ', callback total_amount: ' . $totalAmount . ', order paid_amount: ' . $order->paid_amount);
                 return ['success' => false, 'message' => '回调金额与订单不符'];

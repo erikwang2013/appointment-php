@@ -73,7 +73,7 @@ class ReturnCustomerRewardService
             return;
         }
 
-        $amount = round((float) $order->paid_amount * self::getRatio(), 2);
+        $amount = (float) Money::round(Money::mul((string) $order->paid_amount, (string) self::getRatio()), 2);
         if ($amount <= 0) {
             return;
         }

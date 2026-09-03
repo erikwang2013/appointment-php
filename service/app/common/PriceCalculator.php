@@ -23,7 +23,7 @@ use app\model\UserMemberCard;
  * - calculate()：纯计算，零 DB 写副作用（只读校验 + 算额）
  * - consume()：支付成功时调用，原子消费（券置 used / 次卡 whereRaw 扣次 + 写使用记录 + used_up 判定）
  *
- * 金额转换与 WechatPayService 保持一致：round($fen / 100, 2) 转元，(int) round($yuan * 100) 转分。
+ * 金额转换与 WechatPayService 保持一致：round($fen / 100, 2) 转元，Money::toFen 转分。
  */
 class PriceCalculator
 {
@@ -46,7 +46,7 @@ class PriceCalculator
         // 原价（分）
         $totalFen = 0;
         foreach ($items as $item) {
-            $priceFen  = (int) round(((float)($item['price'] ?? 0)) * 100);
+            $priceFen  = Money::toFen((float)($item['price'] ?? 0));
             $quantity  = max(1, (int)($item['quantity'] ?? 1));
             $totalFen += $priceFen * $quantity;
         }
@@ -250,7 +250,7 @@ class PriceCalculator
             }
             $quantity     = max(1, (int)($item['quantity'] ?? 1));
             $neededTimes += $quantity;
-            $discountFen += (int) round(((float)($item['price'] ?? 0)) * 100) * $quantity;
+            $discountFen += Money::toFen((float)($item['price'] ?? 0)) * $quantity;
             $matchedItems[] = [
                 'service_id' => (int) $item['target_id'],
                 'quantity'   => $quantity,
@@ -307,7 +307,7 @@ class PriceCalculator
         }
 
         // 使用门槛按原价 total_amount 判断
-        $minAmountFen = (int) round(((float)($coupon->min_amount ?? 0)) * 100);
+        $minAmountFen = Money::toFen((float)($coupon->min_amount ?? 0));
         if ($totalFen < $minAmountFen) {
             throw new \InvalidArgumentException('未满足优惠券使用门槛', 422);
         }
@@ -319,11 +319,11 @@ class PriceCalculator
 
         if ($type === 'fixed') {
             // 满减券：抵扣固定金额
-            $discountFen = (int) round(((float)($coupon->amount ?? 0)) * 100);
+            $discountFen = Money::toFen((float)($coupon->amount ?? 0));
         } else {
-            // 折扣券：折扣额 = 原价 × 百分比
+            // 折扣券：折扣额 = 原价 × 百分比（string 域乘除后回分）
             $percent     = (float)($coupon->amount ?? 0);
-            $discountFen = (int) round($totalFen * $percent / 100);
+            $discountFen = (int) Money::round(Money::div(Money::mul((string) $totalFen, (string) $percent), '100'), 0);
         }
 
         return [$discountFen, (int) $coupon->id, $userCoupon ? (int) $userCoupon->id : null];

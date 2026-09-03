@@ -6,6 +6,7 @@ declare(strict_types=1);
 namespace app\marketing\v1\controller;
 
 use app\common\BaseController;
+use app\common\Money;
 use app\model\Coupon;
 use app\model\GiftCard;
 use app\model\PointsExchangeGoods;
@@ -225,7 +226,7 @@ class PointsExchangeController extends BaseController
                     ]);
                 }
                 $amount = (float) $goods->value;
-                $wallet->balance = round((float) $wallet->balance + $amount, 2);
+                $wallet->balance = (float) Money::round(Money::add((string) $wallet->balance, (string) $amount), 2);
                 $wallet->save();
                 WalletTxn::create([
                     'user_id'       => $userId,

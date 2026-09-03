@@ -7,6 +7,7 @@ declare(strict_types=1);
 
 namespace app\admin\controller;
 
+use app\common\Money;
 use app\common\TechnicianWithdrawalService;
 use app\model\TechnicianWithdrawal;
 use support\Request;
@@ -87,7 +88,7 @@ class RefundWorkflowController extends BaseController
             // Level 1: 店长审批
             $withdrawal->store_approved_at = $now;
 
-            if ($amount < 500) {
+            if (Money::cmp((string) $amount, '500') < 0) {
                 // 小额自动完成
                 $withdrawal->status = 'approved';
                 $withdrawal->audited_at = $now;
@@ -95,7 +96,7 @@ class RefundWorkflowController extends BaseController
             $withdrawal->audit_remark = $request->input('remark', '');
             $withdrawal->save();
 
-            if ($amount < 500) {
+            if (Money::cmp((string) $amount, '500') < 0) {
                 // 小额自动完成：审批全部通过，发起微信转账（失败返回错误，提现记录已置 failed）
                 $transfer = (new TechnicianWithdrawalService())->approveAndTransfer($withdrawal);
                 if (!$transfer['success']) {
@@ -106,7 +107,7 @@ class RefundWorkflowController extends BaseController
             return $this->success($withdrawal->toArray(), '店长审批通过，等待财务审批');
         }
 
-        if (empty($withdrawal->finance_approved_at) && $amount >= 500) {
+        if (empty($withdrawal->finance_approved_at) && Money::cmp((string) $amount, '500') >= 0) {
             // Level 2: 财务审批
             $withdrawal->finance_approved_at = $now;
             $withdrawal->status       = 'approved';
@@ -165,7 +166,7 @@ class RefundWorkflowController extends BaseController
         if (empty($w->store_approved_at)) {
             return 'level_1_store';
         }
-        if ($amount >= 500 && empty($w->finance_approved_at)) {
+        if (Money::cmp((string) $amount, '500') >= 0 && empty($w->finance_approved_at)) {
             return 'level_2_finance';
         }
         return 'completed';

@@ -5,6 +5,7 @@ declare(strict_types=1);
 
 namespace app\order\v1\controller;
 
+use app\common\Money;
 use app\common\NotificationReminderService;
 use app\common\WechatPayService;
 use app\model\Order;
@@ -106,7 +107,7 @@ trait OrderPayTrait
             $payChannel = (string) $request->input('pay_channel', 'wechat');
 
             // 实际支付金额 = 订单应付 - 积分抵扣（未用积分时为应付原额，与原有行为一致）
-            $payAmount = round((float) $order->paid_amount - $pointsOffset, 2);
+            $payAmount = (float) Money::round(Money::sub((string) $order->paid_amount, (string) $pointsOffset), 2);
 
             // 查找或创建支付记录
             $payment = OrderPayment::where('order_id', $order->id)->first();
@@ -229,8 +230,9 @@ trait OrderPayTrait
                 throw new \InvalidArgumentException('余额不足');
             }
 
-            $wallet->balance = round((float) $wallet->balance - $amount, 2);
-            $wallet->total_consume = round((float) $wallet->total_consume + $amount, 2);
+            // 余额增减走 string 域，落库前还原 number（值已 round 2 位，float 化无损）
+            $wallet->balance = (float) Money::round(Money::sub((string) $wallet->balance, (string) $amount), 2);
+            $wallet->total_consume = (float) Money::round(Money::add((string) $wallet->total_consume, (string) $amount), 2);
             $wallet->save();
 
             WalletTxn::create([
@@ -306,7 +308,7 @@ trait OrderPayTrait
             throw new \InvalidArgumentException('积分不足', 422);
         }
 
-        $paidFen   = (int) round((float) $order->paid_amount * 100);
+        $paidFen   = Money::toFen((float) $order->paid_amount);
         $offsetFen = (int) floor($usePoints / $rate) * 100;
         if ($offsetFen <= 0) {
             throw new \InvalidArgumentException('积分不足', 422);
@@ -320,7 +322,8 @@ trait OrderPayTrait
             throw new \InvalidArgumentException('积分不足', 422);
         }
 
-        $pointsUsed = (int) round($offsetFen / 100 * $rate);
+        // 积分 = 抵扣元 × 兑换比例（分→元走 string 域，防浮点折损）
+        $pointsUsed = (int) Money::round(Money::mul(Money::div((string) $offsetFen, '100', 2), (string) $rate), 0);
 
         // 幂等：同订单 points_offset 流水已存在（支付重试）则不重复扣减
         $exists = UserPoints::where('order_id', $order->id)
@@ -348,7 +351,7 @@ trait OrderPayTrait
 
         return [
             'points_used'   => $pointsUsed,
-            'offset_amount' => round($offsetFen / 100, 2),
+            'offset_amount' => (float) Money::round(Money::div((string) $offsetFen, '100'), 2),
         ];
     }
 

@@ -6,6 +6,7 @@ declare(strict_types=1);
 namespace app\marketing\v1\controller;
 
 use app\common\BaseController;
+use app\common\Money;
 use app\model\GiftCard;
 use app\model\UserWallet;
 use app\model\WalletTxn;
@@ -129,7 +130,7 @@ class GiftCardController extends BaseController
             ]);
         }
 
-        $wallet->balance = round((float) $wallet->balance + $amount, 2);
+        $wallet->balance = (float) Money::round(Money::add((string) $wallet->balance, (string) $amount), 2);
         $wallet->save();
 
         WalletTxn::create([

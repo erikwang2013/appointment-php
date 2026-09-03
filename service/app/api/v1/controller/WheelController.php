@@ -6,6 +6,7 @@ declare(strict_types=1);
 namespace app\api\v1\controller;
 
 use app\common\BaseController;
+use app\common\Money;
 use app\model\LuckyWheel;
 use app\model\UserPoints;
 use app\model\UserWallet;
@@ -306,7 +307,7 @@ class WheelController extends BaseController
                     'total_consume'  => 0.00,
                 ]);
             }
-            $wallet->balance = round((float) $wallet->balance + $value, 2);
+            $wallet->balance = (float) Money::round(Money::add((string) $wallet->balance, (string) $value), 2);
             $wallet->save();
 
             WalletTxn::create([

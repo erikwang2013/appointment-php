@@ -5,6 +5,7 @@ declare(strict_types=1);
 
 namespace app\model;
 
+use app\common\Money;
 use support\Model;
 
 /**
@@ -34,6 +35,6 @@ class UserWallet extends Model
      */
     public static function toCents(float $amount): int
     {
-        return (int) round($amount * 100);
+        return Money::toFen($amount);
     }
 }

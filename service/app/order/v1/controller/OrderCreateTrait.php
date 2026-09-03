@@ -5,6 +5,7 @@ declare(strict_types=1);
 
 namespace app\order\v1\controller;
 
+use app\common\Money;
 use app\common\PriceCalculator;
 use app\model\FullReductionActivity;
 use app\model\GrowthLevel;
@@ -291,18 +292,18 @@ trait OrderCreateTrait
                 'use_points'           => $usePoints,
             ]);
 
-            // 拼团价（叠加优惠已在进入事务前拒绝）：拼团价 = 原价 × discount_percent/100
+            // 拼团价（叠加优惠已在进入事务前拒绝）：拼团价 = 原价 × discount_percent/100（string 域乘除）
             if ($promotion !== null) {
-                $total = (float) $pricing['total_amount'];
-                $promoPrice = round($total * $promotion->discount_percent / 100, 2);
-                $pricing['discount_amount'] = round($total - $promoPrice, 2);
-                $pricing['paid_amount'] = $promoPrice;
+                $total = (string) $pricing['total_amount'];
+                $promoPrice = Money::round(Money::div(Money::mul($total, (string) $promotion->discount_percent), '100'), 2);
+                $pricing['discount_amount'] = (float) Money::round(Money::sub($total, $promoPrice), 2);
+                $pricing['paid_amount'] = (float) $promoPrice;
             }
 
             // 秒杀价：实付固定为活动秒杀价，优惠额 = 原价 - 秒杀价
             if ($seckill !== null) {
-                $total = (float) $pricing['total_amount'];
-                $pricing['discount_amount'] = round($total - (float) $seckill->seckill_price, 2);
+                $total = (string) $pricing['total_amount'];
+                $pricing['discount_amount'] = (float) Money::round(Money::sub($total, (string) $seckill->seckill_price), 2);
                 $pricing['paid_amount'] = (float) $seckill->seckill_price;
             }
 
@@ -410,23 +411,25 @@ trait OrderCreateTrait
         $level = GrowthLevel::levelForGrowth(UserGrowth::totalFor($userId));
         $benefits = $level ? (array) $level->benefits : [];
         $rate = (float) ($benefits['discount_rate'] ?? 1.0);
-        if ($rate <= 0 || $rate >= 1) {
+        if (Money::cmp((string) $rate, '0') <= 0 || Money::cmp((string) $rate, '1') >= 0) {
             return; // 无折扣权益
         }
 
-        $baseFen = (int) round((float) $pricing['paid_amount'] * 100);
+        // 分域折算与元回写走 string 域（分 × 折扣率的半进位以精确十进制判定）
+        $baseFen = Money::toFen((float) $pricing['paid_amount']);
         if ($baseFen < 100) {
             return; // 应付已低于最低价，不再叠加
         }
 
-        $discountedFen = max(100, (int) round($baseFen * $rate));
+        $discountedFen = max(100, (int) Money::round(Money::mul((string) $baseFen, (string) $rate), 0));
         $discountFen = $baseFen - $discountedFen;
         if ($discountFen <= 0) {
             return;
         }
 
-        $pricing['discount_amount'] = round((float) $pricing['discount_amount'] + $discountFen / 100, 2);
-        $pricing['paid_amount'] = round($discountedFen / 100, 2);
+        $discountYuan = Money::round(Money::div((string) $discountFen, '100'), 2);
+        $pricing['discount_amount'] = (float) Money::round(Money::add((string) $pricing['discount_amount'], $discountYuan), 2);
+        $pricing['paid_amount'] = (float) Money::round(Money::div((string) $discountedFen, '100'), 2);
         $label = rtrim(rtrim(sprintf('%.1f', $rate * 10), '0'), '.');
         $remark = trim($remark . sprintf('（等级折扣：%s %s折，优惠¥%.2f）', $level->name, $label, $discountFen / 100));
     }
@@ -454,22 +457,24 @@ trait OrderCreateTrait
             return; // 无生效活动
         }
 
-        $baseFen = (int) round((float) $pricing['paid_amount'] * 100);
-        if ($baseFen < (int) round((float) $activity->threshold * 100)) {
+        $baseFen = Money::toFen((float) $pricing['paid_amount']);
+        if ($baseFen < Money::toFen((float) $activity->threshold)) {
             return; // 券后金额未达门槛
         }
         if ($baseFen < 100) {
             return; // 应付已低于最低价，不再叠加
         }
 
-        $reductionFen = (int) round((float) $activity->reduction * 100);
+        $reductionFen = Money::toFen((float) $activity->reduction);
         if ($reductionFen <= 0) {
             return;
         }
         $finalFen = max(100, $baseFen - $reductionFen);
 
-        $pricing['discount_amount'] = round((float) $pricing['discount_amount'] + ($baseFen - $finalFen) / 100, 2);
-        $pricing['paid_amount'] = round($finalFen / 100, 2);
+        // 元回写走 string 域
+        $reductionYuan = Money::round(Money::div((string) ($baseFen - $finalFen), '100'), 2);
+        $pricing['discount_amount'] = (float) Money::round(Money::add((string) $pricing['discount_amount'], $reductionYuan), 2);
+        $pricing['paid_amount'] = (float) Money::round(Money::div((string) $finalFen, '100'), 2);
         $remark = trim($remark . sprintf('（满减：满%s减%s）', $activity->threshold, $activity->reduction));
     }
 }

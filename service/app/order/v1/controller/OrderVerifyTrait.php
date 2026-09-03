@@ -5,6 +5,7 @@ declare(strict_types=1);
 
 namespace app\order\v1\controller;
 
+use app\common\Money;
 use app\common\NotificationReminderService;
 use app\model\Order;
 use app\model\OrderStatusLog;
@@ -196,8 +197,9 @@ trait OrderVerifyTrait
             return; // 未配置佣金率则不生成收益
         }
 
-        $amount = round((float)$order->paid_amount * $rate / 100, 2);
-        if ($amount <= 0) {
+        // 佣金 = 实付 × 费率(%)，string 域乘除防浮点丢分
+        $amount = (float) Money::round(Money::div(Money::mul((string)$order->paid_amount, (string)$rate), '100'), 2);
+        if (Money::cmp((string)$amount, '0') <= 0) {
             return;
         }
 

@@ -7,6 +7,7 @@ declare(strict_types=1);
 
 namespace app\admin\controller;
 
+use app\common\Money;
 use app\model\User;
 use app\model\Order;
 use app\model\OrderItem;
@@ -42,7 +43,7 @@ class CustomerProfileController extends BaseController
         $totalSpent  = (float) Order::where('user_id', $userId)
             ->whereIn('status', ['paid', 'confirmed', 'serving', 'completed'])
             ->sum('paid_amount');
-        $avgOrderValue = $totalOrders > 0 ? round($totalSpent / $totalOrders, 2) : 0;
+        $avgOrderValue = $totalOrders > 0 ? (float) Money::round(Money::div((string) $totalSpent, (string) $totalOrders), 2) : 0;
 
         // 最常购买的服务 Top 5
         $topServices = OrderItem::whereIn('order_id', function ($q) use ($userId) {

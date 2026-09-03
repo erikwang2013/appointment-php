@@ -5,6 +5,7 @@ declare(strict_types=1);
 
 namespace app\order\v1\controller;
 
+use app\common\Money;
 use app\common\NotificationReminderService;
 use app\common\WechatPayService;
 use app\model\Order;
@@ -321,7 +322,7 @@ trait OrderRefundTrait
             if (!$wallet) {
                 throw new \RuntimeException('用户钱包不存在');
             }
-            $wallet->balance = round((float) $wallet->balance + $refundAmount, 2);
+            $wallet->balance = (float) Money::round(Money::add((string) $wallet->balance, (string) $refundAmount), 2);
             $wallet->save();
 
             WalletTxn::create([
@@ -365,7 +366,8 @@ trait OrderRefundTrait
      */
     private function calcRefundAmount(Order $order, float $ratio): float
     {
-        return round((float) $order->paid_amount * $ratio, 2);
+        // 退款额 = 实付 × 比例，string 域乘法后再舍入，防 float ratio 链式误差
+        return (float) Money::round(Money::mul((string) $order->paid_amount, (string) $ratio), 2);
     }
 
     /**
@@ -374,6 +376,6 @@ trait OrderRefundTrait
      */
     private function shouldRestoreBenefits(float $ratio): bool
     {
-        return (float) $ratio >= 1.0;
+        return Money::cmp((string) $ratio, '1.00') >= 0;
     }
 }
