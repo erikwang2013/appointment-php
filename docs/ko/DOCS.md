@@ -33,7 +33,7 @@
 | [ko-order-lifecycle.svg](diagrams/ko-order-lifecycle.svg) | 주문 생애주기 상태 머신 | [LIFECYCLE-DIAGRAM.md](diagrams/LIFECYCLE-DIAGRAM.md) |
 | [ko-lifecycle-overview.svg](diagrams/ko-lifecycle-overview.svg) | 전체 생애주기 개요(17개, 네 가지 분류) | [LIFECYCLE-DIAGRAM.md](diagrams/LIFECYCLE-DIAGRAM.md) |
 | [ko-security-defense.svg](diagrams/ko-security-defense.svg) | 심층 방어 7계층 체계 | [SECURITY-ARCHITECTURE.md](diagrams/SECURITY-ARCHITECTURE.md) |
-| [mascot.svg](diagrams/mascot.svg) | 프로젝트 마스코트 「예약 토끼」(SMIL 애니메이션, 외부 의존성 없음) | — |
+| [mascot.svg](diagrams/mascot.svg) | 프로젝트 마스코트 「캘린더 정령 웨」(SMIL 애니메이션, 외부 의존성 없음) | — |
 
 ## 테스트와 보안
 

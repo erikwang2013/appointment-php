@@ -33,7 +33,7 @@ Todos os diagramas estão em [diagrams/](diagrams/): os originais em chinês `cn
 | [pt-order-lifecycle.svg](diagrams/pt-order-lifecycle.svg) | Máquina de estados do ciclo de vida do pedido | [LIFECYCLE-DIAGRAM.md](diagrams/LIFECYCLE-DIAGRAM.md) |
 | [pt-lifecycle-overview.svg](diagrams/pt-lifecycle-overview.svg) | Todos os ciclos de vida em resumo (17 no total, em quatro grupos) | [LIFECYCLE-DIAGRAM.md](diagrams/LIFECYCLE-DIAGRAM.md) |
 | [pt-security-defense.svg](diagrams/pt-security-defense.svg) | Sistema de defesa em profundidade em sete camadas | [SECURITY-ARCHITECTURE.md](diagrams/SECURITY-ARCHITECTURE.md) |
-| [mascot.svg](diagrams/mascot.svg) | Mascote do projeto "Coelhinho das Marcações" (animação SMIL, sem dependências externas) | — |
+| [mascot.svg](diagrams/mascot.svg) | Mascote do projeto "Yue, o Duende do Calendário" (animação SMIL, sem dependências externas) | — |
 
 ## Testes e segurança
 

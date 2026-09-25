@@ -9,7 +9,7 @@ Plataforma de gestão de agendamentos em quatro terminais: miniprograma WeChat d
 
 ## Apresentação do projeto
 
-<img src="diagrams/mascot.svg" alt="Mascote do sistema de agendamentos — Coelhinho das Marcações (animação SVG)" width="200" align="right">
+<img src="diagrams/mascot.svg" alt="Mascote do sistema de agendamentos — Yue, o Duende do Calendário (animação SVG)" width="200" align="right">
 
 **Sistema de Serviços de Agendamento** é uma plataforma de gestão de agendamentos em quatro terminais orientada ao setor de serviços do dia a dia: o lado do utilizador abrange **miniprograma WeChat, APP Flutter e APP HarmonyOS**, com alternância livre entre terminais na mesma conta, em conjunto com o **painel de administração PC**, concretizando o ciclo digital completo de "utilizador agenda → técnico aceita → equipa de operações gere". Quer seja agendamento em loja, serviço de técnico, marketing de membros ou liquidação financeira, um único sistema resolve tudo.
 

@@ -9,7 +9,7 @@ A four-client appointment service management platform: WeChat Mini Program + Flu
 
 ## Introduction
 
-<img src="../diagrams/mascot.svg" alt="Appointment Service System mascot — Booking Bunny (SVG animation)" width="200" align="right">
+<img src="../diagrams/mascot.svg" alt="Appointment Service System mascot — Yue, the Calendar Sprite (SVG animation)" width="200" align="right">
 
 **Appointment Service System** is a four-client appointment management platform for the life-services industry: the user side covers **WeChat Mini Program, Flutter APP, and HarmonyOS APP** with free cross-client switching under the same account, together with a **PC admin dashboard**, forming a full digital loop of "user appointment → technician takes the order → back-office operations". Whether it is in-store appointments, technician services, membership marketing, or financial settlement, one system handles it all.
 
@@ -35,26 +35,26 @@ Whether you run a single store or a multi-store chain, Appointment Service Syste
 
 ```
 appointment-php/
-├── admin/                     # 管理后台 (webman v2 + Flutter Web，独立部署 :8787)
-│   ├── app/                   #   admin(后台控制器)/api/v1/model/middleware/process/view
-│   ├── apps/                  #   Flutter Web 后台 / HarmonyOS / 微信管理端
-│   ├── config/                #   路由/数据库/进程/插件配置
-│   ├── database/              #   备份脚本（表结构与种子数据统一见 docs/install.sql）
-│   ├── tests/                 #   PHPUnit（#[\Test] 属性风格）
+├── admin/                     # Admin dashboard (webman v2 + Flutter Web, deployed separately :8787)
+│   ├── app/                   #   admin (backend controllers)/api/v1/model/middleware/process/view
+│   ├── apps/                  #   Flutter Web admin / HarmonyOS / WeChat admin client
+│   ├── config/                #   Route/database/process/plugin config
+│   ├── database/              #   Backup scripts (table schema and seed data see docs/install.sql)
+│   ├── tests/                 #   PHPUnit (#[\Test] attribute style)
 │   └── start.php
-├── service/                   # 业务API服务 (webman v2，独立部署 :8787)
-│   ├── app/                   #   api/user/technician/order/wallet/marketing/notification 等模块
-│   ├── config/                #   路由/数据库/进程/支付等配置
-│   ├── support/               #   Model 基类（generateId）/Request/Response
+├── service/                   # Business API service (webman v2, deployed separately :8787)
+│   ├── app/                   #   api/user/technician/order/wallet/marketing/notification and other modules
+│   ├── config/                #   Route/database/process/payment and other config
+│   ├── support/               #   Model base class (generateId)/Request/Response
 │   ├── tests/                 #   PHPUnit
 │   └── start.php
-├── apps/                      # 用户端前端应用
-│   ├── wechat/                #   微信小程序（原生）
-│   ├── flutter/               #   Flutter APP（iOS + Android）
-│   └── harmonyos/             #   HarmonyOS APP（鸿蒙原生）
-└── docs/                      # 项目文档
+├── apps/                      # User-side front-end applications
+│   ├── wechat/                #   WeChat Mini Program (native)
+│   ├── flutter/               #   Flutter APP (iOS + Android)
+│   └── harmonyos/             #   HarmonyOS APP (native HarmonyOS)
+└── docs/                      # Project documentation
     ├── API.md / FEATURES.md / STRUCTURE.md / install.sql / README.md ...
-    └── diagrams/              #   架构/流程图（SVG + mermaid）
+    └── diagrams/              #   Architecture/flow diagrams (SVG + mermaid)
 ```
 
 **Project structure diagram** (four platforms + module detail; full version in [STRUCTURE.md](STRUCTURE.md)):
@@ -193,7 +193,7 @@ The three functional domains, purchase flows (service booking / product cart), t
 | Coupon gifting | 8-character unique gift code (uk_code fallback, valid 7 days); claim anti-abuse: Redis NX lock + row-lock recheck prevents double-spend, uk_user_coupon limits one gift per coupon, gifted coupons cannot be re-gifted, cannot claim own gift; lazy expiry restores the original coupon |
 | Points expiry | expires_at (default 365 days, config points.expiry_days); PointsExpiryTimer 60s cursor scan writes type=expire negative deductions (triple idempotency) + aggregated in-app notification; expired points cannot be used for cash offset/exchange |
 | Technician tier auto-rating | TierRatingService real-time stats order count + average rating back to profile, matched high-to-low by tier_config; upgrade-only (allowDowngrade for manual re-evaluation); changes logged to appointment_technician_tier_log + in-app notification; admin log view (permission 380) |
-| Flash sale order loop | /api/v1/seckill activities + `buy` idempotent/concurrency-safe, order injects seckill_id reusing store(), stock deducted by row lock inside the transaction (flash price = seckill_price, DB authoritative), sold out 422 "已抢光", cancellation does not restore stock; old promotion flash_sale channel retired |
+| Flash sale order loop | /api/v1/seckill activities + `buy` idempotent/concurrency-safe, order injects seckill_id reusing store(), stock deducted by row lock inside the transaction (flash price = seckill_price, DB authoritative), sold out 422 "sold out", cancellation does not restore stock; old promotion flash_sale channel retired |
 | Pre-service reminder | ServiceReminderTimer 60s scans confirmed/serving orders starting within 1h → SCENE_REMINDER subscribe message + in-app notification (order_id+type dedup, triple idempotency); auto fallback to in-app notification when template not configured |
 | Expiry reminder | ExpiryReminderTimer 6h scans member cards/coupons expiring within 3 days → type=card_expiry/coupon_expiry + SCENE_EXPIRY subscribe message (order_id records source for dedup) |
 | Technician review reply | POST /api/v1/technician/review/reply/{order_id}: not owner 404, duplicate reply 422, in-app notification to user on success; appointment_order_review gains replied_at; admin reply detail (permission 381) |
@@ -256,44 +256,44 @@ The three functional domains, purchase flows (service booking / product cart), t
 | [Design Spec](specs/2026-05-26-appointment-system-design.md) | System design specification |
 | [Implementation Plan](plans/2026-05-26-appointment-system-plan.md) | Phased implementation plan |
 
-## 支持项目 / Support
+## Support
 
-如果这个项目对你有帮助，欢迎支持！感谢你的鼓励 :heart:
+If this project has helped you, your support is most welcome! Thank you for your encouragement :heart:
 
 If this project helps you, your support is welcome and appreciated!
 
 <table>
   <tr>
     <td align="center" width="50%">
-      <img src="../weixinpay.png" alt="微信支付 / WeChat Pay" width="130" height="130"><br>
-      <b>微信支付</b><br>WeChat Pay
+      <img src="../weixinpay.png" alt="WeChat Pay" width="130" height="130"><br>
+      <b>WeChat Pay</b><br>WeChat Pay
     </td>
     <td align="center" width="50%">
-      <img src="../alipay.png" alt="支付宝 / Alipay" width="130" height="130"><br>
-      <b>支付宝</b><br>Alipay
+      <img src="../alipay.png" alt="Alipay" width="130" height="130"><br>
+      <b>Alipay</b><br>Alipay
     </td>
   </tr>
 </table>
 
-### 全球转账 / Global Bank Transfer
+### Global Bank Transfer
 
-支持全球转账打赏（港元 / 人民币 / 美元 / 其他币种），感谢你的慷慨 :heart:
+Donations by global bank transfer are supported (HKD / CNY / USD / other currencies). Thank you for your generosity :heart:
 
 Global bank transfer donations are welcome (HKD / CNY / USD / other currencies). Thank you for your generosity!
 
-| 项目 Item | 信息 Details |
+| Item | Details |
 |-----------|-------------|
-| 收款人姓名 Beneficiary Name | WANG KEXUN |
-| 收款账户号码 Account Number | 881015918251 |
-| 收款银行 Bank | ZA Bank Limited（SWIFT Code：AABLHKHHXXX，银行编号 Bank Code：387） |
-| 银行地址 Bank Address | Core F, Cyberport 3, 100 Cyberport Road, Hong Kong |
+| Beneficiary Name | WANG KEXUN |
+| Account Number | 881015918251 |
+| Bank | ZA Bank Limited (SWIFT Code: AABLHKHHXXX, Bank Code: 387) |
+| Bank Address | Core F, Cyberport 3, 100 Cyberport Road, Hong Kong |
 
-> **跨境汇款代理银行（如需）/ Intermediary Bank (if required)**
-> 此为跨境汇款代理银行（中转银行）信息，非收款银行信息，请向汇款银行查询是否需要提供。
+> **Intermediary Bank (if required)**
+> This is information about the intermediary (correspondent) bank for cross-border remittances, not the receiving bank. Please ask your remitting bank whether it needs to be provided.
 > Note: this is intermediary bank information, not the receiving bank. Please check with your remitting bank whether it is required.
 >
-> - 汇入港元、人民币及美元（For HKD / CNY / USD）：**Citibank N.A. Hong Kong** — SWIFT Code：CITIHKHXXXX，银行编号 Bank Code：006，分行名称 Branch：Hong Kong Branch，分行编号 Branch Code：391，地址 Address：Citibank Tower, Citibank Plaza, 3 Garden Road, Central, Hong Kong
-> - 汇入其他币种（For other currencies）：**The Bank of New York Mellon** — SWIFT Code：IRVTUS3NXXX，地址 Address：240 Greenwich Street, New York, United States
+> - For HKD / CNY / USD: **Citibank N.A. Hong Kong** — SWIFT Code: CITIHKHXXXX, Bank Code: 006, Branch: Hong Kong Branch, Branch Code: 391, Address: Citibank Tower, Citibank Plaza, 3 Garden Road, Central, Hong Kong
+> - For other currencies: **The Bank of New York Mellon** — SWIFT Code: IRVTUS3NXXX, Address: 240 Greenwich Street, New York, United States
 
 ## Copyright
 

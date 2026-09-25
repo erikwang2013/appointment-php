@@ -31,7 +31,7 @@
 | [ru-order-lifecycle.svg](diagrams/ru-order-lifecycle.svg) | Конечный автомат жизненного цикла заказа | [LIFECYCLE-DIAGRAM.md](diagrams/LIFECYCLE-DIAGRAM.md) |
 | [ru-lifecycle-overview.svg](diagrams/ru-lifecycle-overview.svg) | Обзор всех жизненных циклов (17, четыре группы) | [LIFECYCLE-DIAGRAM.md](diagrams/LIFECYCLE-DIAGRAM.md) |
 | [ru-security-defense.svg](diagrams/ru-security-defense.svg) | Семиуровневая эшелонированная оборона | [SECURITY-ARCHITECTURE.md](diagrams/SECURITY-ARCHITECTURE.md) |
-| [mascot.svg](diagrams/mascot.svg) | Талисман проекта «кролик записи» (SMIL-анимация, без внешних зависимостей) | — |
+| [mascot.svg](diagrams/mascot.svg) | Талисман проекта — календарный дух «Юэ» (SMIL-анимация, без внешних зависимостей) | — |
 
 ## Тестирование и безопасность
 

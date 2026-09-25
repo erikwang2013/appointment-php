@@ -30,7 +30,7 @@
 | [cn-order-lifecycle.svg](diagrams/cn-order-lifecycle.svg) | 订单生命周期状态机 | [LIFECYCLE-DIAGRAM.md](diagrams/LIFECYCLE-DIAGRAM.md) |
 | [cn-lifecycle-overview.svg](diagrams/cn-lifecycle-overview.svg) | 全量生命周期总览（17 条，四类分组） | [LIFECYCLE-DIAGRAM.md](diagrams/LIFECYCLE-DIAGRAM.md) |
 | [cn-security-defense.svg](diagrams/cn-security-defense.svg) | 纵深防御七层体系 | [SECURITY-ARCHITECTURE.md](diagrams/SECURITY-ARCHITECTURE.md) |
-| [mascot.svg](diagrams/mascot.svg) | 项目宠物「预约小兔」（SMIL 动画，无外部依赖） | — |
+| [mascot.svg](diagrams/mascot.svg) | 项目宠物——日历精灵「小约」（SMIL 动画，无外部依赖） | — |
 
 ## 快速安装
 

@@ -130,7 +130,7 @@ The three functional domains, purchase flows (service booking / product cart), t
 
 ## Project Intro
 
-<img src="docs/diagrams/mascot.svg" alt="Appointment service mascot — Booking Bunny (animated SVG)" width="200" align="right">
+<img src="docs/diagrams/mascot.svg" alt="Appointment service mascot — Yue, the Calendar Sprite (animated SVG)" width="200" align="right">
 
 **Appointment Service System** is a four-platform appointment management platform for the life-services industry: WeChat Mini Program + Flutter App + HarmonyOS App (same-account role switching) + PC Admin Dashboard, covering the full loop of user booking, technician fulfillment and admin operations — appointments, membership, marketing and settlement in one system, stable, secure and easy to extend.
 

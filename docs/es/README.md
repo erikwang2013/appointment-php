@@ -7,7 +7,7 @@ Plataforma de gestión de reservas de servicios en cuatro extremos: mini program
 
 ## Introducción del proyecto
 
-<img src="diagrams/mascot.svg" alt="Mascota del sistema de reservas: Conejito de reservas (animación SVG)" width="200" align="right">
+<img src="diagrams/mascot.svg" alt="Mascota del sistema de reservas — Yue, el Duende del Calendario (animación SVG)" width="200" align="right">
 
 **Sistema de Reservas de Servicios** es una plataforma de gestión de reservas en cuatro extremos orientada a la industria de servicios de estilo de vida: el extremo del usuario cubre **mini programa WeChat, APP Flutter, APP HarmonyOS** en tres extremos, con cambio libre entre extremos con la misma cuenta, junto con el **panel de administración para PC**, logrando el cierre digital de todo el proceso de «el usuario reserva → el técnico acepta el pedido → operación del panel». Tanto para reservas de tienda, servicios de técnicos, marketing de membresía o liquidación financiera, un solo sistema lo resuelve todo.
 

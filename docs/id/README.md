@@ -9,7 +9,7 @@ Platform manajemen layanan janji temu untuk empat ujung: Mini Program WeChat unt
 
 ## Pengenalan Proyek
 
-<img src="diagrams/mascot.svg" alt="Maskot sistem layanan janji temu — Kelinci Janji Temu (animasi SVG)" width="200" align="right">
+<img src="diagrams/mascot.svg" alt="Maskot sistem layanan janji temu — Yue, si Peri Kalender (animasi SVG)" width="200" align="right">
 
 **Sistem Layanan Janji Temu** adalah platform manajemen janji temu empat-ujung untuk industri layanan gaya hidup: sisi pengguna mencakup **Mini Program WeChat, Aplikasi Flutter, Aplikasi HarmonyOS** — tiga ujung, dengan akun yang sama bebas berpindah antar platform, dipadukan dengan **Panel Admin PC**, mewujudkan penutupan digital menyeluruh dari "janji temu pengguna → teknisi menerima pesanan → operasional backend". Baik itu janji temu di toko, layanan teknisi, pemasaran member, maupun penyelesaian keuangan, satu sistem menyelesaikan semuanya.
 

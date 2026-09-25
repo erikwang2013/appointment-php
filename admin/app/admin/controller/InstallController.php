@@ -455,7 +455,7 @@ h2{font-size:18px;margin-bottom:20px;color:#555}
 <body>
 <div class="container">
 <div class="brand">
-<img src="/mascot.svg" alt="预约小兔（吉祥物）" width="64" height="64">
+<img src="/mascot.svg" alt="日历精灵「小约」（吉祥物）" width="64" height="64">
 <div><h1>预约服务系统 · 安装向导</h1><div class="sub">四端预约服务平台 · 4 步完成部署</div></div>
 </div>
 {$body}
@@ -547,7 +547,7 @@ var r=await fetch('/install?step=4',{method:'POST'}),d=await r.json();
 if(d.success){
 document.getElementById('stat').innerHTML='<p style="color:#059669;font-weight:500">安装完成！</p>';
 d.results.forEach(function(x){l.innerHTML+='<li><span class="pass">&#10003;</span> '+x.name+'</li>'});
-f.innerHTML='<div class="done-box"><img class="mascot" src="/mascot.svg" alt="预约小兔（吉祥物）"><h2>安装成功！</h2>'+
+f.innerHTML='<div class="done-box"><img class="mascot" src="/mascot.svg" alt="日历精灵「小约」（吉祥物）"><h2>安装成功！</h2>'+
 '<div class="info"><p><strong>管理员账号:</strong> <code>'+d.admin.username+'</code></p>'+
 '<p><strong>登录密码:</strong> <code>'+d.admin.password+'</code></p>'+
 '<p style="margin-top:8px;color:#dc2626">请妥善保管密码，此页面关闭后无法再次查看。</p></div>'+

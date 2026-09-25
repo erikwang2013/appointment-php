@@ -1,143 +1,113 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 480" width="480" height="480" role="img" aria-labelledby="title desc">
-  <title id="title">Mascote do sistema de agendamento — Coelhinho das Marcações</title>
-  <desc id="desc">Na barriga, um cartão de calendário de marcações (dia 27 + visto verde = marcação confirmada); na base holográfica, quatro ícones representam as quatro frentes: miniprograma/APP/HarmonyOS/painel; flutua, pisca os olhos e acena</desc>
+  <title id="title">Mascote do sistema de agendamentos — Yue, o Duende do Calendário</title>
+  <desc id="desc">O próprio calendário de marcações transformado em personagem: cabeçalho vermelho + dupla argola + página de datas branca, com um rosto na página, um visto verde no canto inferior direito que indica marcação confirmada e quatro pontos coloridos na base que representam as quatro frentes: miniprograma/APP/HarmonyOS/painel. Animação SMIL pura, sem dependências externas</desc>
   <defs>
     <linearGradient id="bgGrad" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0%" stop-color="#232650"/>
       <stop offset="100%" stop-color="#312B6E"/>
     </linearGradient>
-    <radialGradient id="headGrad" cx="32%" cy="26%" r="85%">
+    <linearGradient id="pageGrad" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0%" stop-color="#FFFFFF"/>
-      <stop offset="100%" stop-color="#F6EADB"/>
-    </radialGradient>
-    <linearGradient id="bodyGrad" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#FFFDF8"/>
-      <stop offset="100%" stop-color="#F3E6D6"/>
+      <stop offset="100%" stop-color="#EEF1FB"/>
     </linearGradient>
-    <filter id="badgeShadow" x="-20%" y="-20%" width="140%" height="150%">
-      <feDropShadow dx="0" dy="12" stdDeviation="14" flood-color="#0D0F2B" flood-opacity="0.55"/>
-    </filter>
+    <linearGradient id="headGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#FF7586"/>
+      <stop offset="100%" stop-color="#F04159"/>
+    </linearGradient>
+    <linearGradient id="armGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#FFD8E0"/>
+      <stop offset="100%" stop-color="#FFB9CB"/>
+    </linearGradient>
   </defs>
 
-  <!-- 徽章：深空渐变 + 霓虹内发光 -->
-  <rect x="40" y="40" width="400" height="400" rx="92" fill="url(#bgGrad)" filter="url(#badgeShadow)"/>
-  <rect x="49" y="49" width="382" height="382" rx="84" fill="none" stroke="#6E7BFF" stroke-width="2.5" opacity="0.35"/>
-  <ellipse cx="125" cy="95" rx="170" ry="80" fill="#FFFFFF" opacity="0.08" transform="rotate(-18 125 95)"/>
+  <!-- 徽章：外圈浅描边替代投影，不依赖滤镜，浅色背景上依然成立 -->
+  <rect x="40" y="40" width="400" height="400" rx="96" fill="#1B1E42" opacity="0.5"/>
+  <rect x="44" y="44" width="392" height="392" rx="92" fill="url(#bgGrad)"/>
+  <rect x="54" y="54" width="372" height="372" rx="82" fill="none" stroke="#7C88FF" stroke-width="2.5" opacity="0.4"/>
+  <ellipse cx="130" cy="98" rx="168" ry="78" fill="#FFFFFF" opacity="0.07" transform="rotate(-18 130 98)"/>
 
-  <!-- 背景点阵 -->
-  <circle cx="385" cy="85" r="2" fill="#FFFFFF" opacity="0.14"/>
-  <circle cx="410" cy="260" r="2.6" fill="#FFFFFF" opacity="0.12"/>
-  <circle cx="78" cy="250" r="2" fill="#FFFFFF" opacity="0.14"/>
-  <circle cx="110" cy="360" r="2.2" fill="#FFFFFF" opacity="0.1"/>
-  <circle cx="395" cy="395" r="2" fill="#FFFFFF" opacity="0.1"/>
-
-  <!-- 全息底座：光环 + 四端图标 -->
-  <ellipse cx="245" cy="424" rx="150" ry="18" fill="none" stroke="#4FE3C1" stroke-width="2" opacity="0.15">
-    <animate attributeName="opacity" values="0.1;0.22;0.1" keyTimes="0;0.5;1" dur="3.6s" repeatCount="indefinite"/>
+  <!-- 悬浮底座 -->
+  <ellipse cx="240" cy="404" rx="120" ry="16" fill="none" stroke="#4FE3C1" stroke-width="2.5" opacity="0.4">
+    <animate attributeName="opacity" values="0.2;0.55;0.2" keyTimes="0;0.5;1" dur="3.4s" repeatCount="indefinite"/>
   </ellipse>
-  <ellipse cx="245" cy="424" rx="118" ry="14" fill="none" stroke="#4FE3C1" stroke-width="2.5" opacity="0.45"/>
-  <ellipse cx="245" cy="424" rx="52" ry="8" fill="#4FE3C1" opacity="0.15">
-    <animate attributeName="opacity" values="0.1;0.28;0.1" keyTimes="0;0.5;1" dur="3.6s" repeatCount="indefinite"/>
+  <ellipse cx="240" cy="404" rx="60" ry="9" fill="#4FE3C1" opacity="0.14">
+    <animate attributeName="opacity" values="0.08;0.28;0.08" keyTimes="0;0.5;1" dur="3.4s" repeatCount="indefinite"/>
   </ellipse>
-  <!-- 小程序：气泡 + 双眼 -->
-  <g opacity="0.8">
-    <animate attributeName="opacity" values="0.45;1;0.45" keyTimes="0;0.5;1" dur="2.4s" repeatCount="indefinite"/>
-    <rect x="121.5" y="405.5" width="27" height="19" rx="8" fill="none" stroke="#4FE3C1" stroke-width="2.2"/>
-    <path d="M127 421 l-6 7 l7 -2" fill="none" stroke="#4FE3C1" stroke-width="2.2" stroke-linecap="round"/>
-    <circle cx="130" cy="412.5" r="1.8" fill="#4FE3C1"/>
-    <circle cx="139" cy="412.5" r="1.8" fill="#4FE3C1"/>
-  </g>
-  <!-- APP：手机 -->
-  <g opacity="0.8">
-    <animate attributeName="opacity" values="0.45;1;0.45" keyTimes="0;0.5;1" dur="2.4s" begin="0.5s" repeatCount="indefinite"/>
-    <rect x="200.5" y="402" width="15" height="26" rx="4" fill="none" stroke="#A78BFF" stroke-width="2.2"/>
-    <rect x="205" y="407" width="6" height="13" rx="1.5" fill="#A78BFF" opacity="0.6"/>
-    <circle cx="208" cy="424" r="1.3" fill="#A78BFF"/>
-  </g>
-  <!-- 鸿蒙：四芒星 -->
-  <g opacity="0.8">
-    <animate attributeName="opacity" values="0.45;1;0.45" keyTimes="0;0.5;1" dur="2.4s" begin="1s" repeatCount="indefinite"/>
-    <path d="M282 402 L285.3 410.6 L293.5 415 L285.3 419.4 L282 428 L278.7 419.4 L270.5 415 L278.7 410.6 Z" fill="none" stroke="#FF8A6B" stroke-width="2.2" stroke-linejoin="round"/>
-  </g>
-  <!-- 后台：显示器 -->
-  <g opacity="0.8">
-    <animate attributeName="opacity" values="0.45;1;0.45" keyTimes="0;0.5;1" dur="2.4s" begin="1.5s" repeatCount="indefinite"/>
-    <rect x="340.5" y="404.5" width="29" height="18.5" rx="3" fill="none" stroke="#FF7AA2" stroke-width="2.2"/>
-    <path d="M355 423 L355 428 M349.5 429 L360.5 429" fill="none" stroke="#FF7AA2" stroke-width="2.2" stroke-linecap="round"/>
-  </g>
 
-  <!-- 兔子整体：全息悬浮 -->
+  <!-- 四端指示：四色圆点依次点亮 -->
   <g>
-    <animateTransform attributeName="transform" type="translate" values="0 0;0 -5;0 0" keyTimes="0;0.5;1" dur="4.6s" repeatCount="indefinite"/>
+    <circle cx="168" cy="404" r="7.5" fill="#4FE3C1"><animate attributeName="opacity" values="0.4;1;0.4" keyTimes="0;0.5;1" dur="2.6s" repeatCount="indefinite"/></circle>
+    <circle cx="216" cy="404" r="7.5" fill="#A78BFF"><animate attributeName="opacity" values="0.4;1;0.4" keyTimes="0;0.5;1" dur="2.6s" begin="0.4s" repeatCount="indefinite"/></circle>
+    <circle cx="264" cy="404" r="7.5" fill="#FF8A6B"><animate attributeName="opacity" values="0.4;1;0.4" keyTimes="0;0.5;1" dur="2.6s" begin="0.8s" repeatCount="indefinite"/></circle>
+    <circle cx="312" cy="404" r="7.5" fill="#FF7AA2"><animate attributeName="opacity" values="0.4;1;0.4" keyTimes="0;0.5;1" dur="2.6s" begin="1.2s" repeatCount="indefinite"/></circle>
+  </g>
 
-    <!-- 左耳 -->
-    <g>
-      <animateTransform attributeName="transform" type="rotate" values="-6 185 152;4 185 152;-6 185 152" keyTimes="0;0.5;1" dur="3.8s" repeatCount="indefinite"/>
-      <ellipse cx="172" cy="108" rx="28" ry="60" fill="#FFF8EC" transform="rotate(-8 172 108)"/>
-      <ellipse cx="172" cy="112" rx="15" ry="42" fill="#FFC9DC" transform="rotate(-8 172 112)"/>
-    </g>
-    <!-- 右耳 -->
-    <g>
-      <animateTransform attributeName="transform" type="rotate" values="4 295 152;-6 295 152;4 295 152" keyTimes="0;0.5;1" dur="4.2s" begin="0.4s" repeatCount="indefinite"/>
-      <ellipse cx="308" cy="108" rx="28" ry="60" fill="#FFF8EC" transform="rotate(8 308 108)"/>
-      <ellipse cx="308" cy="112" rx="15" ry="42" fill="#FFC9DC" transform="rotate(8 308 112)"/>
-    </g>
+  <!-- 日历精灵本体：整体悬浮 -->
+  <g>
+    <animateTransform attributeName="transform" type="translate" values="0 0;0 -6;0 0" keyTimes="0;0.5;1" dur="4.6s" repeatCount="indefinite"/>
 
-    <!-- 头部 -->
-    <ellipse cx="245" cy="205" rx="100" ry="92" fill="url(#headGrad)"/>
-    <ellipse cx="178" cy="140" rx="48" ry="20" fill="#FFFFFF" opacity="0.28" transform="rotate(-16 178 140)"/>
-    <!-- 眼睛：眨眼 -->
-    <g transform="translate(212 232)">
+    <!-- 双线圈 -->
+    <rect x="176" y="126" width="11" height="46" rx="5.5" fill="#C9CFE8"/>
+    <rect x="293" y="126" width="11" height="46" rx="5.5" fill="#C9CFE8"/>
+
+    <!-- 手臂：自身体两侧垂下，左臂轻摆 -->
+    <g>
+      <animateTransform attributeName="transform" type="rotate" values="-7 138 262;4 138 262;-7 138 262" keyTimes="0;0.5;1" dur="4s" repeatCount="indefinite"/>
+      <rect x="98" y="250" width="46" height="24" rx="12" fill="url(#armGrad)" transform="rotate(-16 140 262)"/>
+    </g>
+    <rect x="336" y="250" width="46" height="24" rx="12" fill="url(#armGrad)" transform="rotate(16 340 262)"/>
+
+    <!-- 卡体：红色卡头 -->
+    <rect x="132" y="152" width="216" height="200" rx="42" fill="url(#headGrad)"/>
+    <!-- 白色日期页 -->
+    <path d="M132 200 L348 200 L348 310 A42 42 0 0 1 306 352 L174 352 A42 42 0 0 1 132 310 Z" fill="url(#pageGrad)"/>
+    <!-- 卡头高光与分界 -->
+    <path d="M132 194 A42 42 0 0 1 174 152 L306 152 A42 42 0 0 1 348 194 Z" fill="#FFFFFF" opacity="0.18"/>
+    <path d="M132 198 H348" stroke="#000000" stroke-width="4" opacity="0.06"/>
+
+    <!-- 表情：错峰眨眼 -->
+    <g transform="translate(202 250)">
       <g>
-        <animateTransform attributeName="transform" type="scale" values="1 1;1 0.07;1 1" keyTimes="0;0.045;0.11" dur="3.6s" begin="0.9s" repeatCount="indefinite"/>
-        <ellipse rx="12.5" ry="16.5" fill="#2B2348"/>
-        <circle cx="-4.5" cy="-7" r="5" fill="#FFFFFF"/>
-        <circle cx="3" cy="5" r="2.2" fill="#8FF0DC" opacity="0.9"/>
+        <animateTransform attributeName="transform" type="scale" values="1 1;1 0.08;1 1" keyTimes="0;0.045;0.11" dur="3.8s" begin="0.9s" repeatCount="indefinite"/>
+        <ellipse rx="11.5" ry="16" fill="#2B2348"/>
+        <circle cx="-3.8" cy="-6.5" r="4.6" fill="#FFFFFF"/>
+        <circle cx="2.8" cy="4.6" r="2.1" fill="#8FF0DC" opacity="0.9"/>
       </g>
     </g>
-    <g transform="translate(278 232)">
+    <g transform="translate(278 250)">
       <g>
-        <animateTransform attributeName="transform" type="scale" values="1 1;1 0.07;1 1" keyTimes="0;0.045;0.11" dur="3.6s" begin="2.1s" repeatCount="indefinite"/>
-        <ellipse rx="12.5" ry="16.5" fill="#2B2348"/>
-        <circle cx="-4.5" cy="-7" r="5" fill="#FFFFFF"/>
-        <circle cx="3" cy="5" r="2.2" fill="#8FF0DC" opacity="0.9"/>
+        <animateTransform attributeName="transform" type="scale" values="1 1;1 0.08;1 1" keyTimes="0;0.045;0.11" dur="3.8s" begin="2.2s" repeatCount="indefinite"/>
+        <ellipse rx="11.5" ry="16" fill="#2B2348"/>
+        <circle cx="-3.8" cy="-6.5" r="4.6" fill="#FFFFFF"/>
+        <circle cx="2.8" cy="4.6" r="2.1" fill="#8FF0DC" opacity="0.9"/>
       </g>
     </g>
-    <!-- 腮红 + 鼻子 + 微笑 -->
-    <ellipse cx="186" cy="254" rx="13" ry="7.5" fill="#FFC1D4" opacity="0.85"/>
-    <ellipse cx="304" cy="254" rx="13" ry="7.5" fill="#FFC1D4" opacity="0.85"/>
-    <path d="M241 246 L249 246 L245 253 Z" fill="#FF8FA8"/>
-    <path d="M233 262 Q245 273 257 262" stroke="#B0788A" stroke-width="4.5" stroke-linecap="round" fill="none"/>
+    <ellipse cx="178" cy="274" rx="13" ry="7.5" fill="#FFB3C6" opacity="0.8"/>
+    <ellipse cx="302" cy="274" rx="13" ry="7.5" fill="#FFB3C6" opacity="0.8"/>
+    <path d="M229 276 Q240 287 251 276" stroke="#2B2348" stroke-width="4" stroke-linecap="round" fill="none" opacity="0.75"/>
 
-    <!-- 身体 -->
-    <ellipse cx="245" cy="332" rx="78" ry="66" fill="url(#bodyGrad)"/>
+    <!-- 日期格：三个待选时段 -->
+    <rect x="164" y="304" width="30" height="6" rx="3" fill="#2B2348" opacity="0.13"/>
+    <rect x="202" y="304" width="30" height="6" rx="3" fill="#2B2348" opacity="0.13"/>
+    <rect x="240" y="304" width="30" height="6" rx="3" fill="#2B2348" opacity="0.13"/>
 
-    <!-- 手臂：左爪轻摆 -->
-    <g>
-      <animateTransform attributeName="transform" type="rotate" values="-6 183 332;7 183 332;-6 183 332" keyTimes="0;0.5;1" dur="4.2s" repeatCount="indefinite"/>
-      <path d="M174 324 Q179 312 189 316" stroke="#F3E6D6" stroke-width="22" stroke-linecap="round" fill="none"/>
-      <circle cx="183" cy="332" r="15" fill="#FFFDF8"/>
-    </g>
-    <path d="M316 324 Q311 312 301 316" stroke="#F3E6D6" stroke-width="22" stroke-linecap="round" fill="none"/>
-    <circle cx="307" cy="332" r="15" fill="#FFFDF8"/>
-
-    <!-- 腹部预约日历卡：红头 + 日期 27 + 绿色对勾 -->
-    <rect x="193" y="290" width="104" height="24" rx="12" fill="#FF5A6E"/>
-    <rect x="193" y="312" width="104" height="64" rx="12" fill="#FFFFFF"/>
-    <circle cx="203" cy="294" r="4" fill="none" stroke="#FFFFFF" stroke-width="2"/>
-    <circle cx="287" cy="294" r="4" fill="none" stroke="#FFFFFF" stroke-width="2"/>
-    <text x="202" y="356" font-family="Arial, sans-serif" font-size="40" font-weight="bold" fill="#3B2E5A">27</text>
-    <g transform="translate(284 348)">
+    <!-- 对勾：预约成功，回弹 -->
+    <g transform="translate(310 330)">
       <g>
-        <animateTransform attributeName="transform" type="scale" values="1 1;0.7 0.7;1.15 1.15;1 1" keyTimes="0;0.4;0.62;1" dur="2.2s" begin="0.9s" repeatCount="indefinite"/>
-        <circle r="21" fill="#34C77B"/>
-        <path d="M-10 0 l7 8 l14 -15" stroke="#FFFFFF" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        <animateTransform attributeName="transform" type="scale" values="1 1;0.72 0.72;1.14 1.14;1 1" keyTimes="0;0.4;0.62;1" dur="2.2s" begin="0.9s" repeatCount="indefinite"/>
+        <circle r="27" fill="#34C77B"/>
+        <circle r="27" fill="none" stroke="#1F9E5C" stroke-width="2" opacity="0.35"/>
+        <path d="M-12.5 0 l8.5 9.5 l17 -18" stroke="#FFFFFF" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
       </g>
     </g>
+
+    <!-- 小脚 -->
+    <rect x="188" y="346" width="34" height="22" rx="11" fill="#DCE2F5"/>
+    <rect x="258" y="346" width="34" height="22" rx="11" fill="#DCE2F5"/>
   </g>
 
   <!-- 星光 -->
-  <g transform="translate(62 68)"><path d="M0 -11 L2.6 -2.6 L11 0 L2.6 2.6 L0 11 L-2.6 2.6 L-11 0 L-2.6 -2.6 Z" fill="#FFD98A"><animate attributeName="opacity" values="0.12;0.8;0.12" keyTimes="0;0.5;1" dur="2.4s" begin="0.3s" repeatCount="indefinite"/></path></g>
-  <g transform="translate(418 98) scale(0.8)"><path d="M0 -11 L2.6 -2.6 L11 0 L2.6 2.6 L0 11 L-2.6 2.6 L-11 0 L-2.6 -2.6 Z" fill="#4FE3C1"><animate attributeName="opacity" values="0.12;0.8;0.12" keyTimes="0;0.5;1" dur="2.8s" begin="1.4s" repeatCount="indefinite"/></path></g>
-  <g transform="translate(78 372) scale(0.85)"><path d="M0 -11 L2.6 -2.6 L11 0 L2.6 2.6 L0 11 L-2.6 2.6 L-11 0 L-2.6 -2.6 Z" fill="#FFD98A"><animate attributeName="opacity" values="0.12;0.8;0.12" keyTimes="0;0.5;1" dur="3.1s" begin="2s" repeatCount="indefinite"/></path></g>
+  <g transform="translate(70 84)"><path d="M0 -11 L2.6 -2.6 L11 0 L2.6 2.6 L0 11 L-2.6 2.6 L-11 0 L-2.6 -2.6 Z" fill="#FFD98A"><animate attributeName="opacity" values="0.12;0.8;0.12" keyTimes="0;0.5;1" dur="2.4s" begin="0.3s" repeatCount="indefinite"/></path></g>
+  <g transform="translate(414 130) scale(0.8)"><path d="M0 -11 L2.6 -2.6 L11 0 L2.6 2.6 L0 11 L-2.6 2.6 L-11 0 L-2.6 -2.6 Z" fill="#4FE3C1"><animate attributeName="opacity" values="0.12;0.8;0.12" keyTimes="0;0.5;1" dur="2.8s" begin="1.4s" repeatCount="indefinite"/></path></g>
+  <g transform="translate(76 320) scale(0.85)"><path d="M0 -11 L2.6 -2.6 L11 0 L2.6 2.6 L0 11 L-2.6 2.6 L-11 0 L-2.6 -2.6 Z" fill="#FFD98A"><animate attributeName="opacity" values="0.12;0.8;0.12" keyTimes="0;0.5;1" dur="3.1s" begin="2s" repeatCount="indefinite"/></path></g>
 </svg>

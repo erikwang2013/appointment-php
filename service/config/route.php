@@ -536,7 +536,7 @@ code{background:#eef2ff;padding:2px 6px;border-radius:4px;font-size:13px;color:#
 </head>
 <body>
 <div class="card">
-<img src="/mascot.svg" alt="预约小兔（吉祥物）">
+<img src="/mascot.svg" alt="日历精灵「小约」（吉祥物）">
 <h1>预约服务系统 · API 服务</h1>
 <p>服务运行中。客户端接口前缀 <code>/api/v1</code>，请求未携带版本前缀将返回 404。</p>
 <div class="links">

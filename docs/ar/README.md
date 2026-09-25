@@ -9,7 +9,7 @@
 
 ## مقدمة المشروع
 
-<img src="diagrams/mascot.svg" alt="تميمة نظام خدمات الحجز — الأرنب الصغير (رسوم SVG متحركة)" width="200" align="right">
+<img src="diagrams/mascot.svg" alt="تميمة نظام خدمات الحجز — روح التقويم يُوِه (رسوم SVG متحركة)" width="200" align="right">
 
 **نظام خدمات الحجز** هو منصة إدارة حجوزات بأربع واجهات موجهة لقطاع الخدمات اليومية: تغطي واجهات المستخدم **برنامج WeChat الصغير وتطبيق Flutter وتطبيق HarmonyOS** بثلاث واجهات، مع تبديل حر بين الحسابات عبر الواجهات، إلى جانب **لوحة إدارة الكمبيوتر**، لتحقيق إغلاق رقمي كامل لدورة "حجز المستخدم ← قبول الفني ← تشغيل الخلفية". سواء كانت حجوزات المتاجر أو خدمات الفنيين أو تسويق العضويات أو التسوية المالية، نظام واحد ينجز كل شيء.
 
@@ -35,26 +35,26 @@
 
 ```
 appointment-php/
-├── admin/                     # 管理后台 (webman v2 + Flutter Web，独立部署 :8787)
-│   ├── app/                   #   admin(后台控制器)/api/v1/model/middleware/process/view
-│   ├── apps/                  #   Flutter Web 后台 / HarmonyOS / 微信管理端
-│   ├── config/                #   路由/数据库/进程/插件配置
-│   ├── database/              #   备份脚本（表结构与种子数据统一见 docs/install.sql）
-│   ├── tests/                 #   PHPUnit（#[\Test] 属性风格）
+├── admin/                     # لوحة الإدارة (webman v2 + Flutter Web، نشر مستقل :8787)
+│   ├── app/                   #   admin(وحدات تحكم لوحة الإدارة)/api/v1/model/middleware/process/view
+│   ├── apps/                  #   لوحة Flutter Web الإدارية / HarmonyOS / عميل WeChat الإداري
+│   ├── config/                #   إعدادات التوجيه/قاعدة البيانات/العمليات/الإضافات
+│   ├── database/              #   سكربتات النسخ الاحتياطي (بنية الجداول وبيانات البذور موحّدة في docs/install.sql)
+│   ├── tests/                 #   PHPUnit (بنمط سمات #[\Test])
 │   └── start.php
-├── service/                   # 业务API服务 (webman v2，独立部署 :8787)
-│   ├── app/                   #   api/user/technician/order/wallet/marketing/notification 等模块
-│   ├── config/                #   路由/数据库/进程/支付等配置
-│   ├── support/               #   Model 基类（generateId）/Request/Response
+├── service/                   # خدمة واجهات الأعمال (webman v2، نشر مستقل :8787)
+│   ├── app/                   #   وحدات api/user/technician/order/wallet/marketing/notification وغيرها
+│   ├── config/                #   إعدادات التوجيه/قاعدة البيانات/العمليات/الدفع وغيرها
+│   ├── support/               #   الفئة الأساسية Model (generateId)/Request/Response
 │   ├── tests/                 #   PHPUnit
 │   └── start.php
-├── apps/                      # 用户端前端应用
-│   ├── wechat/                #   微信小程序（原生）
-│   ├── flutter/               #   Flutter APP（iOS + Android）
-│   └── harmonyos/             #   HarmonyOS APP（鸿蒙原生）
-└── docs/                      # 项目文档
+├── apps/                      # تطبيقات واجهة المستخدم
+│   ├── wechat/                #   برنامج WeChat الصغير (أصلي)
+│   ├── flutter/               #   Flutter APP(iOS + Android)
+│   └── harmonyos/             #   تطبيق HarmonyOS (أصلي)
+└── docs/                      # وثائق المشروع
     ├── API.md / FEATURES.md / STRUCTURE.md / install.sql / README.md ...
-    └── diagrams/              #   架构/流程图（SVG + mermaid）
+    └── diagrams/              #   مخططات البنية/التدفق (SVG + mermaid)
 ```
 
 **مخطط هيكل المشروع** (أربع منصات + تفاصيل الوحدات؛ النسخة الكاملة في [STRUCTURE.md](STRUCTURE.md)):
@@ -84,16 +84,16 @@ php start.php start -d
 ### التثبيت اليدوي
 
 ```bash
-# 1. 安装依赖
+# 1. تثبيت التبعيات
 cd service/ && cp .env.example .env && composer install
 cd ../admin/ && cp .env.example .env && composer install
 
-# 2. 一键导入数据库（含全部 95 张表 + 权限/配置种子）
+# 2. استيراد قاعدة البيانات بنقرة واحدة (يشمل جميع الجداول الـ 95 + بذور الصلاحيات/الإعدادات)
 mysql -u root -p < docs/install.sql
 
-# 3. 启动服务
-cd service/ && php start.php start -d   # 业务API → :8787
-cd ../admin/ && php start.php start -d  # 管理后台 → :8787
+# 3. تشغيل الخدمات
+cd service/ && php start.php start -d   # واجهات الأعمال → :8787
+cd ../admin/ && php start.php start -d  # لوحة الإدارة → :8787
 ```
 
 ### النشر عبر Docker
@@ -265,12 +265,12 @@ If this project helps you, your support is welcome and appreciated!
 <table>
   <tr>
     <td align="center" width="50%">
-      <img src="../weixinpay.png" alt="微信支付 / WeChat Pay" width="130" height="130"><br>
-      <b>微信支付</b><br>WeChat Pay
+      <img src="../weixinpay.png" alt="دفع WeChat / WeChat Pay" width="130" height="130"><br>
+      <b>دفع WeChat</b><br>WeChat Pay
     </td>
     <td align="center" width="50%">
-      <img src="../alipay.png" alt="支付宝 / Alipay" width="130" height="130"><br>
-      <b>支付宝</b><br>Alipay
+      <img src="../alipay.png" alt="دفع Alipay / Alipay" width="130" height="130"><br>
+      <b>دفع Alipay</b><br>Alipay
     </td>
   </tr>
 </table>

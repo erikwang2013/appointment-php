@@ -9,7 +9,7 @@ Plattform für Buchungsdienstleistungen auf vier Endgeräten: WeChat-Miniprogram
 
 ## Projektvorstellung
 
-<img src="diagrams/mascot.svg" alt="Maskottchen des Buchungsservice-Systems – Buchungshäschen (SVG-Animation)" width="200" align="right">
+<img src="diagrams/mascot.svg" alt="Maskottchen des Buchungsservice-Systems – Kalendergeist Yue (SVG-Animation)" width="200" align="right">
 
 **Das Buchungsservice-System** ist eine Buchungsverwaltungsplattform für vier Endgeräte, die sich an die Lebensdienstleistungsbranche richtet: Die Kundenseite umfasst das **WeChat-Miniprogramm, die Flutter APP und die HarmonyOS APP** – mit demselben Konto ist ein freier Wechsel zwischen den Endgeräten möglich. Zusammen mit dem **PC-Verwaltungsbackend** entsteht ein vollständig digitalisierter Kreislauf: „Kundenbuchung → Techniker-Auftragsannahme → Backend-Betrieb". Ob Filialbuchung, Techniker-Service, Mitgliedermarketing oder Finanzabrechnung – ein System deckt alles ab.
 

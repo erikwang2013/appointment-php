@@ -31,7 +31,7 @@
 | [ja-order-lifecycle.svg](diagrams/ja-order-lifecycle.svg) | 注文ライフサイクルのステートマシン | [LIFECYCLE-DIAGRAM.md](diagrams/LIFECYCLE-DIAGRAM.md) |
 | [ja-lifecycle-overview.svg](diagrams/ja-lifecycle-overview.svg) | 全ライフサイクル一覧（17 件、4 分類） | [LIFECYCLE-DIAGRAM.md](diagrams/LIFECYCLE-DIAGRAM.md) |
 | [ja-security-defense.svg](diagrams/ja-security-defense.svg) | 多層防御七層体制 | [SECURITY-ARCHITECTURE.md](diagrams/SECURITY-ARCHITECTURE.md) |
-| [mascot.svg](diagrams/mascot.svg) | プロジェクトマスコット「予約うさぎ」（SMIL アニメーション、外部依存なし） | — |
+| [mascot.svg](diagrams/mascot.svg) | プロジェクトマスコット「カレンダーの精霊ユエ」（SMIL アニメーション、外部依存なし） | — |
 
 ## テストとセキュリティ
 

@@ -33,7 +33,7 @@ Tous les schémas se trouvent dans [diagrams/](diagrams/) : les originaux chinoi
 | [fr-order-lifecycle.svg](diagrams/fr-order-lifecycle.svg) | Machine à états du cycle de vie d'une commande | [LIFECYCLE-DIAGRAM.md](diagrams/LIFECYCLE-DIAGRAM.md) |
 | [fr-lifecycle-overview.svg](diagrams/fr-lifecycle-overview.svg) | Vue d'ensemble de tous les cycles de vie (17, en quatre groupes) | [LIFECYCLE-DIAGRAM.md](diagrams/LIFECYCLE-DIAGRAM.md) |
 | [fr-security-defense.svg](diagrams/fr-security-defense.svg) | Défense en profondeur en sept couches | [SECURITY-ARCHITECTURE.md](diagrams/SECURITY-ARCHITECTURE.md) |
-| [mascot.svg](diagrams/mascot.svg) | Mascotte du projet « Petit Lapin des rendez-vous » (animation SMIL, sans dépendances externes) | — |
+| [mascot.svg](diagrams/mascot.svg) | Mascotte du projet « esprit du calendrier Yue » (animation SMIL, sans dépendances externes) | — |
 
 ## Tests et sécurité
 

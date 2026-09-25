@@ -31,7 +31,7 @@ All diagrams live in [diagrams/](diagrams/) — the mirrored set for this langua
 | [en-order-lifecycle.svg](diagrams/en-order-lifecycle.svg) | Order lifecycle state machine | [LIFECYCLE-DIAGRAM.md](diagrams/LIFECYCLE-DIAGRAM.md) |
 | [en-lifecycle-overview.svg](diagrams/en-lifecycle-overview.svg) | All 17 business lifecycles at a glance, in four groups | [LIFECYCLE-DIAGRAM.md](diagrams/LIFECYCLE-DIAGRAM.md) |
 | [en-security-defense.svg](diagrams/en-security-defense.svg) | Seven-layer defense-in-depth | [SECURITY-ARCHITECTURE.md](diagrams/SECURITY-ARCHITECTURE.md) |
-| [mascot.svg](diagrams/mascot.svg) | The project mascot "Booking Bunny" (SMIL-animated SVG, no external dependencies) | — |
+| [mascot.svg](diagrams/mascot.svg) | The project mascot — Yue, the Calendar Sprite (SMIL-animated SVG, no external dependencies) | — |
 
 ## Testing & Security
 

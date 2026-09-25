@@ -9,7 +9,7 @@ Plateforme de gestion des réservations multi-appareils : mini-programme WeChat 
 
 ## Présentation du projet
 
-<img src="diagrams/mascot.svg" alt="Mascotte du système de réservation — Petit Lapin des rendez-vous (animation SVG)" width="200" align="right">
+<img src="diagrams/mascot.svg" alt="Mascotte du système de réservation — esprit du calendrier Yue (animation SVG)" width="200" align="right">
 
 **Le système de réservation de services** est une plateforme de gestion des réservations multi-appareils destinée au secteur des services à la personne : côté utilisateur, elle couvre le **mini-programme WeChat, l'application Flutter et l'application HarmonyOS** — trois terminaux, avec changement d'identité fluide via le même compte — complétés par un **back-office PC**, pour une boucle numérique complète : « réservation utilisateur → acceptation par le technicien → gestion en back-office ». Réservation en boutique, prestation du technicien, marketing de fidélité ou règlement financier : une seule solution pour tout.
 

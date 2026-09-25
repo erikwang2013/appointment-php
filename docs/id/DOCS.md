@@ -33,7 +33,7 @@ Semua diagram berada di [diagrams/](diagrams/): versi asli bahasa Mandarin `cn-*
 | [id-order-lifecycle.svg](diagrams/id-order-lifecycle.svg) | State machine siklus hidup pesanan | [LIFECYCLE-DIAGRAM.md](diagrams/LIFECYCLE-DIAGRAM.md) |
 | [id-lifecycle-overview.svg](diagrams/id-lifecycle-overview.svg) | Semua siklus hidup sekilas (17 total, dalam empat kelompok) | [LIFECYCLE-DIAGRAM.md](diagrams/LIFECYCLE-DIAGRAM.md) |
 | [id-security-defense.svg](diagrams/id-security-defense.svg) | Sistem tujuh lapisan pertahanan berlapis | [SECURITY-ARCHITECTURE.md](diagrams/SECURITY-ARCHITECTURE.md) |
-| [mascot.svg](diagrams/mascot.svg) | Maskot proyek "Kelinci Janji Temu" (animasi SMIL, tanpa dependensi eksternal) | — |
+| [mascot.svg](diagrams/mascot.svg) | Maskot proyek "Yue, si Peri Kalender" (animasi SMIL, tanpa dependensi eksternal) | — |
 
 ## Pengujian & Keamanan
 

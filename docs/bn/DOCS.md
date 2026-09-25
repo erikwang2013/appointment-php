@@ -33,7 +33,7 @@
 | [bn-order-lifecycle.svg](diagrams/bn-order-lifecycle.svg) | অর্ডার লাইফসাইকেল স্টেট মেশিন | [LIFECYCLE-DIAGRAM.md](diagrams/LIFECYCLE-DIAGRAM.md) |
 | [bn-lifecycle-overview.svg](diagrams/bn-lifecycle-overview.svg) | সব লাইফসাইকেলের সামগ্রিক চিত্র (১৭টি, চার শ্রেণিতে বিভক্ত) | [LIFECYCLE-DIAGRAM.md](diagrams/LIFECYCLE-DIAGRAM.md) |
 | [bn-security-defense.svg](diagrams/bn-security-defense.svg) | গভীর প্রতিরক্ষার সাত স্তরের সিস্টেম | [SECURITY-ARCHITECTURE.md](diagrams/SECURITY-ARCHITECTURE.md) |
-| [mascot.svg](diagrams/mascot.svg) | প্রজেক্ট মাসকট "বুকিং বানি" (SMIL অ্যানিমেশন, কোনো বাহ্যিক নির্ভরতা নেই) | — |
+| [mascot.svg](diagrams/mascot.svg) | প্রজেক্ট মাসকট "ইউয়ে" — ক্যালেন্ডার স্প্রিট (SMIL অ্যানিমেশন, কোনো বাহ্যিক নির্ভরতা নেই) | — |
 
 ## টেস্ট ও নিরাপত্তা
 

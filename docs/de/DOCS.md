@@ -33,7 +33,7 @@ Alle Diagramme liegen in [diagrams/](diagrams/): die chinesischen `cn-*`- und en
 | [de-order-lifecycle.svg](diagrams/de-order-lifecycle.svg) | Zustandsmaschine des Bestelllebenszyklus | [LIFECYCLE-DIAGRAM.md](diagrams/LIFECYCLE-DIAGRAM.md) |
 | [de-lifecycle-overview.svg](diagrams/de-lifecycle-overview.svg) | Überblick über alle Lebenszyklen (17, in vier Gruppen) | [LIFECYCLE-DIAGRAM.md](diagrams/LIFECYCLE-DIAGRAM.md) |
 | [de-security-defense.svg](diagrams/de-security-defense.svg) | Siebenstufige Verteidigung in der Tiefe | [SECURITY-ARCHITECTURE.md](diagrams/SECURITY-ARCHITECTURE.md) |
-| [mascot.svg](diagrams/mascot.svg) | Projektmaskottchen „Buchungshäschen" (SMIL-Animation, ohne externe Abhängigkeiten) | — |
+| [mascot.svg](diagrams/mascot.svg) | Projektmaskottchen „Kalendergeist Yue" (SMIL-Animation, ohne externe Abhängigkeiten) | — |
 
 ## Tests und Sicherheit
 

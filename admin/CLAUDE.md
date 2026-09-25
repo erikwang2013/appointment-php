@@ -59,7 +59,7 @@ Copyright (c) 2026 erik <erik@erik.xyz> — https://erik.xyz
 - HarmonyOS ArkTS 客户端，源码目录 `apps/harmonyos/`
 
 ### 品牌吉祥物
-- 项目宠物「预约小兔」`public/mascot.svg`（`docs/diagrams/mascot.svg` 的副本，纯 SMIL 动画、无外部依赖）
+- 项目宠物——日历精灵「小约」`public/mascot.svg`（`docs/diagrams/mascot.svg` 的副本，纯 SMIL 动画、无外部依赖）
 - 安装向导 `InstallController::render()` 页头品牌标识 + 步骤 4 「安装成功」用吉祥物作为成功态视觉
 - Flutter Web 启动屏 `apps/flutter/web/index.html`：引擎加载期间显示吉祥物（`flutter-first-frame` 事件移除，带 15s 兜底），并作为 SVG favicon
 

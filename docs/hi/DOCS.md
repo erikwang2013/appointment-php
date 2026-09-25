@@ -31,7 +31,7 @@
 | [hi-order-lifecycle.svg](diagrams/hi-order-lifecycle.svg) | ऑर्डर जीवनचक्र स्टेट मशीन | [LIFECYCLE-DIAGRAM.md](diagrams/LIFECYCLE-DIAGRAM.md) |
 | [hi-lifecycle-overview.svg](diagrams/hi-lifecycle-overview.svg) | सभी जीवनचक्रों का अवलोकन (17, चार श्रेणियों में) | [LIFECYCLE-DIAGRAM.md](diagrams/LIFECYCLE-DIAGRAM.md) |
 | [hi-security-defense.svg](diagrams/hi-security-defense.svg) | सात-परत गहराई-रक्षा प्रणाली | [SECURITY-ARCHITECTURE.md](diagrams/SECURITY-ARCHITECTURE.md) |
-| [mascot.svg](diagrams/mascot.svg) | परियोजना शुभंकर "अपॉइंटमेंट खरगोश" (SMIL एनीमेशन, कोई बाह्य निर्भरता नहीं) | — |
+| [mascot.svg](diagrams/mascot.svg) | परियोजना शुभंकर "यूए" — कैलेंडर स्प्राइट (SMIL एनीमेशन, कोई बाह्य निर्भरता नहीं) | — |
 
 ## परीक्षण और सुरक्षा
 

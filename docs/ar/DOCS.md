@@ -31,7 +31,7 @@
 | [ar-order-lifecycle.svg](diagrams/ar-order-lifecycle.svg) | آلة حالة دورة حياة الطلب | [LIFECYCLE-DIAGRAM.md](diagrams/LIFECYCLE-DIAGRAM.md) |
 | [ar-lifecycle-overview.svg](diagrams/ar-lifecycle-overview.svg) | نظرة شاملة على جميع دورات الحياة (17 دورة، مصنفة إلى أربع فئات) | [LIFECYCLE-DIAGRAM.md](diagrams/LIFECYCLE-DIAGRAM.md) |
 | [ar-security-defense.svg](diagrams/ar-security-defense.svg) | نظام الدفاع العميق من سبع طبقات | [SECURITY-ARCHITECTURE.md](diagrams/SECURITY-ARCHITECTURE.md) |
-| [mascot.svg](diagrams/mascot.svg) | تميمة المشروع «الأرنب الصغير» (رسوم SMIL متحركة، دون أي تبعيات خارجية) | — |
+| [mascot.svg](diagrams/mascot.svg) | تميمة المشروع «يُوِه» — روح التقويم (رسوم SMIL متحركة، دون أي تبعيات خارجية) | — |
 
 ## الاختبارات والأمان
 

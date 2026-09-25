@@ -9,7 +9,7 @@
 
 ## প্রজেক্ট পরিচিতি
 
-<img src="diagrams/mascot.svg" alt="অ্যাপয়েন্টমেন্ট সার্ভিস সিস্টেমের মাসকট — বুকিং বানি (SVG অ্যানিমেশন)" width="200" align="right">
+<img src="diagrams/mascot.svg" alt="অ্যাপয়েন্টমেন্ট সার্ভিস সিস্টেমের মাসকট — ক্যালেন্ডার স্প্রিট ইউয়ে (SVG অ্যানিমেশন)" width="200" align="right">
 
 **অ্যাপয়েন্টমেন্ট সার্ভিস সিস্টেম** হল জীবনধর্মী সার্ভিস শিল্পের জন্য একটি চার প্রান্তের অ্যাপয়েন্টমেন্ট ম্যানেজমেন্ট প্ল্যাটফর্ম: ব্যবহারকারী পাশ **WeChat মিনি-প্রোগ্রাম, Flutter APP, HarmonyOS APP** তিন প্রান্ত কভার করে, একই অ্যাকাউন্টে প্রান্ত-পার ভাবে স্বাধীনভাবে স্যুইচ করা যায়, সাথে **PC অ্যাডমিন ব্যাকএন্ড**, "ব্যবহারকারীর অ্যাপয়েন্টমেন্ট → টেকনিশিয়ানের অর্ডার গ্রহণ → ব্যাকএন্ড অপারেশন" সম্পূর্ণ প্রক্রিয়ার ডিজিটাল বন্ধনী অর্জন করে। শাখা অ্যাপয়েন্টমেন্ট, টেকনিশিয়ান সার্ভিস, মেম্বার মার্কেটিং বা ফাইন্যান্সিয়াল সেটেলমেন্ট — একটি সিস্টেমেই সবকিছু।
 
@@ -35,26 +35,26 @@ PHP 8.3 + webman উচ্চ-পারফরম্যান্স রেসি�
 
 ```
 appointment-php/
-├── admin/                     # 管理后台 (webman v2 + Flutter Web，独立部署 :8787)
-│   ├── app/                   #   admin(后台控制器)/api/v1/model/middleware/process/view
-│   ├── apps/                  #   Flutter Web 后台 / HarmonyOS / 微信管理端
-│   ├── config/                #   路由/数据库/进程/插件配置
-│   ├── database/              #   备份脚本（表结构与种子数据统一见 docs/install.sql）
-│   ├── tests/                 #   PHPUnit（#[\Test] 属性风格）
+├── admin/                     # অ্যাডমিন ব্যাকএন্ড (webman v2 + Flutter Web, স্বাধীন ডিপ্লয়মেন্ট :8787)
+│   ├── app/                   #   admin(ব্যাকএন্ড কন্ট্রোলার)/api/v1/model/middleware/process/view
+│   ├── apps/                  #   Flutter Web ব্যাকএন্ড / HarmonyOS / WeChat ম্যানেজমেন্ট ক্লায়েন্ট
+│   ├── config/                #   রাউট/ডেটাবেস/প্রসেস/প্লাগিন কনফিগ
+│   ├── database/              #   ব্যাকআপ স্ক্রিপ্ট (টেবিল কাঠামো ও সিড ডেটা docs/install.sql-এ একত্রিত)
+│   ├── tests/                 #   PHPUnit (#[\Test] অ্যাট্রিবিউট স্টাইল)
 │   └── start.php
-├── service/                   # 业务API服务 (webman v2，独立部署 :8787)
-│   ├── app/                   #   api/user/technician/order/wallet/marketing/notification 等模块
-│   ├── config/                #   路由/数据库/进程/支付等配置
-│   ├── support/               #   Model 基类（generateId）/Request/Response
+├── service/                   # বিজনেস API সার্ভিস (webman v2, স্বাধীন ডিপ্লয়মেন্ট :8787)
+│   ├── app/                   #   api/user/technician/order/wallet/marketing/notification ইত্যাদি মডিউল
+│   ├── config/                #   রাউট/ডেটাবেস/প্রসেস/পেমেন্ট ইত্যাদি কনফিগ
+│   ├── support/               #   Model বেস ক্লাস (generateId)/Request/Response
 │   ├── tests/                 #   PHPUnit
 │   └── start.php
-├── apps/                      # 用户端前端应用
-│   ├── wechat/                #   微信小程序（原生）
+├── apps/                      # ব্যবহারকারী পাশের ফ্রন্টএন্ড অ্যাপ
+│   ├── wechat/                #   WeChat মিনি-প্রোগ্রাম (নেটিভ)
 │   ├── flutter/               #   Flutter APP（iOS + Android）
-│   └── harmonyos/             #   HarmonyOS APP（鸿蒙原生）
-└── docs/                      # 项目文档
+│   └── harmonyos/             #   HarmonyOS APP (HarmonyOS নেটিভ)
+└── docs/                      # প্রজেক্ট ডকুমেন্টেশন
     ├── API.md / FEATURES.md / STRUCTURE.md / install.sql / README.md ...
-    └── diagrams/              #   架构/流程图（SVG + mermaid）
+    └── diagrams/              #   আর্কিটেকচার/ফ্লোচার্ট (SVG + mermaid)
 ```
 
 **প্রজেক্ট স্ট্রাকচার ডায়াগ্রাম** (চার প্ল্যাটফর্ম + মডিউল বিবরণ; সম্পূর্ণ সংস্করণ [STRUCTURE.md](STRUCTURE.md)-এ):
@@ -84,16 +84,16 @@ php start.php start -d
 ### ম্যানুয়াল ইনস্টল
 
 ```bash
-# 1. 安装依赖
+# 1. ডিপেন্ডেন্সি ইনস্টল
 cd service/ && cp .env.example .env && composer install
 cd ../admin/ && cp .env.example .env && composer install
 
-# 2. 一键导入数据库（含全部 95 张表 + 权限/配置种子）
+# 2. ডেটাবেস এক-ক্লিকে ইমপোর্ট (সব ৯৫টি টেবিল + পারমিশন/কনফিগ সিড সহ)
 mysql -u root -p < docs/install.sql
 
-# 3. 启动服务
-cd service/ && php start.php start -d   # 业务API → :8787
-cd ../admin/ && php start.php start -d  # 管理后台 → :8787
+# 3. সার্ভিস চালু করুন
+cd service/ && php start.php start -d   # বিজনেস API → :8787
+cd ../admin/ && php start.php start -d  # অ্যাডমিন ব্যাকএন্ড → :8787
 ```
 
 ### Docker ডিপ্লয়মেন্ট
@@ -256,7 +256,7 @@ cd ../service/ && cp .env.docker .env && docker-compose up -d
 | [ডিজাইন স্পেক](specs/2026-05-26-appointment-system-design.md) | সিস্টেম ডিজাইন স্পেসিফিকেশন |
 | [ইমপ্লিমেন্টেশন প্ল্যান](plans/2026-05-26-appointment-system-plan.md) | পর্যায়ক্রমিক ইমপ্লিমেন্টেশন প্ল্যান |
 
-## 支持项目 / Support
+## প্রকল্পে সহায়তা / Support
 
 যদি এই প্রজেক্ট আপনার কাজে লাগে, সাপোর্ট করতে স্বাগতম! আপনার উৎসাহের জন্য ধন্যবাদ :heart:
 
@@ -265,35 +265,35 @@ If this project helps you, your support is welcome and appreciated!
 <table>
   <tr>
     <td align="center" width="50%">
-      <img src="../weixinpay.png" alt="微信支付 / WeChat Pay" width="130" height="130"><br>
+      <img src="../weixinpay.png" alt="উইচ্যাট পে / WeChat Pay" width="130" height="130"><br>
       <b>WeChat Pay</b><br>WeChat Pay
     </td>
     <td align="center" width="50%">
-      <img src="../alipay.png" alt="支付宝 / Alipay" width="130" height="130"><br>
+      <img src="../alipay.png" alt="আলিপে / Alipay" width="130" height="130"><br>
       <b>Alipay</b><br>Alipay
     </td>
   </tr>
 </table>
 
-### 全球转账 / Global Bank Transfer
+### বিশ্বব্যাপী ব্যাংক ট্রান্সফার / Global Bank Transfer
 
 বিশ্বব্যাপী ব্যাংক ট্রান্সফার ডোনেশন স্বাগতম (HKD / CNY / USD / অন্যান্য মুদ্রা), আপনার উদারতার জন্য ধন্যবাদ :heart:
 
 Global bank transfer donations are welcome (HKD / CNY / USD / other currencies). Thank you for your generosity!
 
-| 项目 Item | 信息 Details |
+| আইটেম Item | তথ্য Details |
 |-----------|-------------|
-| 收款人姓名 Beneficiary Name | WANG KEXUN |
-| 收款账户号码 Account Number | 881015918251 |
-| 收款银行 Bank | ZA Bank Limited（SWIFT Code：AABLHKHHXXX，银行编号 Bank Code：387） |
-| 银行地址 Bank Address | Core F, Cyberport 3, 100 Cyberport Road, Hong Kong |
+| সুবিধাভোগীর নাম Beneficiary Name | WANG KEXUN |
+| সুবিধাভোগীর অ্যাকাউন্ট নম্বর Account Number | 881015918251 |
+| সুবিধাভোগী ব্যাংক Bank | ZA Bank Limited（SWIFT Code：AABLHKHHXXX，ব্যাংক কোড Bank Code：387） |
+| ব্যাংক ঠিকানা Bank Address | Core F, Cyberport 3, 100 Cyberport Road, Hong Kong |
 
-> **跨境汇款代理银行（如需）/ Intermediary Bank (if required)**
-> 此为跨境汇款代理银行（中转银行）信息，非收款银行信息，请向汇款银行查询是否需要提供。
+> **আন্তঃসীমান্ত রেমিট্যান্স ইন্টারমিডিয়ারি ব্যাংক (প্রয়োজনে) / Intermediary Bank (if required)**
+> এটি আন্তঃসীমান্ত রেমিট্যান্স ইন্টারমিডিয়ারি ব্যাংক (মধ্যস্থতাকারী ব্যাংক) সম্পর্কিত তথ্য, সুবিধাভোগী ব্যাংকের তথ্য নয়; আপনার রেমিটিং ব্যাংকের কাছে এটি প্রয়োজন কি না জেনে নিন।
 > Note: this is intermediary bank information, not the receiving bank. Please check with your remitting bank whether it is required.
 >
-> - 汇入港元、人民币及美元（For HKD / CNY / USD）：**Citibank N.A. Hong Kong** — SWIFT Code：CITIHKHXXXX，银行编号 Bank Code：006，分行名称 Branch：Hong Kong Branch，分行编号 Branch Code：391，地址 Address：Citibank Tower, Citibank Plaza, 3 Garden Road, Central, Hong Kong
-> - 汇入其他币种（For other currencies）：**The Bank of New York Mellon** — SWIFT Code：IRVTUS3NXXX，地址 Address：240 Greenwich Street, New York, United States
+> - হংকং ডলার, রেনমিনবি ও মার্কিন ডলার প্রেরণের জন্য (For HKD / CNY / USD)：**Citibank N.A. Hong Kong** — SWIFT Code：CITIHKHXXXX，ব্যাংক কোড Bank Code：006，শাখার নাম Branch：Hong Kong Branch，শাখা কোড Branch Code：391，ঠিকানা Address：Citibank Tower, Citibank Plaza, 3 Garden Road, Central, Hong Kong
+> - অন্যান্য মুদ্রা প্রেরণের জন্য (For other currencies)：**The Bank of New York Mellon** — SWIFT Code：IRVTUS3NXXX，ঠিকানা Address：240 Greenwich Street, New York, United States
 
 ## কপিরাইট
 
