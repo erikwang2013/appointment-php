@@ -9,7 +9,7 @@ A four-client appointment service management platform: WeChat Mini Program + Flu
 
 ## Introduction
 
-<img src="../diagrams/mascot.svg" alt="Appointment Service System mascot — Appointment Bunny (SVG animation)" width="200" align="right">
+<img src="../diagrams/mascot.svg" alt="Appointment Service System mascot — Booking Bunny (SVG animation)" width="200" align="right">
 
 **Appointment Service System** is a four-client appointment management platform for the life-services industry: the user side covers **WeChat Mini Program, Flutter APP, and HarmonyOS APP** with free cross-client switching under the same account, together with a **PC admin dashboard**, forming a full digital loop of "user appointment → technician takes the order → back-office operations". Whether it is in-store appointments, technician services, membership marketing, or financial settlement, one system handles it all.
 
