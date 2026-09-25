@@ -3,7 +3,7 @@
 
 A four-client appointment service management platform: WeChat Mini Program + Flutter APP + HarmonyOS APP for users (same-account identity switching), plus a PC admin dashboard.
 
-> **Project status**: All complete ✅ | 143 controllers (service 69 / admin 74) | 87 models | 722 tests (service 558 / admin 164) | 95 database tables | 388 routes (service 227 / admin 161)
+> **Project status**: All complete ✅ | 143 controllers (service 69 / admin 74) | 87 models | 757 tests (service 579 / admin 178) | 95 database tables | 479 routes (service 221 / admin 258)
 
 > English translation · Original: [中文](../../README.md)
 
@@ -27,7 +27,7 @@ Uses self-developed security components: JWT authentication, ID obfuscation, 31 
 
 **Mature technology foundation**
 
-Built on PHP 8.3 + the high-performance resident webman framework, backed by MySQL 8.0 + Redis + Elasticsearch; 95 database tables, 388 APIs, 285 fine-grained permission points, and 722 automated tests all passing, with complete bilingual (Chinese/English) architecture documentation and a one-click install script — ready to use out of the box and easy to extend.
+Built on PHP 8.3 + the high-performance resident webman framework, backed by MySQL 8.0 + Redis + Elasticsearch; 95 database tables, 479 APIs, 285 fine-grained permission points, and 757 automated tests all passing, with complete bilingual (Chinese/English) architecture documentation and a one-click install script — ready to use out of the box and easy to extend.
 
 Whether you run a single store or a multi-store chain, Appointment Service System provides a stable, secure, and scalable all-in-one solution.
 
@@ -56,6 +56,10 @@ appointment-php/
     ├── API.md / FEATURES.md / STRUCTURE.md / install.sql / README.md ...
     └── diagrams/              #   架构/流程图（SVG + mermaid）
 ```
+
+**Project structure diagram** (four platforms + module detail; full version in [STRUCTURE.md](STRUCTURE.md)):
+
+<img src="../diagrams/en-project-structure.svg" alt="en-project-structure.svg" width="100%">
 
 ## Quick Start
 
@@ -124,6 +128,12 @@ cd ../service/ && cp .env.docker .env && docker-compose up -d
 
 <img src="../diagrams/en-architecture.svg" alt="en-architecture.svg" width="100%">
 
+### Architecture Design (Layers / Middleware / Database)
+
+The 7-layer architecture with one-way top-down dependencies, the scope-stacked middleware chain, the rate-limit policy and the database design rules — full write-up in [ARCHITECTURE-DESIGN.md](ARCHITECTURE-DESIGN.md):
+
+<img src="../diagrams/en-architecture-design.svg" alt="en-architecture-design.svg" width="100%">
+
 ## Core Flows
 
 ### Service Appointment Flow
@@ -138,6 +148,12 @@ cd ../service/ && cp .env.docker .env && docker-compose up -d
 
 <img src="../diagrams/en-order-lifecycle.svg" alt="en-order-lifecycle.svg" width="100%">
 
+### All Lifecycles at a Glance
+
+Beyond orders the system runs 16 further business lifecycles, grouped into trading / assets & entitlements / identity & accounts / operations & marketing — full state machines in [LIFECYCLE-DIAGRAM.md](diagrams/LIFECYCLE-DIAGRAM.md):
+
+<img src="../diagrams/en-lifecycle-overview.svg" alt="en-lifecycle-overview.svg" width="100%">
+
 ## Security Architecture
 
 ### Seven-Layer Defense-in-Depth
@@ -145,6 +161,12 @@ cd ../service/ && cp .env.docker .env && docker-compose up -d
 <img src="../diagrams/en-security-defense.svg" alt="en-security-defense.svg" width="100%">
 
 > More detailed diagrams: [Flowcharts](diagrams/FLOWCHART.md) (incl. technician withdrawal/identity switching) | [Function mindmap](diagrams/FUNCTION-DIAGRAM.md) | [All lifecycles](diagrams/LIFECYCLE-DIAGRAM.md) | [Complete security architecture](diagrams/SECURITY-ARCHITECTURE.md)
+
+## Feature Design
+
+The three functional domains, purchase flows (service booking / product cart), trading rules (technician lock / refund tiers / discounts), assets & entitlements (membership cards / points / balance / new-user rewards), technician settlement, role switching and payment design — full write-up in [FEATURE-DESIGN.md](FEATURE-DESIGN.md):
+
+<img src="../diagrams/en-feature-design.svg" alt="en-feature-design.svg" width="100%">
 
 ## Core Feature Highlights (Rounds 6–24)
 

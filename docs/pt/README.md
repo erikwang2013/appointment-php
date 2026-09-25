@@ -5,7 +5,7 @@
 
 Plataforma de gestão de agendamentos em quatro terminais: miniprograma WeChat do lado do utilizador + APP Flutter + APP HarmonyOS (alternância de identidade na mesma conta) e painel de administração PC.
 
-> **Estado do projeto**: Concluído ✅ | 143 controladores (service 69 / admin 74) | 87 modelos | 722 testes (service 558 / admin 164) | 95 tabelas de dados | 388 rotas (service 227 / admin 161)
+> **Estado do projeto**: Concluído ✅ | 143 controladores (service 69 / admin 74) | 87 modelos | 757 testes (service 579 / admin 178) | 95 tabelas de dados | 479 rotas (service 221 / admin 258)
 
 ## Apresentação do projeto
 
@@ -27,7 +27,7 @@ Componentes de segurança próprios: autenticação JWT, ofuscação de IDs, det
 
 **Base tecnológica madura**
 
-Assente em PHP 8.3 + webman, framework residente de alto desempenho, suportado por MySQL 8.0 + Redis + Elasticsearch; 95 tabelas de dados, 388 interfaces, 285 permissões granulares, 722 testes automatizados todos aprovados, além de documentação de arquitetura completa em chinês e inglês e script de instalação com um clique — pronta a usar e fácil de adaptar.
+Assente em PHP 8.3 + webman, framework residente de alto desempenho, suportado por MySQL 8.0 + Redis + Elasticsearch; 95 tabelas de dados, 479 interfaces, 285 permissões granulares, 757 testes automatizados todos aprovados, além de documentação de arquitetura completa em chinês e inglês e script de instalação com um clique — pronta a usar e fácil de adaptar.
 
 Quer seja agendamento numa única loja ou em cadeia com várias lojas, o Sistema de Serviços de Agendamento oferece uma solução integrada estável, segura e escalável.
 
@@ -56,6 +56,10 @@ appointment-php/
     ├── API.md / FEATURES.md / STRUCTURE.md / install.sql / README.md ...
     └── diagrams/              #   Diagramas de arquitetura/fluxo (SVG + mermaid)
 ```
+
+**Diagrama da estrutura do projeto** (quatro plataformas + detalhe dos módulos; versão completa em [STRUCTURE.md](STRUCTURE.md)):
+
+<img src="diagrams/pt-project-structure.svg" alt="pt-project-structure.svg" width="100%">
 
 ## Início rápido
 
@@ -124,6 +128,12 @@ cd ../service/ && cp .env.docker .env && docker-compose up -d
 
 <img src="diagrams/pt-architecture.svg" alt="pt-architecture.svg" width="100%">
 
+### Concepção da arquitetura (camadas / middleware / base de dados)
+
+A arquitetura em 7 camadas com dependências unidirecionais de cima para baixo, a cadeia de middleware empilhada por âmbito, a política de limitação de pedidos e as regras de conceção da base de dados — descrição completa em [ARCHITECTURE-DESIGN.md](ARCHITECTURE-DESIGN.md):
+
+<img src="diagrams/pt-architecture-design.svg" alt="pt-architecture-design.svg" width="100%">
+
 ## Fluxos principais
 
 ### Fluxo de agendamento de serviço
@@ -138,6 +148,12 @@ cd ../service/ && cp .env.docker .env && docker-compose up -d
 
 <img src="diagrams/pt-order-lifecycle.svg" alt="pt-order-lifecycle.svg" width="100%">
 
+### Todos os ciclos de vida em resumo
+
+Além dos pedidos, o sistema gere 16 outros ciclos de vida de negócio, agrupados em transações / ativos e direitos / identidade e contas / operação e marketing — máquinas de estados completas em [LIFECYCLE-DIAGRAM.md](diagrams/LIFECYCLE-DIAGRAM.md):
+
+<img src="diagrams/pt-lifecycle-overview.svg" alt="pt-lifecycle-overview.svg" width="100%">
+
 ## Arquitetura de segurança
 
 ### Sistema de defesa em profundidade em sete camadas
@@ -145,6 +161,12 @@ cd ../service/ && cp .env.docker .env && docker-compose up -d
 <img src="diagrams/pt-security-defense.svg" alt="pt-security-defense.svg" width="100%">
 
 > Mais diagramas detalhados: [Diagrama de fluxo](diagrams/FLOWCHART.md) (inclui levantamento do técnico/alternância de identidade) | [Mapa mental de funcionalidades](diagrams/FUNCTION-DIAGRAM.md) | [Todos os ciclos de vida](diagrams/LIFECYCLE-DIAGRAM.md) | [Arquitetura de segurança completa](diagrams/SECURITY-ARCHITECTURE.md)
+
+## Concepção funcional
+
+Os três domínios funcionais, fluxos de compra (reserva de serviço / carrinho de produtos), regras de transação (bloqueio de técnico / escalões de reembolso / descontos), ativos e direitos (cartões de membro / pontos / saldo / recompensas de novos utilizadores), liquidação de técnicos, troca de identidade e conceção de pagamento — descrição completa em [FEATURE-DESIGN.md](FEATURE-DESIGN.md):
+
+<img src="diagrams/pt-feature-design.svg" alt="pt-feature-design.svg" width="100%">
 
 ## Destaques de funcionalidades principais (Rondas 6-24)
 

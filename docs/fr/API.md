@@ -685,6 +685,17 @@ Entrée de navigation non connectée, sans authentification (interfaces publique
 
 Réponse : id/platform/version_code/version_name/force_update (1=forcé)/changelog/download_url.
 
+### 26. Interfaces non versionnées (sans préfixe `/api/v1`)
+
+| Méthode | Chemin | Description |
+|------|------|------|
+| GET | `/` | Page d'atterrissage de la marque (HTML ; affichée lorsqu'un navigateur accède directement au port de l'API, avec liens vers la documentation de l'API et la vérification de santé) |
+| GET | `/health` | Vérification de santé (JSON, pour le healthcheck docker-compose / les sondes de vivacité du répartiteur de charge) |
+| GET | `/api/docs` | Spécification complète de l'API métier (OpenAPI 3.0 JSON) |
+| POST | `/payment/wechat-notify` | Callback WeChat Pay (vérification de signature + idempotence) |
+
+> Les interfaces métier clientes portent toujours le préfixe de version `/api/v1/...` ; les chemins nus `/api/*` sans préfixe renvoient 404.
+
 ---
 
 ## II. API du back-office (admin/ :8787)

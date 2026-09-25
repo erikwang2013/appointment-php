@@ -685,6 +685,17 @@ technician への切替には approved 状態のスタッフカルテが必要�
 
 レスポンス: id/platform/version_code/version_name/force_update（1=強制）/changelog/download_url。
 
+### 26. 非バージョンインターフェース（`/api/v1` プレフィックスなし）
+
+| メソッド | パス | 説明 |
+|------|------|------|
+| GET | `/` | ブランドランディングページ（HTML；ブラウザが API ポートに直接接続した際に表示、API ドキュメントとヘルスチェックへの入口を含む） |
+| GET | `/health` | ヘルスチェック（JSON，docker-compose healthcheck / ロードバランサの生存確認用） |
+| GET | `/api/docs` | 業務API完全仕様（OpenAPI 3.0 JSON） |
+| POST | `/payment/wechat-notify` | 微信支払いコールバック（署名検証 + 冪等重複防止） |
+
+> クライアントの業務インターフェースは一律にバージョンプレフィックス `/api/v1/...` を伴い、プレフィックスのない裸の `/api/*` パスは 404 を返します。
+
 ---
 
 ## 二、管理バックエンドAPI (admin/ :8787)

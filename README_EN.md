@@ -2,7 +2,7 @@
 
 A four-platform appointment service management platform: WeChat Mini Program + Flutter App + HarmonyOS App (same-account role switching) + PC Admin Dashboard.
 
-> **Status**: All complete | 143 Controllers (service 69 / admin 74) | 87 Models | 722 tests (service 558 / admin 164) | 95 Tables | 388 Routes (service 227 / admin 161)
+> **Status**: All complete | 143 Controllers (service 69 / admin 74) | 87 Models | 757 tests (service 579 / admin 178) | 95 Tables | 479 Routes (service 221 / admin 258)
 
 ## Project Structure
 
@@ -16,6 +16,10 @@ appointment-php/
 │   └── harmonyos/      #   HarmonyOS App
 └── docs/               # Documentation
 ```
+
+**Project structure diagram** (four platforms + module detail; full version in [STRUCTURE.md](docs/STRUCTURE.md)):
+
+<img src="docs/diagrams/en-project-structure.svg" alt="en-project-structure.svg" width="100%">
 
 ## Quick Start
 
@@ -84,6 +88,12 @@ cd ../service/ && cp .env.docker .env && docker-compose up -d
 
 <img src="docs/diagrams/en-architecture.svg" alt="en-architecture.svg" width="100%">
 
+### Architecture Design (Layers / Middleware / Database)
+
+The 7-layer architecture with one-way top-down dependencies, the scope-stacked middleware chain, rate-limit policy and database design rules — full write-up in [ARCHITECTURE-DESIGN.md](docs/en/ARCHITECTURE-DESIGN.md):
+
+<img src="docs/diagrams/en-architecture-design.svg" alt="en-architecture-design.svg" width="100%">
+
 ## Core Flows
 
 ### Appointment Booking
@@ -98,6 +108,12 @@ cd ../service/ && cp .env.docker .env && docker-compose up -d
 
 <img src="docs/diagrams/en-order-lifecycle.svg" alt="en-order-lifecycle.svg" width="100%">
 
+### All Lifecycles at a Glance
+
+Beyond orders the system runs 16 further business lifecycles, grouped into trading / assets & entitlements / identity & accounts / operations & marketing — full state machines in [LIFECYCLE-DIAGRAM.md](docs/en/diagrams/LIFECYCLE-DIAGRAM.md):
+
+<img src="docs/diagrams/en-lifecycle-overview.svg" alt="en-lifecycle-overview.svg" width="100%">
+
 ## Security Architecture
 
 ### Defense-in-Depth (7 Layers)
@@ -105,6 +121,12 @@ cd ../service/ && cp .env.docker .env && docker-compose up -d
 <img src="docs/diagrams/en-security-defense.svg" alt="en-security-defense.svg" width="100%">
 
 > More diagrams: [Flowcharts](docs/diagrams/FLOWCHART.md) (withdrawal/role switch) | [Function Map](docs/diagrams/FUNCTION-DIAGRAM.md) | [All Lifecycles](docs/diagrams/LIFECYCLE-DIAGRAM.md) | [Full Security Architecture](docs/diagrams/SECURITY-ARCHITECTURE.md)
+
+## Feature Design
+
+The three functional domains, purchase flows (service booking / product cart), trading rules (technician lock / refund tiers / discounts), assets & entitlements (membership cards / points / balance / new-user rewards), technician settlement, role switching and payment design — full write-up in [FEATURE-DESIGN.md](docs/en/FEATURE-DESIGN.md):
+
+<img src="docs/diagrams/en-feature-design.svg" alt="en-feature-design.svg" width="100%">
 
 ## Project Intro
 

@@ -5,11 +5,11 @@
 
 Платформа управления предварительной записью на четырёх платформах: WeChat Mini Program + Flutter APP + HarmonyOS APP для пользователей (переключение ролей под одной учётной записью) + PC-админка.
 
-> **Статус проекта**: всё выполнено ✅ | 143 контроллера (service 69 / admin 74) | 87 моделей | 722 теста (service 558 / admin 164) | 95 таблиц БД | 388 маршрутов (service 227 / admin 161)
+> **Статус проекта**: всё выполнено ✅ | 143 контроллера (service 69 / admin 74) | 87 моделей | 757 теста (service 579 / admin 178) | 95 таблиц БД | 479 маршрутов (service 221 / admin 258)
 
 ## О проекте
 
-<img src="../diagrams/mascot.svg" alt="Талисман системы — кролик записи (SVG-анимация)" width="200" align="right">
+<img src="diagrams/mascot.svg" alt="Талисман системы — кролик записи (SVG-анимация)" width="200" align="right">
 
 **Система сервиса предварительной записи** — это платформа управления записью на четырёх платформах для сферы бытовых услуг: пользовательская часть охватывает **WeChat Mini Program, Flutter APP, HarmonyOS APP** — три платформы с свободным переключением под одной учётной записью, в паре с **PC-админкой** реализуется цифровой замкнутый контур всего процесса «пользователь записывается → мастер принимает заказ → операционная работа в бэкенде». Записи в салон, услуги мастеров, маркетинг для членов или финансовые расчёты — всё решает одна система.
 
@@ -27,7 +27,7 @@
 
 **Зрелая технологическая база**
 
-В основе PHP 8.3 + высокопроизводительный резидентный фреймворк webman, поддержка MySQL 8.0 + Redis + Elasticsearch; 95 таблиц БД, 388 интерфейсов, 285 детальных точек прав, все 722 автоматизированных теста проходят; есть полноценная китайско-английская архитектурная документация и скрипт установки в один клик — система готова к использованию и легко дорабатывается.
+В основе PHP 8.3 + высокопроизводительный резидентный фреймворк webman, поддержка MySQL 8.0 + Redis + Elasticsearch; 95 таблиц БД, 479 интерфейсов, 285 детальных точек прав, все 757 автоматизированных теста проходят; есть полноценная китайско-английская архитектурная документация и скрипт установки в один клик — система готова к использованию и легко дорабатывается.
 
 Будь то запись в один салон или сеть из нескольких филиалов, система сервиса предварительной записи предоставит вам стабильное, безопасное и масштабируемое комплексное решение.
 
@@ -56,6 +56,10 @@ appointment-php/
     ├── API.md / FEATURES.md / STRUCTURE.md / install.sql / README.md ...
     └── diagrams/              #   Архитектура/блок-схемы (SVG + mermaid)
 ```
+
+**Схема структуры проекта** (четыре платформы + детализация модулей; полная версия в [STRUCTURE.md](STRUCTURE.md)):
+
+<img src="diagrams/ru-project-structure.svg" alt="ru-project-structure.svg" width="100%">
 
 ## Быстрый старт
 
@@ -122,29 +126,47 @@ cd ../service/ && cp .env.docker .env && docker-compose up -d
 
 ## Архитектура системы
 
-<img src="../diagrams/ru-architecture.svg" alt="ru-architecture.svg" width="100%">
+<img src="diagrams/ru-architecture.svg" alt="ru-architecture.svg" width="100%">
+
+### Проектирование архитектуры (слои / middleware / база данных)
+
+7-слойная архитектура с односторонними зависимостями сверху вниз, цепочка middleware, накладываемая по областям действия, политика ограничения запросов и принципы проектирования базы данных — полное описание в [ARCHITECTURE-DESIGN.md](ARCHITECTURE-DESIGN.md):
+
+<img src="diagrams/ru-architecture-design.svg" alt="ru-architecture-design.svg" width="100%">
 
 ## Ключевые процессы
 
 ### Процесс записи на услугу
 
-<img src="../diagrams/ru-appointment-flow.svg" alt="ru-appointment-flow.svg" width="100%">
+<img src="diagrams/ru-appointment-flow.svg" alt="ru-appointment-flow.svg" width="100%">
 
 ### Процесс оплаты и возврата
 
-<img src="../diagrams/ru-payment-refund.svg" alt="ru-payment-refund.svg" width="100%">
+<img src="diagrams/ru-payment-refund.svg" alt="ru-payment-refund.svg" width="100%">
 
 ## Жизненный цикл заказа
 
-<img src="../diagrams/ru-order-lifecycle.svg" alt="ru-order-lifecycle.svg" width="100%">
+<img src="diagrams/ru-order-lifecycle.svg" alt="ru-order-lifecycle.svg" width="100%">
+
+### Все жизненные циклы кратко
+
+Помимо заказов система ведёт ещё 16 бизнес-жизненных циклов, сгруппированных в торговые / активы и права / идентификация и аккаунты / эксплуатация и маркетинг — полные машины состояний в [LIFECYCLE-DIAGRAM.md](diagrams/LIFECYCLE-DIAGRAM.md):
+
+<img src="diagrams/ru-lifecycle-overview.svg" alt="ru-lifecycle-overview.svg" width="100%">
 
 ## Архитектура безопасности
 
 ### Семиуровневая система эшелонированной обороны
 
-<img src="../diagrams/ru-security-defense.svg" alt="ru-security-defense.svg" width="100%">
+<img src="diagrams/ru-security-defense.svg" alt="ru-security-defense.svg" width="100%">
 
 > Больше подробных схем: [Блок-схемы](diagrams/FLOWCHART.md) (включая вывод средств мастера/смену ролей) | [Функциональная карта](diagrams/FUNCTION-DIAGRAM.md) | [Все жизненные циклы](diagrams/LIFECYCLE-DIAGRAM.md) | [Полная архитектура безопасности](diagrams/SECURITY-ARCHITECTURE.md)
+
+## Проектирование функций
+
+Три функциональные области, сценарии покупки (запись на услугу / корзина товаров), торговые правила (блокировка мастера / ступени возврата / скидки), активы и права (карты членства / баллы / баланс / награды новым пользователям), расчёты с мастерами, переключение ролей и проектирование платежей — полное описание в [FEATURE-DESIGN.md](FEATURE-DESIGN.md):
+
+<img src="diagrams/ru-feature-design.svg" alt="ru-feature-design.svg" width="100%">
 
 ## Ключевые возможности (раунды 6-24)
 

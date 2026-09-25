@@ -442,14 +442,22 @@ h2{font-size:18px;margin-bottom:20px;color:#555}
 @keyframes spin{to{transform:rotate(360deg)}}
 .done-box{text-align:center;padding:20px 0}
 .done-box .check{font-size:48px;color:#059669;margin-bottom:12px}
+.done-box .mascot{width:96px;height:96px;margin-bottom:8px}
 .done-box .info{background:#f9fafb;border-radius:8px;padding:12px;margin:12px 0;text-align:left;font-size:14px}
 .done-box .info code{background:#e5e7eb;padding:1px 6px;border-radius:4px}
 .ft{text-align:center;font-size:12px;color:#999;margin-top:20px}
+.brand{display:flex;align-items:center;gap:14px;margin-bottom:20px}
+.brand img{width:64px;height:64px;flex:none}
+.brand h1{margin-bottom:2px;font-size:22px}
+.brand .sub{font-size:12px;color:#999}
 </style>
 </head>
 <body>
 <div class="container">
-<h1>预约服务系统 · 安装向导</h1>
+<div class="brand">
+<img src="/mascot.svg" alt="预约小兔（吉祥物）" width="64" height="64">
+<div><h1>预约服务系统 · 安装向导</h1><div class="sub">四端预约服务平台 · 4 步完成部署</div></div>
+</div>
 {$body}
 <div class="ft">Copyright &copy; 2026 erik &lt;erik@erik.xyz&gt;</div>
 </div>
@@ -539,7 +547,7 @@ var r=await fetch('/install?step=4',{method:'POST'}),d=await r.json();
 if(d.success){
 document.getElementById('stat').innerHTML='<p style="color:#059669;font-weight:500">安装完成！</p>';
 d.results.forEach(function(x){l.innerHTML+='<li><span class="pass">&#10003;</span> '+x.name+'</li>'});
-f.innerHTML='<div class="done-box"><div class="check">&#10003;</div><h2>安装成功！</h2>'+
+f.innerHTML='<div class="done-box"><img class="mascot" src="/mascot.svg" alt="预约小兔（吉祥物）"><h2>安装成功！</h2>'+
 '<div class="info"><p><strong>管理员账号:</strong> <code>'+d.admin.username+'</code></p>'+
 '<p><strong>登录密码:</strong> <code>'+d.admin.password+'</code></p>'+
 '<p style="margin-top:8px;color:#dc2626">请妥善保管密码，此页面关闭后无法再次查看。</p></div>'+

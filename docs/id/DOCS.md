@@ -3,7 +3,7 @@
 
 > Terjemahan bahasa Indonesia · Asli: [中文](../../docs/README.md)
 
-> **Status Proyek**: Semua selesai ✅ | 143 controller (service 69 / admin 74) | 87 model | 722 pengujian (service 558 / admin 164) | 95 tabel data | 388 rute (service 227 / admin 161)
+> **Status Proyek**: Semua selesai ✅ | 143 controller (service 69 / admin 74) | 87 model | 757 pengujian (service 579 / admin 178) | 95 tabel data | 479 rute (service 221 / admin 258)
 
 ## Dokumen Inti
 
@@ -17,6 +17,23 @@
 | [INSTALL.md](INSTALL.md) | Petunjuk instalasi: wizard instalasi Web, instalasi manual, deployment Docker, variabel lingkungan, FAQ |
 | [USAGE.md](USAGE.md) | Petunjuk penggunaan: operasi panel admin / sisi pengguna / sisi teknisi (antarmuka API lihat [API.md](API.md)) |
 | [API.md](API.md) | Dokumentasi API: API bisnis + API panel admin, lengkap dengan contoh permintaan/respons + endpoint OpenAPI |
+
+## Diagram (SVG)
+
+Semua diagram berada di [diagrams/](diagrams/): versi asli bahasa Mandarin `cn-*` dan bahasa Inggris `en-*` ada di `docs/diagrams/`, dan masing-masing dari 12 bahasa memiliki salinan cermin di `docs/<lang>/diagrams/`:
+
+| Diagram | Keterangan | Sumber Mermaid |
+|------|------|-----------|
+| [id-architecture.svg](diagrams/id-architecture.svg) | Arsitektur sistem: topologi berlapis empat platform + middleware + lapisan data + layanan pihak ketiga | [ARCHITECTURE-DIAGRAM.md](diagrams/ARCHITECTURE-DIAGRAM.md) |
+| [id-architecture-design.svg](diagrams/id-architecture-design.svg) | Desain arsitektur: arsitektur 7 lapisan + rantai eksekusi middleware + pembatasan permintaan + prinsip desain basis data + desain keamanan | [ARCHITECTURE-DESIGN.md](ARCHITECTURE-DESIGN.md) |
+| [id-feature-design.svg](diagrams/id-feature-design.svg) | Desain fitur: tiga domain fungsional + alur pembelian + aturan transaksi + aset dan hak + penyelesaian teknisi + peralihan identitas + pembayaran | [FEATURE-DESIGN.md](FEATURE-DESIGN.md) |
+| [id-project-structure.svg](diagrams/id-project-structure.svg) | Struktur proyek: pohon direktori empat platform + detail modul | [STRUCTURE.md](STRUCTURE.md) |
+| [id-appointment-flow.svg](diagrams/id-appointment-flow.svg) | Alur janji temu layanan | [FLOWCHART.md](diagrams/FLOWCHART.md) |
+| [id-payment-refund.svg](diagrams/id-payment-refund.svg) | Alur pembayaran & refund | [FLOWCHART.md](diagrams/FLOWCHART.md) |
+| [id-order-lifecycle.svg](diagrams/id-order-lifecycle.svg) | State machine siklus hidup pesanan | [LIFECYCLE-DIAGRAM.md](diagrams/LIFECYCLE-DIAGRAM.md) |
+| [id-lifecycle-overview.svg](diagrams/id-lifecycle-overview.svg) | Semua siklus hidup sekilas (17 total, dalam empat kelompok) | [LIFECYCLE-DIAGRAM.md](diagrams/LIFECYCLE-DIAGRAM.md) |
+| [id-security-defense.svg](diagrams/id-security-defense.svg) | Sistem tujuh lapisan pertahanan berlapis | [SECURITY-ARCHITECTURE.md](diagrams/SECURITY-ARCHITECTURE.md) |
+| [mascot.svg](diagrams/mascot.svg) | Maskot proyek "Kelinci Janji Temu" (animasi SMIL, tanpa dependensi eksternal) | — |
 
 ## Pengujian & Keamanan
 

@@ -687,6 +687,17 @@ Tracker: Einreichung/Zahlung (WeChat-Callback markOrderPaid als einziger Verbrau
 
 Antwort: id/platform/version_code/version_name/force_update (1=erzwungen)/changelog/download_url.
 
+### 26. Nicht versionierte Schnittstellen (ohne `/api/v1`-Präfix)
+
+| Methode | Pfad | Beschreibung |
+|------|------|------|
+| GET | `/` | Marken-Landingpage (HTML; wird angezeigt, wenn ein Browser direkt auf den API-Port zugreift, mit Links zur API-Dokumentation und zur Gesundheitsprüfung) |
+| GET | `/health` | Gesundheitsprüfung (JSON, für docker-compose healthcheck / Liveness-Probes des Load-Balancers) |
+| GET | `/api/docs` | Vollständige Spezifikation der Business-API (OpenAPI 3.0 JSON) |
+| POST | `/payment/wechat-notify` | WeChat-Pay-Callback (Signaturprüfung + Idempotenz) |
+
+> Client-Business-Schnittstellen tragen stets das Versionspräfix `/api/v1/...`; nackte `/api/*`-Pfade ohne Präfix liefern 404.
+
 ---
 
 ## II. Verwaltungsbackend-API (admin/ :8787)

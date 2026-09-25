@@ -5,11 +5,11 @@
 
 চার প্রান্তের অ্যাপয়েন্টমেন্ট সার্ভিস ম্যানেজমেন্ট প্ল্যাটফর্ম: ব্যবহারকারী পাশের WeChat মিনি-প্রোগ্রাম + Flutter APP + HarmonyOS APP (একই অ্যাকাউন্টে পরিচয় স্যুইচ), PC অ্যাডমিন ব্যাকএন্ড।
 
-> **প্রজেক্ট অবস্থা**: সম্পূর্ণ ✅ | ১৪৩ কন্ট্রোলার (service ৬৯ / admin ৭৪) | ৮৭ মডেল | ৭২২ টেস্ট (service ৫৫৮ / admin ১৬৪) | ৯৫ ডেটা টেবিল | ৩৮৮ রাউট (service ২২৭ / admin ১৬১)
+> **প্রজেক্ট অবস্থা**: সম্পূর্ণ ✅ | ১৪৩ কন্ট্রোলার (service ৬৯ / admin ৭৪) | ৮৭ মডেল | ৭৫৭ টেস্ট (service ৫৭৯ / admin ১৭৮) | ৯৫ ডেটা টেবিল | ৪৭৯ রাউট (service ২২১ / admin ২৫৮)
 
 ## প্রজেক্ট পরিচিতি
 
-<img src="docs/bn/diagrams/mascot.svg" alt="预约服务系统吉祥物——预约小兔（SVG 动画）" width="200" align="right">
+<img src="diagrams/mascot.svg" alt="预约服务系统吉祥物——预约小兔（SVG 动画）" width="200" align="right">
 
 **অ্যাপয়েন্টমেন্ট সার্ভিস সিস্টেম** হল জীবনধর্মী সার্ভিস শিল্পের জন্য একটি চার প্রান্তের অ্যাপয়েন্টমেন্ট ম্যানেজমেন্ট প্ল্যাটফর্ম: ব্যবহারকারী পাশ **WeChat মিনি-প্রোগ্রাম, Flutter APP, HarmonyOS APP** তিন প্রান্ত কভার করে, একই অ্যাকাউন্টে প্রান্ত-পার ভাবে স্বাধীনভাবে স্যুইচ করা যায়, সাথে **PC অ্যাডমিন ব্যাকএন্ড**, "ব্যবহারকারীর অ্যাপয়েন্টমেন্ট → টেকনিশিয়ানের অর্ডার গ্রহণ → ব্যাকএন্ড অপারেশন" সম্পূর্ণ প্রক্রিয়ার ডিজিটাল বন্ধনী অর্জন করে। শাখা অ্যাপয়েন্টমেন্ট, টেকনিশিয়ান সার্ভিস, মেম্বার মার্কেটিং বা ফাইন্যান্সিয়াল সেটেলমেন্ট — একটি সিস্টেমেই সবকিছু।
 
@@ -27,7 +27,7 @@
 
 **পরিণত প্রযুক্তি ভিত্তি**
 
-PHP 8.3 + webman উচ্চ-পারফরম্যান্স রেসিডেন্ট ফ্রেমওয়ার্কের উপর ভিত্তি করে, MySQL 8.0 + Redis + Elasticsearch সাপোর্ট করে; ৯৫ ডেটা টেবিল, ৩৮৮টি API, ২৮৫টি ফাইন-গ্রেইন্ড পারমিশন পয়েন্ট, ৭২২টি অটোমেশন টেস্ট সব পাস, সাথে সম্পূর্ণ চাইনিজ/ইংরেজি আর্কিটেকচার ডকুমেন্টেশন ও ওয়ান-ক্লিক ইনস্টল স্ক্রিপ্ট, বক্সের বাইরে ব্যবহারযোগ্য, সহজে সেকেন্ডারি ডেভেলপমেন্ট করা যায়।
+PHP 8.3 + webman উচ্চ-পারফরম্যান্স রেসিডেন্ট ফ্রেমওয়ার্কের উপর ভিত্তি করে, MySQL 8.0 + Redis + Elasticsearch সাপোর্ট করে; ৯৫ ডেটা টেবিল, ৪৭৯টি API, ২৮৫টি ফাইন-গ্রেইন্ড পারমিশন পয়েন্ট, ৭৫৭টি অটোমেশন টেস্ট সব পাস, সাথে সম্পূর্ণ চাইনিজ/ইংরেজি আর্কিটেকচার ডকুমেন্টেশন ও ওয়ান-ক্লিক ইনস্টল স্ক্রিপ্ট, বক্সের বাইরে ব্যবহারযোগ্য, সহজে সেকেন্ডারি ডেভেলপমেন্ট করা যায়।
 
 একক শাখার অ্যাপয়েন্টমেন্ট বা বহু-শাখা চেইন, অ্যাপয়েন্টমেন্ট সার্ভিস সিস্টেম আপনার জন্য স্থিতিশীল, নিরাপদ, এক্সটেনসিবল ইন্টিগ্রেটেড সমাধান দিতে পারে।
 
@@ -56,6 +56,10 @@ appointment-php/
     ├── API.md / FEATURES.md / STRUCTURE.md / install.sql / README.md ...
     └── diagrams/              #   架构/流程图（SVG + mermaid）
 ```
+
+**প্রজেক্ট স্ট্রাকচার ডায়াগ্রাম** (চার প্ল্যাটফর্ম + মডিউল বিবরণ; সম্পূর্ণ সংস্করণ [STRUCTURE.md](STRUCTURE.md)-এ):
+
+<img src="diagrams/bn-project-structure.svg" alt="bn-project-structure.svg" width="100%">
 
 ## দ্রুত শুরু
 
@@ -122,29 +126,47 @@ cd ../service/ && cp .env.docker .env && docker-compose up -d
 
 ## সিস্টেম আর্কিটেকচার
 
-<img src="docs/bn/diagrams/bn-architecture.svg" alt="bn-architecture.svg" width="100%">
+<img src="diagrams/bn-architecture.svg" alt="bn-architecture.svg" width="100%">
+
+### আর্কিটেকচার ডিজাইন (স্তর / মিডলওয়্যার / ডেটাবেস)
+
+উপর থেকে নিচে একমুখী নির্ভরতাসহ 7-স্তরের আর্কিটেকচার, স্কোপ অনুযায়ী স্তরিত মিডলওয়্যার চেইন, রেট-লিমিট নীতি এবং ডেটাবেস ডিজাইন নিয়ম — সম্পূর্ণ বিবরণ [ARCHITECTURE-DESIGN.md](ARCHITECTURE-DESIGN.md)-এ:
+
+<img src="diagrams/bn-architecture-design.svg" alt="bn-architecture-design.svg" width="100%">
 
 ## মূল ফ্লো
 
 ### সার্ভিস অ্যাপয়েন্টমেন্ট ফ্লো
 
-<img src="docs/bn/diagrams/bn-appointment-flow.svg" alt="bn-appointment-flow.svg" width="100%">
+<img src="diagrams/bn-appointment-flow.svg" alt="bn-appointment-flow.svg" width="100%">
 
 ### পেমেন্ট ও রিফান্ড ফ্লো
 
-<img src="docs/bn/diagrams/bn-payment-refund.svg" alt="bn-payment-refund.svg" width="100%">
+<img src="diagrams/bn-payment-refund.svg" alt="bn-payment-refund.svg" width="100%">
 
 ## অর্ডার লাইফসাইকেল
 
-<img src="docs/bn/diagrams/bn-order-lifecycle.svg" alt="bn-order-lifecycle.svg" width="100%">
+<img src="diagrams/bn-order-lifecycle.svg" alt="bn-order-lifecycle.svg" width="100%">
+
+### সব লাইফসাইকেল এক নজরে
+
+অর্ডার ছাড়াও সিস্টেমটি আরও 16টি ব্যবসায়িক লাইফসাইকেল পরিচালনা করে, যা লেনদেন / সম্পদ ও অধিকার / পরিচয় ও অ্যাকাউন্ট / পরিচালনা ও মার্কেটিং — এই চার শ্রেণিতে বিভক্ত; সম্পূর্ণ স্টেট মেশিন [LIFECYCLE-DIAGRAM.md](diagrams/LIFECYCLE-DIAGRAM.md)-এ:
+
+<img src="diagrams/bn-lifecycle-overview.svg" alt="bn-lifecycle-overview.svg" width="100%">
 
 ## সিকিউরিটি আর্কিটেকচার
 
 ### গভীর প্রতিরক্ষা সাত স্তরের সিস্টেম
 
-<img src="docs/bn/diagrams/bn-security-defense.svg" alt="bn-security-defense.svg" width="100%">
+<img src="diagrams/bn-security-defense.svg" alt="bn-security-defense.svg" width="100%">
 
 > আরও বিস্তারিত চিত্র: [ফ্লোচার্ট](diagrams/FLOWCHART.md) (টেকনিশিয়ান উত্তোলন/পরিচয় স্যুইচ সহ) | [ফাংশন ব্রেন ম্যাপ](diagrams/FUNCTION-DIAGRAM.md) | [সম্পূর্ণ লাইফসাইকেল](diagrams/LIFECYCLE-DIAGRAM.md) | [সম্পূর্ণ সিকিউরিটি আর্কিটেকচার](diagrams/SECURITY-ARCHITECTURE.md)
+
+## ফিচার ডিজাইন
+
+তিনটি প্রধান ফিচার ডোমেইন, ক্রয় প্রবাহ (সার্ভিস বুকিং / প্রোডাক্ট কার্ট), লেনদেনের নিয়ম (টেকনিশিয়ান লক / রিফান্ড স্তর / ছাড়), সম্পদ ও অধিকার (মেম্বারশিপ কার্ড / পয়েন্ট / ব্যালেন্স / নতুন ব্যবহারকারীর পুরস্কার), টেকনিশিয়ান নিষ্পত্তি, ভূমিকা পরিবর্তন ও পেমেন্ট ডিজাইন — সম্পূর্ণ বিবরণ [FEATURE-DESIGN.md](FEATURE-DESIGN.md)-এ:
+
+<img src="diagrams/bn-feature-design.svg" alt="bn-feature-design.svg" width="100%">
 
 ## মূল ফিচার হাইলাইট (রাউন্ড ৬-২৪)
 
@@ -243,11 +265,11 @@ If this project helps you, your support is welcome and appreciated!
 <table>
   <tr>
     <td align="center" width="50%">
-      <img src="docs/weixinpay.png" alt="微信支付 / WeChat Pay" width="130" height="130"><br>
+      <img src="../weixinpay.png" alt="微信支付 / WeChat Pay" width="130" height="130"><br>
       <b>WeChat Pay</b><br>WeChat Pay
     </td>
     <td align="center" width="50%">
-      <img src="docs/alipay.png" alt="支付宝 / Alipay" width="130" height="130"><br>
+      <img src="../alipay.png" alt="支付宝 / Alipay" width="130" height="130"><br>
       <b>Alipay</b><br>Alipay
     </td>
   </tr>

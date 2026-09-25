@@ -1,6 +1,6 @@
 # 预约服务系统 — 文档索引
 
-> **项目状态**: 全部完成 ✅ | 143 控制器（service 69 / admin 74） | 87 模型 | 722 测试（service 558 / admin 164） | 95 数据表 | 388 路由（service 227 / admin 161）
+> **项目状态**: 全部完成 ✅ | 143 控制器（service 69 / admin 74） | 87 模型 | 757 测试（service 579 / admin 178） | 95 数据表 | 479 路由（service 221 / admin 258）
 
 ## 核心文档
 
@@ -14,6 +14,23 @@
 | [INSTALL.md](INSTALL.md) | 安装说明：Web安装向导、手动安装、Docker部署、环境变量、FAQ |
 | [USAGE.md](USAGE.md) | 使用说明：管理后台 / 用户端 / 技师端操作（API 接口见 [API.md](API.md)） |
 | [API.md](API.md) | API文档：业务API + 管理后台API，含请求响应示例 + OpenAPI端点 |
+
+## 图示（SVG）
+
+全部图示位于 [diagrams/](diagrams/)，中文 `cn-*` / 英文 `en-*` 双份，各 12 语言镜像在 `docs/<lang>/diagrams/`：
+
+| 图示 | 说明 | Mermaid 源 |
+|------|------|-----------|
+| [cn-architecture.svg](diagrams/cn-architecture.svg) | 系统架构：四端分层拓扑 + 中间件 + 数据层 + 第三方服务 | [ARCHITECTURE-DIAGRAM.md](diagrams/ARCHITECTURE-DIAGRAM.md) |
+| [cn-architecture-design.svg](diagrams/cn-architecture-design.svg) | 架构设计：7 层分层 + 中间件执行链 + 限流 + 数据库设计原则 + 安全设计 | [ARCHITECTURE-DESIGN.md](ARCHITECTURE-DESIGN.md) |
+| [cn-feature-design.svg](diagrams/cn-feature-design.svg) | 功能设计：三大功能域 + 购买流程 + 交易规则 + 资产权益 + 技师结算 + 身份切换 + 支付 | [FEATURE-DESIGN.md](FEATURE-DESIGN.md) |
+| [cn-project-structure.svg](diagrams/cn-project-structure.svg) | 项目结构：四端目录树 + 模块明细 | [STRUCTURE.md](STRUCTURE.md) |
+| [cn-appointment-flow.svg](diagrams/cn-appointment-flow.svg) | 服务预约流程 | [FLOWCHART.md](diagrams/FLOWCHART.md) |
+| [cn-payment-refund.svg](diagrams/cn-payment-refund.svg) | 支付与退款流程 | [FLOWCHART.md](diagrams/FLOWCHART.md) |
+| [cn-order-lifecycle.svg](diagrams/cn-order-lifecycle.svg) | 订单生命周期状态机 | [LIFECYCLE-DIAGRAM.md](diagrams/LIFECYCLE-DIAGRAM.md) |
+| [cn-lifecycle-overview.svg](diagrams/cn-lifecycle-overview.svg) | 全量生命周期总览（17 条，四类分组） | [LIFECYCLE-DIAGRAM.md](diagrams/LIFECYCLE-DIAGRAM.md) |
+| [cn-security-defense.svg](diagrams/cn-security-defense.svg) | 纵深防御七层体系 | [SECURITY-ARCHITECTURE.md](diagrams/SECURITY-ARCHITECTURE.md) |
+| [mascot.svg](diagrams/mascot.svg) | 项目宠物「预约小兔」（SMIL 动画，无外部依赖） | — |
 
 ## 快速安装
 

@@ -687,6 +687,17 @@ Pintu masuk jelajah tanpa login tanpa otentikasi (antarmuka publik).
 
 Respons: id/platform/version_code/version_name/force_update(1=paksa)/changelog/download_url.
 
+### 26. Antarmuka tanpa versi (tanpa prefiks /api/v1)
+
+| Metode | Jalur | Keterangan |
+|------|------|------|
+| GET | `/` | halaman pendaratan merek (HTML; ditampilkan saat browser mengakses port API secara langsung, berisi tautan ke dokumentasi API dan pemeriksaan kesehatan) |
+| GET | `/health` | pemeriksaan kesehatan (JSON; dipakai docker-compose healthcheck / probe liveness load balancer) |
+| GET | `/api/docs` | spesifikasi lengkap API bisnis (OpenAPI 3.0 JSON) |
+| POST | `/payment/wechat-notify` | callback pembayaran WeChat (verifikasi tanda tangan + idempotensi) |
+
+> Antarmuka bisnis klien selalu membawa prefiks versi `/api/v1/...`; jalur telanjang `/api/*` tanpa prefiks mengembalikan 404.
+
 ---
 
 ## II. API Panel Admin (admin/ :8787)

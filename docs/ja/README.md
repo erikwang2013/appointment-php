@@ -3,7 +3,7 @@
 
 四端予約サービス管理プラットフォーム：ユーザー端は微信ミニプログラム + Flutter APP + HarmonyOS APP（同一アカウントで身分切替）、PC 管理バックエンド。
 
-> **プロジェクトステータス**: すべて完了 ✅ | 143 コントローラー（service 69 / admin 74） | 87 モデル | 722 テスト（service 558 / admin 164） | 95 データテーブル | 388 ルート（service 227 / admin 161）
+> **プロジェクトステータス**: すべて完了 ✅ | 143 コントローラー（service 69 / admin 74） | 87 モデル | 757 テスト（service 579 / admin 178） | 95 データテーブル | 479 ルート（service 221 / admin 258）
 
 ## プロジェクト紹介
 
@@ -25,7 +25,7 @@
 
 **成熟した技術基盤**
 
-PHP 8.3 + webman 高性能常駐フレームワークをベースに、MySQL 8.0 + Redis + Elasticsearch で支えます。95 のデータテーブル、388 の API、285 の細粒度権限ポイント、722 の自動化テストがすべて成功。充実した中英アーキテクチャドキュメントとワンクリックインストールスクリプトを備え、すぐに使えて二次開発も容易です。
+PHP 8.3 + webman 高性能常駐フレームワークをベースに、MySQL 8.0 + Redis + Elasticsearch で支えます。95 のデータテーブル、479 の API、285 の細粒度権限ポイント、757 の自動化テストがすべて成功。充実した中英アーキテクチャドキュメントとワンクリックインストールスクリプトを備え、すぐに使えて二次開発も容易です。
 
 単店予約でも多店舗チェーンでも、予約サービスシステムは安定・安全・拡張可能な一体型ソリューションを提供します。
 
@@ -54,6 +54,10 @@ appointment-php/
     ├── API.md / FEATURES.md / STRUCTURE.md / install.sql / README.md ...
     └── diagrams/              #   アーキテクチャ/フローチャート（SVG + mermaid）
 ```
+
+**プロジェクト構造図**（4 プラットフォーム + モジュール詳細。完全版は [STRUCTURE.md](STRUCTURE.md)）:
+
+<img src="diagrams/ja-project-structure.svg" alt="ja-project-structure.svg" width="100%">
 
 ## クイックスタート
 
@@ -122,6 +126,12 @@ cd ../service/ && cp .env.docker .env && docker-compose up -d
 
 <img src="diagrams/ja-architecture.svg" alt="ja-architecture.svg" width="100%">
 
+### アーキテクチャ設計（階層 / ミドルウェア / データベース）
+
+上から下への一方向依存を持つ 7 層アーキテクチャ、スコープ別に積層されるミドルウェアチェーン、レート制限ポリシーとデータベース設計原則 — 詳細は [ARCHITECTURE-DESIGN.md](ARCHITECTURE-DESIGN.md):
+
+<img src="diagrams/ja-architecture-design.svg" alt="ja-architecture-design.svg" width="100%">
+
 ## コアフロー
 
 ### サービス予約フロー
@@ -136,6 +146,12 @@ cd ../service/ && cp .env.docker .env && docker-compose up -d
 
 <img src="diagrams/ja-order-lifecycle.svg" alt="ja-order-lifecycle.svg" width="100%">
 
+### 全ライフサイクル一覧
+
+注文以外に、システムは 16 の業務ライフサイクルを運用しており、取引 / 資産・権益 / 身元・アカウント / 運用・マーケティングの 4 分類に分かれます — 完全な状態遷移は [LIFECYCLE-DIAGRAM.md](diagrams/LIFECYCLE-DIAGRAM.md):
+
+<img src="diagrams/ja-lifecycle-overview.svg" alt="ja-lifecycle-overview.svg" width="100%">
+
 ## セキュリティアーキテクチャ
 
 ### 多層防御七層体制
@@ -143,6 +159,12 @@ cd ../service/ && cp .env.docker .env && docker-compose up -d
 <img src="diagrams/ja-security-defense.svg" alt="ja-security-defense.svg" width="100%">
 
 > さらに詳しい図解：[フローチャート](diagrams/FLOWCHART.md)（スタッフ出金/身分切替を含む）| [機能マインドマップ](diagrams/FUNCTION-DIAGRAM.md) | [全ライフサイクル](diagrams/LIFECYCLE-DIAGRAM.md) | [完全なセキュリティアーキテクチャ](diagrams/SECURITY-ARCHITECTURE.md)
+
+## 機能設計
+
+三大機能領域、購入フロー（サービス予約 / 商品カート）、取引ルール（技術者ロック / 返金段階 / 割引）、資産と権益（会員カード / ポイント / 残高 / 新規ユーザー特典）、技術者精算、身元切り替えと決済設計 — 詳細は [FEATURE-DESIGN.md](FEATURE-DESIGN.md):
+
+<img src="diagrams/ja-feature-design.svg" alt="ja-feature-design.svg" width="100%">
 
 ## コア機能ハイライト（第 6-24 ラウンド）
 

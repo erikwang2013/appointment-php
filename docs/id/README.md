@@ -5,11 +5,11 @@
 
 Platform manajemen layanan janji temu untuk empat ujung: Mini Program WeChat untuk pengguna + Aplikasi Flutter + Aplikasi HarmonyOS (beralih identitas dengan akun yang sama), serta Panel Admin PC.
 
-> **Status Proyek**: Semua selesai ✅ | 143 pengontrol (service 69 / admin 74) | 87 model | 722 tes (service 558 / admin 164) | 95 tabel data | 388 rute (service 227 / admin 161)
+> **Status Proyek**: Semua selesai ✅ | 143 pengontrol (service 69 / admin 74) | 87 model | 757 tes (service 579 / admin 178) | 95 tabel data | 479 rute (service 221 / admin 258)
 
 ## Pengenalan Proyek
 
-<img src="mascot.svg" alt="Maskot sistem layanan janji temu — Kelinci Janji Temu (animasi SVG)" width="200" align="right">
+<img src="diagrams/mascot.svg" alt="Maskot sistem layanan janji temu — Kelinci Janji Temu (animasi SVG)" width="200" align="right">
 
 **Sistem Layanan Janji Temu** adalah platform manajemen janji temu empat-ujung untuk industri layanan gaya hidup: sisi pengguna mencakup **Mini Program WeChat, Aplikasi Flutter, Aplikasi HarmonyOS** — tiga ujung, dengan akun yang sama bebas berpindah antar platform, dipadukan dengan **Panel Admin PC**, mewujudkan penutupan digital menyeluruh dari "janji temu pengguna → teknisi menerima pesanan → operasional backend". Baik itu janji temu di toko, layanan teknisi, pemasaran member, maupun penyelesaian keuangan, satu sistem menyelesaikan semuanya.
 
@@ -27,7 +27,7 @@ Menggunakan komponen keamanan buatan sendiri: autentikasi JWT, pengacakan ID, 31
 
 **Landasan Teknologi yang Matang**
 
-Berbasis PHP 8.3 + webman framework resident berkinerja tinggi, didukung MySQL 8.0 + Redis + Elasticsearch; 95 tabel data, 388 antarmuka, 285 titik izin berbutir halus, 722 tes otomasi semuanya lulus, serta dilengkapi dokumentasi arsitektur lengkap dua bahasa dan skrip instalasi satu klik, siap pakai dan mudah dikembangkan.
+Berbasis PHP 8.3 + webman framework resident berkinerja tinggi, didukung MySQL 8.0 + Redis + Elasticsearch; 95 tabel data, 479 antarmuka, 285 titik izin berbutir halus, 757 tes otomasi semuanya lulus, serta dilengkapi dokumentasi arsitektur lengkap dua bahasa dan skrip instalasi satu klik, siap pakai dan mudah dikembangkan.
 
 Baik itu janji temu toko tunggal maupun rantai multi-toko, Sistem Layanan Janji Temu menyediakan solusi terpadu yang stabil, aman, dan dapat diskalakan.
 
@@ -56,6 +56,10 @@ appointment-php/
     ├── API.md / FEATURES.md / STRUCTURE.md / install.sql / README.md ...
     └── diagrams/              #   Diagram arsitektur/alur (SVG + mermaid)
 ```
+
+**Diagram struktur proyek** (empat platform + detail modul; versi lengkap di [STRUCTURE.md](STRUCTURE.md)):
+
+<img src="diagrams/id-project-structure.svg" alt="id-project-structure.svg" width="100%">
 
 ## Memulai Cepat
 
@@ -122,29 +126,47 @@ cd ../service/ && cp .env.docker .env && docker-compose up -d
 
 ## Arsitektur Sistem
 
-<img src="id-architecture.svg" alt="id-architecture.svg" width="100%">
+<img src="diagrams/id-architecture.svg" alt="id-architecture.svg" width="100%">
+
+### Desain Arsitektur (Lapisan / Middleware / Basis Data)
+
+Arsitektur 7 lapisan dengan ketergantungan satu arah dari atas ke bawah, rantai middleware bertingkat per cakupan, kebijakan pembatasan permintaan dan prinsip desain basis data — penjelasan lengkap di [ARCHITECTURE-DESIGN.md](ARCHITECTURE-DESIGN.md):
+
+<img src="diagrams/id-architecture-design.svg" alt="id-architecture-design.svg" width="100%">
 
 ## Alur Inti
 
 ### Alur Janji Temu Layanan
 
-<img src="id-appointment-flow.svg" alt="id-appointment-flow.svg" width="100%">
+<img src="diagrams/id-appointment-flow.svg" alt="id-appointment-flow.svg" width="100%">
 
 ### Alur Pembayaran & Refund
 
-<img src="id-payment-refund.svg" alt="id-payment-refund.svg" width="100%">
+<img src="diagrams/id-payment-refund.svg" alt="id-payment-refund.svg" width="100%">
 
 ## Siklus Hidup Pesanan
 
-<img src="id-order-lifecycle.svg" alt="id-order-lifecycle.svg" width="100%">
+<img src="diagrams/id-order-lifecycle.svg" alt="id-order-lifecycle.svg" width="100%">
+
+### Semua Siklus Hidup Sekilas
+
+Selain pesanan, sistem menjalankan 16 siklus hidup bisnis lainnya, dikelompokkan menjadi transaksi / aset dan hak / identitas dan akun / operasi dan pemasaran — state machine lengkap di [LIFECYCLE-DIAGRAM.md](diagrams/LIFECYCLE-DIAGRAM.md):
+
+<img src="diagrams/id-lifecycle-overview.svg" alt="id-lifecycle-overview.svg" width="100%">
 
 ## Arsitektur Keamanan
 
 ### Sistem Tujuh Lapisan Pertahanan Berlapis
 
-<img src="id-security-defense.svg" alt="id-security-defense.svg" width="100%">
+<img src="diagrams/id-security-defense.svg" alt="id-security-defense.svg" width="100%">
 
 > Diagram selengkapnya: [Diagram Alur](diagrams/FLOWCHART.md) (termasuk penarikan dana teknisi/perpindahan identitas) | [Peta Pikiran Fungsi](diagrams/FUNCTION-DIAGRAM.md) | [Semua Siklus Hidup](diagrams/LIFECYCLE-DIAGRAM.md) | [Arsitektur Keamanan Lengkap](diagrams/SECURITY-ARCHITECTURE.md)
+
+## Desain Fitur
+
+Tiga domain fungsional, alur pembelian (pemesanan layanan / keranjang produk), aturan transaksi (kunci teknisi / tingkatan refund / diskon), aset dan hak (kartu member / poin / saldo / hadiah pengguna baru), penyelesaian teknisi, pergantian peran dan desain pembayaran — penjelasan lengkap di [FEATURE-DESIGN.md](FEATURE-DESIGN.md):
+
+<img src="diagrams/id-feature-design.svg" alt="id-feature-design.svg" width="100%">
 
 ## Sorotan Fungsi Inti (Ronde 6-24)
 

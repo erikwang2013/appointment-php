@@ -508,5 +508,48 @@ Route::get('/health', function () {
     return json(['code' => 0, 'message' => 'ok']);
 });
 
+// ============================================================
+// 根路径品牌落地页（浏览器直接访问 API 端口时展示，非 API 端点）
+// ============================================================
+Route::get('/', function () {
+    $html = <<<'HTML'
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>预约服务系统 · API 服务</title>
+<link rel="icon" type="image/svg+xml" href="/mascot.svg">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#f5f7fa;color:#333;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.card{background:#fff;border-radius:12px;box-shadow:0 2px 12px rgba(0,0,0,.08);padding:36px 44px;text-align:center;max-width:520px}
+.card img{width:120px;height:120px}
+h1{font-size:22px;color:#1a1a2e;margin:4px 0 6px}
+p{font-size:14px;color:#666;line-height:1.7}
+.links{margin-top:20px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.links a{display:inline-block;padding:9px 20px;border-radius:8px;font-size:14px;text-decoration:none;background:#4f46e5;color:#fff}
+.links a.o{background:#fff;color:#4f46e5;border:1px solid #4f46e5}
+code{background:#eef2ff;padding:2px 6px;border-radius:4px;font-size:13px;color:#4338ca}
+.ft{margin-top:18px;font-size:12px;color:#999}
+</style>
+</head>
+<body>
+<div class="card">
+<img src="/mascot.svg" alt="预约小兔（吉祥物）">
+<h1>预约服务系统 · API 服务</h1>
+<p>服务运行中。客户端接口前缀 <code>/api/v1</code>，请求未携带版本前缀将返回 404。</p>
+<div class="links">
+<a href="/api/docs">API 文档</a>
+<a class="o" href="/health">健康检查</a>
+</div>
+<div class="ft">Copyright &copy; 2026 erik &lt;erik@erik.xyz&gt;</div>
+</div>
+</body>
+</html>
+HTML;
+    return response($html, 200, ['Content-Type' => 'text/html; charset=utf-8']);
+});
+
 // 关闭默认路由
 Route::disableDefaultRoute();

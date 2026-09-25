@@ -3,7 +3,7 @@
 
 > বাংলা অনুবাদ · মূল: [中文](../README.md)
 >
-> **প্রজেক্ট অবস্থা**: সম্পূর্ণ ✅ | ১৪৩ কন্ট্রোলার (service ৬৯ / admin ৭৪) | ৮৭ মডেল | ৭২২ টেস্ট (service ৫৫৮ / admin ১৬৪) | ৯৫ ডেটা টেবিল | ৩৮৮ রাউট (service ২২৭ / admin ১৬১)
+> **প্রজেক্ট অবস্থা**: সম্পূর্ণ ✅ | ১৪৩ কন্ট্রোলার (service ৬৯ / admin ৭৪) | ৮৭ মডেল | ৭৫৭ টেস্ট (service ৫৭৯ / admin ১৭৮) | ৯৫ ডেটা টেবিল | ৪৭৯ রাউট (service ২২১ / admin ২৫৮)
 
 ## মূল ডকুমেন্টেশন
 
@@ -18,11 +18,28 @@
 | [USAGE.md](USAGE.md) | ব্যবহার নির্দেশনা: অ্যাডমিন ব্যাকএন্ড / ব্যবহারকারী পাশ / টেকনিশিয়ান পাশ অপারেশন (API ইন্টারফেস দেখুন [API.md](API.md)) |
 | [API.md](API.md) | API ডকুমেন্টেশন: বিজনেস API + অ্যাডমিন ব্যাকএন্ড API, রিকোয়েস্ট/রেসপন্স উদাহরণ + OpenAPI এন্ডপয়েন্ট সহ |
 
+## চিত্র (SVG)
+
+সব চিত্র [diagrams/](diagrams/)-এ রয়েছে, চীনা `cn-*` / ইংরেজি `en-*` দুই সংস্করণে, এবং ১২টি ভাষার নিজস্ব অনুলিপি `docs/<lang>/diagrams/`-এ:
+
+| চিত্র | বিবরণ | Mermaid সোর্স |
+|------|------|-----------|
+| [bn-architecture.svg](diagrams/bn-architecture.svg) | সিস্টেম আর্কিটেকচার: চার প্রান্তের স্তরভিত্তিক টোপোলজি + মিডলওয়্যার + ডেটা স্তর + তৃতীয় পক্ষের সার্ভিস | [ARCHITECTURE-DIAGRAM.md](diagrams/ARCHITECTURE-DIAGRAM.md) |
+| [bn-architecture-design.svg](diagrams/bn-architecture-design.svg) | আর্কিটেকচার ডিজাইন: ৭-স্তরের লেয়ারিং + মিডলওয়্যার এক্সিকিউশন চেইন + রেট-লিমিট + ডেটাবেস ডিজাইন নিয়ম + সিকিউরিটি ডিজাইন | [ARCHITECTURE-DESIGN.md](ARCHITECTURE-DESIGN.md) |
+| [bn-feature-design.svg](diagrams/bn-feature-design.svg) | ফিচার ডিজাইন: তিনটি প্রধান ফিচার ডোমেইন + ক্রয় প্রবাহ + লেনদেনের নিয়ম + সম্পদ ও অধিকার + টেকনিশিয়ান নিষ্পত্তি + ভূমিকা পরিবর্তন + পেমেন্ট | [FEATURE-DESIGN.md](FEATURE-DESIGN.md) |
+| [bn-project-structure.svg](diagrams/bn-project-structure.svg) | প্রজেক্ট কাঠামো: চার প্রান্তের ডিরেক্টরি ট্রি + মডিউল বিবরণ | [STRUCTURE.md](STRUCTURE.md) |
+| [bn-appointment-flow.svg](diagrams/bn-appointment-flow.svg) | সার্ভিস অ্যাপয়েন্টমেন্ট ফ্লো | [FLOWCHART.md](diagrams/FLOWCHART.md) |
+| [bn-payment-refund.svg](diagrams/bn-payment-refund.svg) | পেমেন্ট ও রিফান্ড ফ্লো | [FLOWCHART.md](diagrams/FLOWCHART.md) |
+| [bn-order-lifecycle.svg](diagrams/bn-order-lifecycle.svg) | অর্ডার লাইফসাইকেল স্টেট মেশিন | [LIFECYCLE-DIAGRAM.md](diagrams/LIFECYCLE-DIAGRAM.md) |
+| [bn-lifecycle-overview.svg](diagrams/bn-lifecycle-overview.svg) | সব লাইফসাইকেলের সামগ্রিক চিত্র (১৭টি, চার শ্রেণিতে বিভক্ত) | [LIFECYCLE-DIAGRAM.md](diagrams/LIFECYCLE-DIAGRAM.md) |
+| [bn-security-defense.svg](diagrams/bn-security-defense.svg) | গভীর প্রতিরক্ষার সাত স্তরের সিস্টেম | [SECURITY-ARCHITECTURE.md](diagrams/SECURITY-ARCHITECTURE.md) |
+| [mascot.svg](diagrams/mascot.svg) | প্রজেক্ট মাসকট "বুকিং বানি" (SMIL অ্যানিমেশন, কোনো বাহ্যিক নির্ভরতা নেই) | — |
+
 ## টেস্ট ও নিরাপত্তা
 
 | ডকুমেন্ট | বিবরণ |
 |------|------|
-| [TEST-REPORT.md](TEST-REPORT.md) | টেস্ট রিপোর্ট: ফুল ৫৫৮ কেস / ২৫০৮ অ্যাসারশন কভারেজ অডিট + HTTP স্মোক রেকর্ড |
+| [TEST-REPORT.md](TEST-REPORT.md) | টেস্ট রিপোর্ট: ফুল ৫৭৯ কেস / ২৫০৮ অ্যাসারশন কভারেজ অডিট + HTTP স্মোক রেকর্ড |
 | [AUDIT-REPORT.md](AUDIT-REPORT.md) | অডিট রিপোর্ট: টেস্ট ফলাফল, ইকোসিস্টেম কনফিগ স্কোর, সমস্যা ফিক্স রেকর্ড, কোড আর্কিটেকচার বিশ্লেষণ |
 | [SECURITY-AUDIT-REPORT.md](SECURITY-AUDIT-REPORT.md) | সিকিউরিটি অডিট রিপোর্ট |
 

@@ -687,6 +687,17 @@ Entradas de navegação sem login, sem autenticação (interfaces públicas).
 
 Resposta: id/platform/version_code/version_name/force_update (1=obrigatória)/changelog/download_url.
 
+### 26. Interfaces sem versão (sem o prefixo /api/v1)
+
+| Método | Caminho | Descrição |
+|------|------|------|
+| GET | `/` | Página de aterragem da marca (HTML; apresentada quando um navegador acede diretamente à porta da API, com ligações à documentação da API e à verificação de estado) |
+| GET | `/health` | Verificação de estado (JSON; usada pelo docker-compose healthcheck / sondagem de atividade do balanceador de carga) |
+| GET | `/api/docs` | Especificação completa da API de negócio (JSON OpenAPI 3.0) |
+| POST | `/payment/wechat-notify` | Callback do pagamento WeChat (verificação de assinatura + idempotência) |
+
+> As interfaces de negócio do cliente têm sempre o prefixo de versão `/api/v1/...`; os caminhos simples `/api/*` sem o prefixo devolvem 404.
+
 ---
 
 ## II. API do painel de administração (admin/ :8787)

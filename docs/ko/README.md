@@ -5,11 +5,11 @@
 
 4개 단말 예약 서비스 관리 플랫폼: 사용자용 위챗 미니프로그램 + Flutter APP + HarmonyOS APP(동일 계정으로 신원 전환) + PC 관리 백엔드.
 
-> **프로젝트 상태**: 전체 완료 ✅ | 컨트롤러 143개(service 69 / admin 74) | 모델 87개 | 테스트 722개(service 558 / admin 164) | 데이터 테이블 95개 | 라우트 388개(service 227 / admin 161)
+> **프로젝트 상태**: 전체 완료 ✅ | 컨트롤러 143개(service 69 / admin 74) | 모델 87개 | 테스트 757개(service 579 / admin 178) | 데이터 테이블 95개 | 라우트 479개(service 221 / admin 258)
 
 ## 프로젝트 소개
 
-<img src="../../docs/diagrams/mascot.svg" alt="예약 서비스 시스템 마스코트 — 예약 토끼(SVG 애니메이션)" width="200" align="right">
+<img src="diagrams/mascot.svg" alt="예약 서비스 시스템 마스코트 — 예약 토끼(SVG 애니메이션)" width="200" align="right">
 
 **예약 서비스 시스템**은 생활 서비스 업종을 위한 4단말 예약 관리 플랫폼입니다. 사용자 단말은 **위챗 미니프로그램, Flutter APP, HarmonyOS APP** 3개 단말을 지원하며, 동일 계정으로 단말 간 자유롭게 전환할 수 있습니다. 여기에 **PC 관리 백엔드**를 더해 "사용자 예약 → 기술자 수주 → 백엔드 운영" 전 과정의 디지털 클로즈드 루프를 구현합니다. 매장 예약, 기술자 서비스, 회원 마케팅, 재무 정산까지 하나의 시스템으로 모두 처리합니다.
 
@@ -27,7 +27,7 @@
 
 **성숙한 기술 기반**
 
-PHP 8.3 + webman 고성능 상주 프레임워크 기반, MySQL 8.0 + Redis + Elasticsearch 지원. 데이터 테이블 95개, 인터페이스 388개, 세분화된 권한 포인트 285개, 자동화 테스트 722개가 모두 통과했으며, 완성도 높은 중/영문 아키텍처 문서와 원클릭 설치 스크립트를 갖추고 있어 즉시 사용 가능하고 2차 개발이 쉽습니다.
+PHP 8.3 + webman 고성능 상주 프레임워크 기반, MySQL 8.0 + Redis + Elasticsearch 지원. 데이터 테이블 95개, 인터페이스 479개, 세분화된 권한 포인트 285개, 자동화 테스트 757개가 모두 통과했으며, 완성도 높은 중/영문 아키텍처 문서와 원클릭 설치 스크립트를 갖추고 있어 즉시 사용 가능하고 2차 개발이 쉽습니다.
 
 단일 매장 예약이든 다점포 체인 규모든, 예약 서비스 시스템이 안정적이고 안전하며 확장 가능한 통합 솔루션을 제공합니다.
 
@@ -56,6 +56,10 @@ appointment-php/
     ├── API.md / FEATURES.md / STRUCTURE.md / install.sql / README.md ...
     └── diagrams/              #   아키텍처/흐름도(SVG + mermaid)
 ```
+
+**프로젝트 구조도** (4개 플랫폼 + 모듈 상세, 전체 버전은 [STRUCTURE.md](STRUCTURE.md)):
+
+<img src="diagrams/ko-project-structure.svg" alt="ko-project-structure.svg" width="100%">
 
 ## 빠른 시작
 
@@ -122,29 +126,47 @@ cd ../service/ && cp .env.docker .env && docker-compose up -d
 
 ## 시스템 아키텍처
 
-<img src="../../docs/diagrams/ko-architecture.svg" alt="ko-architecture.svg" width="100%">
+<img src="diagrams/ko-architecture.svg" alt="ko-architecture.svg" width="100%">
+
+### 아키텍처 설계(계층 / 미들웨어 / 데이터베이스)
+
+위에서 아래로 단방향 의존하는 7계층 아키텍처, 범위별로 중첩되는 미들웨어 체인, 요청 제한 정책과 데이터베이스 설계 원칙 — 전체 설명은 [ARCHITECTURE-DESIGN.md](ARCHITECTURE-DESIGN.md):
+
+<img src="diagrams/ko-architecture-design.svg" alt="ko-architecture-design.svg" width="100%">
 
 ## 핵심 프로세스
 
 ### 서비스 예약 프로세스
 
-<img src="../../docs/diagrams/ko-appointment-flow.svg" alt="ko-appointment-flow.svg" width="100%">
+<img src="diagrams/ko-appointment-flow.svg" alt="ko-appointment-flow.svg" width="100%">
 
 ### 결제와 환불 프로세스
 
-<img src="../../docs/diagrams/ko-payment-refund.svg" alt="ko-payment-refund.svg" width="100%">
+<img src="diagrams/ko-payment-refund.svg" alt="ko-payment-refund.svg" width="100%">
 
 ## 주문 생애주기
 
-<img src="../../docs/diagrams/ko-order-lifecycle.svg" alt="ko-order-lifecycle.svg" width="100%">
+<img src="diagrams/ko-order-lifecycle.svg" alt="ko-order-lifecycle.svg" width="100%">
+
+### 전체 생애주기 개요
+
+주문 외에도 시스템은 16개의 추가 비즈니스 생애주기를 운영하며, 거래 / 자산·권익 / 신원·계정 / 운영·마케팅 네 가지로 분류됩니다 — 전체 상태 머신은 [LIFECYCLE-DIAGRAM.md](diagrams/LIFECYCLE-DIAGRAM.md):
+
+<img src="diagrams/ko-lifecycle-overview.svg" alt="ko-lifecycle-overview.svg" width="100%">
 
 ## 보안 아키텍처
 
 ### 심층 방어 7계층 체계
 
-<img src="../../docs/diagrams/ko-security-defense.svg" alt="ko-security-defense.svg" width="100%">
+<img src="diagrams/ko-security-defense.svg" alt="ko-security-defense.svg" width="100%">
 
 > 더 많은 상세 그림: [흐름도](diagrams/ARCHITECTURE-DIAGRAM.md)(기술자 출금/신원 전환 포함) | [기능 마인드맵](diagrams/FUNCTION-DIAGRAM.md) | [전체 생애주기](diagrams/LIFECYCLE-DIAGRAM.md) | [전체 보안 아키텍처](diagrams/SECURITY-ARCHITECTURE.md)
+
+## 기능 설계
+
+3대 기능 영역, 구매 흐름(서비스 예약 / 상품 장바구니), 거래 규칙(기술자 잠금 / 환불 단계 / 할인), 자산과 권익(멤버십 카드 / 포인트 / 잔액 / 신규 가입 보상), 기술자 정산, 역할 전환과 결제 설계 — 전체 설명은 [FEATURE-DESIGN.md](FEATURE-DESIGN.md):
+
+<img src="diagrams/ko-feature-design.svg" alt="ko-feature-design.svg" width="100%">
 
 ## 핵심 기능 하이라이트(6-24차 라운드)
 

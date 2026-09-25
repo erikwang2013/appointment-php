@@ -1,7 +1,7 @@
 # 予約サービスシステム — ドキュメントインデックス
 > **Languages**: [中文](../README.md) · [English](../en/DOCS.md) · [한국어](../ko/DOCS.md) · [Русский](../ru/DOCS.md) · [Deutsch](../de/DOCS.md) · [Français](../fr/DOCS.md) · [Español](../es/DOCS.md) · [Português](../pt/DOCS.md) · [हिन्दी](../hi/DOCS.md) · [العربية](../ar/DOCS.md) · [বাংলা](../bn/DOCS.md) · [Bahasa Indonesia](../id/DOCS.md)
 
-> **プロジェクトステータス**: すべて完了 ✅ | 143 コントローラー（service 69 / admin 74） | 87 モデル | 722 テスト（service 558 / admin 164） | 95 データテーブル | 388 ルート（service 227 / admin 161）
+> **プロジェクトステータス**: すべて完了 ✅ | 143 コントローラー（service 69 / admin 74） | 87 モデル | 757 テスト（service 579 / admin 178） | 95 データテーブル | 479 ルート（service 221 / admin 258）
 
 ## コアドキュメント
 
@@ -15,6 +15,23 @@
 | [INSTALL.md](INSTALL.md) | インストール説明：Web インストールウィザード、手動インストール、Docker デプロイ、環境変数、FAQ |
 | [USAGE.md](USAGE.md) | 使用説明：管理バックエンド / ユーザー端 / スタッフ端の操作（API は [API.md](API.md) 参照） |
 | [API.md](API.md) | APIドキュメント：業務API + 管理バックエンドAPI、リクエスト/レスポンス例 + OpenAPI エンドポイント |
+
+## 図解（SVG）
+
+すべての図解は [diagrams/](diagrams/) にあり、この言語のミラーセットです。中国語 `cn-*` / 英語 `en-*` のマスターは `docs/diagrams/` に、12 言語それぞれのミラーは `docs/<lang>/diagrams/` にあります：
+
+| 図解 | 説明 | Mermaid ソース |
+|------|------|-----------|
+| [ja-architecture.svg](diagrams/ja-architecture.svg) | システムアーキテクチャ：四端の階層トポロジー + ミドルウェア + データ層 + 第三者サービス | [ARCHITECTURE-DIAGRAM.md](diagrams/ARCHITECTURE-DIAGRAM.md) |
+| [ja-architecture-design.svg](diagrams/ja-architecture-design.svg) | アーキテクチャ設計：7 層 + ミドルウェア実行チェーン + レート制限 + データベース設計原則 + セキュリティ設計 | [ARCHITECTURE-DESIGN.md](ARCHITECTURE-DESIGN.md) |
+| [ja-feature-design.svg](diagrams/ja-feature-design.svg) | 機能設計：三大機能領域 + 購入フロー + 取引ルール + 資産と権益 + 技術者精算 + 身元切替 + 決済 | [FEATURE-DESIGN.md](FEATURE-DESIGN.md) |
+| [ja-project-structure.svg](diagrams/ja-project-structure.svg) | プロジェクト構成：四端のディレクトリツリー + モジュール詳細 | [STRUCTURE.md](STRUCTURE.md) |
+| [ja-appointment-flow.svg](diagrams/ja-appointment-flow.svg) | サービス予約フロー | [FLOWCHART.md](diagrams/FLOWCHART.md) |
+| [ja-payment-refund.svg](diagrams/ja-payment-refund.svg) | 支払いと返金フロー | [FLOWCHART.md](diagrams/FLOWCHART.md) |
+| [ja-order-lifecycle.svg](diagrams/ja-order-lifecycle.svg) | 注文ライフサイクルのステートマシン | [LIFECYCLE-DIAGRAM.md](diagrams/LIFECYCLE-DIAGRAM.md) |
+| [ja-lifecycle-overview.svg](diagrams/ja-lifecycle-overview.svg) | 全ライフサイクル一覧（17 件、4 分類） | [LIFECYCLE-DIAGRAM.md](diagrams/LIFECYCLE-DIAGRAM.md) |
+| [ja-security-defense.svg](diagrams/ja-security-defense.svg) | 多層防御七層体制 | [SECURITY-ARCHITECTURE.md](diagrams/SECURITY-ARCHITECTURE.md) |
+| [mascot.svg](diagrams/mascot.svg) | プロジェクトマスコット「予約うさぎ」（SMIL アニメーション、外部依存なし） | — |
 
 ## テストとセキュリティ
 

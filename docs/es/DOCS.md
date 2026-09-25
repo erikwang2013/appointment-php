@@ -1,7 +1,7 @@
 # Sistema de Reservas de Servicios — Índice de documentación
 > **Languages**: [中文](../README.md) · [English](../en/DOCS.md) · [한국어](../ko/DOCS.md) · [Русский](../ru/DOCS.md) · [Deutsch](../de/DOCS.md) · [Français](../fr/DOCS.md) · [Português](../pt/DOCS.md) · [हिन्दी](../hi/DOCS.md) · [العربية](../ar/DOCS.md) · [বাংলা](../bn/DOCS.md) · [Bahasa Indonesia](../id/DOCS.md) · [日本語](../ja/DOCS.md)
 
-> **Estado del proyecto**: todo completado ✅ | 143 controladores (service 69 / admin 74) | 87 modelos | 722 pruebas (service 558 / admin 164) | 95 tablas de datos | 388 rutas (service 227 / admin 161)
+> **Estado del proyecto**: todo completado ✅ | 143 controladores (service 69 / admin 74) | 87 modelos | 757 pruebas (service 579 / admin 178) | 95 tablas de datos | 479 rutas (service 221 / admin 258)
 
 ## Documentación principal
 
@@ -15,6 +15,23 @@
 | [INSTALL.md](INSTALL.md) | Instrucciones de instalación: asistente de instalación web, instalación manual, despliegue Docker, variables de entorno, FAQ |
 | [USAGE.md](USAGE.md) | Instrucciones de uso: operaciones del panel de administración / extremo de usuario / extremo de técnico (las interfaces API en [API.md](API.md)) |
 | [API.md](API.md) | Documentación de API: API de negocio + API del panel de administración, con ejemplos de solicitud/respuesta + extremo OpenAPI |
+
+## Diagramas (SVG)
+
+Todos los diagramas están en [diagrams/](diagrams/): los originales en chino `cn-*` e inglés `en-*` están en `docs/diagrams/`, y cada uno de los 12 idiomas tiene su propio conjunto replicado en `docs/<lang>/diagrams/`:
+
+| Diagrama | Descripción | Fuente Mermaid |
+|------|------|-----------|
+| [es-architecture.svg](diagrams/es-architecture.svg) | Arquitectura del sistema: topología en capas de los cuatro extremos + middleware + capa de datos + servicios de terceros | [ARCHITECTURE-DIAGRAM.md](diagrams/ARCHITECTURE-DIAGRAM.md) |
+| [es-architecture-design.svg](diagrams/es-architecture-design.svg) | Diseño de arquitectura: arquitectura de 7 capas + cadena de ejecución de middleware + limitación de peticiones + principios de diseño de base de datos + diseño de seguridad | [ARCHITECTURE-DESIGN.md](ARCHITECTURE-DESIGN.md) |
+| [es-feature-design.svg](diagrams/es-feature-design.svg) | Diseño de funciones: los tres dominios funcionales + flujos de compra + reglas de transacción + activos y derechos + liquidación de técnicos + cambio de identidad + pagos | [FEATURE-DESIGN.md](FEATURE-DESIGN.md) |
+| [es-project-structure.svg](diagrams/es-project-structure.svg) | Estructura del proyecto: árbol de directorios de los cuatro extremos + detalle de módulos | [STRUCTURE.md](STRUCTURE.md) |
+| [es-appointment-flow.svg](diagrams/es-appointment-flow.svg) | Flujo de reserva de servicios | [FLOWCHART.md](diagrams/FLOWCHART.md) |
+| [es-payment-refund.svg](diagrams/es-payment-refund.svg) | Flujo de pago y reembolso | [FLOWCHART.md](diagrams/FLOWCHART.md) |
+| [es-order-lifecycle.svg](diagrams/es-order-lifecycle.svg) | Máquina de estados del ciclo de vida del pedido | [LIFECYCLE-DIAGRAM.md](diagrams/LIFECYCLE-DIAGRAM.md) |
+| [es-lifecycle-overview.svg](diagrams/es-lifecycle-overview.svg) | Todos los ciclos de vida de un vistazo (17 en total, en cuatro grupos) | [LIFECYCLE-DIAGRAM.md](diagrams/LIFECYCLE-DIAGRAM.md) |
+| [es-security-defense.svg](diagrams/es-security-defense.svg) | Sistema de defensa en profundidad de siete capas | [SECURITY-ARCHITECTURE.md](diagrams/SECURITY-ARCHITECTURE.md) |
+| [mascot.svg](diagrams/mascot.svg) | Mascota del proyecto «Conejito de reservas» (animación SMIL, sin dependencias externas) | — |
 
 ## Pruebas y seguridad
 

@@ -5,11 +5,11 @@
 
 منصة إدارة الحجوزات بأربع واجهات: برنامج WeChat الصغير + تطبيق Flutter + تطبيق HarmonyOS (تبديل الهوية بين الحسابات) + لوحة إدارة الكمبيوتر.
 
-> **حالة المشروع**: مكتمل بالكامل ✅ | 143 وحدة تحكم (service 69 / admin 74) | 87 نموذجًا | 722 اختبارًا (service 558 / admin 164) | 95 جدول بيانات | 388 مسارًا (service 227 / admin 161)
+> **حالة المشروع**: مكتمل بالكامل ✅ | 143 وحدة تحكم (service 69 / admin 74) | 87 نموذجًا | 757 اختبارًا (service 579 / admin 178) | 95 جدول بيانات | 479 مسارًا (service 221 / admin 258)
 
 ## مقدمة المشروع
 
-<img src="../diagrams/mascot.svg" alt="تميمة نظام خدمات الحجز — الأرنب الصغير (رسوم SVG متحركة)" width="200" align="right">
+<img src="diagrams/mascot.svg" alt="تميمة نظام خدمات الحجز — الأرنب الصغير (رسوم SVG متحركة)" width="200" align="right">
 
 **نظام خدمات الحجز** هو منصة إدارة حجوزات بأربع واجهات موجهة لقطاع الخدمات اليومية: تغطي واجهات المستخدم **برنامج WeChat الصغير وتطبيق Flutter وتطبيق HarmonyOS** بثلاث واجهات، مع تبديل حر بين الحسابات عبر الواجهات، إلى جانب **لوحة إدارة الكمبيوتر**، لتحقيق إغلاق رقمي كامل لدورة "حجز المستخدم ← قبول الفني ← تشغيل الخلفية". سواء كانت حجوزات المتاجر أو خدمات الفنيين أو تسويق العضويات أو التسوية المالية، نظام واحد ينجز كل شيء.
 
@@ -27,7 +27,7 @@
 
 **أساس تقني ناضج**
 
-مبني على PHP 8.3 + إطار webman عالي الأداء المقيم، مدعوم بـ MySQL 8.0 + Redis + Elasticsearch؛ 95 جدول بيانات، 388 واجهة، 285 نقطة صلاحية دقيقة، 722 اختبارًا آليًا ناجحًا جميعها، مع وثائق معمارية كاملة باللغتين وبرنامج تثبيت بخطوة واحدة، جاهز للاستخدام الفوري وسهل التطوير الثانوي.
+مبني على PHP 8.3 + إطار webman عالي الأداء المقيم، مدعوم بـ MySQL 8.0 + Redis + Elasticsearch؛ 95 جدول بيانات، 479 واجهة، 285 نقطة صلاحية دقيقة، 757 اختبارًا آليًا ناجحًا جميعها، مع وثائق معمارية كاملة باللغتين وبرنامج تثبيت بخطوة واحدة، جاهز للاستخدام الفوري وسهل التطوير الثانوي.
 
 سواء كان حجز متجر واحد أو سلسلة فروع متعددة، يقدم نظام خدمات الحجز حلاً متكاملًا ومستقرًا وآمنًا وقابلًا للتوسع.
 
@@ -56,6 +56,10 @@ appointment-php/
     ├── API.md / FEATURES.md / STRUCTURE.md / install.sql / README.md ...
     └── diagrams/              #   架构/流程图（SVG + mermaid）
 ```
+
+**مخطط هيكل المشروع** (أربع منصات + تفاصيل الوحدات؛ النسخة الكاملة في [STRUCTURE.md](STRUCTURE.md)):
+
+<img src="diagrams/ar-project-structure.svg" alt="ar-project-structure.svg" width="100%">
 
 ## البدء السريع
 
@@ -122,29 +126,47 @@ cd ../service/ && cp .env.docker .env && docker-compose up -d
 
 ## بنية النظام
 
-<img src="../diagrams/ar-architecture.svg" alt="ar-architecture.svg" width="100%">
+<img src="diagrams/ar-architecture.svg" alt="ar-architecture.svg" width="100%">
+
+### تصميم البنية (الطبقات / الوسيطات / قاعدة البيانات)
+
+بنية من 7 طبقات باعتماد أحادي الاتجاه من الأعلى إلى الأسفل، وسلسلة الوسيطات المتراكمة حسب النطاق، وسياسة تحديد المعدل، ومبادئ تصميم قاعدة البيانات — الشرح الكامل في [ARCHITECTURE-DESIGN.md](ARCHITECTURE-DESIGN.md):
+
+<img src="diagrams/ar-architecture-design.svg" alt="ar-architecture-design.svg" width="100%">
 
 ## العمليات الأساسية
 
 ### عملية حجز الخدمة
 
-<img src="../diagrams/ar-appointment-flow.svg" alt="ar-appointment-flow.svg" width="100%">
+<img src="diagrams/ar-appointment-flow.svg" alt="ar-appointment-flow.svg" width="100%">
 
 ### عملية الدفع والاسترداد
 
-<img src="../diagrams/ar-payment-refund.svg" alt="ar-payment-refund.svg" width="100%">
+<img src="diagrams/ar-payment-refund.svg" alt="ar-payment-refund.svg" width="100%">
 
 ## دورة حياة الطلب
 
-<img src="../diagrams/ar-order-lifecycle.svg" alt="ar-order-lifecycle.svg" width="100%">
+<img src="diagrams/ar-order-lifecycle.svg" alt="ar-order-lifecycle.svg" width="100%">
+
+### جميع دورات الحياة في لمحة
+
+إلى جانب الطلبات، يدير النظام 16 دورة حياة تجارية أخرى، مصنفة إلى معاملات / أصول وحقوق / هوية وحسابات / تشغيل وتسويق — آلات الحالات الكاملة في [LIFECYCLE-DIAGRAM.md](diagrams/LIFECYCLE-DIAGRAM.md):
+
+<img src="diagrams/ar-lifecycle-overview.svg" alt="ar-lifecycle-overview.svg" width="100%">
 
 ## البنية الأمنية
 
 ### نظام الدفاع العميق من سبع طبقات
 
-<img src="../diagrams/ar-security-defense.svg" alt="ar-security-defense.svg" width="100%">
+<img src="diagrams/ar-security-defense.svg" alt="ar-security-defense.svg" width="100%">
 
 > للمزيد من الرسوم التفصيلية: [المخططات الانسيابية](diagrams/FLOWCHART.md) (تتضمن سحب الفني/تبديل الهوية) | [خريطة الوظائف](diagrams/FUNCTION-DIAGRAM.md) | [دورة الحياة الكاملة](diagrams/LIFECYCLE-DIAGRAM.md) | [البنية الأمنية الكاملة](diagrams/SECURITY-ARCHITECTURE.md)
+
+## تصميم المزايا
+
+المجالات الوظيفية الثلاثة، ومسارات الشراء (حجز الخدمة / سلة المنتجات)، وقواعد المعاملات (قفل الفني / شرائح الاسترداد / الخصومات)، والأصول والحقوق (بطاقات العضوية / النقاط / الرصيد / مكافآت المستخدمين الجدد)، وتسوية الفنيين، وتبديل الهوية وتصميم الدفع — الشرح الكامل في [FEATURE-DESIGN.md](FEATURE-DESIGN.md):
+
+<img src="diagrams/ar-feature-design.svg" alt="ar-feature-design.svg" width="100%">
 
 ## أبرز المزايا الأساسية (الجولات 6-24)
 

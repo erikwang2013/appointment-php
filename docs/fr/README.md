@@ -5,7 +5,7 @@
 
 Plateforme de gestion des réservations multi-appareils : mini-programme WeChat + application Flutter + application HarmonyOS côté utilisateur (changement d'identité avec le même compte), et back-office PC.
 
-> **État du projet** : Tout est terminé ✅ | 143 contrôleurs (service 69 / admin 74) | 87 modèles | 722 tests (service 558 / admin 164) | 95 tables | 388 routes (service 227 / admin 161)
+> **État du projet** : Tout est terminé ✅ | 143 contrôleurs (service 69 / admin 74) | 87 modèles | 757 tests (service 579 / admin 178) | 95 tables | 479 routes (service 221 / admin 258)
 
 ## Présentation du projet
 
@@ -27,7 +27,7 @@ Composants de sécurité maison : authentification JWT, obscurcissement des ID, 
 
 **Une base technique éprouvée**
 
-Basé sur PHP 8.3 + webman, framework haute performance en mémoire résidente, avec MySQL 8.0 + Redis + Elasticsearch ; 95 tables, 388 interfaces, 285 permissions granulaires, 722 tests automatisés tous verts, documentation d'architecture complète en chinois et en anglais et script d'installation en un clic : prêt à l'emploi et facile à faire évoluer.
+Basé sur PHP 8.3 + webman, framework haute performance en mémoire résidente, avec MySQL 8.0 + Redis + Elasticsearch ; 95 tables, 479 interfaces, 285 permissions granulaires, 757 tests automatisés tous verts, documentation d'architecture complète en chinois et en anglais et script d'installation en un clic : prêt à l'emploi et facile à faire évoluer.
 
 Que ce soit pour une boutique unique ou une chaîne multi-établissements, le système de réservation de services vous offre une solution intégrée, stable, sécurisée et extensible.
 
@@ -56,6 +56,10 @@ appointment-php/
     ├── API.md / FEATURES.md / STRUCTURE.md / install.sql / README.md ...
     └── diagrams/              #   Schémas d'architecture / de flux (SVG + mermaid)
 ```
+
+**Schéma de la structure du projet** (quatre plateformes + détail des modules ; version complète dans [STRUCTURE.md](STRUCTURE.md)) :
+
+<img src="diagrams/fr-project-structure.svg" alt="fr-project-structure.svg" width="100%">
 
 ## Démarrage rapide
 
@@ -124,6 +128,12 @@ cd ../service/ && cp .env.docker .env && docker-compose up -d
 
 <img src="diagrams/fr-architecture.svg" alt="fr-architecture.svg" width="100%">
 
+### Conception de l'architecture (couches / middleware / base de données)
+
+L'architecture en 7 couches à dépendances unidirectionnelles de haut en bas, la chaîne de middleware empilée par portée, la politique de limitation de débit et les règles de conception de la base de données — description complète dans [ARCHITECTURE-DESIGN.md](ARCHITECTURE-DESIGN.md) :
+
+<img src="diagrams/fr-architecture-design.svg" alt="fr-architecture-design.svg" width="100%">
+
 ## Processus clés
 
 ### Processus de réservation d'un service
@@ -138,6 +148,12 @@ cd ../service/ && cp .env.docker .env && docker-compose up -d
 
 <img src="diagrams/fr-order-lifecycle.svg" alt="fr-order-lifecycle.svg" width="100%">
 
+### Tous les cycles de vie en un coup d'œil
+
+Au-delà des commandes, le système gère 16 autres cycles de vie métier, regroupés en échanges / actifs et droits / identité et comptes / exploitation et marketing — machines à états complètes dans [LIFECYCLE-DIAGRAM.md](diagrams/LIFECYCLE-DIAGRAM.md) :
+
+<img src="diagrams/fr-lifecycle-overview.svg" alt="fr-lifecycle-overview.svg" width="100%">
+
 ## Architecture de sécurité
 
 ### Défense en profondeur en sept couches
@@ -145,6 +161,12 @@ cd ../service/ && cp .env.docker .env && docker-compose up -d
 <img src="diagrams/fr-security-defense.svg" alt="fr-security-defense.svg" width="100%">
 
 > Plus de schémas détaillés : [Organigrammes](diagrams/FLOWCHART.md) (retrait technicien / changement d'identité) | [Carte mentale des fonctions](diagrams/FUNCTION-DIAGRAM.md) | [Tous les cycles de vie](diagrams/LIFECYCLE-DIAGRAM.md) | [Architecture de sécurité complète](diagrams/SECURITY-ARCHITECTURE.md)
+
+## Conception fonctionnelle
+
+Les trois domaines fonctionnels, les parcours d'achat (réservation de service / panier produit), les règles commerciales (verrou technicien / paliers de remboursement / remises), les actifs et droits (cartes de membre / points / solde / récompenses nouveaux utilisateurs), le règlement des techniciens, le changement de rôle et la conception du paiement — description complète dans [FEATURE-DESIGN.md](FEATURE-DESIGN.md) :
+
+<img src="diagrams/fr-feature-design.svg" alt="fr-feature-design.svg" width="100%">
 
 ## Points forts des fonctionnalités (tours 6 à 24)
 

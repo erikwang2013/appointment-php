@@ -3,7 +3,7 @@
 
 > Deutsche Übersetzung · Original: [中文](../README.md)
 
-> **Projektstatus**: vollständig abgeschlossen ✅ | 143 Controller (service 69 / admin 74) | 87 Modelle | 722 Tests (service 558 / admin 164) | 95 Datenbanktabellen | 388 Routen (service 227 / admin 161)
+> **Projektstatus**: vollständig abgeschlossen ✅ | 143 Controller (service 69 / admin 74) | 87 Modelle | 757 Tests (service 579 / admin 178) | 95 Datenbanktabellen | 479 Routen (service 221 / admin 258)
 
 ## Kerndokumente
 
@@ -17,6 +17,23 @@
 | [INSTALL.md](INSTALL.md) | Installationsanleitung: Web-Installationsassistent, manuelle Installation, Docker-Bereitstellung, Umgebungsvariablen, FAQ |
 | [USAGE.md](USAGE.md) | Bedienungsanleitung: Verwaltungsbackend / Kunde / Techniker (API-Schnittstellen siehe [API.md](API.md)) |
 | [API.md](API.md) | API-Dokumentation: Business-API + Verwaltungsbackend-API, mit Anfrage-/Antwortbeispielen + OpenAPI-Endpunkten |
+
+## Diagramme (SVG)
+
+Alle Diagramme liegen in [diagrams/](diagrams/): die chinesischen `cn-*`- und englischen `en-*`-Originale befinden sich in `docs/diagrams/`, jede Sprache hat ihr eigenes gespiegeltes Set in `docs/<lang>/diagrams/`:
+
+| Diagramm | Beschreibung | Mermaid-Quelle |
+|------|------|-----------|
+| [de-architecture.svg](diagrams/de-architecture.svg) | Systemarchitektur: Topologie der vier Client-Schichten + Middleware + Datenschicht + Drittanbieterdienste | [ARCHITECTURE-DIAGRAM.md](diagrams/ARCHITECTURE-DIAGRAM.md) |
+| [de-architecture-design.svg](diagrams/de-architecture-design.svg) | Architekturdesign: 7 Schichten + Middleware-Kette + Ratenbegrenzung + Datenbankdesign-Regeln + Sicherheitsdesign | [ARCHITECTURE-DESIGN.md](ARCHITECTURE-DESIGN.md) |
+| [de-feature-design.svg](diagrams/de-feature-design.svg) | Funktionsdesign: drei Funktionsdomänen + Kaufabläufe + Handelsregeln + Vermögenswerte & Ansprüche + Technikerabrechnung + Rollenwechsel + Zahlung | [FEATURE-DESIGN.md](FEATURE-DESIGN.md) |
+| [de-project-structure.svg](diagrams/de-project-structure.svg) | Projektstruktur: Verzeichnisbaum der vier Plattformen + Moduldetails | [STRUCTURE.md](STRUCTURE.md) |
+| [de-appointment-flow.svg](diagrams/de-appointment-flow.svg) | Service-Buchungsablauf | [FLOWCHART.md](diagrams/FLOWCHART.md) |
+| [de-payment-refund.svg](diagrams/de-payment-refund.svg) | Zahlungs- und Rückerstattungsablauf | [FLOWCHART.md](diagrams/FLOWCHART.md) |
+| [de-order-lifecycle.svg](diagrams/de-order-lifecycle.svg) | Zustandsmaschine des Bestelllebenszyklus | [LIFECYCLE-DIAGRAM.md](diagrams/LIFECYCLE-DIAGRAM.md) |
+| [de-lifecycle-overview.svg](diagrams/de-lifecycle-overview.svg) | Überblick über alle Lebenszyklen (17, in vier Gruppen) | [LIFECYCLE-DIAGRAM.md](diagrams/LIFECYCLE-DIAGRAM.md) |
+| [de-security-defense.svg](diagrams/de-security-defense.svg) | Siebenstufige Verteidigung in der Tiefe | [SECURITY-ARCHITECTURE.md](diagrams/SECURITY-ARCHITECTURE.md) |
+| [mascot.svg](diagrams/mascot.svg) | Projektmaskottchen „Buchungshäschen" (SMIL-Animation, ohne externe Abhängigkeiten) | — |
 
 ## Tests und Sicherheit
 

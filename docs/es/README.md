@@ -3,7 +3,7 @@
 
 Plataforma de gestión de reservas de servicios en cuatro extremos: mini programa WeChat del usuario + APP Flutter + APP HarmonyOS (cambio de identidad con la misma cuenta) y panel de administración para PC.
 
-> **Estado del proyecto**: todo completado ✅ | 143 controladores (service 69 / admin 74) | 87 modelos | 722 pruebas (service 558 / admin 164) | 95 tablas de datos | 388 rutas (service 227 / admin 161)
+> **Estado del proyecto**: todo completado ✅ | 143 controladores (service 69 / admin 74) | 87 modelos | 757 pruebas (service 579 / admin 178) | 95 tablas de datos | 479 rutas (service 221 / admin 258)
 
 ## Introducción del proyecto
 
@@ -25,7 +25,7 @@ Con componentes de seguridad de desarrollo propio: autenticación JWT, ofuscaci�
 
 **Base técnica madura**
 
-Basado en PHP 8.3 + webman, un framework residente de alto rendimiento, con soporte de MySQL 8.0 + Redis + Elasticsearch; 95 tablas de datos, 388 interfaces, 285 puntos de permisos de grano fino, 722 pruebas automatizadas todas superadas, y documentación de arquitectura completa en chino e inglés con script de instalación de un solo clic — listo para usar y fácil de realizar desarrollo secundario.
+Basado en PHP 8.3 + webman, un framework residente de alto rendimiento, con soporte de MySQL 8.0 + Redis + Elasticsearch; 95 tablas de datos, 479 interfaces, 285 puntos de permisos de grano fino, 757 pruebas automatizadas todas superadas, y documentación de arquitectura completa en chino e inglés con script de instalación de un solo clic — listo para usar y fácil de realizar desarrollo secundario.
 
 Ya sea para reservas de una sola tienda o cadenas de múltiples tiendas, el Sistema de Reservas de Servicios puede ofrecerle una solución integrada estable, segura y escalable.
 
@@ -54,6 +54,10 @@ appointment-php/
     ├── API.md / FEATURES.md / STRUCTURE.md / install.sql / README.md ...
     └── diagrams/              #   Diagramas de arquitectura/flujo (SVG + mermaid)
 ```
+
+**Diagrama de la estructura del proyecto** (cuatro plataformas + detalle de módulos; versión completa en [STRUCTURE.md](STRUCTURE.md)):
+
+<img src="diagrams/es-project-structure.svg" alt="es-project-structure.svg" width="100%">
 
 ## Inicio rápido
 
@@ -122,6 +126,12 @@ cd ../service/ && cp .env.docker .env && docker-compose up -d
 
 <img src="diagrams/es-architecture.svg" alt="es-architecture.svg" width="100%">
 
+### Diseño de la arquitectura (capas / middleware / base de datos)
+
+La arquitectura de 7 capas con dependencias unidireccionales de arriba hacia abajo, la cadena de middleware apilada por ámbito, la política de limitación de peticiones y las reglas de diseño de la base de datos — descripción completa en [ARCHITECTURE-DESIGN.md](ARCHITECTURE-DESIGN.md):
+
+<img src="diagrams/es-architecture-design.svg" alt="es-architecture-design.svg" width="100%">
+
 ## Flujos principales
 
 ### Flujo de reserva de servicios
@@ -136,6 +146,12 @@ cd ../service/ && cp .env.docker .env && docker-compose up -d
 
 <img src="diagrams/es-order-lifecycle.svg" alt="es-order-lifecycle.svg" width="100%">
 
+### Todos los ciclos de vida de un vistazo
+
+Además de los pedidos, el sistema gestiona 16 ciclos de vida de negocio más, agrupados en transacciones / activos y derechos / identidad y cuentas / operación y marketing — máquinas de estados completas en [LIFECYCLE-DIAGRAM.md](diagrams/LIFECYCLE-DIAGRAM.md):
+
+<img src="diagrams/es-lifecycle-overview.svg" alt="es-lifecycle-overview.svg" width="100%">
+
 ## Arquitectura de seguridad
 
 ### Sistema de defensa en profundidad de siete capas
@@ -143,6 +159,12 @@ cd ../service/ && cp .env.docker .env && docker-compose up -d
 <img src="diagrams/es-security-defense.svg" alt="es-security-defense.svg" width="100%">
 
 > Más diagramas detallados: [Diagrama de flujo](diagrams/FLOWCHART.md) (incluye retiros de técnicos / cambio de identidad) | [Mapa mental de funciones](diagrams/FUNCTION-DIAGRAM.md) | [Todos los ciclos de vida](diagrams/LIFECYCLE-DIAGRAM.md) | [Arquitectura de seguridad completa](diagrams/SECURITY-ARCHITECTURE.md)
+
+## Diseño funcional
+
+Los tres dominios funcionales, flujos de compra (reserva de servicio / carrito de productos), reglas de transacción (bloqueo de técnico / tramos de reembolso / descuentos), activos y derechos (tarjetas de miembro / puntos / saldo / recompensas para nuevos usuarios), liquidación de técnicos, cambio de identidad y diseño de pagos — descripción completa en [FEATURE-DESIGN.md](FEATURE-DESIGN.md):
+
+<img src="diagrams/es-feature-design.svg" alt="es-feature-design.svg" width="100%">
 
 ## Destacados de funciones principales (Rondas 6-24)
 

@@ -53,7 +53,7 @@ SETNX lock:tech:123:2026-05-26-14:00 user_456 EX 180
 
 | Tipo | Condición | Descuento | Acumulación |
 |------|------|------|------|
-| Descuento de horas valle | 10-12 h / 17-18 h / después de las 21:00 | 9% de descuento | Acumulable con cupones |
+| Descuento de horas valle | 10-12 h / 17-18 h / después de las 21:00 | 10% de descuento | Acumulable con cupones |
 | Reserva anticipada | Más de 30 minutos antes | 5% de descuento | No acumulable con cupones |
 
 ## Retiro de técnicos

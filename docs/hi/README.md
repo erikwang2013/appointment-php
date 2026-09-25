@@ -5,7 +5,7 @@
 
 चार-प्लेटफ़ॉर्म अपॉइंटमेंट सेवा प्रबंधन मंच: उपयोगकर्ता पक्ष — वीचैट मिनी प्रोग्राम + Flutter APP + HarmonyOS APP (एक ही खाते से प्लेटफ़ॉर्म स्विच), PC प्रबंधन बैकएंड।
 
-> **परियोजना स्थिति**: सभी कार्य पूर्ण ✅ | 143 नियंत्रक (service 69 / admin 74) | 87 मॉडल | 722 परीक्षण (service 558 / admin 164) | 95 डेटा तालिकाएँ | 388 रूट (service 227 / admin 161)
+> **परियोजना स्थिति**: सभी कार्य पूर्ण ✅ | 143 नियंत्रक (service 69 / admin 74) | 87 मॉडल | 757 परीक्षण (service 579 / admin 178) | 95 डेटा तालिकाएँ | 479 रूट (service 221 / admin 258)
 
 ## परियोजना परिचय
 
@@ -27,7 +27,7 @@
 
 **परिपक्व तकनीकी आधार**
 
-PHP 8.3 + webman उच्च-प्रदर्शन रेज़िडेंट फ्रेमवर्क, MySQL 8.0 + Redis + Elasticsearch समर्थन; 95 डेटा तालिकाएँ, 388 इंटरफ़ेस, 285 सूक्ष्म-स्तरीय अनुमति बिंदु, 722 स्वचालित परीक्षण सभी पास; पूर्ण चीनी-अंग्रेज़ी वास्तुकला दस्तावेज़ और वन-क्लिक इंस्टॉल स्क्रिप्ट, आउट-ऑफ-द-बॉक्स उपयोग, आसान द्वितीयक विकास।
+PHP 8.3 + webman उच्च-प्रदर्शन रेज़िडेंट फ्रेमवर्क, MySQL 8.0 + Redis + Elasticsearch समर्थन; 95 डेटा तालिकाएँ, 479 इंटरफ़ेस, 285 सूक्ष्म-स्तरीय अनुमति बिंदु, 757 स्वचालित परीक्षण सभी पास; पूर्ण चीनी-अंग्रेज़ी वास्तुकला दस्तावेज़ और वन-क्लिक इंस्टॉल स्क्रिप्ट, आउट-ऑफ-द-बॉक्स उपयोग, आसान द्वितीयक विकास।
 
 चाहे एकल स्टोर अपॉइंटमेंट हो या बहु-स्टोर चेन, अपॉइंटमेंट सेवा प्रणाली आपको स्थिर, सुरक्षित, स्केलेबल एकीकृत समाधान प्रदान करती है।
 
@@ -56,6 +56,10 @@ appointment-php/
     ├── API.md / FEATURES.md / STRUCTURE.md / install.sql / README.md ...
     └── diagrams/              #   वास्तुकला/प्रवाह आरेख (SVG + mermaid)
 ```
+
+**परियोजना संरचना आरेख** (चार प्लेटफ़ॉर्म + मॉड्यूल विवरण; पूर्ण संस्करण [STRUCTURE.md](STRUCTURE.md) में):
+
+<img src="diagrams/hi-project-structure.svg" alt="hi-project-structure.svg" width="100%">
 
 ## त्वरित आरंभ
 
@@ -124,6 +128,12 @@ cd ../service/ && cp .env.docker .env && docker-compose up -d
 
 <img src="diagrams/hi-architecture.svg" alt="hi-architecture.svg" width="100%">
 
+### आर्किटेक्चर डिज़ाइन (परतें / मिडलवेयर / डेटाबेस)
+
+ऊपर से नीचे एकदिशीय निर्भरता वाला 7-परत आर्किटेक्चर, क्षेत्र के अनुसार स्तरित मिडलवेयर श्रृंखला, दर-सीमा नीति और डेटाबेस डिज़ाइन सिद्धांत — पूरा विवरण [ARCHITECTURE-DESIGN.md](ARCHITECTURE-DESIGN.md) में:
+
+<img src="diagrams/hi-architecture-design.svg" alt="hi-architecture-design.svg" width="100%">
+
 ## मुख्य प्रवाह
 
 ### सेवा अपॉइंटमेंट प्रवाह
@@ -138,6 +148,12 @@ cd ../service/ && cp .env.docker .env && docker-compose up -d
 
 <img src="diagrams/hi-order-lifecycle.svg" alt="hi-order-lifecycle.svg" width="100%">
 
+### सभी जीवनचक्र एक नज़र में
+
+ऑर्डर के अलावा सिस्टम 16 अन्य व्यावसायिक जीवनचक्र चलाता है, जो लेन-देन / संपत्ति और अधिकार / पहचान और खाते / संचालन और मार्केटिंग में वर्गीकृत हैं — पूर्ण स्टेट मशीन [LIFECYCLE-DIAGRAM.md](diagrams/LIFECYCLE-DIAGRAM.md) में:
+
+<img src="diagrams/hi-lifecycle-overview.svg" alt="hi-lifecycle-overview.svg" width="100%">
+
 ## सुरक्षा आर्किटेक्चर
 
 ### सात-परत गहराई-रक्षा प्रणाली
@@ -145,6 +161,12 @@ cd ../service/ && cp .env.docker .env && docker-compose up -d
 <img src="diagrams/hi-security-defense.svg" alt="hi-security-defense.svg" width="100%">
 
 > अधिक विस्तृत आरेख: [प्रवाह आरेख](diagrams/FLOWCHART.md) (तकनीशियन विड्रॉल/पहचान स्विच सहित) | [फ़ीचर माइंड-मैप](diagrams/FUNCTION-DIAGRAM.md) | [सभी जीवनचक्र](diagrams/LIFECYCLE-DIAGRAM.md) | [पूर्ण सुरक्षा आर्किटेक्चर](diagrams/SECURITY-ARCHITECTURE.md)
+
+## फ़ंक्शन डिज़ाइन
+
+तीन प्रमुख फ़ंक्शन क्षेत्र, खरीद प्रवाह (सेवा बुकिंग / उत्पाद कार्ट), लेन-देन नियम (तकनीशियन लॉक / रिफ़ंड श्रेणियाँ / छूट), संपत्ति और अधिकार (सदस्यता कार्ड / पॉइंट / बैलेंस / नए उपयोगकर्ता इनाम), तकनीशियन निपटान, भूमिका स्विच और भुगतान डिज़ाइन — पूरा विवरण [FEATURE-DESIGN.md](FEATURE-DESIGN.md) में:
+
+<img src="diagrams/hi-feature-design.svg" alt="hi-feature-design.svg" width="100%">
 
 ## मुख्य फ़ीचर हाइलाइट्स (राउंड 6-24)
 

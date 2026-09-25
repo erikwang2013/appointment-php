@@ -685,6 +685,17 @@
 
 响应: id/platform/version_code/version_name/force_update（1=强制）/changelog/download_url。
 
+### 26. 非版本化端点（不带 `/api/v1` 前缀）
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/` | 品牌落地页（HTML；浏览器直连 API 端口时展示，含 API 文档与健康检查入口） |
+| GET | `/health` | 健康检查（JSON，供 docker-compose healthcheck / 负载均衡探活） |
+| GET | `/api/docs` | 业务API完整规范（OpenAPI 3.0 JSON） |
+| POST | `/payment/wechat-notify` | 微信支付回调（验签 + 幂等防重） |
+
+> 客户端业务接口一律带版本前缀 `/api/v1/...`，不带前缀的裸 `/api/*` 路径返回 404。
+
 ---
 
 ## 二、管理后台API (admin/ :8787)

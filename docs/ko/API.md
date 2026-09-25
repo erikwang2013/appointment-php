@@ -685,6 +685,17 @@ technician으로 전환하려면 approved 상태의 기술자 프로필이 있�
 
 응답: id/platform/version_code/version_name/force_update(1=강제)/changelog/download_url.
 
+### 26. 비버전화 인터페이스(`/api/v1` 접두사 없음)
+
+| 메서드 | 경로 | 설명 |
+|------|------|------|
+| GET | `/` | 브랜드 랜딩 페이지(HTML; 브라우저가 API 포트에 직접 접속할 때 표시, API 문서와 헬스 체크 진입점 포함) |
+| GET | `/health` | 헬스 체크(JSON, docker-compose healthcheck / 로드밸런서 생존 확인용) |
+| GET | `/api/docs` | 비즈니스 API 전체 규격(OpenAPI 3.0 JSON) |
+| POST | `/payment/wechat-notify` | 위챗 결제 콜백(서명 검증 + 멱등 중복 방지) |
+
+> 클라이언트 비즈니스 인터페이스는 일률적으로 버전 접두사 `/api/v1/...`를 사용하며, 접두사가 없는 순수 `/api/*` 경로는 404를 반환합니다.
+
 ---
 
 ## 2. 관리 백엔드 API (admin/ :8787)

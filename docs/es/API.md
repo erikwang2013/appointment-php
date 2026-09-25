@@ -685,6 +685,17 @@ Entradas de navegación sin inicio de sesión que no requieren autenticación (i
 
 Respuesta: id/platform/version_code/version_name/force_update (1=obligatoria)/changelog/download_url.
 
+### 26. Interfaces no versionadas (sin prefijo /api/v1)
+
+| Método | Ruta | Descripción |
+|------|------|------|
+| GET | `/` | Página de aterrizaje de marca (HTML; se muestra cuando un navegador accede directamente al puerto de la API, con enlaces a la documentación de la API y a la comprobación de estado) |
+| GET | `/health` | Comprobación de estado (JSON; usada por docker-compose healthcheck / sondeo de actividad del balanceador de carga) |
+| GET | `/api/docs` | Especificación completa de la API de negocio (OpenAPI 3.0 JSON) |
+| POST | `/payment/wechat-notify` | Devolución de llamada del pago de WeChat (verificación de firma + idempotencia) |
+
+> Las interfaces de negocio del cliente llevan siempre el prefijo de versión `/api/v1/...`; las rutas desnudas `/api/*` sin el prefijo devuelven 404.
+
 ---
 
 ## II. API del panel de administración (admin/ :8787)

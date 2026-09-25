@@ -2,7 +2,7 @@
 
 四端预约服务管理平台：用户端微信小程序 + Flutter APP + HarmonyOS APP（同账号身份切换）、PC 管理后台。
 
-> **项目状态**: 全部完成 ✅ | 143 控制器（service 69 / admin 74） | 87 模型 | 722 测试（service 558 / admin 164） | 95 数据表 | 388 路由（service 227 / admin 161）
+> **项目状态**: 全部完成 ✅ | 143 控制器（service 69 / admin 74） | 87 模型 | 757 测试（service 579 / admin 178） | 95 数据表 | 479 路由（service 221 / admin 258）
 
 ## 项目介绍
 
@@ -24,7 +24,7 @@
 
 **成熟的技术底座**
 
-基于 PHP 8.3 + webman 高性能常驻框架，MySQL 8.0 + Redis + Elasticsearch 支撑；95 张数据表、388 个接口、285 个细粒度权限点，722 项自动化测试全部通过，并有完善的中英文架构文档与一键安装向导，开箱即用、易于二次开发。
+基于 PHP 8.3 + webman 高性能常驻框架，MySQL 8.0 + Redis + Elasticsearch 支撑；95 张数据表、479 个接口、285 个细粒度权限点，757 项自动化测试全部通过，并有完善的中英文架构文档与一键安装向导，开箱即用、易于二次开发。
 
 无论是单店预约还是多门店连锁，预约服务系统都能为您提供稳定、安全、可扩展的一体化解决方案。
 
@@ -53,6 +53,10 @@ appointment-php/
     ├── API.md / FEATURES.md / STRUCTURE.md / install.sql / README.md ...
     └── diagrams/              #   架构/流程图（SVG + mermaid）
 ```
+
+**项目结构图**（四端目录 + 模块明细，完整版见 [STRUCTURE.md](docs/STRUCTURE.md)）：
+
+<img src="docs/diagrams/cn-project-structure.svg" alt="cn-project-structure.svg" width="100%">
 
 ## 快速开始
 
@@ -121,6 +125,12 @@ cd ../service/ && cp .env.docker .env && docker-compose up -d
 
 <img src="docs/diagrams/cn-architecture.svg" alt="cn-architecture.svg" width="100%">
 
+### 架构设计（分层 / 中间件 / 数据库）
+
+7 层分层架构自顶向下单向依赖、中间件按作用域叠加的执行链、限流策略与数据库设计原则，完整说明见 [ARCHITECTURE-DESIGN.md](docs/ARCHITECTURE-DESIGN.md)：
+
+<img src="docs/diagrams/cn-architecture-design.svg" alt="cn-architecture-design.svg" width="100%">
+
 ## 核心流程
 
 ### 服务预约流程
@@ -135,6 +145,12 @@ cd ../service/ && cp .env.docker .env && docker-compose up -d
 
 <img src="docs/diagrams/cn-order-lifecycle.svg" alt="cn-order-lifecycle.svg" width="100%">
 
+### 全量生命周期总览
+
+除订单外，系统另有 16 条业务生命周期（交易 / 资产权益 / 身份账号 / 运营营销四类），完整状态机见 [LIFECYCLE-DIAGRAM.md](docs/diagrams/LIFECYCLE-DIAGRAM.md)：
+
+<img src="docs/diagrams/cn-lifecycle-overview.svg" alt="cn-lifecycle-overview.svg" width="100%">
+
 ## 安全架构
 
 ### 纵深防御七层体系
@@ -142,6 +158,12 @@ cd ../service/ && cp .env.docker .env && docker-compose up -d
 <img src="docs/diagrams/cn-security-defense.svg" alt="cn-security-defense.svg" width="100%">
 
 > 更多详细图示：[流程图](docs/diagrams/FLOWCHART.md)（含技师提现/身份切换）| [功能脑图](docs/diagrams/FUNCTION-DIAGRAM.md) | [全部生命周期](docs/diagrams/LIFECYCLE-DIAGRAM.md) | [完整安全架构](docs/diagrams/SECURITY-ARCHITECTURE.md)
+
+## 功能设计
+
+三大功能域、购买流程（服务预约 / 产品购物车）、交易规则（技师锁定 / 退款阶梯 / 折扣）、资产权益（会员卡 / 积分 / 余额 / 新人奖励）、技师结算、身份切换与支付设计的完整设计说明见 [FEATURE-DESIGN.md](docs/FEATURE-DESIGN.md)：
+
+<img src="docs/diagrams/cn-feature-design.svg" alt="cn-feature-design.svg" width="100%">
 
 ## 核心功能亮点（第 6-24 轮）
 

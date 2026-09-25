@@ -3,7 +3,7 @@
 # Système de réservation de services — Index de la documentation
 > **Languages**: [中文](../README.md) · [English](../en/DOCS.md) · [한국어](../ko/DOCS.md) · [Русский](../ru/DOCS.md) · [Deutsch](../de/DOCS.md) · [Español](../es/DOCS.md) · [Português](../pt/DOCS.md) · [हिन्दी](../hi/DOCS.md) · [العربية](../ar/DOCS.md) · [বাংলা](../bn/DOCS.md) · [Bahasa Indonesia](../id/DOCS.md) · [日本語](../ja/DOCS.md)
 
-> **État du projet** : Tout est terminé ✅ | 143 contrôleurs (service 69 / admin 74) | 87 modèles | 722 tests (service 558 / admin 164) | 95 tables | 388 routes (service 227 / admin 161)
+> **État du projet** : Tout est terminé ✅ | 143 contrôleurs (service 69 / admin 74) | 87 modèles | 757 tests (service 579 / admin 178) | 95 tables | 479 routes (service 221 / admin 258)
 
 ## Documentation principale
 
@@ -17,6 +17,23 @@
 | [INSTALL.md](INSTALL.md) | Installation : assistant Web, installation manuelle, déploiement Docker, variables d'environnement, FAQ |
 | [USAGE.md](USAGE.md) | Utilisation : back-office / côté utilisateur / côté technicien (interfaces API dans [API.md](API.md)) |
 | [API.md](API.md) | Documentation API : API métier + API back-office, exemples de requêtes/réponses + endpoints OpenAPI |
+
+## Schémas (SVG)
+
+Tous les schémas se trouvent dans [diagrams/](diagrams/) : les originaux chinois `cn-*` et anglais `en-*` sont dans `docs/diagrams/`, chaque langue dispose de son propre jeu miroir dans `docs/<lang>/diagrams/` :
+
+| Schéma | Description | Source Mermaid |
+|------|------|-----------|
+| [fr-architecture.svg](diagrams/fr-architecture.svg) | Architecture système : topologie des quatre couches clientes + middleware + couche de données + services tiers | [ARCHITECTURE-DIAGRAM.md](diagrams/ARCHITECTURE-DIAGRAM.md) |
+| [fr-architecture-design.svg](diagrams/fr-architecture-design.svg) | Conception de l'architecture : 7 couches + chaîne de middleware + limitation de débit + règles de conception de la base de données + conception de la sécurité | [ARCHITECTURE-DESIGN.md](ARCHITECTURE-DESIGN.md) |
+| [fr-feature-design.svg](diagrams/fr-feature-design.svg) | Conception fonctionnelle : trois domaines fonctionnels + parcours d'achat + règles commerciales + actifs et droits + règlement des techniciens + changement de rôle + paiement | [FEATURE-DESIGN.md](FEATURE-DESIGN.md) |
+| [fr-project-structure.svg](diagrams/fr-project-structure.svg) | Structure du projet : arborescence des quatre plateformes + détail des modules | [STRUCTURE.md](STRUCTURE.md) |
+| [fr-appointment-flow.svg](diagrams/fr-appointment-flow.svg) | Processus de réservation d'un service | [FLOWCHART.md](diagrams/FLOWCHART.md) |
+| [fr-payment-refund.svg](diagrams/fr-payment-refund.svg) | Processus de paiement et de remboursement | [FLOWCHART.md](diagrams/FLOWCHART.md) |
+| [fr-order-lifecycle.svg](diagrams/fr-order-lifecycle.svg) | Machine à états du cycle de vie d'une commande | [LIFECYCLE-DIAGRAM.md](diagrams/LIFECYCLE-DIAGRAM.md) |
+| [fr-lifecycle-overview.svg](diagrams/fr-lifecycle-overview.svg) | Vue d'ensemble de tous les cycles de vie (17, en quatre groupes) | [LIFECYCLE-DIAGRAM.md](diagrams/LIFECYCLE-DIAGRAM.md) |
+| [fr-security-defense.svg](diagrams/fr-security-defense.svg) | Défense en profondeur en sept couches | [SECURITY-ARCHITECTURE.md](diagrams/SECURITY-ARCHITECTURE.md) |
+| [mascot.svg](diagrams/mascot.svg) | Mascotte du projet « Petit Lapin des rendez-vous » (animation SMIL, sans dépendances externes) | — |
 
 ## Tests et sécurité
 

@@ -5,7 +5,7 @@
 
 Plattform für Buchungsdienstleistungen auf vier Endgeräten: WeChat-Miniprogramm für Kunden + Flutter APP + HarmonyOS APP (Identitätswechsel mit demselben Konto) sowie PC-Verwaltungsbackend.
 
-> **Projektstatus**: vollständig abgeschlossen ✅ | 143 Controller (service 69 / admin 74) | 87 Modelle | 722 Tests (service 558 / admin 164) | 95 Datenbanktabellen | 388 Routen (service 227 / admin 161)
+> **Projektstatus**: vollständig abgeschlossen ✅ | 143 Controller (service 69 / admin 74) | 87 Modelle | 757 Tests (service 579 / admin 178) | 95 Datenbanktabellen | 479 Routen (service 221 / admin 258)
 
 ## Projektvorstellung
 
@@ -27,7 +27,7 @@ Eigene Sicherheitskomponenten: JWT-Authentifizierung, ID-Verschleierung, 31 Arte
 
 **Ausgereifte Technologiebasis**
 
-Basiert auf PHP 8.3 + webman, einem leistungsstarken langlaufenden Framework, unterstützt durch MySQL 8.0 + Redis + Elasticsearch; 95 Datenbanktabellen, 388 Schnittstellen, 285 granulare Berechtigungspunkte, 722 automatisierte Tests – alle bestanden – sowie vollständige chinesische und englische Architekturdokumentation und Ein-Klick-Installationsskripte: einsatzbereit und leicht weiterzuentwickeln.
+Basiert auf PHP 8.3 + webman, einem leistungsstarken langlaufenden Framework, unterstützt durch MySQL 8.0 + Redis + Elasticsearch; 95 Datenbanktabellen, 479 Schnittstellen, 285 granulare Berechtigungspunkte, 757 automatisierte Tests – alle bestanden – sowie vollständige chinesische und englische Architekturdokumentation und Ein-Klick-Installationsskripte: einsatzbereit und leicht weiterzuentwickeln.
 
 Ob Einzelfilialbuchung oder Multi-Filial-Kette – das Buchungsservice-System bietet Ihnen eine stabile, sichere und skalierbare Komplettlösung.
 
@@ -56,6 +56,10 @@ appointment-php/
     ├── API.md / FEATURES.md / STRUCTURE.md / install.sql / README.md ...
     └── diagrams/              #   Architektur-/Flussdiagramme (SVG + mermaid)
 ```
+
+**Projektstrukturdiagramm** (vier Plattformen + Moduldetails; Vollversion in [STRUCTURE.md](STRUCTURE.md)):
+
+<img src="diagrams/de-project-structure.svg" alt="de-project-structure.svg" width="100%">
 
 ## Schnellstart
 
@@ -124,6 +128,12 @@ cd ../service/ && cp .env.docker .env && docker-compose up -d
 
 <img src="diagrams/de-architecture.svg" alt="de-architecture.svg" width="100%">
 
+### Architekturdesign (Schichten / Middleware / Datenbank)
+
+Die 7-Schichten-Architektur mit einseitigen Abhängigkeiten von oben nach unten, die nach Gültigkeitsbereich gestapelte Middleware-Kette, die Ratenbegrenzungsrichtlinie und die Datenbankdesign-Regeln — vollständige Beschreibung in [ARCHITECTURE-DESIGN.md](ARCHITECTURE-DESIGN.md):
+
+<img src="diagrams/de-architecture-design.svg" alt="de-architecture-design.svg" width="100%">
+
 ## Kernabläufe
 
 ### Service-Buchungsablauf
@@ -138,6 +148,12 @@ cd ../service/ && cp .env.docker .env && docker-compose up -d
 
 <img src="diagrams/de-order-lifecycle.svg" alt="de-order-lifecycle.svg" width="100%">
 
+### Alle Lebenszyklen im Überblick
+
+Über Bestellungen hinaus betreibt das System 16 weitere Geschäftslebenszyklen, gruppiert in Handel / Vermögenswerte & Ansprüche / Identität & Konten / Betrieb & Marketing — vollständige Zustandsmaschinen in [LIFECYCLE-DIAGRAM.md](diagrams/LIFECYCLE-DIAGRAM.md):
+
+<img src="diagrams/de-lifecycle-overview.svg" alt="de-lifecycle-overview.svg" width="100%">
+
 ## Sicherheitsarchitektur
 
 ### Siebenstufiges System der Verteidigung in der Tiefe
@@ -145,6 +161,12 @@ cd ../service/ && cp .env.docker .env && docker-compose up -d
 <img src="diagrams/de-security-defense.svg" alt="de-security-defense.svg" width="100%">
 
 > Weitere detaillierte Diagramme: [Flussdiagramm](diagrams/FLOWCHART.md) (inkl. Techniker-Auszahlung/Identitätswechsel) | [Funktions-Mindmap](diagrams/FUNCTION-DIAGRAM.md) | [Alle Lebenszyklen](diagrams/LIFECYCLE-DIAGRAM.md) | [Vollständige Sicherheitsarchitektur](diagrams/SECURITY-ARCHITECTURE.md)
+
+## Funktionsdesign
+
+Die drei Funktionsdomänen, Kaufabläufe (Servicebuchung / Produktwarenkorb), Handelsregeln (Technikersperre / Erstattungsstufen / Rabatte), Vermögenswerte & Ansprüche (Mitgliedskarten / Punkte / Guthaben / Neukundenprämien), Technikerabrechnung, Rollenwechsel und Zahlungsdesign — vollständige Beschreibung in [FEATURE-DESIGN.md](FEATURE-DESIGN.md):
+
+<img src="diagrams/de-feature-design.svg" alt="de-feature-design.svg" width="100%">
 
 ## Kernfunktionen im Überblick (Runde 6–24)
 

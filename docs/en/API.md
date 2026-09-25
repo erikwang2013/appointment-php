@@ -685,6 +685,17 @@ Not-logged-in browsing entry requiring no authentication (public endpoints).
 
 Response: id/platform/version_code/version_name/force_update (1=forced)/changelog/download_url.
 
+### 26. Non-Versioned Endpoints (No `/api/v1` Prefix)
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/` | Brand landing page (HTML; shown when a browser hits the API port directly, links to the API docs and health check) |
+| GET | `/health` | Health check (JSON; for docker-compose healthcheck / load-balancer liveness probes) |
+| GET | `/api/docs` | Full business API spec (OpenAPI 3.0 JSON) |
+| POST | `/payment/wechat-notify` | WeChat Pay callback (signature verification + idempotency) |
+
+> Client business endpoints always carry the version prefix `/api/v1/...`; bare `/api/*` paths without the prefix return 404.
+
 ---
 
 ## 2. Admin API (admin/ :8787)
