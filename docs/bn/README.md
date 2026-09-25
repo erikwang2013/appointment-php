@@ -266,11 +266,11 @@ If this project helps you, your support is welcome and appreciated!
   <tr>
     <td align="center" width="50%">
       <img src="../weixinpay.png" alt="উইচ্যাট পে / WeChat Pay" width="130" height="130"><br>
-      <b>WeChat Pay</b><br>WeChat Pay
+      <b>উইচ্যাট পে</b><br>WeChat Pay
     </td>
     <td align="center" width="50%">
       <img src="../alipay.png" alt="আলিপে / Alipay" width="130" height="130"><br>
-      <b>Alipay</b><br>Alipay
+      <b>আলিপে</b><br>Alipay
     </td>
   </tr>
 </table>

@@ -263,12 +263,12 @@ If this project helps you, your support is welcome and appreciated!
 <table>
   <tr>
     <td align="center" width="50%">
-      <img src="../weixinpay.png" alt="微信支付 / WeChat Pay" width="130" height="130"><br>
+      <img src="../weixinpay.png" alt="WeChat Pay" width="130" height="130"><br>
       <b>微信決済</b><br>WeChat Pay
     </td>
     <td align="center" width="50%">
-      <img src="../alipay.png" alt="支付宝 / Alipay" width="130" height="130"><br>
-      <b>支付宝</b><br>Alipay
+      <img src="../alipay.png" alt="Alipay" width="130" height="130"><br>
+      <b>Alipay</b>
     </td>
   </tr>
 </table>
