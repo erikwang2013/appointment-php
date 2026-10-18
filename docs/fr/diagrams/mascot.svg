@@ -2,10 +2,6 @@
   <title id="title">Mascotte du système de réservation — esprit du calendrier « Yue »</title>
   <desc id="desc">La page de calendrier de réservation devient elle-même le personnage : en-tête rouge + deux anneaux + page blanche de la date avec un visage, en bas à droite une coche verte indique la réservation réussie, en bas quatre points colorés représentent les quatre plateformes : mini-programme WeChat / application / HarmonyOS / administration. Animation SMIL pure, sans dépendances externes</desc>
   <defs>
-    <linearGradient id="bgGrad" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#232650"/>
-      <stop offset="100%" stop-color="#312B6E"/>
-    </linearGradient>
     <linearGradient id="pageGrad" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0%" stop-color="#FFFFFF"/>
       <stop offset="100%" stop-color="#EEF1FB"/>
@@ -19,12 +15,6 @@
       <stop offset="100%" stop-color="#FFB9CB"/>
     </linearGradient>
   </defs>
-
-  <!-- 徽章：外圈浅描边替代投影，不依赖滤镜，浅色背景上依然成立 -->
-  <rect x="40" y="40" width="400" height="400" rx="96" fill="#1B1E42" opacity="0.5"/>
-  <rect x="44" y="44" width="392" height="392" rx="92" fill="url(#bgGrad)"/>
-  <rect x="54" y="54" width="372" height="372" rx="82" fill="none" stroke="#7C88FF" stroke-width="2.5" opacity="0.4"/>
-  <ellipse cx="130" cy="98" rx="168" ry="78" fill="#FFFFFF" opacity="0.07" transform="rotate(-18 130 98)"/>
 
   <!-- 悬浮底座 -->
   <ellipse cx="240" cy="404" rx="120" ry="16" fill="none" stroke="#4FE3C1" stroke-width="2.5" opacity="0.4">

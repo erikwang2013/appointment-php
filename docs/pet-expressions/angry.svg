@@ -32,10 +32,6 @@
   .ex-motion, [class*="ex-anim-"] { animation: none !important; }
 }
 </style><g class="ex-motion ex-angry"><g class="ex-base"><defs>
-    <linearGradient id="bgGrad" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#232650"/>
-      <stop offset="100%" stop-color="#312B6E"/>
-    </linearGradient>
     <linearGradient id="pageGrad" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0%" stop-color="#FFFFFF"/>
       <stop offset="100%" stop-color="#EEF1FB"/>
@@ -49,12 +45,6 @@
       <stop offset="100%" stop-color="#FFB9CB"/>
     </linearGradient>
   </defs>
-
-  
-  <rect x="40" y="40" width="400" height="400" rx="96" fill="#1B1E42" opacity="0.5"/>
-  <rect x="44" y="44" width="392" height="392" rx="92" fill="url(#bgGrad)"/>
-  <rect x="54" y="54" width="372" height="372" rx="82" fill="none" stroke="#7C88FF" stroke-width="2.5" opacity="0.4"/>
-  <ellipse cx="130" cy="98" rx="168" ry="78" fill="#FFFFFF" opacity="0.07" transform="rotate(-18 130 98)"/>
 
   
   <ellipse cx="240" cy="404" rx="120" ry="16" fill="none" stroke="#4FE3C1" stroke-width="2.5" opacity="0.4">
