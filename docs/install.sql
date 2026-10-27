@@ -1045,21 +1045,6 @@ CREATE TABLE IF NOT EXISTS `appointment_feedback` (
     KEY `idx_status` (`status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='意见反馈表';
 
--- 朋友圈动态表
-CREATE TABLE IF NOT EXISTS `appointment_moment` (
-    `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
-    `content` TEXT NOT NULL COMMENT '动态内容',
-    `images` JSON COMMENT '动态图片列表',
-    `sort` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT '排序值',
-    `status` TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '审核状态: 0=待审核 1=已发布 2=已驳回',
-    `published_at` DATETIME DEFAULT NULL COMMENT '发布时间',
-    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    PRIMARY KEY (`id`),
-    KEY `idx_status` (`status`),
-    KEY `idx_published_at` (`published_at`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='朋友圈动态表';
-
 -- 消息通知表
 CREATE TABLE IF NOT EXISTS `appointment_notification` (
     `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
@@ -1494,39 +1479,6 @@ CREATE TABLE IF NOT EXISTS `appointment_check_in` (
     KEY `idx_user_id` (`user_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='签到记录表';
 
-CREATE TABLE IF NOT EXISTS `appointment_community_post` (
-    `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
-    `user_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'user_id',
-    `title` VARCHAR(200) NOT NULL DEFAULT '' COMMENT 'title',
-    `content` TEXT COMMENT 'content',
-    `images` JSON COMMENT 'images',
-    `likes` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'likes',
-    `comments_count` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'comments_count',
-    `status` TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'status',
-    `is_pinned` TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'is_pinned',
-    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    PRIMARY KEY (`id`),
-    KEY `idx_user_id` (`user_id`),
-    KEY `idx_status` (`status`),
-    KEY `idx_created_at` (`created_at`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='社区帖子表';
-
-CREATE TABLE IF NOT EXISTS `appointment_community_comment` (
-    `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
-    `post_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'post_id',
-    `user_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'user_id',
-    `parent_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'parent_id',
-    `content` TEXT COMMENT 'content',
-    `likes` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'likes',
-    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    PRIMARY KEY (`id`),
-    KEY `idx_post_id` (`post_id`),
-    KEY `idx_parent_id` (`parent_id`),
-    KEY `idx_user_id` (`user_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='社区评论表';
-
 CREATE TABLE IF NOT EXISTS `appointment_exam` (
     `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
     `title` VARCHAR(200) NOT NULL DEFAULT '' COMMENT 'title',
@@ -1698,24 +1650,6 @@ CREATE TABLE IF NOT EXISTS `appointment_user_device` (
     KEY `idx_user_id` (`user_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='用户设备表';
 
-CREATE TABLE IF NOT EXISTS `appointment_video_post` (
-    `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
-    `technician_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'technician_id',
-    `title` VARCHAR(200) NOT NULL DEFAULT '' COMMENT 'title',
-    `video_url` VARCHAR(500) NOT NULL DEFAULT '' COMMENT 'video_url',
-    `cover_url` VARCHAR(500) NOT NULL DEFAULT '' COMMENT 'cover_url',
-    `duration` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'duration',
-    `views` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'views',
-    `likes` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'likes',
-    `status` TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'status',
-    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    PRIMARY KEY (`id`),
-    KEY `idx_technician_id` (`technician_id`),
-    KEY `idx_status` (`status`),
-    KEY `idx_views` (`views`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='技师短视频表';
-
 CREATE TABLE IF NOT EXISTS `appointment_waitlist` (
     `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
     `user_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'user_id',
@@ -1861,10 +1795,6 @@ INSERT INTO `appointment_admin_permission` (`id`, `parent_id`, `name`, `slug`, `
 (21000000000000298, 0, '创建反馈', 'post.admin/feedbacks', 3, '', '', 98, NOW(), NOW()),
 (21000000000000299, 0, '更新反馈', 'put.admin/feedbacks/{id}', 3, '', '', 99, NOW(), NOW()),
 (21000000000000300, 0, '删除反馈', 'delete.admin/feedbacks/{id}', 3, '', '', 100, NOW(), NOW()),
-(21000000000000301, 0, '朋友圈列表', 'get.admin/moments', 3, '', '', 101, NOW(), NOW()),
-(21000000000000302, 0, '创建朋友圈', 'post.admin/moments', 3, '', '', 102, NOW(), NOW()),
-(21000000000000303, 0, '更新朋友圈', 'put.admin/moments/{id}', 3, '', '', 103, NOW(), NOW()),
-(21000000000000304, 0, '删除朋友圈', 'delete.admin/moments/{id}', 3, '', '', 104, NOW(), NOW()),
 (21000000000000305, 0, '系统消息列表', 'get.admin/system-messages', 3, '', '', 105, NOW(), NOW()),
 (21000000000000306, 0, '创建系统消息', 'post.admin/system-messages', 3, '', '', 106, NOW(), NOW()),
 (21000000000000307, 0, '更新系统消息', 'put.admin/system-messages/{id}', 3, '', '', 107, NOW(), NOW()),
@@ -1900,13 +1830,6 @@ INSERT INTO `appointment_admin_permission` (`id`, `parent_id`, `name`, `slug`, `
 (21000000000000337, 0, '下载备份', 'get.admin/db-backups/{filename}/download', 3, '', '', 137, NOW(), NOW()),
 (21000000000000338, 0, '恢复备份', 'post.admin/db-backups/{filename}/restore', 3, '', '', 138, NOW(), NOW()),
 (21000000000000339, 0, '删除备份', 'delete.admin/db-backups/{filename}', 3, '', '', 139, NOW(), NOW()),
-(21000000000000340, 0, '视频审核列表', 'get.admin/video-audit', 3, '', '', 140, NOW(), NOW()),
-(21000000000000341, 0, '视频审核', 'post.admin/video-audit/{hashid}', 3, '', '', 141, NOW(), NOW()),
-(21000000000000342, 0, '社区审核列表', 'get.admin/community-moderation', 3, '', '', 142, NOW(), NOW()),
-(21000000000000343, 0, '社区置顶', 'post.admin/community-moderation/pin/{hashid}', 3, '', '', 143, NOW(), NOW()),
-(21000000000000344, 0, '社区取消置顶', 'post.admin/community-moderation/unpin/{hashid}', 3, '', '', 144, NOW(), NOW()),
-(21000000000000345, 0, '社区隐藏', 'post.admin/community-moderation/hide/{hashid}', 3, '', '', 145, NOW(), NOW()),
-(21000000000000346, 0, '社区删除', 'delete.admin/community-moderation/{hashid}', 3, '', '', 146, NOW(), NOW()),
 (21000000000000347, 0, '技师排班查询', 'get.admin/technicians/{id}/schedules', 3, '', '', 147, NOW(), NOW()),
 (21000000000000348, 0, '设置技师排班', 'post.admin/technicians/{id}/schedules', 3, '', '', 148, NOW(), NOW()),
 (21000000000000349, 0, '更新预约单', 'put.admin/appointment-orders/{id}', 3, '', '', 149, NOW(), NOW()),

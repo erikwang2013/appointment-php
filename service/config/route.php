@@ -110,15 +110,6 @@ Route::group('/api/v1', function () {
     // ── 满减活动（公开浏览）──
     Route::get('/full-reduction-activities', v('api', 'FullReductionController', 'index'));
 
-    // ── 短视频（公开浏览）──
-    Route::get('/video/list', v('api', 'VideoController', 'index'));
-    Route::get('/video/detail/{id}', v('api', 'VideoController', 'show'));
-
-    // ── 社区圈子（公开浏览）──
-    Route::get('/community', v('api', 'CommunityController', 'index'));
-    Route::get('/community/detail/{id}', v('api', 'CommunityController', 'show'));
-    Route::get('/community/comment/list/{post_id}', v('api', 'CommunityCommentController', 'index'));
-
     // ── 成长等级（公开浏览）──
     Route::get('/growth/levels', v('user', 'GrowthController', 'levels'));
 
@@ -435,29 +426,6 @@ Route::group('/api/v1/browse-history', function () {
     Route::get('/', v('api', 'BrowseHistoryController', 'index'));
     Route::delete('/', v('api', 'BrowseHistoryController', 'clear'));
     Route::delete('/{item_id}', v('api', 'BrowseHistoryController', 'destroy'));
-})->middleware([
-    app\middleware\Auth::class,
-]);
-
-// ============================================================
-// 社区圈子接口（JWT）
-// ============================================================
-Route::group('/api/v1/community', function () {
-    Route::post('/', v('api', 'CommunityController', 'store'));
-    Route::post('/like/{id}', v('api', 'CommunityController', 'like'));
-    Route::get('/my-posts', v('api', 'CommunityController', 'myPosts'));
-
-    Route::post('/comment', v('api', 'CommunityCommentController', 'store'));
-    Route::delete('/comment/{id}', v('api', 'CommunityCommentController', 'destroy'));
-})->middleware([
-    app\middleware\Auth::class,
-]);
-
-// ============================================================
-// 短视频接口（JWT）
-// ============================================================
-Route::group('/api/v1/video', function () {
-    Route::post('/like/{id}', v('api', 'VideoController', 'like'));
 })->middleware([
     app\middleware\Auth::class,
 ]);
