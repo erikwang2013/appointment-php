@@ -8,9 +8,7 @@ appointment-php/
 ├── admin/              # 管理后台 (webman v2 + Flutter Web)
 ├── service/            # 业务API服务 (webman v2)
 ├── apps/               # 用户端前端应用
-│   ├── wechat/         #   微信小程序（原生）
-│   ├── flutter/        #   Flutter APP（iOS + Android）
-│   └── harmonyos/      #   HarmonyOS APP（鸿蒙原生）
+│   └── wechat/         #   微信小程序（原生）
 ├── docs/               # 项目文档
 └── .claude/            # Claude Code 配置
 ```
@@ -20,13 +18,11 @@ appointment-php/
 ```
 ┌──────────────────────────────────────────────┐
 │                   apps/                       │
-│  ┌─────────────┐  ┌──────────┐  ┌─────────┐  │
-│  │ wechat/      │  │ flutter/  │  │harmonyos/│  │
-│  │ 微信小程序    │  │iOS/Android│  │ 鸿蒙 APP │  │
-│  └──────┬──────┘  └────┬─────┘  └────┬────┘  │
-│         │     功能完全相同      │            │
-│         └──────────┬─────────┘            │
-│                    │ HTTP API                 │
+│              ┌─────────────┐                  │
+│              │ wechat/     │                  │
+│              │ 微信小程序   │                  │
+│              └──────┬──────┘                  │
+│                     │ HTTP API                │
 ├────────────────────┼─────────────────────────┤
 │              service/                         │
 │         业务API (webman v2)                    │
@@ -376,40 +372,6 @@ apps/wechat/
 │   └── constants.js            #   常量
 ├── styles/                     # 公共样式
 └── images/                     # 图片资源
-```
-
-### apps/flutter/ — Flutter APP
-
-```
-apps/flutter/
-├── lib/
-│   ├── main.dart               # 入口
-│   ├── app.dart                # App配置/路由/主题
-│   ├── pages/                  # 页面（与小程序结构一致）
-│   │   ├── auth/
-│   │   ├── home/
-│   │   ├── service/
-│   │   ├── order/
-│   │   ├── cart/
-│   │   ├── technician/
-│   │   ├── tech_work/
-│   │   ├── user/
-│   │   ├── marketing/
-│   │   ├── message/
-│   │   ├── store/
-│   │   └── other/
-│   ├── widgets/                # 公共组件
-│   ├── services/               # API服务
-│   │   ├── api_service         #   HTTP (Dio)
-│   │   ├── auth_service        #   认证
-│   │   └── location_service    #   定位
-│   ├── models/                 # 数据模型
-│   ├── state/                  # 状态管理
-│   └── utils/                  # 工具
-├── android/                    # Android工程
-├── ios/                        # iOS工程
-├── pubspec.yaml
-└── ...
 ```
 
 ## 中间件执行链

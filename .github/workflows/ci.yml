@@ -101,7 +101,3 @@ jobs:
       - name: Analyze admin Flutter app
         working-directory: admin/apps/flutter
         run: flutter analyze 2>&1 || true
-
-      - name: Analyze user Flutter app
-        working-directory: apps/flutter
-        run: flutter analyze 2>&1 || true
