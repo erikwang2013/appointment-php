@@ -523,43 +523,12 @@
 
 **成长值入账**: 签到 +10；提交评价 +20（追评不入账）；消费 floor(paid) 每 1 元 1 点（支付回调内复用状态复验幂等，重复回调不重复入账）。
 
-### 10. 发票接口（需JWT认证，第20轮）
-
-| 方法 | 路径 | 说明 |
-|------|------|------|
-| POST | `/api/v1/invoices` | 申请发票 (order_id hashid/order_type: service=服务/points_exchange=积分兑换/order_type 默认 service；金额与抬头服务端带出，不可篡改) |
-| GET | `/api/v1/invoices` | 发票列表 (?status=&page=) |
-| GET | `/api/v1/invoices/{id}` | 发票详情（仅本人） |
-
-**防重复**: uk_order_type(order_id, order_type) 唯一键，同一订单同类型重复申请 422（含 MySQL 1062 捕获兜底）。
-
-### 11. 客服工单接口（需JWT认证，第20轮）
-
-| 方法 | 路径 | 说明 |
-|------|------|------|
-| POST | `/api/v1/tickets` | 提交工单 (title/content 必填) |
-| GET | `/api/v1/tickets` | 工单列表 (?status=open/closed&page=) |
-| GET | `/api/v1/tickets/{id}` | 工单详情（仅本人，他人 404） |
-| POST | `/api/v1/tickets/{id}/close` | 关闭工单（仅本人/仅 open；可选 rating 1-5 满意度打分，越界/非整数 422，未提供兼容 NULL） |
-
 ### 12. 预约月历接口（需JWT认证，第20轮）
 
 | 方法 | 路径 | 说明 |
 |------|------|------|
 | GET | `/api/v1/calendar/technician/{id}` | 月视图 (?month=YYYY-MM)：排班 time_slots 展开小时槽 + 已约排除 |
 | GET | `/api/v1/calendar/technician/{id}/day` | 日视图 (?date=YYYY-MM-DD)：当天可约/已约/不可约槽位明细 |
-
-### 13. 发票抬头接口（需JWT认证，第21轮）
-
-| 方法 | 路径 | 说明 |
-|------|------|------|
-| POST | `/api/v1/invoice-titles` | 保存抬头 (title_type: personal/company；company 必须 tax_no；同用户同抬头重复 422；首条自动为默认) |
-| GET | `/api/v1/invoice-titles` | 抬头列表（默认置顶） |
-| PUT | `/api/v1/invoice-titles/{id}` | 编辑抬头（仅本人） |
-| DELETE | `/api/v1/invoice-titles/{id}` | 删除抬头（仅本人；删默认后自动指定最早一条） |
-| POST | `/api/v1/invoice-titles/{id}/default` | 设为默认（事务清零同用户其他行） |
-
-**申请联动**: POST /api/v1/invoices 支持可选 title_id —— 解析抬头自动带入 invoice_title/tax_no/title_type，无 title_id 时保留原手填路径。
 
 ### 14. 浏览足迹接口（需JWT认证，第21轮）
 
@@ -591,8 +560,8 @@
 
 | 方法 | 路径 | 说明 |
 |------|------|------|
-| GET | `/api/v1/privacy/data` | 数据导出（personal/orders/points/wallet_txns/reviews/addresses/invoices 分组 JSON；服务端日志仅记脱敏手机号+条数） |
-| POST | `/api/v1/privacy/close-request` | 申请注销（余额非 0 / 未完成订单 / 进行中工单 422；置 close_status=1 + close_requested_at） |
+| GET | `/api/v1/privacy/data` | 数据导出（personal/orders/points/wallet_txns/reviews/addresses 分组 JSON；服务端日志仅记脱敏手机号+条数） |
+| POST | `/api/v1/privacy/close-request` | 申请注销（余额非 0 / 未完成订单 422；置 close_status=1 + close_requested_at） |
 | POST | `/api/v1/privacy/close-cancel` | 取消注销申请（close_status 1→0） |
 | POST | `/api/v1/privacy/close-confirm` | 确认注销（满 72h 方可；close_status=2 + close_at + phone/nickname 匿名化为 user{id} + status=0） |
 
@@ -740,26 +709,6 @@
 | GET | `/admin/reviews/{id}/reply` | 评价回复详情（decodeId → find → 404 → decorate 输出；未回复 reply=''，reply/replied_at 经 toArray 透出；静态路由先于 resource） |
 
 权限ID: 381（slug 'get.admin/reviews/{id}/reply'）。
-
-### 发票管理（第20轮）
-
-| 方法 | 路径 | 说明 |
-|------|------|------|
-| GET | `/admin/invoices` | 发票列表（?status=pending/issued/rejected&page=） |
-| POST | `/admin/invoices/{id}/issue` | 开票 (invoice_no 必填，status→issued + issued_at；幂等：已开票 422) |
-| POST | `/admin/invoices/{id}/reject` | 驳回 (reject_reason 必填，status→rejected；仅 pending 可驳回) |
-
-权限ID: 382 列表 / 383 开票 / 384 驳回。
-
-### 工单管理（第20轮）
-
-| 方法 | 路径 | 说明 |
-|------|------|------|
-| GET | `/admin/tickets` | 工单列表（?status=&page=，静态路由先于 resource 避免 shadow） |
-| POST | `/admin/tickets/{id}/reply` | 回复工单 (content 必填，写 reply_content/replied_at，工单回到 open) |
-| GET | `/admin/tickets/satisfaction` | 满意度汇总（第21轮）：total/rated_count/unrated_count/average 1位小数/1-5星 distribution 缺星补 0；静态路由先于 resource |
-
-权限ID: 385 工单回复 / 387 工单列表查看 / 388 工单满意度统计。
 
 ### 评价图片审核（第21轮）
 

@@ -6,10 +6,8 @@ declare(strict_types=1);
 namespace app\api\v1\controller;
 
 use app\common\BaseController;
-use app\model\Invoice;
 use app\model\Order;
 use app\model\OrderReview;
-use app\model\Ticket;
 use app\model\User;
 use app\model\UserAddress;
 use app\model\UserPoints;
@@ -55,7 +53,6 @@ class PrivacyController extends BaseController
             'wallet_txns' => $this->walletTxns($userId),
             'reviews' => $this->reviews($userId),
             'addresses' => $this->addresses($userId),
-            'invoices' => $this->invoices($userId),
             'exported_at' => date('Y-m-d H:i:s'),
         ];
 
@@ -69,7 +66,6 @@ class PrivacyController extends BaseController
                 'wallet_txns' => count($data['wallet_txns']),
                 'reviews' => count($data['reviews']),
                 'addresses' => count($data['addresses']),
-                'invoices' => count($data['invoices']),
             ],
         ]);
 
@@ -77,7 +73,7 @@ class PrivacyController extends BaseController
     }
 
     /**
-     * 申请注销（校验余额为 0、无未完成订单、无进行中工单）
+     * 申请注销（校验余额为 0、无未完成订单）
      * POST /api/privacy/close-request
      */
     public function closeRequest(Request $request)
@@ -108,14 +104,6 @@ class PrivacyController extends BaseController
             ->exists();
         if ($unfinished) {
             return $this->error('存在未完成订单，请先处理后再申请注销', 422);
-        }
-
-        // 进行中工单（pending/processing）
-        $activeTicket = Ticket::where('user_id', $userId)
-            ->whereIn('status', ['pending', 'processing'])
-            ->exists();
-        if ($activeTicket) {
-            return $this->error('存在进行中的工单，请先处理后再申请注销', 422);
         }
 
         $user->forceFill([
@@ -243,15 +231,6 @@ class PrivacyController extends BaseController
             ->orderByDesc('created_at')
             ->get(['contact_name', 'contact_phone', 'province', 'city', 'district', 'detail', 'is_default', 'created_at'])
             ->map(fn(UserAddress $a) => $a->toArray())
-            ->all();
-    }
-
-    private function invoices(string $userId): array
-    {
-        return Invoice::where('user_id', $userId)
-            ->orderByDesc('created_at')
-            ->get(['order_id', 'order_type', 'title_type', 'invoice_title', 'tax_no', 'amount', 'status', 'issued_no', 'issued_at', 'created_at'])
-            ->map(fn(Invoice $i) => $i->toArray())
             ->all();
     }
 

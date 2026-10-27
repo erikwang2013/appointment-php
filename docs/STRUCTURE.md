@@ -105,8 +105,6 @@ admin/
 │   │   ├── LuckyWheelController     #   积分转盘
 │   │   ├── PointsExchangeGoodsController # 积分兑换商品
 │   │   ├── ReviewAuditController    #   评价图片审核
-│   │   ├── InvoiceController        #   电子发票
-│   │   ├── TicketController         #   客服工单
 │   │   ├── ReferralRewardController #   一级返佣记录
 │   │   ├── ReferralLevel2Controller #   二级返佣记录
 │   │   ├── ReturnCustomerController #   回头客奖励
@@ -229,10 +227,7 @@ service/
 │   │   ├── DeviceController        # 用户设备管理
 │   │   ├── GrowthController        # 成长等级（概览/records/levels）
 │   │   ├── HealthProfileController # 健康档案
-│   │   ├── InvoiceController       # 电子发票申请/列表/详情
-│   │   ├── InvoiceTitleController  # 发票抬头库
 │   │   ├── NotifySettingController # 消息偏好设置
-│   │   └── TicketController        # 客服工单
 │   ├── technician/v1/controller/ # 技师模块 v1（10 控制器）
 │   │   ├── ProfileController       # 技师档案/入驻申请
 │   │   ├── ScheduleController      # 排班查询/设置
@@ -442,10 +437,7 @@ apps/wechat/
 | 系统 | appointment_operation_log | 操作日志（已建） |
 | 用户 | appointment_user_growth | 成长值流水（第20轮） |
 | 用户 | appointment_growth_level | 成长等级档位（第20轮） |
-| 订单 | appointment_invoice | 电子发票（第20轮） |
-| 用户 | appointment_ticket | 客服工单（第20轮） |
 | 营销 | appointment_referral_level2_reward | 二级返佣记录（第20轮） |
-| 用户 | appointment_invoice_title | 发票抬头库（第21轮） |
 | 用户 | appointment_browse_history | 浏览足迹（第21轮） |
 | 营销 | appointment_full_reduction_activity | 满减活动（第22轮） |
 | 技师 | appointment_technician_attendance | 技师考勤（第22轮） |

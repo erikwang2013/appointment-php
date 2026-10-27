@@ -1410,28 +1410,6 @@ CREATE TABLE IF NOT EXISTS `appointment_check_in` (
     KEY `idx_user_id` (`user_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='签到记录表';
 
-CREATE TABLE IF NOT EXISTS `appointment_invoice` (
-    `id`            BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
-    `user_id`       BIGINT UNSIGNED NOT NULL COMMENT '用户ID',
-    `order_id`      BIGINT UNSIGNED NOT NULL COMMENT '业务单ID（服务订单/充值单）',
-    `order_type`    VARCHAR(20)     NOT NULL COMMENT '业务单类型: service=服务订单/recharge=充值',
-    `title_type`    VARCHAR(20)     NOT NULL COMMENT '抬头类型: personal=个人/company=企业',
-    `invoice_title` VARCHAR(255)    NOT NULL COMMENT '发票抬头',
-    `tax_no`        VARCHAR(50)     NULL COMMENT '纳税人识别号（company 必填）',
-    `amount`        DECIMAL(25,2)   NOT NULL COMMENT '开票金额（服务订单=实付金额，充值=充值金额）',
-    `email`         VARCHAR(100)    NULL COMMENT '接收邮箱（可选）',
-    `status`        VARCHAR(20)     NOT NULL DEFAULT 'pending' COMMENT '状态: pending=待开票/issued=已开票/rejected=已驳回',
-    `issued_no`     VARCHAR(50)     NULL COMMENT '发票号码（开票后写入）',
-    `issued_at`     DATETIME        NULL COMMENT '开票时间',
-    `remark`        VARCHAR(255)    NULL COMMENT '备注（驳回原因）',
-    `created_at`    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    `updated_at`    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    PRIMARY KEY (`id`),
-    UNIQUE KEY `uk_order_type` (`order_id`, `order_type`),
-    KEY `idx_user_created` (`user_id`, `created_at`),
-    KEY `idx_status` (`status`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='电子发票';
-
 CREATE TABLE IF NOT EXISTS `appointment_promotion` (
     `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
     `name` VARCHAR(200) NOT NULL DEFAULT '' COMMENT 'name',
@@ -1828,30 +1806,6 @@ INSERT INTO `appointment_admin_permission` (`id`, `parent_id`, `name`, `slug`, `
 -- ============================================================
 INSERT IGNORE INTO `appointment_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
 (21000000000000386, 0, '二级返佣记录列表', 'get.admin/referral-level2', 3, '', '', 175, NOW(), NOW());
--- (merge) 2026_08_15_000204_permission.sql → appointment_admin_permission
-
--- ============================================================
--- [2026_08_15_000204_permission.sql]
--- ============================================================
-INSERT IGNORE INTO `appointment_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
-(21000000000000385, 0, '工单回复', 'post.admin/tickets/{id}/reply', 3, '', '', 173, NOW(), NOW()),
-(21000000000000387, 0, '工单列表查看', 'get.admin/tickets', 3, '', '', 172, NOW(), NOW());
--- (merge) 2026_08_15_000205_permission.sql → appointment_admin_permission
-
--- ============================================================
--- [2026_08_15_000205_permission.sql]
--- ============================================================
-INSERT IGNORE INTO `appointment_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
-(21000000000000382, 0, '发票列表', 'get.admin/invoices', 3, '', '', 170, NOW(), NOW()),
-(21000000000000383, 0, '发票开票', 'post.admin/invoices/{id}/issue', 3, '', '', 171, NOW(), NOW()),
-(21000000000000384, 0, '发票驳回', 'post.admin/invoices/{id}/reject', 3, '', '', 172, NOW(), NOW());
--- (merge) 2026_08_15_000306_ticket_satisfaction_permission.sql → appointment_admin_permission
-
--- ============================================================
--- [2026_08_15_000306_ticket_satisfaction_permission.sql]
--- ============================================================
-INSERT IGNORE INTO `appointment_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
-(21000000000000388, 0, '工单满意度统计', 'get.admin/tickets/satisfaction', 3, '', '', 174, NOW(), NOW());
 -- (merge) 2026_08_15_000307_review_audit_permission.sql → appointment_admin_permission
 
 -- ============================================================
@@ -2009,43 +1963,6 @@ CREATE TABLE IF NOT EXISTS `appointment_referral_level2_reward` (
     KEY `idx_referrer_id` (`referrer_id`),
     KEY `idx_created_at` (`created_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='二级返佣发放记录表';
-
--- ============================================================
--- [2026_08_15_000201_ticket.sql]
--- ============================================================
-CREATE TABLE IF NOT EXISTS `appointment_ticket` (
-    `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
-    `user_id` BIGINT UNSIGNED NOT NULL COMMENT '提交用户ID',
-    `category` VARCHAR(20) NOT NULL DEFAULT 'other' COMMENT '工单分类: service=服务类 refund=退款类 technician=技师类 other=其他',
-    `description` TEXT NOT NULL COMMENT '问题描述',
-    `images` JSON DEFAULT NULL COMMENT '图片数组',
-    `status` VARCHAR(20) NOT NULL DEFAULT 'pending' COMMENT '工单状态: pending=待处理 processing=处理中 resolved=已解决 closed=已关闭',
-    `admin_id` BIGINT UNSIGNED DEFAULT NULL COMMENT '处理管理员ID',
-    `reply_content` TEXT DEFAULT NULL COMMENT '回复内容',
-    `replied_at` DATETIME DEFAULT NULL COMMENT '回复时间',
-    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    PRIMARY KEY (`id`),
-    KEY `idx_user_created` (`user_id`, `created_at`),
-    KEY `idx_status` (`status`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='客服工单表';
-
--- ============================================================
--- [2026_08_15_000302_invoice_title.sql]
--- ============================================================
-CREATE TABLE IF NOT EXISTS `appointment_invoice_title` (
-    `id`            BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
-    `user_id`       BIGINT UNSIGNED NOT NULL COMMENT '用户ID',
-    `title_type`    VARCHAR(20)     NOT NULL COMMENT '抬头类型: personal=个人/company=企业',
-    `invoice_title` VARCHAR(255)    NOT NULL COMMENT '发票抬头',
-    `tax_no`        VARCHAR(50)     NULL COMMENT '纳税人识别号（company 必填）',
-    `is_default`    TINYINT         NOT NULL DEFAULT 0 COMMENT '是否默认抬头: 0=否/1=是',
-    `created_at`    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    `updated_at`    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    PRIMARY KEY (`id`),
-    UNIQUE KEY `uk_user_title` (`user_id`, `title_type`, `invoice_title`),
-    KEY `idx_user_default` (`user_id`, `is_default`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='常用发票抬头';
 
 -- ============================================================
 -- [2026_08_15_000305_browse_history.sql]
@@ -2266,7 +2183,7 @@ ON DUPLICATE KEY UPDATE `description` = VALUES(`description`);
 -- ============================================================
 -- [覆盖验证补充 2026-08-15] 全量迁移覆盖核查后的剩余补全
 -- 种子: appointment_growth_level 5 行 / appointment_app_version 2 行 / 角色授权
--- 列:   appointment_ticket.rating,rated_at / appointment_technician_profile.tier_id / appointment_invoice 5 列
+-- 列:   appointment_technician_profile.tier_id
 -- ============================================================
 
 -- ============================================================
@@ -2296,20 +2213,12 @@ ON DUPLICATE KEY UPDATE
     `updated_at` = NOW();
 
 -- ============================================================
--- [2026_08_15_000303_ticket_rating.sql] 工单满意度评分列
--- ============================================================
-ALTER TABLE `appointment_ticket`
-    ADD COLUMN `rating` TINYINT UNSIGNED DEFAULT NULL COMMENT '满意度评分 1-5，NULL 表示未评分' AFTER `replied_at`,
-    ADD COLUMN `rated_at` DATETIME DEFAULT NULL COMMENT '评分时间' AFTER `rating`;
-
--- ============================================================
 -- [2026_08_14_000015_technician_tier_auto.sql] 技师等级列
 -- ============================================================
 ALTER TABLE `appointment_technician_profile`
     ADD COLUMN `tier_id` BIGINT UNSIGNED NULL DEFAULT NULL COMMENT '当前等级ID（appointment_technician_tier_config.id），空=未评定' AFTER `favorite_count`;
 
 -- ============================================================
--- [2026_08_15_000201_invoice.sql] appointment_invoice 已并入上方 CREATE 定义（迁移规范列集），无需 ALTER
 -- ============================================================
 
 -- ============================================================

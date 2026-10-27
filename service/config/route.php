@@ -280,18 +280,6 @@ Route::group('/api/v1/aftersales', function () {
 ]);
 
 // ============================================================
-// 客服工单接口（JWT）
-// ============================================================
-Route::group('/api/v1/tickets', function () {
-    Route::post('/', v('user', 'TicketController', 'store'));
-    Route::get('/', v('user', 'TicketController', 'index'));
-    Route::get('/{id}', v('user', 'TicketController', 'show'));
-    Route::post('/{id}/close', v('user', 'TicketController', 'close'));
-})->middleware([
-    app\middleware\Auth::class,
-]);
-
-// ============================================================
 // 钱包接口（JWT）——储值支付余额体系
 // ============================================================
 Route::group('/api/v1/wallet', function () {
@@ -345,30 +333,6 @@ Route::group('/api/v1/notification', function () {
     Route::get('/', v('notification', 'NotificationController', 'index'));
     Route::put('/read/{id}', v('notification', 'NotificationController', 'read'));
     Route::put('/read-all', v('notification', 'NotificationController', 'readAll'));
-})->middleware([
-    app\middleware\Auth::class,
-]);
-
-// ============================================================
-// 电子发票接口（JWT）
-// ============================================================
-Route::group('/api/v1/invoices', function () {
-    Route::post('/', v('user', 'InvoiceController', 'store'));
-    Route::get('/', v('user', 'InvoiceController', 'index'));
-    Route::get('/{id}', v('user', 'InvoiceController', 'show'));
-})->middleware([
-    app\middleware\Auth::class,
-]);
-
-// ============================================================
-// 常用发票抬头接口（JWT）
-// ============================================================
-Route::group('/api/v1/invoice-titles', function () {
-    Route::post('/', v('user', 'InvoiceTitleController', 'store'));
-    Route::get('/', v('user', 'InvoiceTitleController', 'index'));
-    Route::put('/{id}', v('user', 'InvoiceTitleController', 'update'));
-    Route::delete('/{id}', v('user', 'InvoiceTitleController', 'destroy'));
-    Route::post('/{id}/default', v('user', 'InvoiceTitleController', 'setDefault'));
 })->middleware([
     app\middleware\Auth::class,
 ]);

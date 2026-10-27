@@ -21,7 +21,7 @@ use Webman\Http\Response;
  *
  * 覆盖：
  * - 数据导出：个人信息（手机号原样）与各分组齐全
- * - 申请注销：余额非 0 / 未完成订单 / 进行中工单 → 422
+ * - 申请注销：余额非 0 / 未完成订单 → 422
  * - 申请 → 撤销 → 恢复正常
  * - 申请满 72h 后确认注销成功且手机号/昵称匿名化、账号禁用
  * - 已注销账号登录被拦截（403）
@@ -38,9 +38,7 @@ class PrivacyTest extends TestCase
             Db::table('appointment_wallet_txn')->where('user_id', $id)->delete();
             Db::table('appointment_user_points')->where('user_id', $id)->delete();
             Db::table('appointment_user_address')->where('user_id', $id)->delete();
-            Db::table('appointment_invoice')->where('user_id', $id)->delete();
             Db::table('appointment_order')->where('user_id', $id)->delete();
-            Db::table('appointment_ticket')->where('user_id', $id)->delete();
             Db::table('appointment_user_wallet')->where('user_id', $id)->delete();
             User::where('id', $id)->forceDelete();
         }
@@ -134,14 +132,6 @@ class PrivacyTest extends TestCase
             'detail' => '科技园', 'is_default' => 1,
             'created_at' => $this->now(), 'updated_at' => $this->now(),
         ]);
-        Db::table('appointment_invoice')->insert([
-            'id' => Model::generateId(), 'user_id' => $user->id,
-            'order_id' => Model::generateId(), 'order_type' => 'service',
-            'title_type' => 'personal', 'invoice_title' => '个人',
-            'amount' => 99.00, 'status' => 'pending',
-            'created_at' => $this->now(), 'updated_at' => $this->now(),
-        ]);
-
         $response = $this->controller()->data($this->makeRequest('GET', $user->id));
         $data = $this->body($response)['data'];
 
@@ -153,7 +143,6 @@ class PrivacyTest extends TestCase
         $this->assertCount(1, $data['wallet_txns']);
         $this->assertCount(1, $data['reviews']);
         $this->assertCount(1, $data['addresses']);
-        $this->assertCount(1, $data['invoices']);
         $this->assertNotEmpty($data['exported_at']);
     }
 
@@ -174,20 +163,10 @@ class PrivacyTest extends TestCase
     }
 
     #[Test]
-    public function closeRequestRejectedWhenUnfinishedOrderOrActiveTicket(): void
+    public function closeRequestRejectedWhenUnfinishedOrder(): void
     {
         $user = $this->makeUser();
         $this->seedOrder($user->id, Order::STATUS_PENDING);
-
-        $response = $this->controller()->closeRequest($this->makeRequest('POST', $user->id));
-        $this->assertSame(422, $this->body($response)['code']);
-
-        Db::table('appointment_order')->where('user_id', $user->id)->delete();
-        Db::table('appointment_ticket')->insert([
-            'id' => Model::generateId(), 'user_id' => $user->id,
-            'category' => '售后', 'description' => '进行中', 'status' => 'processing',
-            'created_at' => $this->now(), 'updated_at' => $this->now(),
-        ]);
 
         $response = $this->controller()->closeRequest($this->makeRequest('POST', $user->id));
         $this->assertSame(422, $this->body($response)['code']);

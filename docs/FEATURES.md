@@ -481,20 +481,6 @@ Flutter Web 单页应用，共 21 个页面：dashboard/用户/角色/配置/日
 - 接口：GET /api/v1/growth（当前等级概览：balance/level/下一档差额）；GET /api/v1/growth/records（流水分页）；GET /api/v1/growth/levels（公开档位列表，无需登录）
 - 失败策略：任一入账点 try/catch 记日志，不影响主流程
 
-### 23. 电子发票（第20轮）
-
-- appointment_invoice：uk_order_type(order_id,order_type) 防同一订单重复申请（重复申请 422，含 MySQL 1062 捕获兜底）；idx_user_created/idx_status
-- 用户端：POST /api/v1/invoices（申请，金额/标题服务端从订单带出，不可篡改）；GET /api/v1/invoices（列表）；GET /api/v1/invoices/{id}（详情）
-- 管理端：InvoiceController issue（开票：写 invoice_no + status=issued + issued_at）/ reject（驳回：status=rejected + reject_reason），权限 382 列表/383 开票/384 驳回
-- 状态机：pending → issued / rejected
-
-### 24. 客服工单（第20轮）
-
-- appointment_ticket：用户提交工单（title/content），后台回复追加（reply_content/replied_at），用户可关闭（closed_at）
-- 用户端：POST /api/v1/tickets（提交）；GET /api/v1/tickets（列表）；GET /api/v1/tickets/{id}（详情，仅本人）；POST /api/v1/tickets/{id}/close（关闭）
-- 管理端：TicketController index（列表）/ reply（回复），静态路由先于 resource 定义避免 {id} shadow；权限 385 工单回复/387 工单列表查看
-- 状态机：open → replied（回复后回 open 可再回）/ closed
-
 ### 25. 多级分销-二级返佣（第20轮）
 
 - ReferralRewardService::payLevel2Reward(paidAmount, orderId)：订单支付成功后，查一级推荐人的推荐人（二级推荐关系），发 paid×level2_rate（系统配置 referral.level2_rate，默认 0.02）
@@ -508,19 +494,6 @@ Flutter Web 单页应用，共 21 个页面：dashboard/用户/角色/配置/日
 - 等级折扣：OrderController::store applyGrowthDiscount() —— 仅标准订单（promotion_id 为空，拼团禁用叠加）；顺序：券/次卡优惠后应付金额 × discount_rate；折扣额并入 discount_amount，订单备注追加「等级折扣：白银9.8折，优惠¥2.00」可追溯；最低价保护：折后实付 ≥0.01 元（分制 ≥100），不足则折扣截断为 0
 - 积分倍率：WechatPayService::markOrderPaid 成长值由 floor(paid) 改 floor(paid × points_multiplier)，倍率按支付时点等级取档（入账前累计，本单不抬级）；R20 的 try/catch 挂接点完整保留
 - 查询复用：GrowthLevel::levelForGrowth() 按累计成长值取档，供下单/支付复用；GET /api/v1/growth 已返回 benefits 与 next_gap（R20 实现，无需改）
-
-### 27. 发票抬头管理（第21轮）
-
-- appointment_invoice_title（uk_user_title(user_id, title_type, invoice_title) 防重复 + idx_user_default）
-- 接口：POST /api/v1/invoice-titles（保存，company 必须 tax_no，重复 422）；GET（列表，默认置顶）；PUT /{id}（编辑，仅本人）；DELETE /{id}（删除，仅本人）；POST /{id}/default（设默认，事务清零同用户其他行）
-- 默认规则：首条保存自动为默认；删除默认后自动指定最早一条
-- 申请联动：InvoiceController::store 可选 title_id 解析抬头带入 invoice_title/tax_no/title_type，无 title_id 时保留原手填路径；uk_order_type 防重逻辑未动
-
-### 28. 工单满意度（第21轮）
-
-- appointment_ticket 加 rating TINYINT NULL + rated_at DATETIME NULL（迁移 000303）
-- 关闭打分：TicketController::close() 支持可选 rating 1-5（filter_var 整数校验，越界/非整数 422；提供则写 rating+rated_at，未提供保持 NULL 兼容旧客户端；只关 open 工单规则保留）
-- 后台统计：GET /admin/tickets/satisfaction（静态路由先于 resource 避免 {id} shadow）返回 total/rated_count/unrated_count/average（1 位小数）/distribution（1-5 星各数量，缺星补 0）；权限 388
 
 ### 29. 评价图片审核（第21轮）
 
@@ -563,8 +536,8 @@ Flutter Web 单页应用，共 21 个页面：dashboard/用户/角色/配置/日
 
 ### 36. 隐私合规（第22轮）
 
-- GET /api/v1/privacy/data：数据导出（personal/orders/points/wallet_txns/reviews/addresses/invoices 分组；日志只记脱敏手机号+条数）
-- 注销闭环：close-request（余额非 0 / 未完成订单 / 进行中工单 422 → close_status=1）→ close-cancel（1→0）→ close-confirm（满 72h → close_status=2 + close_at + phone/nickname 匿名化 user{id} + status=0）
+- GET /api/v1/privacy/data：数据导出（personal/orders/points/wallet_txns/reviews/addresses 分组；日志只记脱敏手机号+条数）
+- 注销闭环：close-request（余额非 0 / 未完成订单 422 → close_status=1）→ close-cancel（1→0）→ close-confirm（满 72h → close_status=2 + close_at + phone/nickname 匿名化 user{id} + status=0）
 - appointment_user 加 close_status/close_requested_at/close_at（幂等 ALTER 迁移）；AuthController login/loginByCode 对 close_status=2 返回 403「账号已注销」
 
 ### 37. 用户健康档案（第23轮）
