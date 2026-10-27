@@ -237,6 +237,37 @@ If this project helps you, your support is welcome and appreciated!
   </tr>
 </table>
 
+## Open Source vs Commercial Edition
+
+The open-source edition is a streamlined edition for personal study and research. The commercial edition is in `open-project/appointment-php` and retains the full feature set plus the Flutter client. Both share the same codebase; the commercial edition is a strict superset — the open-source edition has no controllers, models, or data tables missing from the commercial edition.
+
+| Metric | Open Source | Commercial |
+|--------|-------------|------------|
+| Controllers | 115 (service 53 / admin 62) | 143 (service 69 / admin 74) |
+| Models | 65 | 87 |
+| Data tables | 73 | 95 |
+| Routes | 311 (service 173 / admin 138) | 479 (service 229 / admin 163) |
+| PHP files / lines | 437 / 67,898 | 503 / 78,467 |
+| Test files | 93 | 109 (README claims 757 cases) |
+| Clients | WeChat Mini Program + PC admin | WeChat Mini Program + Flutter app + PC admin |
+
+**Commercial-only capabilities**
+- **Community & content**: community posts/comments, moments, short videos, and moderation.
+- **Technician growth**: training courses/progress, exams and question bank, service records.
+- **Store queue**: queue numbering, waitlist, e-signature.
+- **Invoices & support**: e-invoices, invoice titles, support tickets and satisfaction.
+- **Asset transfers**: user-to-user wallet balance and points transfers.
+- **Marketing campaigns**: full-reduction, flash sale, lucky wheel.
+- **Client**: Flutter app (16 pages); the README also lists a HarmonyOS client, but the checked-out directory contains no source.
+- Commercial also retains admin configuration controllers for SMS, storage, and refund workflow (some are legacy entries).
+
+**Open-source scope**
+Appointments and orders, payments/refunds/after-sales, technician workbench/scheduling/attendance/withdrawals, membership/coupons/group buy/points/growth levels, referral commissions, content/announcements/FAQ, reports, RBAC/audit, security protection, plus the WeChat Mini Program and PC admin.
+
+**Licensing**
+- Open source: personal study and research only; commercial use requires written authorization.
+- Commercial: full-feature edition; contact **erik@erik.xyz** for commercial licensing, delivery, and support terms.
+
 ## 项目授权 / Project License
 
 Copyright (c) 2026 erik <erik@erik.xyz> — https://erik.xyz
