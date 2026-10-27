@@ -1,4 +1,6 @@
 # Appointment Service System Design Specification
+
+> **Historical design document**: some features were removed in later releases; the current feature set is defined by README/FEATURES.
 > **Languages**: [中文](../../README.md)
 
 ## Overview

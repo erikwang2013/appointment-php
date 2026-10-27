@@ -1,4 +1,6 @@
 # 预约服务系统 实现计划
+
+> **历史设计文档**：部分功能已在后续版本移除，当前功能以 README/FEATURES 为准。
 > **多语言**：[English](../../en/README.md)
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task.

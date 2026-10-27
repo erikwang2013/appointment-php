@@ -1,4 +1,6 @@
 # Appointment Service System Implementation Plan
+
+> **Historical design document**: some features were removed in later releases; the current feature set is defined by README/FEATURES.
 > **Languages**: [中文](../../README.md)
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task.
