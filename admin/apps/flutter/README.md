@@ -1,6 +1,6 @@
 # 管理后台 Flutter Web 应用（admin_app）
 
-> **多语言**：[English](../../../README_EN.md) · [한국어](../../../docs/ko/README.md) · [Русский](../../../docs/ru/README.md) · [Deutsch](../../../docs/de/README.md) · [Français](../../../docs/fr/README.md) · [Español](../../../docs/es/README.md) · [Português](../../../docs/pt/README.md) · [हिन्दी](../../../docs/hi/README.md) · [العربية](../../../docs/ar/README.md) · [বাংলা](../../../docs/bn/README.md) · [Bahasa Indonesia](../../../docs/id/README.md) · [日本語](../../../docs/ja/README.md)
+> **多语言**：[English](../../../README_EN.md) · [中文](../../../README.md)
 
 本目录是预约服务系统 **PC 管理后台前端**：Flutter Web 单页应用（Material 3 + GetX，PC 管理后台风格），与 webman 后端（`admin/`，端口 :8787）配套使用。用户端三端（微信小程序 / Flutter APP / HarmonyOS APP）详见根 [README](../../../README.md) 与 [docs/FEATURES.md](../../../docs/FEATURES.md)。
 
