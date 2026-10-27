@@ -6,7 +6,7 @@
 
 ## 项目介绍
 
-<img src="docs/diagrams/mascot.svg" alt="预约服务系统吉祥物——日历精灵「小约」（SVG 动画）" width="200" align="right">
+![预约服务系统吉祥物——日历精灵「小约」（SVG 动画）](docs/diagrams/mascot.svg)
 
 **预约服务系统**是一套面向生活服务行业的双端预约管理平台：用户端为**微信小程序**，配合 **PC 管理后台**，实现"用户预约 → 技师接单 → 后台运营"全流程数字化闭环。无论门店预约、技师服务、会员营销还是财务结算，一套系统全部搞定。
 
@@ -54,7 +54,7 @@ appointment-php/
 
 **项目结构图**（双端目录 + 模块明细，完整版见 [STRUCTURE.md](docs/STRUCTURE.md)）：
 
-<img src="docs/diagrams/cn-project-structure.svg" alt="cn-project-structure.svg" width="100%">
+![cn-project-structure.svg](docs/diagrams/cn-project-structure.svg)
 
 ## 快速开始
 
@@ -119,38 +119,37 @@ cd ../service/ && cp .env.docker .env && docker-compose up -d
 
 ## 系统架构
 
-<img src="docs/diagrams/cn-architecture.svg" alt="cn-architecture.svg" width="100%">
+![cn-architecture.svg](docs/diagrams/cn-architecture.svg)
 
 ### 架构设计（分层 / 中间件 / 数据库）
 
 7 层分层架构自顶向下单向依赖、中间件按作用域叠加的执行链、限流策略与数据库设计原则，完整说明见 [ARCHITECTURE-DESIGN.md](docs/ARCHITECTURE-DESIGN.md)：
 
-<img src="docs/diagrams/cn-architecture-design.svg" alt="cn-architecture-design.svg" width="100%">
+![cn-architecture-design.svg](docs/diagrams/cn-architecture-design.svg)
 
 ## 核心流程
 
 ### 服务预约流程
 
-<img src="docs/diagrams/cn-appointment-flow.svg" alt="cn-appointment-flow.svg" width="100%">
+![cn-appointment-flow.svg](docs/diagrams/cn-appointment-flow.svg)
 
 ### 支付与退款流程
 
-<img src="docs/diagrams/cn-payment-refund.svg" alt="cn-payment-refund.svg" width="100%">
+![cn-payment-refund.svg](docs/diagrams/cn-payment-refund.svg)
 
 ## 订单生命周期
 
-<img src="docs/diagrams/cn-order-lifecycle.svg" alt="cn-order-lifecycle.svg" width="100%">
+![cn-order-lifecycle.svg](docs/diagrams/cn-order-lifecycle.svg)
 
 ### 全量生命周期总览
 
 除订单外，系统另有 10 条业务生命周期（交易 / 资产权益 / 身份账号 / 运营营销四类），完整状态机见 [LIFECYCLE-DIAGRAM.md](docs/diagrams/LIFECYCLE-DIAGRAM.md)：
 
-
 ## 安全架构
 
 ### 纵深防御七层体系
 
-<img src="docs/diagrams/cn-security-defense.svg" alt="cn-security-defense.svg" width="100%">
+![cn-security-defense.svg](docs/diagrams/cn-security-defense.svg)
 
 > 更多详细图示：[流程图](docs/diagrams/FLOWCHART.md)（含技师提现/身份切换）| [功能脑图](docs/diagrams/FUNCTION-DIAGRAM.md) | [全部生命周期](docs/diagrams/LIFECYCLE-DIAGRAM.md) | [完整安全架构](docs/diagrams/SECURITY-ARCHITECTURE.md)
 
@@ -158,7 +157,7 @@ cd ../service/ && cp .env.docker .env && docker-compose up -d
 
 三大功能域、购买流程（服务预约 / 产品购物车）、交易规则（技师锁定 / 退款阶梯 / 折扣）、资产权益（会员卡 / 积分 / 余额 / 新人奖励）、技师结算、身份切换与支付设计的完整设计说明见 [FEATURE-DESIGN.md](docs/FEATURE-DESIGN.md)：
 
-<img src="docs/diagrams/cn-feature-design.svg" alt="cn-feature-design.svg" width="100%">
+![cn-feature-design.svg](docs/diagrams/cn-feature-design.svg)
 
 ## 核心功能亮点（第 6-24 轮）
 
@@ -255,18 +254,9 @@ cd ../service/ && cp .env.docker .env && docker-compose up -d
 
 If this project helps you, your support is welcome and appreciated!
 
-<table>
-  <tr>
-    <td align="center" width="50%">
-      <img src="docs/weixinpay.png" alt="微信支付 / WeChat Pay" width="130" height="130"><br>
-      <b>微信支付</b><br>WeChat Pay
-    </td>
-    <td align="center" width="50%">
-      <img src="docs/alipay.png" alt="支付宝 / Alipay" width="130" height="130"><br>
-      <b>支付宝</b><br>Alipay
-    </td>
-  </tr>
-</table>
+| 微信支付 | 支付宝 |
+|---|---|
+| ![微信支付](docs/weixinpay.png) **微信支付** WeChat Pay | ![支付宝](docs/alipay.png) **支付宝** Alipay |
 
 ## 开源版 vs 商业版
 
@@ -304,7 +294,7 @@ If this project helps you, your support is welcome and appreciated!
 
 ## 项目授权 / Project License
 
-Copyright (c) 2026 erik <erik@erik.xyz> — https://erik.xyz
+Copyright (c) 2026 erik · erik@erik.xyz · https://erik.xyz
 
 - 本项目仅供个人学习、研究使用。
 - 未经作者书面授权，禁止任何形式的商业使用（包括但不限于商业部署、付费服务、二次销售、SaaS 运营及以本项目为基础提供商业服务）。
@@ -316,15 +306,23 @@ Copyright (c) 2026 erik <erik@erik.xyz> — https://erik.xyz
 
 ## 项目宠物表情形态 · 小约
 
-<table align="center">
-<tr><td align="center"><img src="docs/pet-expressions/smile.svg" width="88" alt="笑"><br><b>笑</b><br><code>:emoji-smile:</code></td><td align="center"><img src="docs/pet-expressions/joy.svg" width="88" alt="欢乐"><br><b>欢乐</b><br><code>:emoji-joy:</code></td><td align="center"><img src="docs/pet-expressions/cry.svg" width="88" alt="哭"><br><b>哭</b><br><code>:emoji-cry:</code></td><td align="center"><img src="docs/pet-expressions/depressed.svg" width="88" alt="沮丧"><br><b>沮丧</b><br><code>:emoji-depressed:</code></td><td align="center"><img src="docs/pet-expressions/terrified.svg" width="88" alt="惊恐"><br><b>惊恐</b><br><code>:emoji-terrified:</code></td><td align="center"><img src="docs/pet-expressions/angry.svg" width="88" alt="愤怒"><br><b>愤怒</b><br><code>:emoji-angry:</code></td></tr>
-<tr><td align="center"><img src="docs/pet-expressions/coquettish.svg" width="88" alt="撒娇"><br><b>撒娇</b><br><code>:emoji-coquettish:</code></td><td align="center"><img src="docs/pet-expressions/cute.svg" width="88" alt="卖萌"><br><b>卖萌</b><br><code>:emoji-cute:</code></td><td align="center"><img src="docs/pet-expressions/pleasing.svg" width="88" alt="讨好"><br><b>讨好</b><br><code>:emoji-pleasing:</code></td><td align="center"><img src="docs/pet-expressions/knocking.svg" width="88" alt="敲打"><br><b>敲打</b><br><code>:emoji-knocking:</code></td><td align="center"><img src="docs/pet-expressions/facepalm.svg" width="88" alt="捂脸"><br><b>捂脸</b><br><code>:emoji-facepalm:</code></td><td align="center"><img src="docs/pet-expressions/tongue.svg" width="88" alt="吐舌头"><br><b>吐舌头</b><br><code>:emoji-tongue:</code></td></tr>
-</table>
+| 表情 | 名称 | 代码 |
+|---|---|---|
+| ![笑](docs/pet-expressions/smile.svg) | 笑 | `:emoji-smile:` |
+| ![欢乐](docs/pet-expressions/joy.svg) | 欢乐 | `:emoji-joy:` |
+| ![哭](docs/pet-expressions/cry.svg) | 哭 | `:emoji-cry:` |
+| ![沮丧](docs/pet-expressions/depressed.svg) | 沮丧 | `:emoji-depressed:` |
+| ![惊恐](docs/pet-expressions/terrified.svg) | 惊恐 | `:emoji-terrified:` |
+| ![愤怒](docs/pet-expressions/angry.svg) | 愤怒 | `:emoji-angry:` |
+| ![撒娇](docs/pet-expressions/coquettish.svg) | 撒娇 | `:emoji-coquettish:` |
+| ![卖萌](docs/pet-expressions/cute.svg) | 卖萌 | `:emoji-cute:` |
+| ![讨好](docs/pet-expressions/pleasing.svg) | 讨好 | `:emoji-pleasing:` |
+| ![敲打](docs/pet-expressions/knocking.svg) | 敲打 | `:emoji-knocking:` |
+| ![捂脸](docs/pet-expressions/facepalm.svg) | 捂脸 | `:emoji-facepalm:` |
+| ![吐舌头](docs/pet-expressions/tongue.svg) | 吐舌头 | `:emoji-tongue:` |
 
 > 12 种彩色动态形态：笑 / 欢乐 / 哭 / 沮丧 / 惊恐 / 愤怒 / 撒娇 / 卖萌 / 讨好 / 敲打 / 捂脸 / 吐舌头。每个 SVG 自带表情、情绪特效与整体动效，并遵循 `prefers-reduced-motion`。所有宠物素材均为透明背景，可直接叠加到任意底色界面。
-<!-- pet-expressions:end -->
 
-<!-- assets-license:start -->
 ## 视觉资产授权 / Visual Assets License
 
 本项目的项目宠物、图片、图标、表情（包括 `docs/pet-expressions/` 等目录下的
@@ -333,4 +331,4 @@ SVG / PNG）**不是开源资产**，版权归作者所有。未经书面许可�
 [ASSETS-LICENSE.md](ASSETS-LICENSE.md)。
 
 > 代码部分仍遵循仓库原有 `LICENSE`；第三方素材（如明确标注的 Go Gopher 等）仍遵循其原许可证。
-<!-- assets-license:end -->
+

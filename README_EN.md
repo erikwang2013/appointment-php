@@ -17,7 +17,7 @@ appointment-php/
 
 **Project structure diagram** (two platforms + module detail; full version in [STRUCTURE.md](docs/STRUCTURE.md)):
 
-<img src="docs/diagrams/en-project-structure.svg" alt="en-project-structure.svg" width="100%">
+![en-project-structure.svg](docs/diagrams/en-project-structure.svg)
 
 ## Quick Start
 
@@ -82,38 +82,37 @@ cd ../service/ && cp .env.docker .env && docker-compose up -d
 
 ## Architecture
 
-<img src="docs/diagrams/en-architecture.svg" alt="en-architecture.svg" width="100%">
+![en-architecture.svg](docs/diagrams/en-architecture.svg)
 
 ### Architecture Design (Layers / Middleware / Database)
 
 The 7-layer architecture with one-way top-down dependencies, the scope-stacked middleware chain, rate-limit policy and database design rules — full write-up in [ARCHITECTURE-DESIGN.md](docs/en/ARCHITECTURE-DESIGN.md):
 
-<img src="docs/diagrams/en-architecture-design.svg" alt="en-architecture-design.svg" width="100%">
+![en-architecture-design.svg](docs/diagrams/en-architecture-design.svg)
 
 ## Core Flows
 
 ### Appointment Booking
 
-<img src="docs/diagrams/en-appointment-flow.svg" alt="en-appointment-flow.svg" width="100%">
+![en-appointment-flow.svg](docs/diagrams/en-appointment-flow.svg)
 
 ### Payment & Refund
 
-<img src="docs/diagrams/en-payment-refund.svg" alt="en-payment-refund.svg" width="100%">
+![en-payment-refund.svg](docs/diagrams/en-payment-refund.svg)
 
 ## Order Lifecycle
 
-<img src="docs/diagrams/en-order-lifecycle.svg" alt="en-order-lifecycle.svg" width="100%">
+![en-order-lifecycle.svg](docs/diagrams/en-order-lifecycle.svg)
 
 ### All Lifecycles at a Glance
 
 Beyond orders the system runs 10 further business lifecycles, grouped into trading / assets & entitlements / identity & accounts / operations & marketing — full state machines in [LIFECYCLE-DIAGRAM.md](docs/en/diagrams/LIFECYCLE-DIAGRAM.md):
 
-
 ## Security Architecture
 
 ### Defense-in-Depth (7 Layers)
 
-<img src="docs/diagrams/en-security-defense.svg" alt="en-security-defense.svg" width="100%">
+![en-security-defense.svg](docs/diagrams/en-security-defense.svg)
 
 > More diagrams: [Flowcharts](docs/diagrams/FLOWCHART.md) (withdrawal/role switch) | [Function Map](docs/diagrams/FUNCTION-DIAGRAM.md) | [All Lifecycles](docs/diagrams/LIFECYCLE-DIAGRAM.md) | [Full Security Architecture](docs/diagrams/SECURITY-ARCHITECTURE.md)
 
@@ -121,11 +120,11 @@ Beyond orders the system runs 10 further business lifecycles, grouped into tradi
 
 The three functional domains, purchase flows (service booking / product cart), trading rules (technician lock / refund tiers / discounts), assets & entitlements (membership cards / points / balance / new-user rewards), technician settlement, role switching and payment design — full write-up in [FEATURE-DESIGN.md](docs/en/FEATURE-DESIGN.md):
 
-<img src="docs/diagrams/en-feature-design.svg" alt="en-feature-design.svg" width="100%">
+![en-feature-design.svg](docs/diagrams/en-feature-design.svg)
 
 ## Project Intro
 
-<img src="docs/diagrams/mascot.svg" alt="Appointment service mascot — Yue, the Calendar Sprite (animated SVG)" width="200" align="right">
+![Appointment service mascot — Yue, the Calendar Sprite (animated SVG)](docs/diagrams/mascot.svg)
 
 **Appointment Service System** is a two-platform appointment management platform for the life-services industry: WeChat Mini Program + PC Admin Dashboard, covering the full loop of user booking, technician fulfillment and admin operations — appointments, membership, marketing and settlement in one system, stable, secure and easy to extend.
 
@@ -224,18 +223,9 @@ The three functional domains, purchase flows (service booking / product cart), t
 
 If this project helps you, your support is welcome and appreciated!
 
-<table>
-  <tr>
-    <td align="center" width="50%">
-      <img src="docs/weixinpay.png" alt="WeChat Pay" width="130" height="130"><br>
-      <b>WeChat Pay</b>
-    </td>
-    <td align="center" width="50%">
-      <img src="docs/alipay.png" alt="Alipay" width="130" height="130"><br>
-      <b>Alipay</b>
-    </td>
-  </tr>
-</table>
+| WeChat Pay | Alipay |
+|---|---|
+| ![WeChat Pay](docs/weixinpay.png) **WeChat Pay** | ![Alipay](docs/alipay.png) **Alipay** |
 
 ## Open Source vs Commercial Edition
 
@@ -273,7 +263,7 @@ Appointments and orders, payments/refunds/after-sales, technician workbench/sche
 
 ## 项目授权 / Project License
 
-Copyright (c) 2026 erik <erik@erik.xyz> — https://erik.xyz
+Copyright (c) 2026 erik · erik@erik.xyz · https://erik.xyz
 
 - 本项目仅供个人学习、研究使用。
 - 未经作者书面授权，禁止任何形式的商业使用（包括但不限于商业部署、付费服务、二次销售、SaaS 运营及以本项目为基础提供商业服务）。
