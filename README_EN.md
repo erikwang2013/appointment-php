@@ -239,7 +239,7 @@ If this project helps you, your support is welcome and appreciated!
 
 ## Open Source vs Commercial Edition
 
-The open-source edition is a streamlined edition for personal study and research. The commercial edition is in `open-project/appointment-php` and retains the full feature set plus the Flutter client. Both share the same codebase; the commercial edition is a strict superset — the open-source edition has no controllers, models, or data tables missing from the commercial edition.
+The open-source edition is a streamlined edition for personal study and research. The commercial edition is available separately and retains the full feature set plus the Flutter client. Both share the same codebase; the commercial edition is a strict superset — the open-source edition has no controllers, models, or data tables missing from the commercial edition.
 
 | Metric | Open Source | Commercial |
 |--------|-------------|------------|
