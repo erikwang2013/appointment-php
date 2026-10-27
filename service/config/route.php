@@ -288,13 +288,6 @@ Route::group('/api/v1/order', function () {
     Route::post('/review/{order_id}', v('order', 'ReviewController', 'store'));
     Route::post('/review/{order_id}/append', v('order', 'ReviewController', 'append'));
 
-    Route::post('/waitlist', v('order', 'WaitlistController', 'store'));
-    Route::get('/waitlist', v('order', 'WaitlistController', 'index'));
-    Route::post('/waitlist/cancel/{id}', v('order', 'WaitlistController', 'cancel'));
-
-    Route::post('/signature', v('order', 'SignatureController', 'store'));
-    Route::get('/signature/{order_id}', v('order', 'SignatureController', 'show'));
-
     // ── 购物车（Redis 存储，键 cart:{user_id}）──
     Route::get('/cart', v('order', 'CartController', 'index'));
     Route::post('/cart', v('order', 'CartController', 'store'));
@@ -418,17 +411,6 @@ Route::group('/api/v1/browse-history', function () {
     Route::get('/', v('api', 'BrowseHistoryController', 'index'));
     Route::delete('/', v('api', 'BrowseHistoryController', 'clear'));
     Route::delete('/{item_id}', v('api', 'BrowseHistoryController', 'destroy'));
-})->middleware([
-    app\middleware\Auth::class,
-]);
-
-// ============================================================
-// 门店排队叫号接口（JWT）
-// ============================================================
-Route::group('/api/v1/queue', function () {
-    Route::post('/take', v('api', 'QueueController', 'take'));
-    Route::get('/current', v('api', 'QueueController', 'current'));
-    Route::get('/store/{store_id}', v('api', 'QueueController', 'storeQueue'));
 })->middleware([
     app\middleware\Auth::class,
 ]);

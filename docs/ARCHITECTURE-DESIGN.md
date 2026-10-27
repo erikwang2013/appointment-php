@@ -175,4 +175,4 @@ HarmonyOS → harmonyOS / 其他 → web
 | service/ | 21 | ✅ 通过 |
 | 合计 | 81 | ✅ |
 
-测试覆盖: 退款规则 / 订单状态 / Hashids / 排队系统 / 加密 / 验证码
+测试覆盖: 退款规则 / 订单状态 / Hashids / 加密 / 验证码

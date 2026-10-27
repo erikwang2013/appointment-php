@@ -218,7 +218,6 @@ service/
 │   │   ├── PaymentNotifyController # 支付回调（微信/支付宝）
 │   │   ├── PrintController         # 打印
 │   │   ├── PrivacyController       # 隐私合规（数据导出/注销）
-│   │   ├── QueueController         # 排队叫号
 │   │   ├── VersionController       # APP版本管理/检测更新
 │   │   ├── VideoController         # 视频
 │   │   ├── WechatController        # 微信相关
@@ -263,9 +262,7 @@ service/
 │   │   ├── CartController          # 购物车
 │   │   ├── IcsController           # ICS日历导出
 │   │   ├── ReviewController        # 评价/追评
-│   │   ├── SignatureController     # 签名
-│   │   ├── TimelineController      # 订单状态时间线
-│   │   └── WaitlistController      # 候补名单
+│   │   └── TimelineController      # 订单状态时间线
 │   ├── wallet/v1/controller/    # 钱包模块 v1（2 控制器）
 │   │   ├── WalletController        # 余额/充值/交易流水/余额支付
 │   │   └── WalletTransferController# 用户间转账
@@ -481,15 +478,12 @@ apps/wechat/
 | 营销 | appointment_points_exchange_goods | 积分兑换商品 |
 | 营销 | appointment_promotion | 拼团活动 |
 | 营销 | appointment_promotion_participant | 拼团参与者 |
-| 订单 | appointment_queue_number | 排队叫号 |
 | 服务 | appointment_service_package | 服务套餐 |
 | 内容 | appointment_share | 分享记录 |
-| 订单 | appointment_signature | 签名 |
 | 技师 | appointment_technician_tier_config | 技师等级配置 |
 | 用户 | appointment_user_device | 用户设备 |
 | 营销 | appointment_user_points_exchange | 积分兑换记录 |
 | 内容 | appointment_video_post | 视频动态 |
-| 订单 | appointment_waitlist | 候补名单 |
 
 ## 外部服务预留
 

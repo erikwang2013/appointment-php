@@ -153,7 +153,7 @@ API请求/响应中的ID通过 `erikwang2013/hashids` 编码，对外暴露hash�
 | 实时 | WebSocket推送 / 支付回调 / APNs+FCM |
 | 消息 | 订阅消息推送(sendSubscribeMessage 订单事件3场景) |
 | 钱包 | 余额储值 / 余额支付 / 退款回充 |
-| 门店 | 蓝牙打印 / 电子签章 / 排队叫号 |
+| 门店 | 蓝牙打印 |
 | 技师 | 在线考核 / 短视频展示 / 工作台(today/records/start/complete) |
 | 社区 | 发帖/评论/点赞/审核 |
 | 系统 | 多语言(中/英) / 订单自动取消 / 数据种子 |

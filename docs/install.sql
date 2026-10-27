@@ -1390,23 +1390,6 @@ INSERT IGNORE INTO `appointment_system_config` (`id`, `group`, `key`, `value`, `
 (10000000000012006, 'app', 'points_per_yuan', '1', 'integer', '每消费1元获得积分数'),
 (10000000000012007, 'app', 'referral_reward_points', '100', 'integer', '推荐新用户注册奖励积分');
 
--- ============================================================
--- 13. 电子签名表结构
--- ============================================================
-CREATE TABLE IF NOT EXISTS `appointment_signature` (
-    `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
-    `order_id` BIGINT UNSIGNED NOT NULL COMMENT '订单ID',
-    `user_id` BIGINT UNSIGNED NOT NULL COMMENT '用户ID',
-    `technician_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '技师ID',
-    `image_url` VARCHAR(500) NOT NULL DEFAULT '' COMMENT '签名图片URL（SVG/PNG）',
-    `signed_at` DATETIME DEFAULT NULL COMMENT '签名时间',
-    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    PRIMARY KEY (`id`),
-    UNIQUE KEY `uk_order_id` (`order_id`),
-    KEY `idx_user_id` (`user_id`),
-    KEY `idx_technician_id` (`technician_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='电子签名记录表';
 CREATE TABLE IF NOT EXISTS `appointment_card_transfer` (
     `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
     `card_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'card_id',
@@ -1487,21 +1470,6 @@ CREATE TABLE IF NOT EXISTS `appointment_promotion_participant` (
     KEY `idx_order_id` (`order_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='活动参与记录表';
 
-CREATE TABLE IF NOT EXISTS `appointment_queue_number` (
-    `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
-    `store_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'store_id',
-    `user_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'user_id',
-    `number` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'number',
-    `status` TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'status',
-    `called_at` DATETIME DEFAULT NULL COMMENT 'called_at',
-    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    PRIMARY KEY (`id`),
-    KEY `idx_store_id` (`store_id`),
-    KEY `idx_user_id` (`user_id`),
-    KEY `idx_status` (`status`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='门店排队叫号表';
-
 CREATE TABLE IF NOT EXISTS `appointment_service_package` (
     `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
     `name` VARCHAR(200) NOT NULL DEFAULT '' COMMENT 'name',
@@ -1545,22 +1513,6 @@ CREATE TABLE IF NOT EXISTS `appointment_user_device` (
     PRIMARY KEY (`id`),
     KEY `idx_user_id` (`user_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='用户设备表';
-
-CREATE TABLE IF NOT EXISTS `appointment_waitlist` (
-    `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
-    `user_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'user_id',
-    `service_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'service_id',
-    `technician_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'technician_id',
-    `preferred_date` DATE DEFAULT NULL COMMENT 'preferred_date',
-    `preferred_time` VARCHAR(20) NOT NULL DEFAULT '' COMMENT 'preferred_time',
-    `status` VARCHAR(20) NOT NULL DEFAULT '' COMMENT 'status',
-    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    PRIMARY KEY (`id`),
-    KEY `idx_user_id` (`user_id`),
-    KEY `idx_service_id` (`service_id`),
-    KEY `idx_technician_id` (`technician_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='排队候补表';
 
 -- ============================================================
 -- [第4轮审计 P1/P2/P4] 收益/提现/卡券查询复合索引

@@ -188,12 +188,11 @@ docker exec -it appointment-svc-mysql mysql -u root -p appointment < /tmp/instal
 | 服务域 | 3 | `appointment_service_category`, `appointment_service`, `appointment_service_package` |
 | 订单域 | 5 | `appointment_order`, `appointment_order_item`, `appointment_order_payment`, `appointment_order_refund`, `appointment_order_review` |
 | 营销域 | 8 | `appointment_coupon`, `appointment_member_card`, `appointment_gift_card`, `appointment_user_points`, `appointment_promotion` |
-| 排队 | 1 | `appointment_queue_number` |
 | 内容域 | 5 | `appointment_banner`, `appointment_announcement`, `appointment_faq`, `appointment_feedback`, `appointment_platform_agreement` |
 | 社区域 | 3 | `appointment_post`, `appointment_comment`, `appointment_moment` |
 | 门店 | 1 | `appointment_store` |
-| 系统 | 3 | `appointment_system_config`, `appointment_notification`, `appointment_signature` |
-| **合计** | **49** | |
+| 系统 | 2 | `appointment_system_config`, `appointment_notification` |
+| **合计** | **47** | |
 
 所有表使用 `appointment_` 前缀，主键 `id` 为 BIGINT 非自增（由 snowflake-php 应用层生成）。
 
