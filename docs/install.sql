@@ -1861,17 +1861,6 @@ INSERT IGNORE INTO `appointment_admin_permission` (`id`, `parent_id`, `name`, `s
 (21000000000000389, 0, '评价图片审核列表', 'get.admin/review-audit', 3, '', '', 176, NOW(), NOW()),
 (21000000000000390, 0, '评价图片隐藏', 'post.admin/review-audit/{id}/hide', 3, '', '', 177, NOW(), NOW()),
 (21000000000000391, 0, '评价图片恢复', 'post.admin/review-audit/{id}/restore', 3, '', '', 178, NOW(), NOW());
--- (merge) 2026_08_15_000406_full_reduction_permissions.sql → appointment_admin_permission
-
--- ============================================================
--- [2026_08_15_000406_full_reduction_permissions.sql]
--- ============================================================
-INSERT IGNORE INTO `appointment_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
-(21000000000000396, 0, '满减活动列表', 'get.admin/full-reduction-activities', 3, '', '', 179, NOW(), NOW()),
-(21000000000000397, 0, '满减活动新增', 'post.admin/full-reduction-activities', 3, '', '', 180, NOW(), NOW()),
-(21000000000000398, 0, '满减活动编辑', 'put.admin/full-reduction-activities/{id}', 3, '', '', 181, NOW(), NOW()),
-(21000000000000399, 0, '满减活动上下架', 'post.admin/full-reduction-activities/{id}/toggle-status', 3, '', '', 182, NOW(), NOW()),
-(21000000000000400, 0, '满减活动删除', 'delete.admin/full-reduction-activities/{id}', 3, '', '', 183, NOW(), NOW());
 -- (merge) 2026_08_15_000407_permission.sql → appointment_admin_permission
 
 -- ============================================================
@@ -1887,30 +1876,6 @@ INSERT IGNORE INTO `appointment_admin_permission` (`id`, `parent_id`, `name`, `s
 INSERT IGNORE INTO `appointment_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
 (21000000000000392, 0, '考勤列表', 'get.admin/attendance', 3, '', '', 176, NOW(), NOW()),
 (21000000000000393, 0, '考勤统计', 'get.admin/attendance/stats', 3, '', '', 177, NOW(), NOW());
--- (merge) 2026_08_15_000505_lucky_wheel_permissions.sql → appointment_admin_permission
-
--- ============================================================
--- [2026_08_15_000505_lucky_wheel_permissions.sql]
--- ============================================================
-INSERT IGNORE INTO `appointment_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
-(21000000000000401, 0, '幸运转盘奖品列表', 'get.admin/lucky-wheel', 3, '', '', 184, NOW(), NOW()),
-(21000000000000402, 0, '幸运转盘奖品新增', 'post.admin/lucky-wheel', 3, '', '', 185, NOW(), NOW()),
-(21000000000000403, 0, '幸运转盘奖品编辑', 'put.admin/lucky-wheel/{id}', 3, '', '', 186, NOW(), NOW()),
-(21000000000000404, 0, '幸运转盘奖品删除', 'delete.admin/lucky-wheel/{id}', 3, '', '', 187, NOW(), NOW()),
-(21000000000000405, 0, '幸运转盘奖品上下架', 'post.admin/lucky-wheel/{id}/toggle-status', 3, '', '', 188, NOW(), NOW()),
-(21000000000000406, 0, '幸运转盘抽奖记录', 'get.admin/lucky-wheel/records', 3, '', '', 189, NOW(), NOW());
--- (merge) 2026_08_15_000606_seckill_permissions.sql → appointment_admin_permission
-
--- ============================================================
--- [2026_08_15_000606_seckill_permissions.sql]
--- ============================================================
-INSERT INTO `appointment_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
-(21000000000000407, 0, '秒杀活动列表', 'get.admin/seckill', 3, '', '', 194, NOW(), NOW()),
-(21000000000000408, 0, '秒杀活动新增', 'post.admin/seckill', 3, '', '', 195, NOW(), NOW()),
-(21000000000000409, 0, '秒杀活动编辑', 'put.admin/seckill/{id}', 3, '', '', 196, NOW(), NOW()),
-(21000000000000410, 0, '秒杀活动删除', 'delete.admin/seckill/{id}', 3, '', '', 197, NOW(), NOW()),
-(21000000000000411, 0, '秒杀活动上下架', 'post.admin/seckill/{id}/toggle-status', 3, '', '', 198, NOW(), NOW()),
-(21000000000000420, 0, '秒杀订单列表', 'get.admin/seckill/{id}/orders', 3, '', '', 199, NOW(), NOW());
 -- (merge) 2026_08_15_000607_return_customer_permissions.sql → appointment_admin_permission
 
 -- ============================================================
@@ -2135,23 +2100,6 @@ CREATE TABLE IF NOT EXISTS `appointment_push_log` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='APP推送日志表';
 
 -- ============================================================
--- [2026_08_15_000405_full_reduction.sql]
--- ============================================================
-CREATE TABLE IF NOT EXISTS `appointment_full_reduction_activity` (
-    `id` VARCHAR(32) NOT NULL COMMENT '主键ID，由snowflake生成',
-    `title` VARCHAR(100) NOT NULL COMMENT '活动标题',
-    `threshold` DECIMAL(10,2) NOT NULL DEFAULT 0.00 COMMENT '满减门槛（满多少元）',
-    `reduction` DECIMAL(10,2) NOT NULL DEFAULT 0.00 COMMENT '减免金额（减多少元）',
-    `status` TINYINT NOT NULL DEFAULT 0 COMMENT '状态: 0=下架 1=上架',
-    `start_at` DATETIME DEFAULT NULL COMMENT '生效开始时间',
-    `end_at` DATETIME DEFAULT NULL COMMENT '生效结束时间',
-    `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    PRIMARY KEY (`id`),
-    KEY `idx_status_status_time` (`status`, `start_at`, `end_at`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='满减活动表';
-
--- ============================================================
 -- [2026_08_15_000501_order_status_log.sql]
 -- ============================================================
 CREATE TABLE IF NOT EXISTS `appointment_order_status_log` (
@@ -2169,38 +2117,6 @@ CREATE TABLE IF NOT EXISTS `appointment_order_status_log` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='订单状态变更时间线';
 
 -- ============================================================
--- [2026_08_15_000503_lucky_wheel.sql]
--- ============================================================
-CREATE TABLE IF NOT EXISTS `appointment_lucky_wheel` (
-    `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
-    `name` VARCHAR(100) NOT NULL COMMENT '奖品名称',
-    `cost_points` INT NOT NULL DEFAULT 0 COMMENT '单次抽奖消耗积分',
-    `prize_type` VARCHAR(20) NOT NULL DEFAULT 'none' COMMENT 'points 积分返还/coupon 优惠券/balance 余额/none 谢谢参与',
-    `prize_value` DECIMAL(10,2) NOT NULL DEFAULT 0.00 COMMENT 'points=返还积分/coupon=优惠券面额/balance=余额',
-    `weight` INT NOT NULL DEFAULT 0 COMMENT '权重（0=不可中奖）',
-    `stock` INT NOT NULL DEFAULT -1 COMMENT '库存（-1=不限量）',
-    `sort` INT NOT NULL DEFAULT 0 COMMENT '排序（小在前）',
-    `status` TINYINT NOT NULL DEFAULT 1 COMMENT '状态: 0=下架 1=上架',
-    `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    PRIMARY KEY (`id`),
-    KEY `idx_status` (`status`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='幸运转盘奖品表';
-CREATE TABLE IF NOT EXISTS `appointment_wheel_record` (
-    `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
-    `user_id` BIGINT UNSIGNED NOT NULL COMMENT '用户ID',
-    `wheel_id` BIGINT UNSIGNED NOT NULL COMMENT '奖品ID（appointment_lucky_wheel.id）',
-    `prize_type` VARCHAR(20) NOT NULL DEFAULT 'none' COMMENT 'points 积分返还/coupon 优惠券/balance 余额/none 谢谢参与',
-    `prize_value` DECIMAL(10,2) NOT NULL DEFAULT 0.00 COMMENT '中奖数值（面额/返还积分）',
-    `result` VARCHAR(20) NOT NULL DEFAULT 'lose' COMMENT 'win=中奖 lose=未中',
-    `client_token` VARCHAR(64) DEFAULT NULL COMMENT '客户端幂等令牌（同用户唯一，NULL 不参与唯一）',
-    `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    PRIMARY KEY (`id`),
-    KEY `idx_user` (`user_id`),
-    UNIQUE KEY `idx_user_client` (`user_id`, `client_token`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='幸运转盘抽奖记录表';
-
--- ============================================================
 -- [2026_08_15_000504_user_health_profile.sql]
 -- ============================================================
 CREATE TABLE IF NOT EXISTS `appointment_user_health_profile` (
@@ -2216,25 +2132,6 @@ CREATE TABLE IF NOT EXISTS `appointment_user_health_profile` (
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_user` (`user_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='用户健康档案与服务偏好（一人一份）';
-
--- ============================================================
--- [2026_08_15_000601_seckill_activity.sql]
--- ============================================================
-CREATE TABLE IF NOT EXISTS `appointment_seckill_activity` (
-    `id`             BIGINT       NOT NULL COMMENT '活动 ID（snowflake）',
-    `name`           VARCHAR(100) NOT NULL COMMENT '活动名称',
-    `service_id`     BIGINT       NOT NULL COMMENT '关联服务 ID（appointment_service.id）',
-    `seckill_price`  DECIMAL(10,2) NOT NULL DEFAULT 0.00 COMMENT '秒杀价（实付）',
-    `original_price` DECIMAL(10,2) NOT NULL DEFAULT 0.00 COMMENT '原价（订单项展示价）',
-    `stock`          INT          NOT NULL DEFAULT 0 COMMENT '剩余库存（售罄拦截，扣减不回补，取消订单不返还）',
-    `start_at`       DATETIME     NOT NULL COMMENT '开抢时间',
-    `end_at`         DATETIME     NOT NULL COMMENT '结束时间',
-    `status`         TINYINT      NOT NULL DEFAULT 0 COMMENT '状态：0 下架 1 上架',
-    `created_at`     DATETIME     NULL,
-    `updated_at`     DATETIME     NULL,
-    PRIMARY KEY (`id`),
-    KEY `idx_status_time` (`status`, `start_at`)
-) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '秒杀活动';
 
 -- ============================================================
 -- [2026_08_15_000603_app_version.sql]
@@ -2277,9 +2174,6 @@ ALTER TABLE `appointment_user` ADD COLUMN `close_requested_at` DATETIME NULL DEF
 
 -- appointment_user.close_at
 ALTER TABLE `appointment_user` ADD COLUMN `close_at` DATETIME NULL DEFAULT NULL COMMENT '注销完成时间';
-
--- appointment_order.seckill_id
-ALTER TABLE `appointment_order` ADD COLUMN `seckill_id` BIGINT NULL DEFAULT NULL COMMENT '秒杀活动ID', ADD KEY `idx_seckill_id` (`seckill_id`);
 
 -- appointment_user_wallet.pay_password
 ALTER TABLE `appointment_user_wallet` ADD COLUMN `pay_password` VARCHAR(255) NULL DEFAULT NULL COMMENT '支付密码（password_hash）';
@@ -2371,7 +2265,7 @@ ON DUPLICATE KEY UPDATE `description` = VALUES(`description`);
 
 -- ============================================================
 -- [覆盖验证补充 2026-08-15] 全量迁移覆盖核查后的剩余补全
--- 种子: appointment_growth_level 5 行 / appointment_lucky_wheel 2 行 / appointment_app_version 2 行 / 角色授权
+-- 种子: appointment_growth_level 5 行 / appointment_app_version 2 行 / 角色授权
 -- 列:   appointment_ticket.rating,rated_at / appointment_technician_profile.tier_id / appointment_invoice 5 列
 -- ============================================================
 
@@ -2385,13 +2279,6 @@ INSERT IGNORE INTO `appointment_growth_level` (`id`, `level`, `name`, `min_growt
 (3, 3, '黄金', 500, JSON_OBJECT('discount_rate', 0.95, 'points_multiplier', 1.2)),
 (4, 4, '铂金', 2000, JSON_OBJECT('discount_rate', 0.92, 'points_multiplier', 1.3)),
 (5, 5, '钻石', 5000, JSON_OBJECT('discount_rate', 0.9, 'points_multiplier', 1.5));
-
--- ============================================================
--- [2026_08_15_000503_lucky_wheel.sql] 转盘演示奖品（INSERT IGNORE 幂等）
--- ============================================================
-INSERT IGNORE INTO `appointment_lucky_wheel` (`id`, `name`, `cost_points`, `prize_type`, `prize_value`, `weight`, `stock`, `sort`, `status`, `created_at`, `updated_at`) VALUES
-(10000000000001001, '谢谢参与', 10, 'none', 0.00, 60, -1, 1, 1, NOW(), NOW()),
-(10000000000001002, '100积分返还', 10, 'points', 100.00, 40, -1, 2, 1, NOW(), NOW());
 
 -- ============================================================
 -- [2026_08_15_000603_app_version.sql] 版本种子（ON DUPLICATE KEY UPDATE 幂等）

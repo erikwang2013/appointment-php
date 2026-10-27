@@ -107,9 +107,6 @@ Route::group('/api/v1', function () {
     Route::get('/promotions/{id}', v('api', 'PromotionController', 'show'));
     Route::get('/promotions/{id}/participants', v('api', 'PromotionController', 'participants'));
 
-    // ── 满减活动（公开浏览）──
-    Route::get('/full-reduction-activities', v('api', 'FullReductionController', 'index'));
-
     // ── 成长等级（公开浏览）──
     Route::get('/growth/levels', v('user', 'GrowthController', 'levels'));
 
@@ -164,17 +161,6 @@ Route::group('/api/v1/user', function () {
 ]);
 
 // ============================================================
-// 积分幸运转盘（JWT）——奖品 / 抽奖 / 记录
-// ============================================================
-Route::group('/api/v1/wheel', function () {
-    Route::get('/prizes', v('api', 'WheelController', 'prizes'));
-    Route::post('/spin', v('api', 'WheelController', 'spin'));
-    Route::get('/records', v('api', 'WheelController', 'records'));
-})->middleware([
-    app\middleware\Auth::class,
-]);
-
-// ============================================================
 // 游客模式（只读，无需认证）——未登录浏览
 // ============================================================
 Route::group('/api/v1/guest', function () {
@@ -184,17 +170,6 @@ Route::group('/api/v1/guest', function () {
     Route::get('/stores', v('api', 'GuestController', 'stores'));
     Route::get('/technicians', v('api', 'GuestController', 'technicians'));
 });
-
-// ============================================================
-// 秒杀接口（JWT）——活动列表 / 详情 / 抢购下单
-// ============================================================
-Route::group('/api/v1/seckill', function () {
-    Route::get('/', v('api', 'SeckillController', 'index'));
-    Route::get('/{id}', v('api', 'SeckillController', 'show'));
-    Route::post('/{id}/buy', v('api', 'SeckillController', 'buy'));
-})->middleware([
-    app\middleware\Auth::class,
-]);
 
 // ============================================================
 // 隐私合规接口（JWT）——数据导出 / 账号注销闭环

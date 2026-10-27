@@ -7,7 +7,6 @@ namespace app\order\v1\controller;
 
 use app\common\Money;
 use app\common\PriceCalculator;
-use app\model\FullReductionActivity;
 use app\model\GrowthLevel;
 use app\model\Order;
 use app\model\OrderItem;
@@ -15,7 +14,6 @@ use app\model\OrderPayment;
 use app\model\OrderVerification;
 use app\model\Promotion;
 use app\model\PromotionParticipant;
-use app\model\SeckillActivity;
 use app\model\UserGrowth;
 use support\Db;
 use support\Log;
@@ -25,8 +23,7 @@ use Webman\Http\Request;
 /**
  * 订单创建（store + 计价辅助）
  *
- * 拼团/秒杀活动下单、订单项组装、技师锁、事务内行锁扣秒杀库存；
- * 秒杀统一走 SeckillActivity 通道（seckill_id），旧 flash_sale 促销通道已下线。
+ * 拼团活动下单、订单项组装、技师锁。
  */
 trait OrderCreateTrait
 {
@@ -82,7 +79,7 @@ trait OrderCreateTrait
         // ── 拼团下单（传 promotion_id 时走拼团价）──
         // 仅 group_buy、活动进行中、调用者是参与者、未满员（已成团锁定拒绝）；
         // 拼团价 = 原价 × discount_percent/100；与优惠券/次卡/积分互斥（禁用叠加）。
-        // 秒杀已统一走 SeckillActivity 通道（seckill_id），旧 flash_sale 促销通道已下线
+        // 旧 flash_sale 促销通道已下线
         $promotionId = $request->input('promotion_id');
         $participantId = null;
         $promotion = null;
@@ -152,53 +149,6 @@ trait OrderCreateTrait
             $participantId = $participant->id;
         }
 
-        // ── 秒杀下单（传 seckill_id 时走秒杀价，独立于拼团促销通道）──
-        // 仅秒杀活动进行中、服务匹配、未售罄；订单须仅含秒杀服务一项（qty=1），
-        // 订单项原价以活动 original_price 为准（防客户端篡改），实付以秒杀价计；
-        // 与优惠券/次卡/积分互斥（禁用叠加）。
-        $seckillId = $request->input('seckill_id');
-        $seckill = null;
-        if ($seckillId !== null) {
-            $seckillId = $this->decodeId((string) $seckillId);
-            if ($seckillId === null) {
-                return $this->error('秒杀活动不存在', 422);
-            }
-            if ($promotionId !== null) {
-                return $this->error('秒杀订单不支持叠加拼团/促销活动', 422);
-            }
-
-            $seckill = SeckillActivity::find($seckillId);
-            if (!$seckill) {
-                return $this->error('秒杀活动不存在', 422);
-            }
-
-            $now = date('Y-m-d H:i:s');
-            if ($seckill->status != 1) {
-                return $this->error('秒杀活动不存在或已结束', 422);
-            }
-            if ($now < $seckill->start_at || $now > $seckill->end_at) {
-                return $this->error('秒杀不在有效时间内', 422);
-            }
-            if ((int) $seckill->stock <= 0) {
-                return $this->error('已售罄', 422);
-            }
-
-            // 订单须仅含秒杀服务一项且数量为 1
-            if (count($items) !== 1
-                || ($items[0]['target_type'] ?? 'service') !== 'service'
-                || (int) ($items[0]['target_id'] ?? 0) !== (int) $seckill->service_id
-                || (int) ($items[0]['quantity'] ?? 1) !== 1) {
-                return $this->error('订单服务与秒杀活动不匹配', 422);
-            }
-            // 原价以活动记录为准，防止客户端篡改订单项价格
-            $items[0]['price'] = (float) $seckill->original_price;
-
-            // 秒杀订单禁用优惠券/次卡/积分叠加（秒杀价已含折扣）
-            if ($couponId !== null || $userCouponId !== null || $memberCardUsageId !== null || $usePoints > 0) {
-                return $this->error('秒杀订单不支持叠加其他优惠', 422);
-            }
-        }
-
         // 预约订单需要技师和服务时间（必填校验，不依赖锁）
         if ($orderType === Order::ORDER_TYPE_APPOINTMENT && (!$technicianId || !$serviceTime)) {
             return $this->error('预约订单需要选择技师和服务时间');
@@ -263,25 +213,6 @@ trait OrderCreateTrait
                 }
             }
 
-            // 秒杀：行锁复验状态/时间/库存并扣减（防并发超卖；扣减与订单创建同事务，任一步失败整体回滚，
-            // 无需回补——直接 POST /api/order 带 seckill_id 的绕过路径同样在此受控）
-            if ($seckill !== null) {
-                $lockedSeckill = SeckillActivity::where('id', $seckillId)->lockForUpdate()->first();
-                if (!$lockedSeckill || $lockedSeckill->status != 1) {
-                    throw new \InvalidArgumentException('秒杀活动不存在或已结束', 422);
-                }
-                $now = date('Y-m-d H:i:s');
-                if ($now < $lockedSeckill->start_at || $now > $lockedSeckill->end_at) {
-                    throw new \InvalidArgumentException('秒杀不在有效时间内', 422);
-                }
-                if ((int) $lockedSeckill->stock <= 0) {
-                    throw new \InvalidArgumentException('已售罄', 422);
-                }
-                $lockedSeckill->stock = (int) $lockedSeckill->stock - 1;
-                $lockedSeckill->save();
-                $seckill = $lockedSeckill;
-            }
-
             // 优惠计价引擎（互斥：次卡/券/积分 一次订单仅一种；内部全程按分计算）
             $pricing = PriceCalculator::calculate($items, [
                 'user_id'              => $userId,
@@ -300,17 +231,8 @@ trait OrderCreateTrait
                 $pricing['paid_amount'] = (float) $promoPrice;
             }
 
-            // 秒杀价：实付固定为活动秒杀价，优惠额 = 原价 - 秒杀价
-            if ($seckill !== null) {
-                $total = (string) $pricing['total_amount'];
-                $pricing['discount_amount'] = (float) Money::round(Money::sub($total, (string) $seckill->seckill_price), 2);
-                $pricing['paid_amount'] = (float) $seckill->seckill_price;
-            }
-
-            // 满减（仅标准订单；拼团/秒杀跳过）：在券/次卡抵扣后的应付金额上判断门槛，
-            // 叠加顺序：券/次卡 → 满减 → 等级折扣；优惠额并入 discount_amount、备注追加说明（可追溯）
-            if ($promotion === null && $seckill === null) {
-                $this->applyFullReduction($pricing, $remark);
+            // 等级折扣（仅标准订单；拼团跳过）；在券/次卡抵扣后的应付金额上计算
+            if ($promotion === null) {
                 $this->applyGrowthDiscount($userId, $pricing, $remark);
             }
 
@@ -329,7 +251,6 @@ trait OrderCreateTrait
                 'member_card_usage_id' => (int)($pricing['member_card_usage_id'] ?? 0),
                 'promotion_id'         => $promotionId,
                 'participant_id'       => $participantId,
-                'seckill_id'           => $seckillId,
                 'service_time'         => $serviceTime ?: null,
                 'status'               => Order::STATUS_PENDING,
                 'remark'               => $remark,
@@ -434,47 +355,4 @@ trait OrderCreateTrait
         $remark = trim($remark . sprintf('（等级折扣：%s %s折，优惠¥%.2f）', $level->name, $label, $discountFen / 100));
     }
 
-    /**
-     * 应用满减（仅标准订单调用，在券/次卡优惠后、等级折扣前）
-     *
-     * 取 status=1 且当前时间在 [start_at, end_at] 内的活动中 reduction 最大者；
-     * 以券/次卡抵扣后的应付金额（paid_amount）判断门槛（threshold），
-     * 未达门槛直接返回；优惠额并入 discount_amount，备注追加「满减：满X减Y」以便追溯。
-     * 最低价保护：满减后实付不小于 0.01 元（分制下限 100）。
-     *
-     * @param array  $pricing PriceCalculator::calculate 结果，按引用修改 discount_amount/paid_amount
-     * @param string $remark  订单备注，按引用追加满减说明
-     */
-    private function applyFullReduction(array &$pricing, string &$remark): void
-    {
-        $now = date('Y-m-d H:i:s');
-        $activity = FullReductionActivity::where('status', 1)
-            ->where('start_at', '<=', $now)
-            ->where('end_at', '>=', $now)
-            ->orderByDesc('reduction')
-            ->first();
-        if (!$activity) {
-            return; // 无生效活动
-        }
-
-        $baseFen = Money::toFen((float) $pricing['paid_amount']);
-        if ($baseFen < Money::toFen((float) $activity->threshold)) {
-            return; // 券后金额未达门槛
-        }
-        if ($baseFen < 100) {
-            return; // 应付已低于最低价，不再叠加
-        }
-
-        $reductionFen = Money::toFen((float) $activity->reduction);
-        if ($reductionFen <= 0) {
-            return;
-        }
-        $finalFen = max(100, $baseFen - $reductionFen);
-
-        // 元回写走 string 域
-        $reductionYuan = Money::round(Money::div((string) ($baseFen - $finalFen), '100'), 2);
-        $pricing['discount_amount'] = (float) Money::round(Money::add((string) $pricing['discount_amount'], $reductionYuan), 2);
-        $pricing['paid_amount'] = (float) Money::round(Money::div((string) $finalFen, '100'), 2);
-        $remark = trim($remark . sprintf('（满减：满%s减%s）', $activity->threshold, $activity->reduction));
-    }
 }

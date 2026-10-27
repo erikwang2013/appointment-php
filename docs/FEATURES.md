@@ -204,14 +204,14 @@
 | 我的售后 | GET /api/v1/aftersales 分页列表 + GET /api/v1/aftersales/{id} 详情 |
 | 审核流转 | 管理端 approve/reject（rejected 必填 remark）；approved 仅状态流转，退款沿用订单退款接口 |
 
-### 20. 拼团/秒杀（第15轮）
+### 20. 拼团（第15轮）
 
-> 2026-08 起 FLASH_SALE 通道下线：PromotionController::index 过滤 flash_sale、show/join 对其返回 400，秒杀统一走「43. 秒杀（第24轮）」通道；`Promotion::TYPE_FLASH_SALE` 常量保留兼容历史数据。本节及「27. 秒杀下单」为历史记录。
+> 旧 FLASH_SALE 通道已下线：PromotionController::index 过滤 flash_sale、show/join 对其返回 400；`Promotion::TYPE_FLASH_SALE` 常量保留兼容历史数据。
 
 | 功能 | 说明 |
 |------|------|
-| 活动列表/详情 | GET /api/v1/promotions + /api/v1/promotions/{id}，type 过滤 group_buy/flash_sale |
-| 参与 | POST /api/v1/promotions/join/{id}：Redis NX 锁防超卖（flash_sale 以 max_people 为库存上限）、重复参与 422、group_buy 满员锁定、到期未满员惰性关闭（show/join 时 status 置 0） |
+| 活动列表/详情 | GET /api/v1/promotions + /api/v1/promotions/{id}，type=group_buy |
+| 参与 | POST /api/v1/promotions/join/{id}：Redis NX 锁防超卖、重复参与 422、group_buy 满员锁定、到期未满员惰性关闭（show/join 时 status 置 0） |
 | 参与列表 | GET /api/v1/promotions/{id}/participants |
 | 状态修复 | PromotionParticipant 状态改整型常量 0/1/2/3（修复严格模式下 join 1366 损坏） |
 
@@ -270,16 +270,6 @@
 | 过期执行 | PointsExpiryTimer 定时进程每 60s 游标扫描（100/批）expires_at < now 的 earn 行 → 写 type=expire 负值扣减行（source=expiry + order_id 溯源原流水）→ 按用户聚合站内通知「您有 X 积分已过期」 |
 | 幂等 | ① expire 行 order_id 指向原 earn 流水，事务内对原行 lockForUpdate + exists 复验（并发进程在行锁上串行）② id 游标分页 ③ 通知仅在实际扣减轮次产生 |
 | 口径 | 可用余额 SUM 聚合含 expire 负值行；过期积分不可再抵现/兑换 |
-
-### 27. 秒杀下单（第18轮，已下线）
-
-> 已被第24轮 `/api/v1/seckill` 通道取代（store() 促销分支仅剩拼团），见「43. 秒杀」。
-
-| 功能 | 说明 |
-|------|------|
-| 接口 | POST /api/v1/order 传 promotion_id（flash_sale 类型）：秒杀价 = round(total × (100 − discount_percent)/100, 2)，与 PromotionController 秒杀价口径一致 |
-| 校验 | 类型白名单 [group_buy, flash_sale]（其余 422）；活动进行中；调用者是参与者；订单服务与活动匹配；售罄 participants_count ≥ max_people 422「已抢光」；禁用优惠券/次卡/积分叠加 422 |
-| 过期 | pay() 懒判定 isFlashSaleClosed（同 isGroupBuyClosed 模式）：秒杀过期 → 活动置 0 + 批量取消该活动 pending 订单 + 本单自动取消 + 释放技师锁 422 |
 
 ### 28. 服务提醒 + 到期提醒（第18轮）
 
@@ -515,7 +505,7 @@ Flutter Web 单页应用，共 21 个页面：dashboard/用户/角色/配置/日
 ### 26. 成长等级权益落地（第21轮）
 
 - GrowthLevel.benefits JSON 空壳落地：迁移种子 5 档（青铜 {"discount_rate":1.0,"points_multiplier":1.0}、白银 0.98/1.1、黄金 0.95/1.2、铂金 0.92/1.3、钻石 0.9/1.5）
-- 等级折扣：OrderController::store applyGrowthDiscount() —— 仅标准订单（promotion_id 为空，拼团/秒杀禁用叠加）；顺序：券/次卡优惠后应付金额 × discount_rate；折扣额并入 discount_amount，订单备注追加「等级折扣：白银9.8折，优惠¥2.00」可追溯；最低价保护：折后实付 ≥0.01 元（分制 ≥100），不足则折扣截断为 0
+- 等级折扣：OrderController::store applyGrowthDiscount() —— 仅标准订单（promotion_id 为空，拼团禁用叠加）；顺序：券/次卡优惠后应付金额 × discount_rate；折扣额并入 discount_amount，订单备注追加「等级折扣：白银9.8折，优惠¥2.00」可追溯；最低价保护：折后实付 ≥0.01 元（分制 ≥100），不足则折扣截断为 0
 - 积分倍率：WechatPayService::markOrderPaid 成长值由 floor(paid) 改 floor(paid × points_multiplier)，倍率按支付时点等级取档（入账前累计，本单不抬级）；R20 的 try/catch 挂接点完整保留
 - 查询复用：GrowthLevel::levelForGrowth() 按累计成长值取档，供下单/支付复用；GET /api/v1/growth 已返回 benefits 与 next_gap（R20 实现，无需改）
 
@@ -544,14 +534,6 @@ Flutter Web 单页应用，共 21 个页面：dashboard/用户/角色/配置/日
 - appointment_browse_history（uk_user_item(user_id, item_id) 唯一，重复浏览只刷 viewed_at 不重复插入；idx_user_viewed 排序）
 - 记录挂接：ServiceController::detail() 成功后记录（try/catch + Log::warning 不影响主流程；公开路由无 JWT，user_id 判空跳过匿名）
 - 接口：GET /api/v1/browse-history（join appointment_service 名称/封面/价格/原价，viewed_at 倒序，per_page 默认 15 上限 50，item_id hashid）；DELETE /{item_id}（仅本人，非法/他人 404）；DELETE /（清空仅本人）
-
-### 31. 满减营销（第22轮）
-
-- appointment_full_reduction_activity（threshold/reduction/title/status/start_at/end_at + idx_status_status_time）
-- 下单叠加：仅标准订单（拼团/秒杀跳过），以券/次卡抵扣后应付金额判门槛，顺序 **券/次卡 → 满减 → 等级折扣**；取减免额最大活动；优惠额并入 discount_amount + 备注「满减：满X减Y」；满减后实付下限 0.01 元（分制）
-- 用户端 GET /api/v1/full-reduction-activities（公开，生效中按减免额降序）
-- admin FullReductionController：CRUD + toggle-status 上下架（destroy 带 confirmPassword）
-- 权限：396 列表 / 397 新增 / 398 编辑 / 399 上下架 / 400 删除（一条权限记录仅对应一个 method.path slug，5 路由拆 5 条）
 
 ### 32. 我的预约 ICS 导出（第22轮）
 
@@ -610,25 +592,11 @@ Flutter Web 单页应用，共 21 个页面：dashboard/用户/角色/配置/日
 - 支付回调 markOrderPaid 为单一消费点；record() 内部 try/catch + Log::warning 绝不阻塞主流程
 - 迁移 000501_order_status_log；OrderTimelineTest 4 tests
 
-### 41. 积分幸运转盘（第23轮）
-
-- GET /api/v1/wheel/prizes（隐藏 weight/stock）；POST /api/v1/wheel/spin：Redis NX + 行锁防并发，random_int 权重抽取，client_token 幂等
-- 奖品落账：积分→earn 流水（含过期时间，可被 PointsExpiryTimer 正常过期）、余额→lockForUpdate、优惠券→pending 人工发放、无奖→lose
-- GET /api/v1/wheel/records 我的记录分页；admin /admin/lucky-wheel CRUD + 上下架 + 记录（权限 401-406）
-- 迁移 000503（appointment_lucky_wheel + appointment_wheel_record + w60/w40 演示种子）+ 000505（权限种子）；LuckyWheelTest admin 3 + service 6 tests
-
 ### 42. 游客模式（第24轮）
 
 - GET /api/v1/guest/{home,services,services/{id},stores,technicians}：无需认证（公开接口）的未登录浏览入口
 - home 聚合轮播图/公告/服务分类/热门服务，Redis 缓存 svc:guest:home 300s；services 支持分类筛选 + newest/sales/price 排序（page/per_page≤50）；technicians 仅审核通过、可 service_id 筛选、评分降序
 - GuestControllerTest 覆盖
-
-### 43. 秒杀（第24轮）
-
-- appointment_seckill_activity（name/service_id/seckill_price/original_price/stock/start_at/end_at/status）；已售量 = appointment_order.seckill_id 订单数
-- GET /api/v1/seckill（status=1 + 时间窗）、/{id}（state=not_started/ongoing/ended）、POST /{id}/buy：client_token（8-64 字符，SETNX 24h）幂等 + Redis NX 30s 防并发 + 活动校验（2026-08-26 起不再预扣库存）
-- 下单注入 seckill_id 复用 OrderController::store；库存统一在 store() 事务内行锁扣减（直接调 /api/v1/order 带 seckill_id 同样扣库存），秒杀价 = seckill_price（以 DB 为准），不叠加优惠券/积分/会员卡；订单取消不回补库存；旧促销 FLASH_SALE 通道已删除（store() 促销分支仅剩拼团，PromotionController index 过滤 flash_sale、show/join 400），秒杀只走本通道
-- admin /admin/seckill CRUD + 上下架 + 订单列表（权限 407-411、420）；迁移 000606 权限种子；SeckillTest service + admin
 
 ### 44. APP 版本管理与检测更新（第24轮）
 

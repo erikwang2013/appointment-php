@@ -16,7 +16,7 @@ use Webman\Http\Request;
 
 /**
  * 促销活动控制器
- * 处理拼团活动（旧 flash_sale 秒杀通道已下线，统一走 SeckillActivity）
+ * 处理拼团活动
  */
 class PromotionController extends BaseController
 {
@@ -39,7 +39,7 @@ class PromotionController extends BaseController
             return json(json_decode($cached, true));
         }
 
-        // 旧 flash_sale 秒杀促销不再返回（已下线，前端已切到 /api/seckill）
+        // 旧 flash_sale 促销不再返回（已下线）
         $query = Promotion::where('status', 1)
             ->where('start_at', '<=', $now)
             ->where('end_at', '>=', $now)
@@ -126,7 +126,7 @@ class PromotionController extends BaseController
         $now = date('Y-m-d H:i:s');
         $promotion = Promotion::withCount('participants')->find($decodedId);
 
-        // 旧 flash_sale 秒杀通道已下线：不再接受参与（前端已切到 SeckillController）
+        // 旧 flash_sale 通道已下线：不再接受参与
         if (!$promotion || $promotion->status != 1 || $promotion->type === Promotion::TYPE_FLASH_SALE) {
             return $this->error('活动不存在或已结束');
         }

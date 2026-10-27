@@ -161,20 +161,6 @@ Route::group('/admin', function () {
     Route::post('/review-audit/{id}/hide', [app\admin\controller\ReviewAuditController::class, 'hide']);
     Route::post('/review-audit/{id}/restore', [app\admin\controller\ReviewAuditController::class, 'restore']);
 
-    // 满减活动（静态路由必须先于 resource 定义，避免被 {id} 变量路由 shadow）
-    Route::post('/full-reduction-activities/{id}/toggle-status', [app\admin\controller\FullReductionController::class, 'toggleStatus']);
-    Route::resource('/full-reduction-activities', app\admin\controller\FullReductionController::class);
-
-    // 幸运转盘（静态路由必须先于 resource 定义，避免被 {id} 变量路由 shadow）
-    Route::get('/lucky-wheel/records', [app\admin\controller\LuckyWheelController::class, 'records']);
-    Route::post('/lucky-wheel/{id}/toggle-status', [app\admin\controller\LuckyWheelController::class, 'toggleStatus']);
-    Route::resource('/lucky-wheel', app\admin\controller\LuckyWheelController::class);
-
-    // 秒杀活动（静态路由必须先于 resource 定义，避免被 {id} 变量路由 shadow）
-    Route::get('/seckill/{id}/orders', [app\admin\controller\SeckillController::class, 'orders']);
-    Route::post('/seckill/{id}/toggle-status', [app\admin\controller\SeckillController::class, 'toggleStatus']);
-    Route::resource('/seckill', app\admin\controller\SeckillController::class);
-
     // APP 版本管理
     Route::resource('/versions', app\admin\controller\VersionController::class);
 

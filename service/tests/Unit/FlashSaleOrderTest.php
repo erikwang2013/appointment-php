@@ -31,7 +31,6 @@ use Webman\Http\Response;
  * 覆盖：FLASH_SALE 促销不再可参与（join 400）、详情不再返回（show 400）、
  * 不再进入促销结算（store 422「不支持下单」）、列表过滤（index 不含 flash_sale）、
  * 存量 flash_sale 促销订单支付时仍按旧规则懒判定自动取消（历史数据兼容）。
- * 秒杀下单统一走 SeckillActivity 通道（见 SeckillTest）。
  * 基建与 GroupBuyOrderTest 一致（真实 DB + tearDown 清理）。
  */
 class FlashSaleOrderTest extends TestCase

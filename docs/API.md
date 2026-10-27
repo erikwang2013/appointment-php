@@ -394,7 +394,7 @@
 
 **创建订单时**: Redis SETNX 锁定技师3分钟，退出页面或超时释放。
 
-**价格防篡改（2026-08-26）**: 订单项金额一律以数据库记录为准（target_type=service 查 appointment_service、product 查 appointment_product），客户端传价不参与计算；未知 target_type 422；target_id 必须传 hashid 编码值（传 raw id 解码为 0 → 422「商品不存在或已下架」）；拼团/秒杀价同样以 DB 为准。
+**价格防篡改（2026-08-26）**: 订单项金额一律以数据库记录为准（target_type=service 查 appointment_service、product 查 appointment_product），客户端传价不参与计算；未知 target_type 422；target_id 必须传 hashid 编码值（传 raw id 解码为 0 → 422「商品不存在或已下架」）；拼团价同样以 DB 为准。
 
 **退款规则**: 下单15min内或距开始>6h退100% / ≤6h退90% / 已开始退80% / 确认开始后不退。
 
@@ -408,7 +408,7 @@
 
 **拼团下单（第16轮）**: 创建订单可选传 `promotion_id`（hashid）。校验：仅 group_buy 类型、活动有效期内、调用者是参与者、未满员（已成团锁定 422）、订单服务与活动匹配；拼团价 = 原价 × discount_percent/100，禁用优惠券/次卡/积分叠加（传任一即 422）。订单落库 promotion_id/participant_id；支付完全复用 `POST /api/v1/order/pay/{id}`，pay 时懒判定活动已关闭（到期未成团）→ 订单自动取消并释放技师锁。
 
-**秒杀下单（第18轮，已下线）**: ~~创建订单传 `promotion_id`（flash_sale 类型）~~ —— 2026-08 起旧促销 FLASH_SALE 通道删除，store() 促销分支仅剩拼团 GROUP_BUY（非拼团 promotion 422）；秒杀统一走第24轮 `/api/v1/seckill` 通道（seckill_id 注入 store 事务内行锁扣库存），PromotionController::index 过滤 flash_sale、show/join 对其返回 400，`Promotion::TYPE_FLASH_SALE` 常量保留兼容历史数据。
+**旧促销通道（已下线）**: 2026-08 起旧促销 FLASH_SALE 通道删除，store() 促销分支仅剩拼团 GROUP_BUY（非拼团 promotion 422）；PromotionController::index 过滤 flash_sale、show/join 对其返回 400，`Promotion::TYPE_FLASH_SALE` 常量保留兼容历史数据。
 
 **预约改期（第17轮）**: `POST /api/v1/order/reschedule/{id}` 传 new_service_time（必填）+ reason（可选），同技师换时间。规则：仅本人订单（非本人 404）、仅 appointment 类型且状态 pending/paid/confirmed 可改（其余 422）、距原服务开始 ≥ 6 小时（与全额退款窗口一致）方可改期。并发防护：B1 order_lock（与 pay/cancel/refund 同一互斥族）→ 新时段技师锁 Redis SETNX EX 180（并发改期防超卖）→ 事务内行锁重读 + B2 排班冲突 DB 校验（排除本单）→ 更新 service_time + 落 appointment_order_reschedule 记录 → 释放原时段锁、新时段锁由本单持有 → SCENE_RESCHEDULE 订阅消息（未配置降级站内通知）。失败路径事务回滚同时释放新时段锁。
 
@@ -437,7 +437,7 @@
 | GET | `/api/v1/promotions/{id}/participants` | 参与列表 |
 | POST | `/api/v1/promotions/join/{id}` | 参与活动（第15轮完善：响应含 discount_percent/original_price/group_price；flash_sale 类型 400） |
 
-**参与规则**: group_buy 满员（≥min_people）锁定、已成团后新参与 422；到期未满员惰性关闭（show/join 时 status 置 0）。join 后按拼团价下单见「拼团下单（第16轮）」。秒杀不再走本通道，见「24. 秒杀接口」。
+**参与规则**: group_buy 满员（≥min_people）锁定、已成团后新参与 422；到期未满员惰性关闭（show/join 时 status 置 0）。join 后按拼团价下单见「拼团下单（第16轮）」。拼团不再走旧促销通道。
 
 ---
 
@@ -571,14 +571,6 @@
 
 **记录时机**: 服务详情接口访问成功后自动记录（未登录跳过；重复浏览只刷新 viewed_at 不重复插入）。
 
-### 15. 满减活动接口（第22轮）
-
-| 方法 | 路径 | 说明 |
-|------|------|------|
-| GET | `/api/v1/full-reduction-activities` | 生效中满减活动列表（status=1 且时间在有效期内，按减免额降序；公开接口） |
-
-**下单叠加规则**: 满减仅标准订单生效（拼团/秒杀跳过），以券/次卡抵扣后的应付金额判断门槛（threshold），叠加顺序 **券/次卡 → 满减 → 等级折扣**；取减免额最大活动；优惠额并入 discount_amount、备注追加「满减：满X减Y」；满减后实付下限 0.01 元。
-
 ### 16. 我的预约 ICS 导出（需JWT认证，第22轮）
 
 | 方法 | 路径 | 说明 |
@@ -634,14 +626,6 @@
 
 埋点: 提交/支付（微信回调 markOrderPaid 单一消费点）/取消/技师确认/退款申请/退款通过/服务开始/服务完成/超时自动取消/后台操作（operator=admin）共 8 类变更。
 
-### 22. 积分幸运转盘接口（需JWT认证，第23轮）
-
-| 方法 | 路径 | 说明 |
-|------|------|------|
-| GET | `/api/v1/wheel/prizes` | 转盘奖品列表（隐藏 weight/stock 敏感字段） |
-| POST | `/api/v1/wheel/spin` | 抽奖一次（Redis NX + 行锁防并发；random_int 权重抽取；积分→earn 流水含过期时间、余额→lockForUpdate 入账、优惠券→pending 人工发放、无奖→lose；client_token 幂等） |
-| GET | `/api/v1/wheel/records` | 我的抽奖记录（分页） |
-
 ### 23. 游客模式接口（第24轮）
 
 | 方法 | 路径 | 说明 |
@@ -653,16 +637,6 @@
 | GET | `/api/v1/guest/technicians` | 技师列表（仅审核通过；?service_id=hashid 筛选；评分降序） |
 
 无需认证（公开接口）的未登录浏览入口。
-
-### 24. 秒杀接口（需JWT认证，第24轮）
-
-| 方法 | 路径 | 说明 |
-|------|------|------|
-| GET | `/api/v1/seckill` | 秒杀活动列表（status=1 且在时间窗内；含已售量 = appointment_order.seckill_id 订单数、剩余库存） |
-| GET | `/api/v1/seckill/{id}` | 活动详情（state=not_started/ongoing/ended） |
-| POST | `/api/v1/seckill/{id}/buy` | 秒杀下单（client_token 幂等 + Redis NX 30s 防并发 + 活动校验；不再预扣库存） |
-
-**下单规则（2026-08-26 起）**: 库存统一在 `/api/v1/order store()` 事务内行锁扣减，buy 仅做入口校验/幂等；秒杀价 = seckill_price（以 DB 为准），不叠加优惠券/积分/会员卡；订单取消不回补库存；直接调 `/api/v1/order` 携带 seckill_id 同样扣库存。
 
 ### 25. APP 版本检查接口（第24轮）
 
@@ -814,18 +788,6 @@
 
 权限ID: 392 列表 / 393 统计。
 
-### 满减活动管理（第22轮）
-
-| 方法 | 路径 | 说明 |
-|------|------|------|
-| GET | `/admin/full-reduction-activities` | 活动列表（分页） |
-| POST | `/admin/full-reduction-activities` | 新增（threshold/reduction/title/status/start_at/end_at） |
-| PUT | `/admin/full-reduction-activities/{id}` | 编辑 |
-| POST | `/admin/full-reduction-activities/{id}/toggle-status` | 上下架 |
-| DELETE | `/admin/full-reduction-activities/{id}` | 删除（带 confirmPassword） |
-
-权限ID: 396 列表 / 397 新增 / 398 编辑 / 399 上下架 / 400 删除（一条权限记录对应一个 method.path slug，故 5 路由 5 条）。
-
 ### 分账记录（第22轮）
 
 | 方法 | 路径 | 说明 |
@@ -833,19 +795,6 @@
 | GET | `/admin/profit-sharing` | 分账记录（leftJoin 订单号/技师昵称，?status&order_no&technician_name&page=，hashid 编码） |
 
 权限ID: 394。服务端逻辑：appointment_system_config group=profit_sharing（enabled/receiver_ratio）；未启用 disabled 降级仅日志；启用后支付成功自动请求分账（金额=实付×receiver_ratio 默认 0.7，同单 pending/success 幂等跳过）；无凭据不执行 HTTP，请求结构记日志。
-
-### 积分转盘管理（第23轮）
-
-| 方法 | 路径 | 说明 |
-|------|------|------|
-| GET | `/admin/lucky-wheel` | 转盘奖品列表（含 weight/stock，分页） |
-| POST | `/admin/lucky-wheel` | 新增奖品（名称/类型 points/balance/coupon/none/权重/库存/图片） |
-| GET/PUT | `/admin/lucky-wheel/{id}` | 详情 / 编辑 |
-| DELETE | `/admin/lucky-wheel/{id}` | 删除 |
-| POST | `/admin/lucky-wheel/{id}/toggle-status` | 上下架 |
-| GET | `/admin/lucky-wheel/records` | 抽奖记录（?status&page=，含用户昵称/奖品名） |
-
-权限ID: 401-406。静态路由 `/lucky-wheel/records` 与 `/lucky-wheel/{id}/toggle-status` 注册在 resource 之前避免 {id} shadow。
 
 ### 回头客奖励管理（第24轮）
 
@@ -856,20 +805,6 @@
 | GET | `/admin/return-customer/rewards` | 奖励记录列表（?keyword 技师姓名/订单号/用户昵称，type=return_customer 分页） |
 
 权限ID: 412-414。奖励规则：用户对同一技师 30 天内第 2 次消费（订单完成）发放奖金 = 实付 × ratio（默认 0.05），落 appointment_technician_earnings（type=return_customer，status=pending）随佣金结算链统一结算；同订单幂等不重复发放。
-
-### 秒杀活动管理（第24轮）
-
-| 方法 | 路径 | 说明 |
-|------|------|------|
-| GET | `/admin/seckill` | 活动列表（分页） |
-| POST | `/admin/seckill` | 新增活动（name/service_id/seckill_price/original_price/stock/start_at/end_at） |
-| GET | `/admin/seckill/{id}` | 活动详情 |
-| PUT | `/admin/seckill/{id}` | 编辑 |
-| DELETE | `/admin/seckill/{id}` | 删除 |
-| POST | `/admin/seckill/{id}/toggle-status` | 上下架 |
-| GET | `/admin/seckill/{id}/orders` | 秒杀订单列表 |
-
-权限ID: 407-411、420。已售量 = appointment_order.seckill_id 订单数；库存行锁扣减、售罄拦截。
 
 ### APP 版本管理（第24轮）
 
