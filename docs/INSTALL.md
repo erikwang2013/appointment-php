@@ -185,17 +185,15 @@ docker exec -it appointment-svc-mysql mysql -u root -p appointment < /tmp/instal
 | 管理后台 | 8 | `appointment_admin_user`, `appointment_admin_role`, `appointment_admin_permission`, `appointment_operation_log` |
 | 用户域 | 4 | `appointment_user`, `appointment_user_address`, `appointment_user_favorite`, `appointment_user_device` |
 | 技师域 | 8 | `appointment_technician_profile`, `appointment_technician_schedule`, `appointment_technician_earning`, `appointment_technician_withdrawal`, `appointment_technician_tier_config` |
-| 服务域 | 4 | `appointment_service_category`, `appointment_service`, `appointment_service_package`, `appointment_service_record` |
+| 服务域 | 3 | `appointment_service_category`, `appointment_service`, `appointment_service_package` |
 | 订单域 | 5 | `appointment_order`, `appointment_order_item`, `appointment_order_payment`, `appointment_order_refund`, `appointment_order_review` |
 | 营销域 | 8 | `appointment_coupon`, `appointment_member_card`, `appointment_gift_card`, `appointment_user_points`, `appointment_promotion` |
 | 排队 | 1 | `appointment_queue_number` |
 | 内容域 | 5 | `appointment_banner`, `appointment_announcement`, `appointment_faq`, `appointment_feedback`, `appointment_platform_agreement` |
 | 社区域 | 3 | `appointment_post`, `appointment_comment`, `appointment_moment` |
 | 门店 | 1 | `appointment_store` |
-| 培训 | 2 | `appointment_training_course`, `appointment_training_progress` |
-| 考试 | 3 | `appointment_exam`, `appointment_exam_question`, `appointment_exam_attempt` |
 | 系统 | 3 | `appointment_system_config`, `appointment_notification`, `appointment_signature` |
-| **合计** | **55** | |
+| **合计** | **49** | |
 
 所有表使用 `appointment_` 前缀，主键 `id` 为 BIGINT 非自增（由 snowflake-php 应用层生成）。
 

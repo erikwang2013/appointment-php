@@ -251,14 +251,6 @@ Route::group('/api/v1/technician', function () {
     Route::post('/work/{id}/start', v('technician', 'WorkController', 'start'));
     Route::post('/work/{id}/complete', v('technician', 'WorkController', 'complete'));
 
-    Route::post('/service-records', v('technician', 'ServiceRecordController', 'store'));
-    Route::get('/service-records/{id}', v('technician', 'ServiceRecordController', 'show'));
-
-    // ── 考试系统 ──
-    Route::get('/exams', v('technician', 'ExamController', 'index'));
-    Route::post('/exam/start/{id}', v('technician', 'ExamController', 'start'));
-    Route::post('/exam/submit/{id}', v('technician', 'ExamController', 'submit'));
-
     // ── 评价回复 ──
     Route::post('/review/reply/{order_id}', v('technician', 'ReviewController', 'reply'));
 

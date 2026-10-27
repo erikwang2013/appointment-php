@@ -266,13 +266,6 @@ INSERT INTO `appointment_admin_permission` (`id`, `parent_id`, `name`, `slug`, `
 (21000000000000111, 0, '店长更新', 'put.admin/store-managers', 3, '', '', 3, NOW(), NOW()),
 (21000000000000112, 0, '店长删除', 'delete.admin/store-managers', 3, '', '', 4, NOW(), NOW());
 
--- API 权限: 培训课程
-INSERT INTO `appointment_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
-(21000000000000113, 0, '培训课程查询', 'get.admin/training-courses', 3, '', '', 1, NOW(), NOW()),
-(21000000000000114, 0, '培训课程创建', 'post.admin/training-courses', 3, '', '', 2, NOW(), NOW()),
-(21000000000000115, 0, '培训课程更新', 'put.admin/training-courses', 3, '', '', 3, NOW(), NOW()),
-(21000000000000116, 0, '培训课程删除', 'delete.admin/training-courses', 3, '', '', 4, NOW(), NOW());
-
 -- API 权限: 调度任务
 INSERT INTO `appointment_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
 (21000000000000117, 0, '调度任务执行', 'post.admin/scheduled-tasks', 3, '', '', 1, NOW(), NOW());
@@ -1164,45 +1157,6 @@ ALTER TABLE `appointment_admin_user`
 ADD INDEX `idx_store_id` (`store_id`);
 
 -- ============================================================
--- 2. 培训课程表
--- ============================================================
-CREATE TABLE IF NOT EXISTS `appointment_training_course` (
-    `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
-    `title` VARCHAR(200) NOT NULL DEFAULT '' COMMENT '课程标题',
-    `type` VARCHAR(20) NOT NULL DEFAULT 'video' COMMENT '课程类型: video=视频 article=文章',
-    `url` VARCHAR(500) NOT NULL DEFAULT '' COMMENT '视频/文章链接',
-    `content` TEXT COMMENT '课程内容（富文本）',
-    `duration_minutes` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT '课程时长（分钟）',
-    `sort` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT '排序值，越小越靠前',
-    `status` TINYINT UNSIGNED NOT NULL DEFAULT 1 COMMENT '状态: 0=下架 1=上架',
-    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    PRIMARY KEY (`id`),
-    KEY `idx_type` (`type`),
-    KEY `idx_status` (`status`),
-    KEY `idx_sort` (`sort`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='培训课程表';
-
--- ============================================================
--- 3. 培训学习进度表
--- ============================================================
-CREATE TABLE IF NOT EXISTS `appointment_training_progress` (
-    `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
-    `technician_id` BIGINT UNSIGNED NOT NULL COMMENT '技师档案ID',
-    `course_id` BIGINT UNSIGNED NOT NULL COMMENT '课程ID',
-    `progress` TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '学习进度（0-100）',
-    `completed_at` DATETIME DEFAULT NULL COMMENT '完成时间',
-    `status` VARCHAR(20) NOT NULL DEFAULT 'learning' COMMENT '学习状态: learning=学习中 completed=已完成',
-    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    PRIMARY KEY (`id`),
-    UNIQUE KEY `uk_tech_course` (`technician_id`, `course_id`),
-    KEY `idx_technician_id` (`technician_id`),
-    KEY `idx_course_id` (`course_id`),
-    KEY `idx_status` (`status`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='培训学习进度表';
-
--- ============================================================
 -- 4. appointment_technician_withdrawal 增加多级审批链字段
 -- ============================================================
 ALTER TABLE `appointment_technician_withdrawal`
@@ -1479,50 +1433,6 @@ CREATE TABLE IF NOT EXISTS `appointment_check_in` (
     KEY `idx_user_id` (`user_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='签到记录表';
 
-CREATE TABLE IF NOT EXISTS `appointment_exam` (
-    `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
-    `title` VARCHAR(200) NOT NULL DEFAULT '' COMMENT 'title',
-    `course_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'course_id',
-    `passing_score` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'passing_score',
-    `duration_minutes` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'duration_minutes',
-    `status` TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'status',
-    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    PRIMARY KEY (`id`),
-    KEY `idx_course_id` (`course_id`),
-    KEY `idx_status` (`status`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='技师考试表';
-
-CREATE TABLE IF NOT EXISTS `appointment_exam_attempt` (
-    `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
-    `exam_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'exam_id',
-    `technician_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'technician_id',
-    `score` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'score',
-    `total_score` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'total_score',
-    `passed` TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'passed',
-    `started_at` DATETIME DEFAULT NULL COMMENT 'started_at',
-    `submitted_at` DATETIME DEFAULT NULL COMMENT 'submitted_at',
-    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    PRIMARY KEY (`id`),
-    KEY `idx_exam_id` (`exam_id`),
-    KEY `idx_technician_id` (`technician_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='考试答题记录表';
-
-CREATE TABLE IF NOT EXISTS `appointment_exam_question` (
-    `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
-    `exam_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'exam_id',
-    `content` TEXT COMMENT 'content',
-    `type` VARCHAR(20) NOT NULL DEFAULT '' COMMENT 'type',
-    `options` JSON COMMENT 'options',
-    `answer` JSON COMMENT 'answer',
-    `score` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'score',
-    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    PRIMARY KEY (`id`),
-    KEY `idx_exam_id` (`exam_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='考试题目表';
-
 CREATE TABLE IF NOT EXISTS `appointment_invoice` (
     `id`            BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
     `user_id`       BIGINT UNSIGNED NOT NULL COMMENT '用户ID',
@@ -1609,20 +1519,6 @@ CREATE TABLE IF NOT EXISTS `appointment_service_package` (
     KEY `idx_status` (`status`),
     KEY `idx_price` (`price`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='服务套餐表';
-
-CREATE TABLE IF NOT EXISTS `appointment_service_record` (
-    `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
-    `order_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'order_id',
-    `technician_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'technician_id',
-    `before_photos` JSON COMMENT 'before_photos',
-    `after_photos` JSON COMMENT 'after_photos',
-    `notes` VARCHAR(500) NOT NULL DEFAULT '' COMMENT 'notes',
-    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    PRIMARY KEY (`id`),
-    KEY `idx_order_id` (`order_id`),
-    KEY `idx_technician_id` (`technician_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='服务记录表';
 
 CREATE TABLE IF NOT EXISTS `appointment_share` (
     `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
@@ -1801,8 +1697,6 @@ INSERT INTO `appointment_admin_permission` (`id`, `parent_id`, `name`, `slug`, `
 (21000000000000308, 0, '删除系统消息', 'delete.admin/system-messages/{id}', 3, '', '', 108, NOW(), NOW()),
 (21000000000000309, 0, '关于我们查询', 'get.admin/about', 3, '', '', 109, NOW(), NOW()),
 (21000000000000310, 0, '关于我们更新', 'post.admin/about', 3, '', '', 110, NOW(), NOW()),
-(21000000000000311, 0, '培训进度查询', 'get.admin/training/progress/{technician_id}', 3, '', '', 111, NOW(), NOW()),
-(21000000000000312, 0, '培训提醒', 'post.admin/training/remind/{technician_id}', 3, '', '', 112, NOW(), NOW()),
 (21000000000000313, 0, '调度任务列表', 'get.admin/scheduled-tasks', 3, '', '', 113, NOW(), NOW()),
 (21000000000000314, 0, '自动结算', 'post.admin/scheduled-tasks/auto-settle', 3, '', '', 114, NOW(), NOW()),
 (21000000000000315, 0, '优惠券过期任务', 'post.admin/scheduled-tasks/expire-coupons', 3, '', '', 115, NOW(), NOW()),
@@ -1835,8 +1729,6 @@ INSERT INTO `appointment_admin_permission` (`id`, `parent_id`, `name`, `slug`, `
 (21000000000000349, 0, '更新预约单', 'put.admin/appointment-orders/{id}', 3, '', '', 149, NOW(), NOW()),
 (21000000000000350, 0, '更新店长账号', 'put.admin/store-managers/{id}', 3, '', '', 150, NOW(), NOW()),
 (21000000000000351, 0, '删除店长账号', 'delete.admin/store-managers/{id}', 3, '', '', 151, NOW(), NOW()),
-(21000000000000352, 0, '更新培训课程', 'put.admin/training-courses/{id}', 3, '', '', 152, NOW(), NOW()),
-(21000000000000353, 0, '删除培训课程', 'delete.admin/training-courses/{id}', 3, '', '', 153, NOW(), NOW()),
 (21000000000000354, 0, '更新技师等级', 'put.admin/technician-tiers/{id}', 3, '', '', 154, NOW(), NOW());
 -- (merge) 2026_08_14_000002_schedule_permissions.sql → appointment_admin_permission
 

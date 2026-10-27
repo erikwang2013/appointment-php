@@ -96,7 +96,6 @@ admin/
 │   │   ├── SmsConfigController      #   短信配置
 │   │   ├── StorageConfigController  #   存储配置
 │   │   ├── StoreManagerController   #   店长账号
-│   │   ├── TrainingController       #   技师培训
 │   │   ├── ScheduledTaskController  #   定时任务
 │   │   ├── CustomerProfileController #  客户画像
 │   │   ├── BatchMessageController   #   批量推送
@@ -246,8 +245,6 @@ service/
 │   │   ├── WorkController          # 工作台(today/records/start/complete)
 │   │   ├── EarningController       # 收益概况+流水
 │   │   ├── WithdrawController      # 提现申请（每月 config('withdraw.gate_day') 号，可配置）
-│   │   ├── ServiceRecordController # 服务记录
-│   │   ├── ExamController          # 在线考核
 │   │   ├── AttendanceController    # 上下班打卡考勤
 │   │   └── ReviewController        # 技师回复评价
 │   ├── order/v1/controller/     # 订单模块 v1（8 控制器 + 9 trait）
@@ -351,8 +348,7 @@ apps/wechat/
 │   │   ├── member-detail       #   会员详情
 │   │   ├── earnings            #   收益
 │   │   ├── withdrawal          #   提现
-│   │   ├── transaction-list    #   交易明细
-│   │   └── training            #   培训
+│   │   └── transaction-list    #   交易明细
 │   ├── user/                   # 个人中心
 │   │   ├── index               #   个人信息
 │   │   ├── settings            #   设置
@@ -480,9 +476,6 @@ apps/wechat/
 | 用户 | appointment_check_in | 签到打卡 |
 | 内容 | appointment_community_post | 社区动态 |
 | 内容 | appointment_community_comment | 社区评论 |
-| 技师 | appointment_exam | 考核 |
-| 技师 | appointment_exam_question | 考核题目 |
-| 技师 | appointment_exam_attempt | 考核答卷 |
 | 系统 | appointment_operation_log_detail | 操作日志详情 |
 | 订单 | appointment_order_aftersale | 订单售后 |
 | 营销 | appointment_points_exchange_goods | 积分兑换商品 |
@@ -490,12 +483,9 @@ apps/wechat/
 | 营销 | appointment_promotion_participant | 拼团参与者 |
 | 订单 | appointment_queue_number | 排队叫号 |
 | 服务 | appointment_service_package | 服务套餐 |
-| 技师 | appointment_service_record | 服务记录 |
 | 内容 | appointment_share | 分享记录 |
 | 订单 | appointment_signature | 签名 |
 | 技师 | appointment_technician_tier_config | 技师等级配置 |
-| 技师 | appointment_training_course | 培训课程 |
-| 技师 | appointment_training_progress | 培训进度 |
 | 用户 | appointment_user_device | 用户设备 |
 | 营销 | appointment_user_points_exchange | 积分兑换记录 |
 | 内容 | appointment_video_post | 视频动态 |

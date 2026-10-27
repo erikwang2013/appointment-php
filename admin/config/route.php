@@ -266,11 +266,6 @@ Route::group('/admin', function () {
     Route::put('/store-managers/{id}', [app\admin\controller\StoreManagerController::class, 'update']);
     Route::delete('/store-managers/{id}', [app\admin\controller\StoreManagerController::class, 'destroy']);
 
-    // 培训课程
-    Route::resource('/training-courses', app\admin\controller\TrainingController::class);
-    Route::get('/training/progress/{technician_id}', [app\admin\controller\TrainingController::class, 'progress']);
-    Route::post('/training/remind/{technician_id}', [app\admin\controller\TrainingController::class, 'remind']);
-
     // 调度任务
     // M9: auto-cancel 已下线——与 service 端 AutoCancelTimer（30s 有锁扫描）重复，
     // 统一由 service 进程驱动；其余任务仍为 HTTP 触发（需 cron 接入）
