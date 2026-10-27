@@ -241,15 +241,18 @@ If this project helps you, your support is welcome and appreciated!
 
 The open-source edition is a streamlined edition for personal study and research. The commercial edition is available separately and retains the full feature set plus the Flutter client. Both share the same codebase; the commercial edition is a strict superset — the open-source edition has no controllers, models, or data tables missing from the commercial edition.
 
-| Metric | Open Source | Commercial |
-|--------|-------------|------------|
-| Controllers | 115 (service 53 / admin 62) | 143 (service 69 / admin 74) |
-| Models | 65 | 87 |
-| Data tables | 73 | 95 |
-| Routes | 311 (service 173 / admin 138) | 479 (service 229 / admin 163) |
-| PHP files / lines | 437 / 67,898 | 503 / 78,467 |
-| Test files | 93 | 109 (README claims 757 cases) |
-| Clients | WeChat Mini Program + PC admin | WeChat Mini Program + Flutter app + PC admin |
+| Dimension | Open Source | Commercial |
+|-----------|-------------|------------|
+| Feature coverage | 115 controllers / 65 models / 73 tables / 311 routes; booking, orders, payments/refunds, membership, marketing, technicians, reports | 143 / 87 / 95 / 479; adds community content, training/exams, queue/waitlist/e-signature, invoices/tickets, wallet & points transfers, full-reduction/flash-sale/lucky-wheel, Flutter client |
+| Security | 5 service + 7 admin middleware; JWT, RBAC, audit log, 34 security-php detectors, Hashids/field encryption; 5 failed logins lock for 15 min, max 3 active tokens per user | Same middleware/detectors and lockout/session/encryption/audit policy; 28 more controllers and 166 more routes, so a larger permission/audit surface |
+| Performance & scale | 7 service processes + 3 admin processes; Redis cache/rate-limit/queue, ES/Scout sync, timers | Same process/cache architecture; slightly more Redis usage (65 vs 58 files); more modules — load-test commercial traffic separately |
+| Data & search | 73 tables; MySQL + Redis + Elasticsearch (webman-scout); shared code uses unique keys/row locks/idempotency | 95 tables; same MySQL+Redis+ES stack; same idempotency and locking patterns |
+| Tests & quality | 93 test files / 665 cases; one CI workflow with 4 jobs | 109 files / 762 cases (README claims 757); same CI structure |
+| Deployment & ops | 10 compose services each for admin/service; installer, health checks, Prometheus, backup scripts | Same topology and 10+10 compose services; fuller docs (425 vs 82 files) |
+| Clients & i18n | WeChat Mini Program + PC admin (Flutter/WeChat/HarmonyOS admin); runtime messages en/zh_CN | Adds Flutter client (16 pages); docs in 12 languages; runtime messages still en/zh_CN; HarmonyOS client directory has no source |
+| Extensibility | Versioned /api/v1, modular controllers/models, queues/events/timers; 82 doc files | Same extension mechanisms; more business modules and 425 doc files, usable as a complete reference implementation |
+| Licensing & support | Personal study/research only; commercial use needs written authorization | Commercial licensing, delivery and support; contact erik@erik.xyz |
+| Best fit | Learning, research, small self-hosted deployments | Commercial deployment, multi-store/multi-business, full marketing/invoicing/clients |
 
 **Commercial-only capabilities**
 - **Community & content**: community posts/comments, moments, short videos, and moderation.
