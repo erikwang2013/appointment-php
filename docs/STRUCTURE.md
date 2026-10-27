@@ -232,7 +232,6 @@ service/
 │   │   ├── InvoiceController       # 电子发票申请/列表/详情
 │   │   ├── InvoiceTitleController  # 发票抬头库
 │   │   ├── NotifySettingController # 消息偏好设置
-│   │   ├── PointsTransferController# 积分转赠
 │   │   └── TicketController        # 客服工单
 │   ├── technician/v1/controller/ # 技师模块 v1（10 控制器）
 │   │   ├── ProfileController       # 技师档案/入驻申请
@@ -260,9 +259,8 @@ service/
 │   │   ├── IcsController           # ICS日历导出
 │   │   ├── ReviewController        # 评价/追评
 │   │   └── TimelineController      # 订单状态时间线
-│   ├── wallet/v1/controller/    # 钱包模块 v1（2 控制器）
+│   ├── wallet/v1/controller/    # 钱包模块 v1（1 控制器）
 │   │   ├── WalletController        # 余额/充值/交易流水/余额支付
-│   │   └── WalletTransferController# 用户间转账
 │   ├── marketing/v1/controller/ # 营销模块 v1（7 控制器）
 │   │   ├── CouponController        # 优惠券列表/领取/下单抵扣
 │   │   ├── CardController          # 会员卡列表/购买/次卡 my/use
@@ -412,7 +410,6 @@ apps/wechat/
 | 营销 | appointment_coupon | 优惠券定义 |
 | 营销 | appointment_user_coupon | 用户优惠券 |
 | 营销 | appointment_user_coupon_transfer | 优惠券转赠记录（第17轮） |
-| 营销 | appointment_user_points_transfer | 积分转赠记录（第19轮） |
 | 营销 | appointment_technician_tier_log | 技师等级变更日志（第17轮） |
 | 营销 | appointment_member_card | 会员卡定义 |
 | 营销 | appointment_user_member_card | 用户会员卡 |
@@ -424,7 +421,6 @@ apps/wechat/
 | 钱包 | appointment_user_wallet | 用户钱包余额 |
 | 钱包 | appointment_wallet_recharge | 钱包充值记录 |
 | 钱包 | appointment_wallet_txn | 钱包交易流水 |
-| 钱包 | appointment_wallet_transfer | 用户间转账记录（第19轮） |
 | 用户 | appointment_user_notify_setting | 消息偏好设置（第19轮） |
 | 内容 | appointment_banner | 轮播图 |
 | 内容 | appointment_announcement | 公告 |

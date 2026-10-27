@@ -308,15 +308,6 @@
 
 **分销返佣**: 被推荐人首单 completed 后发放，金额 = paid_amount × reward_rate（appointment_system_config referral.reward_rate，默认 0.05，非法值回落常量）。行锁 + rewarded_at 判空 + 首单复查三重幂等；入账 WalletTxn type=referral_reward。
 
-#### 2.6 积分转赠（第19轮）
-
-| 方法 | 路径 | 说明 |
-|------|------|------|
-| POST | `/api/v1/user/points/transfer` | 积分转赠 (to_user_id hashid/points) |
-| GET | `/api/v1/user/points/transfers` | 转赠记录 (?direction=sent/received&page=1) |
-
-**积分转赠**: 接收人 hashid 解码+存在性 404、转自己 422、点数 1-10000 422、余额 SUM 聚合不足 422、单日累计 10000 限额 422。并发防护：Redis NX 锁 points_transfer:{user} 30s → 事务内双方最后一条流水 lockForUpdate（user_id 升序防互转死锁）→ 锁内复验余额/限额/接收人。流水规范：发送方 type=consume/source=points_transfer 负值（balance=上条快照-本次），接收方 type=earn/source=points_transfer 正值含 expires_at（PointsExpiryTimer 可正常过期）；commit 后站内通知接收方 type='points_received'（失败仅 warn）。
-
 #### 2.7 消息偏好设置（第19轮）
 
 | 方法 | 路径 | 说明 |
@@ -499,9 +490,6 @@
 | GET | `/api/v1/wallet` | 钱包余额 + 流水分页 |
 | POST | `/api/v1/wallet/recharge` | 创建充值单 (amount: 元) |
 | POST | `/api/v1/wallet/recharge/{id}/pay` | 充值单发起支付 (微信) |
-| POST | `/api/v1/wallet/transfer` | 余额转账 (to_user_id hashid/amount/remark 可选/client_token 可选)（第19轮） |
-| GET | `/api/v1/wallet/transfers` | 转账记录 (?direction=out/in&page=1)（第19轮） |
-| GET | `/api/v1/wallet/transfers/{id}` | 转账详情（仅双方可见，他人 404）（第19轮） |
 
 **流水**: wallet_txn 类型: recharge / consume / refund / gift_card / referral_reward(分销返佣) / referral_level2(二级返佣) / points_exchange(积分兑换入账)，分页返回。
 
@@ -509,7 +497,6 @@
 
 **余额支付**: 订单支付请求体传 `pay_channel: "balance"` 使用钱包余额；微信退款与余额退款均将金额回充至钱包余额。
 
-**余额转账（第19轮）**: `POST /api/v1/wallet/transfer` — 接收人 hashid 解码+存在性 404、转自己 422、金额 0.01-1000/笔 422（DECIMAL 比对禁 float）、余额不足 422、单日累计 5000 元 422。并发/幂等：Redis NX 锁 wallet_transfer:{from} 30s 串行化转出方 → 事务内双方钱包行按 user_id 升序 lockForUpdate（固定顺序防死锁）→ 扣转出方 + 增接收方 + WalletTxn 双流水（transfer_out/transfer_in 含 balance_after 快照）+ 转账记录 completed + 接收方站内通知 type='balance_received'（失败仅记日志）。client_token 可选：成功后 SETNX 24h 防重复提交（失败请求不落 token 可重试）。
 
 ---
 

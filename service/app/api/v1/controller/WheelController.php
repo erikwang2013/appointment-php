@@ -24,7 +24,7 @@ use Webman\Http\Request;
  * POST /api/wheel/spin    抽奖一次（扣积分 → 按权重随机 → 发放）
  * GET  /api/wheel/records 我的抽奖记录（分页）
  *
- * 规则（与 PointsTransferController 一致的并发/幂等策略）：
+ * 规则（并发/幂等策略）：
  * 1. Redis NX 锁 lucky_wheel:{userId}（30s TTL）拒绝快速重复提交；
  * 2. 积分余额 = SUM(earn) + SUM(consume/use) + SUM(expire)，不足 422；
  * 3. 事务内最后一条积分流水 lockForUpdate（同用户并发抽奖串行化），

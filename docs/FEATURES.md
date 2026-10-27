@@ -306,24 +306,6 @@
 | 幂等 | 复用现有回调幂等（充值单行 lockForUpdate + status 复验，仅首次 pending→paid 走到通知）；通知与状态变更同事务原子提交，无 crash 间隙；验签失败/单不存在/金额不符不写通知 |
 | 容错 | 通知写入 try/catch，失败仅记 warning 日志不阻塞主流程 |
 
-### 31. 余额转账（第19轮）
-
-| 功能 | 说明 |
-|------|------|
-| 接口 | POST /api/v1/wallet/transfer：接收人 hashid 解码+存在性 404、转自己 422、金额 0.01-1000/笔 422（DECIMAL 比对禁 float）、余额不足 422、单日累计 5000 元 422 |
-| 并发/幂等 | Redis NX 锁 wallet_transfer:{from} 30s 串行化转出方；事务内按双方 user_id 升序 lockForUpdate 钱包行（固定顺序防死锁）；client_token 成功后 SETNX 24h 防重复提交（失败请求不落 token 可重试） |
-| 入账 | 扣转出方 + 增接收方 + WalletTxn 双流水（transfer_out/transfer_in 含 balance_after 快照）+ 转账记录 completed + 接收方站内通知 type='balance_received'（失败仅记日志） |
-| 记录 | GET /api/v1/wallet/transfers（direction=out/in 分页）+ GET /transfers/{id}（仅双方可见 404） |
-
-### 32. 积分转赠（第19轮）
-
-| 功能 | 说明 |
-|------|------|
-| 接口 | POST /api/v1/user/points/transfer：接收人存在 404、转自己 422、点数 1-10000 422、余额 SUM 聚合不足 422、单日累计 10000 限额 422 |
-| 并发/幂等 | Redis NX 锁 points_transfer:{user} 30s；事务内双方最后一条流水 lockForUpdate（user_id 升序防互转死锁）+ 锁内复验余额/限额/接收人 |
-| 流水规范 | 发送方 type=consume source=points_transfer 负值（balance=上条快照-本次，与 points_offset/exchange 同口径）；接收方 type=earn source=points_transfer 正值含 expires_at（PointsExpiryTimer 可正常过期）；事务内写转赠记录，commit 后站内通知接收方 type='points_received' |
-| 记录 | GET /api/v1/user/points/transfers（direction=sent/received 分页，对方昵称） |
-
 ### 33. 评价追评 + 提交路由补全（第19轮）
 
 | 功能 | 说明 |

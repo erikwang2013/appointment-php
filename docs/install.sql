@@ -1990,37 +1990,6 @@ CREATE TABLE IF NOT EXISTS `appointment_user_coupon_transfer` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='优惠券转赠记录表';
 
 -- ============================================================
--- [2026_08_14_000101_points_transfer.sql]
--- ============================================================
-CREATE TABLE IF NOT EXISTS `appointment_user_points_transfer` (
-    `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
-    `from_user_id` BIGINT UNSIGNED NOT NULL COMMENT '转赠人ID',
-    `to_user_id` BIGINT UNSIGNED NOT NULL COMMENT '接收人ID',
-    `points` INT UNSIGNED NOT NULL COMMENT '转赠积分（正数）',
-    `status` VARCHAR(20) NOT NULL DEFAULT 'completed' COMMENT '状态: completed=已完成',
-    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    PRIMARY KEY (`id`),
-    KEY `idx_from_user_created` (`from_user_id`, `created_at`),
-    KEY `idx_to_user_created` (`to_user_id`, `created_at`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='用户积分转赠记录表';
-
--- ============================================================
--- [2026_08_14_000101_wallet_transfer.sql]
--- ============================================================
-CREATE TABLE IF NOT EXISTS `appointment_wallet_transfer` (
-    `id` BIGINT UNSIGNED NOT NULL COMMENT '主键ID，由snowflake生成',
-    `from_user_id` BIGINT UNSIGNED NOT NULL COMMENT '转出用户ID',
-    `to_user_id` BIGINT UNSIGNED NOT NULL COMMENT '接收用户ID',
-    `amount` DECIMAL(25,2) NOT NULL DEFAULT '0.00' COMMENT '转账金额（元）',
-    `status` VARCHAR(20) NOT NULL DEFAULT 'completed' COMMENT '状态: completed=已完成',
-    `remark` VARCHAR(255) NOT NULL DEFAULT '' COMMENT '备注',
-    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    PRIMARY KEY (`id`),
-    KEY `idx_from_user_created` (`from_user_id`, `created_at`),
-    KEY `idx_to_user_created` (`to_user_id`, `created_at`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='用户间余额转账记录表';
-
--- ============================================================
 -- [2026_08_14_000102_notify_setting.sql]
 -- ============================================================
 CREATE TABLE IF NOT EXISTS `appointment_user_notify_setting` (

@@ -146,9 +146,6 @@ Route::group('/api/v1/user', function () {
     Route::get('/referral/referred-users', v('user', 'ReferralController', 'referredUsers'));
     Route::get('/referral/earnings', v('user', 'ReferralController', 'earnings'));
 
-    Route::post('/points/transfer', v('user', 'PointsTransferController', 'transfer'));
-    Route::get('/points/transfers', v('user', 'PointsTransferController', 'records'));
-
     Route::post('/check-in', v('user', 'CheckInController', 'store'));
     Route::get('/check-in/status', v('user', 'CheckInController', 'status'));
 
@@ -330,9 +327,6 @@ Route::group('/api/v1/wallet', function () {
     Route::post('/pay-password/set', v('wallet', 'WalletController', 'setPayPassword'));
     Route::post('/pay-password/verify', v('wallet', 'WalletController', 'verifyPayPassword'));
     Route::post('/pay-password/check', v('wallet', 'WalletController', 'checkPayPassword'));
-    Route::post('/transfer', v('wallet', 'WalletTransferController', 'transfer'));
-    Route::get('/transfers', v('wallet', 'WalletTransferController', 'transfers'));
-    Route::get('/transfers/{id}', v('wallet', 'WalletTransferController', 'show'));
 })->middleware([
     app\middleware\Auth::class,
 ]);
