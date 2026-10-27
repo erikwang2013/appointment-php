@@ -86,25 +86,11 @@
     <path d="M132 198 H348" stroke="#000000" stroke-width="4" opacity="0.06"/>
 
     
-    <g transform="translate(202 250)">
-      <g>
-        
-        <ellipse rx="11.5" ry="16" fill="#2B2348"/>
-        <circle cx="-3.8" cy="-6.5" r="4.6" fill="#FFFFFF"/>
-        <circle cx="2.8" cy="4.6" r="2.1" fill="#8FF0DC" opacity="0.9"/>
-      </g>
-    </g>
-    <g transform="translate(278 250)">
-      <g>
-        
-        <ellipse rx="11.5" ry="16" fill="#2B2348"/>
-        <circle cx="-3.8" cy="-6.5" r="4.6" fill="#FFFFFF"/>
-        <circle cx="2.8" cy="4.6" r="2.1" fill="#8FF0DC" opacity="0.9"/>
-      </g>
-    </g>
-    <ellipse cx="178" cy="274" rx="13" ry="7.5" fill="#FFB3C6" opacity="0.8"/>
-    <ellipse cx="302" cy="274" rx="13" ry="7.5" fill="#FFB3C6" opacity="0.8"/>
-    <path d="M229 276 Q240 287 251 276" stroke="#2B2348" stroke-width="4" stroke-linecap="round" fill="none" opacity="0.75"/>
+    
+    
+    
+    
+    
 
     
     <rect x="164" y="304" width="30" height="6" rx="3" fill="#2B2348" opacity="0.13"/>
@@ -129,4 +115,4 @@
   
   <g transform="translate(70 84)"><path d="M0 -11 L2.6 -2.6 L11 0 L2.6 2.6 L0 11 L-2.6 2.6 L-11 0 L-2.6 -2.6 Z" fill="#FFD98A"></path></g>
   <g transform="translate(414 130) scale(0.8)"><path d="M0 -11 L2.6 -2.6 L11 0 L2.6 2.6 L0 11 L-2.6 2.6 L-11 0 L-2.6 -2.6 Z" fill="#4FE3C1"></path></g>
-  <g transform="translate(76 320) scale(0.85)"><path d="M0 -11 L2.6 -2.6 L11 0 L2.6 2.6 L0 11 L-2.6 2.6 L-11 0 L-2.6 -2.6 Z" fill="#FFD98A"></path></g></g><g class="ex-face"><ellipse cx="240" cy="266" rx="56" ry="42" fill="#FFFFFF"/><path d="M 188.7,253.92 Q 202,233.9 215.3,253.92" fill="none" stroke="#2B2348" stroke-width="2.8" stroke-linecap="round"/><path class="ex-anim-pulse" style="animation-delay:0s" d="M 278,255.59 C 263.01,244.12 269.47,233.54 278,242.94 C 286.53,233.54 292.99,244.12 278,255.59 Z" fill="#FF7AA2"/><ellipse cx="240" cy="280.8" rx="6.02" ry="5.54" fill="none" stroke="#2B2348" stroke-width="2.24"/><ellipse class="ex-anim-pulse" cx="191.5" cy="268.9" rx="10.92" ry="5.88" fill="#FF8FB3" opacity="0.7"/><ellipse class="ex-anim-pulse" cx="288.5" cy="268.9" rx="10.92" ry="5.88" fill="#FF8FB3" opacity="0.7"/><path class="ex-anim-heart" style="animation-delay:0.0s" d="M 186.05,206.52 C 176.05,198.87 180.36,191.82 186.05,198.09 C 191.73,191.82 196.04,198.87 186.05,206.52 Z" fill="#FF7AA2"/><path class="ex-anim-heart" style="animation-delay:0.7s" d="M 298.45,194.48 C 290.59,188.47 293.98,182.93 298.45,187.86 C 302.91,182.93 306.3,188.47 298.45,194.48 Z" fill="#FF7AA2"/><path class="ex-anim-heart" style="animation-delay:1.3s" d="M 280.46,227.29 C 275.04,223.14 277.38,219.31 280.46,222.72 C 283.55,219.31 285.89,223.14 280.46,227.29 Z" fill="#FF7AA2"/></g></g></svg>
+  <g transform="translate(76 320) scale(0.85)"><path d="M0 -11 L2.6 -2.6 L11 0 L2.6 2.6 L0 11 L-2.6 2.6 L-11 0 L-2.6 -2.6 Z" fill="#FFD98A"></path></g></g><g class="ex-face"><path d="M 188.7,253.92 Q 202,233.9 215.3,253.92" fill="none" stroke="#2B2348" stroke-width="2.8" stroke-linecap="round"/><path class="ex-anim-pulse" style="animation-delay:0s" d="M 278,255.59 C 263.01,244.12 269.47,233.54 278,242.94 C 286.53,233.54 292.99,244.12 278,255.59 Z" fill="#FF7AA2"/><ellipse cx="240" cy="280.8" rx="6.02" ry="5.54" fill="none" stroke="#2B2348" stroke-width="2.24"/><ellipse class="ex-anim-pulse" cx="191.5" cy="268.9" rx="10.92" ry="5.88" fill="#FF8FB3" opacity="0.7"/><ellipse class="ex-anim-pulse" cx="288.5" cy="268.9" rx="10.92" ry="5.88" fill="#FF8FB3" opacity="0.7"/><path class="ex-anim-heart" style="animation-delay:0.0s" d="M 186.05,206.52 C 176.05,198.87 180.36,191.82 186.05,198.09 C 191.73,191.82 196.04,198.87 186.05,206.52 Z" fill="#FF7AA2"/><path class="ex-anim-heart" style="animation-delay:0.7s" d="M 298.45,194.48 C 290.59,188.47 293.98,182.93 298.45,187.86 C 302.91,182.93 306.3,188.47 298.45,194.48 Z" fill="#FF7AA2"/><path class="ex-anim-heart" style="animation-delay:1.3s" d="M 280.46,227.29 C 275.04,223.14 277.38,219.31 280.46,222.72 C 283.55,219.31 285.89,223.14 280.46,227.29 Z" fill="#FF7AA2"/></g></g></svg>
