@@ -1,9 +1,9 @@
 # 功能说明
-> **多语言**：[English](en/FEATURES.md) · [한국어](ko/FEATURES.md) · [Русский](ru/FEATURES.md) · [Deutsch](de/FEATURES.md) · [Français](fr/FEATURES.md) · [Español](es/FEATURES.md) · [Português](pt/FEATURES.md) · [हिन्दी](hi/FEATURES.md) · [العربية](ar/FEATURES.md) · [বাংলা](bn/FEATURES.md) · [Bahasa Indonesia](id/FEATURES.md) · [日本語](ja/FEATURES.md)
+> **多语言**：[English](en/FEATURES.md)
 
-> **项目状态**: 全部完成 ✅ | 109 控制器 | 103 模型 | 344 测试（service 240 / admin 104） | WebSocket | 支付回调 | 叫号 | 考核 | 社区
+> **项目状态**: 全部完成 ✅ | 115 控制器（service 53 / admin 62） | 65 模型 | 93 测试（service 68 / admin 25） | WebSocket | 支付回调
 
-## 一、用户端（微信小程序 + Flutter APP）
+## 一、用户端（微信小程序）
 
 用户端小程序与APP功能完全相同。统一账号支持客户/技师身份切换。
 
@@ -151,7 +151,7 @@
 | 功能 | 说明 |
 |------|------|
 | 下单选券 | 下单可选传 user_coupon_id，PriceCalculator.applyCoupon 只读校验+算额 |
-| 优惠类型 | fixed 固定金额 / percent 百分比，min_amount 满减门槛 |
+| 优惠类型 | fixed 固定金额 / percent 百分比，min_amount 最低消费门槛 |
 | 消费与归还 | 支付成功 consume 置 used；退款 restoreCouponAndCard 幂等归还 |
 
 ### 14. 礼品卡（第9轮）
@@ -391,7 +391,6 @@ Flutter Web 单页应用，共 21 个页面：dashboard/用户/角色/配置/日
 
 - 轮播图CRUD
 - 关于我们设置
-- 朋友圈动态审核
 - 常见问题CRUD
 - 意见反馈处理
 - 平台公告CRUD

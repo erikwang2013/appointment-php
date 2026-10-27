@@ -1,5 +1,5 @@
 # Test Team Report — Full Test Coverage Audit
-> **Languages**: [中文](../TEST-REPORT.md) · [한국어](../ko/TEST-REPORT.md) · [Русский](../ru/TEST-REPORT.md) · [Deutsch](../de/TEST-REPORT.md) · [Français](../fr/TEST-REPORT.md) · [Español](../es/TEST-REPORT.md) · [Português](../pt/TEST-REPORT.md) · [हिन्दी](../hi/TEST-REPORT.md) · [العربية](../ar/TEST-REPORT.md) · [বাংলা](../bn/TEST-REPORT.md) · [Bahasa Indonesia](../id/TEST-REPORT.md) · [日本語](../ja/TEST-REPORT.md)
+> **Languages**: [中文](../TEST-REPORT.md)
 
 > Generated: 2026-08-26　Version: v1.3.8
 > Team: deep-audit (tester-php / tester-api / tester-ui / tester-go / tester-rust)
@@ -23,7 +23,7 @@
 
 ## 3. PHP Test Coverage
 
-**Full results: 558 tests / 2508 assertions, 0 failures 0 errors 0 skipped** (2 pre-existing vendor deprecations, 2 pre-existing PHPUnit notices, none introduced this round; the original 4 withdrawal-gate skips were eliminated via injectable `config('withdraw.gate_day')`, so all tests run any day)
+**Current test files: 93 (service 68 / admin 25). Historical full results: 558 tests / 2508 assertions, 0 failures 0 errors 0 skipped** (2 pre-existing vendor deprecations, 2 pre-existing PHPUnit notices, none introduced this round; the original 4 withdrawal-gate skips were eliminated via injectable `config('withdraw.gate_day')`, so all tests run any day)
 
 ### Added This Round (tester-php, 6 files 32 cases, all real DB + transaction rollback)
 
@@ -38,7 +38,7 @@
 
 ### Existing Coverage (70 files, unchanged)
 
-35+ controllers covered: Auth/Order state machine/refund/verification/rescheduling/payment callback/flash sale/group buy/coupons/gift cards/points/wallet/transfer/member cards/growth value/rebate/withdrawal/check-in/scheduling/invoice/logistics/push/subscribe messages/queues, etc.
+35+ controllers covered: Auth/Order state machine/refund/verification/rescheduling/payment callback/group buy/coupons/gift cards/points/wallet/member cards/growth value/rebate/withdrawal/check-in/scheduling/invoice/logistics/push/subscribe messages/queues, etc.
 
 ### Fixes This Round (found by tester-php)
 
@@ -58,9 +58,9 @@
 
 ## 5. UI End-to-End Conclusion
 
-- Clients: Flutter (apps/flutter user side, admin/apps/flutter dashboard), WeChat Mini Program (apps/wechat), HarmonyOS (apps/harmonyos), admin/apps/weixin
-- Current state: admin Flutter web has no build artifacts (build/web missing); no UI services running on this machine; no browser automation channel for WeChat Mini Program/HarmonyOS
-- **Conclusion: end-to-end automation environment unavailable**. Recommended adding to CI: flutter build web → Playwright driving dashboard key paths (login → order list → verification); Mini Program/HarmonyOS need manual testing on real devices/emulators
+- Clients: Flutter (admin/apps/flutter dashboard), WeChat Mini Program (apps/wechat), admin/apps/weixin
+- Current state: admin Flutter web has no build artifacts (build/web missing); no UI services running on this machine; no browser automation channel for WeChat Mini Program
+- **Conclusion: end-to-end automation environment unavailable**. Recommended adding to CI: flutter build web → Playwright driving dashboard key paths (login → order list → verification); Mini Program needs manual testing on real devices/emulators
 - Provided: admin/public/apidoc (API docs page)
 
 ## 6. GO / Rust

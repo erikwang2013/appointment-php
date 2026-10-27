@@ -21,15 +21,15 @@ Copyright (c) 2026 erik <erik@erik.xyz> — https://erik.xyz
 | 财务统计 | 收入/退款/提现/佣金区间汇总（`svc:finance_stats`）|
 | 用户 | CRUD + 批量删除/启禁用 + Excel 导入 + 等级/上级/密码/手机修改 |
 | 角色权限 | CRUD + 权限树 + RBAC method.path 鉴权（Redis 60s 缓存）|
-| 技师 | 列表/搜索/新增/导出 + 入驻审核 + 排班/服务项 + 等级自动评定 + 考勤统计 + 培训课程 |
+| 技师 | 列表/搜索/新增/导出 + 入驻审核 + 排班/服务项 + 等级自动评定 + 考勤统计 |
 | 门店 | CRUD/启禁用/地图坐标 + 门店工作台（store_id 隔离）|
 | 服务与产品 | 服务/产品/分类 CRUD + 卡项（次卡）设计 |
 | 预约订单 | 多条件搜索/取消/确认完成 + 扫码核销 + 退款两级审批 |
 | 商城 | 订单/发货/物流 + 售后审核 + 评价/评价图片审核 + 支付流水 |
-| 营销 | 优惠券/满减/秒杀/积分转盘/积分兑换/会员卡（月卡/VIP/次卡）|
-| 内容 | 轮播/公告/协议/FAQ/反馈/客服工单/朋友圈/视频审核/关于我们 |
+| 营销 | 优惠券/拼团/积分兑换/会员卡（月卡/VIP/次卡）|
+| 内容 | 轮播/公告/协议/FAQ/反馈/关于我们 |
 | 分销 | 二级返佣/推荐奖励/佣金设置/分账记录/回头客奖励 |
-| 财务 | 收支流水/技师提现审核/提现账号与限制配置/发票审核 |
+| 财务 | 收支流水/技师提现审核/提现账号与限制配置 |
 | 系统设置 | 系统配置键值 + 短信双通道 + 存储（本地/OSS/COS）+ 平台协议 + 消息模板 + 订阅消息 + APP 推送 + 版本管理 |
 | 扩展 | 系统监控（CPU/内存/Redis/MySQL）+ IP 黑名单 + 数据库备份/恢复 + 定时任务 + 批量消息推送 + 客户画像 |
 | 操作审计 | 日志查询 + 8 平台来源端自动检测 |
@@ -56,7 +56,7 @@ Copyright (c) 2026 erik <erik@erik.xyz> — https://erik.xyz
 - Flutter 3.x 管理后台，源码目录 `apps/flutter/`（`lib/app/pages/` 22 个页面目录）
 - Web 端按 PC 管理后台风格设计（侧边栏 + 顶栏 + 内容区，非移动端 App 风格）
 - 微信小程序版管理端，源码目录 `apps/weixin/`（7 个页面）
-- HarmonyOS ArkTS 客户端，源码目录 `apps/harmonyos/`
+- HarmonyOS ArkTS 管理端，源码目录 `admin/apps/harmonyos/`
 
 ### 品牌吉祥物
 - 项目宠物——日历精灵「小约」`public/mascot.svg`（`docs/diagrams/mascot.svg` 的副本，纯 SMIL 动画、无外部依赖）
@@ -140,7 +140,7 @@ open-admin/
 │   │       └── theme/          # Material 3 主题
 │   ├── weixin/                 # 微信小程序版管理端（7 个页面）
 │   │   └── pages/              # dashboard/login/user/role/config/log/profile
-│   └── harmonyos/              # HarmonyOS 客户端
+│   └── harmonyos/              # HarmonyOS 管理端
 ├── config/                     # 配置文件
 │   ├── route.php               # 路由（/admin 组挂 AdminAuth/AdminPermission/OperationLog）
 │   └── middleware.php          # 全局中间件注册

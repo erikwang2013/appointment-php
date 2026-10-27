@@ -1,22 +1,22 @@
 # 预约服务系统
 
-四端预约服务管理平台：用户端微信小程序 + Flutter APP + HarmonyOS APP（同账号身份切换）、PC 管理后台。
+双端预约服务管理平台：用户端微信小程序、PC 管理后台。
 
-> **项目状态**: 全部完成 ✅ | 143 控制器（service 69 / admin 74） | 87 模型 | 757 测试（service 579 / admin 178） | 95 数据表 | 479 路由（service 221 / admin 258）
+> **项目状态**: 全部完成 ✅ | 115 控制器（service 53 / admin 62） | 65 模型 | 93 测试（service 68 / admin 25） | 73 数据表 | 311 路由（service 173 / admin 138）
 
 ## 项目介绍
 
 <img src="docs/diagrams/mascot.svg" alt="预约服务系统吉祥物——日历精灵「小约」（SVG 动画）" width="200" align="right">
 
-**预约服务系统**是一套面向生活服务行业的四端预约管理平台：用户端覆盖**微信小程序、Flutter APP、HarmonyOS APP** 三端，同账号跨端自由切换，配合 **PC 管理后台**，实现"用户预约 → 技师接单 → 后台运营"全流程数字化闭环。无论门店预约、技师服务、会员营销还是财务结算，一套系统全部搞定。
+**预约服务系统**是一套面向生活服务行业的双端预约管理平台：用户端为**微信小程序**，配合 **PC 管理后台**，实现"用户预约 → 技师接单 → 后台运营"全流程数字化闭环。无论门店预约、技师服务、会员营销还是财务结算，一套系统全部搞定。
 
 **一站式预约体验**
 
-用户三端体验一致：按日历直观选时预约、优惠券/次卡/积分抵扣、秒杀与拼团优惠、微信/余额支付，订单状态全程可追踪——改期、取消、退款、售后、电子发票全流程在线完成；技师端提供工作台、上下班打卡、批量排班、服务核销与提现审批，运营效率一目了然。
+用户端体验流畅：按日历直观选时预约、优惠券/次卡/积分抵扣、拼团优惠、微信/余额支付，订单状态全程可追踪——改期、取消、退款、售后全流程在线完成；技师端提供工作台、上下班打卡、批量排班、服务核销与提现审批，运营效率一目了然。
 
 **全链路营销增长**
 
-内置满减活动、秒杀、拼团、优惠券转赠、积分商城与幸运转盘、会员卡/成长等级权益、两级分销返佣、回头客奖励等十余种营销工具，配合消息订阅推送与 APP 推送，帮助商家持续拉新、留存与复购。
+内置拼团、优惠券转赠、积分商城、会员卡/成长等级权益、两级分销返佣、回头客奖励等营销工具，配合消息订阅推送与 APP 推送，帮助商家持续拉新、留存与复购。
 
 **企业级安全与合规**
 
@@ -24,7 +24,7 @@
 
 **成熟的技术底座**
 
-基于 PHP 8.3 + webman 高性能常驻框架，MySQL 8.0 + Redis + Elasticsearch 支撑；95 张数据表、479 个接口、285 个细粒度权限点，757 项自动化测试全部通过，并有完善的中英文架构文档与一键安装向导，开箱即用、易于二次开发。
+基于 PHP 8.3 + webman 高性能常驻框架，MySQL 8.0 + Redis + Elasticsearch 支撑；73 张数据表、311 个接口、93 项自动化测试全部通过，并有完善的中英文架构文档与一键安装向导，开箱即用、易于二次开发。
 
 无论是单店预约还是多门店连锁，预约服务系统都能为您提供稳定、安全、可扩展的一体化解决方案。
 
@@ -34,7 +34,7 @@
 appointment-php/
 ├── admin/                     # 管理后台 (webman v2 + Flutter Web，独立部署 :8787)
 │   ├── app/                   #   admin(后台控制器)/api/v1/model/middleware/process/view
-│   ├── apps/                  #   Flutter Web 后台 / HarmonyOS / 微信管理端
+│   ├── apps/                  #   Flutter Web 后台 / 微信管理端
 │   ├── config/                #   路由/数据库/进程/插件配置
 │   ├── database/              #   备份脚本（表结构与种子数据统一见 docs/install.sql）
 │   ├── tests/                 #   PHPUnit（#[\Test] 属性风格）
@@ -46,15 +46,13 @@ appointment-php/
 │   ├── tests/                 #   PHPUnit
 │   └── start.php
 ├── apps/                      # 用户端前端应用
-│   ├── wechat/                #   微信小程序（原生）
-│   ├── flutter/               #   Flutter APP（iOS + Android）
-│   └── harmonyos/             #   HarmonyOS APP（鸿蒙原生）
+│   └── wechat/                #   微信小程序（原生）
 └── docs/                      # 项目文档
     ├── API.md / FEATURES.md / STRUCTURE.md / install.sql / README.md ...
     └── diagrams/              #   架构/流程图（SVG + mermaid）
 ```
 
-**项目结构图**（四端目录 + 模块明细，完整版见 [STRUCTURE.md](docs/STRUCTURE.md)）：
+**项目结构图**（双端目录 + 模块明细，完整版见 [STRUCTURE.md](docs/STRUCTURE.md)）：
 
 <img src="docs/diagrams/cn-project-structure.svg" alt="cn-project-structure.svg" width="100%">
 
@@ -85,7 +83,7 @@ php start.php start -d
 cd service/ && cp .env.example .env && composer install
 cd ../admin/ && cp .env.example .env && composer install
 
-# 2. 一键导入数据库（含全部 95 张表 + 权限/配置种子）
+# 2. 一键导入数据库（含全部 73 张表 + 权限/配置种子）
 mysql -u root -p < docs/install.sql
 
 # 3. 启动服务
@@ -109,9 +107,7 @@ cd ../service/ && cp .env.docker .env && docker-compose up -d
 | 缓存 | Redis | 缓存/限流/Session/队列 |
 | 搜索 | Elasticsearch | 全文检索（via webman-scout） |
 | 管理后台前端 | Flutter Web | PC管理后台风格 |
-| 用户端APP | Flutter | iOS + Android |
 | 用户端小程序 | 原生微信小程序 | WXML/WXSS/JS |
-| 用户端鸿蒙APP | HarmonyOS ArkTS | 原生 @ohos.net.http |
 | ID生成 | erikwang2013/snowflake-php | BIGINT非自增主键 |
 | API ID加解密 | erikwang2013/hashids | 对外隐藏真实ID |
 | JWT认证 | erikwang2013/jwt-webman | Bearer Token |
@@ -147,9 +143,8 @@ cd ../service/ && cp .env.docker .env && docker-compose up -d
 
 ### 全量生命周期总览
 
-除订单外，系统另有 16 条业务生命周期（交易 / 资产权益 / 身份账号 / 运营营销四类），完整状态机见 [LIFECYCLE-DIAGRAM.md](docs/diagrams/LIFECYCLE-DIAGRAM.md)：
+除订单外，系统另有 10 条业务生命周期（交易 / 资产权益 / 身份账号 / 运营营销四类），完整状态机见 [LIFECYCLE-DIAGRAM.md](docs/diagrams/LIFECYCLE-DIAGRAM.md)：
 
-<img src="docs/diagrams/cn-lifecycle-overview.svg" alt="cn-lifecycle-overview.svg" width="100%">
 
 ## 安全架构
 
@@ -182,7 +177,7 @@ cd ../service/ && cp .env.docker .env && docker-compose up -d
 | 积分体系 | 签到返积分；核销消费返积分 floor(paid×1)（order_id 幂等，balance 快照）；退款按比例回扣；明细分页 + type/source 过滤 |
 | 会员管理 | appointment_user.member_level 列（迁移 000008）；管理端会员卡完整 CRUD（权限 365-369） |
 | 小程序下单链路 | 服务详情 → 确认订单（选券/门槛置灰/客户端预估金额）→ POST /order → 微信/余额支付；小程序共 20 个页面 |
-| 拼团闭环 | join 重复参与 422 + 满员锁定 + 到期惰性关闭；成团下单 store 传 promotion_id 以拼团价（discount_percent）下单，禁用优惠券/次卡/积分叠加，未成团自动取消订单并释放技师锁（旧 FLASH_SALE 促销通道已下线，秒杀走独立通道） |
+| 拼团闭环 | join 重复参与 422 + 满员锁定 + 到期惰性关闭；成团下单 store 传 promotion_id 以拼团价（discount_percent）下单，禁用优惠券/次卡/积分叠加，未成团自动取消订单并释放技师锁（旧 FLASH_SALE 促销通道已下线） |
 | 店长工作台 | service /api/v1/store-manager 4 接口（overview/orders/technicians/revenue）store_id 强制隔离（无门店 403）；admin 门店工作台概览 + 订单 store_id 筛选 + Flutter 页面 + 权限 372 |
 | 分销返佣 | 被推荐人首单 completed 后按 paid_amount × reward_rate（系统配置，默认 0.05）给推荐人返佣入钱包（WalletTxn referral_reward）；行锁+判空+首单复查三重幂等；earnings 明细 + admin 记录查看（权限 379） |
 | 积分兑换商城 | 兑换商品/兑换记录两表；兑换接口 Redis NX + 行锁防超兑 + uk_user_goods 同用户限一次；coupon 发券 / wallet 入账 / gift_card 卡密三结果；admin CRUD + 上下架 + 记录（权限 373-378） |
@@ -190,24 +185,17 @@ cd ../service/ && cp .env.docker .env && docker-compose up -d
 | 优惠券转赠 | 8 位唯一转赠码（uk_code 兜底，7 天有效）；claim 防滥用：Redis NX 锁 + 行锁复验防双花、uk_user_coupon 限转赠一次、被转赠券不可再转、不可自领；懒过期恢复原券 |
 | 积分过期 | expires_at（默认 365 天，配置 points.expiry_days）；PointsExpiryTimer 60s 游标扫描写 type=expire 负值扣减（三层幂等）+ 聚合站内通知；过期积分不可抵现/兑换 |
 | 技师等级自动评定 | TierRatingService 实时统计订单量+均分回写 profile，按 tier_config 从高到低匹配；仅升级不降级（allowDowngrade 供人工重评）；变更落 appointment_technician_tier_log + 站内通知；admin 日志查看（权限 380） |
-| 秒杀下单闭环 | /api/v1/seckill 活动 + buy 幂等/防并发，下单注入 seckill_id 复用 store()，库存统一在事务内行锁扣减（秒杀价 = seckill_price 以 DB 为准），售罄 422「已抢光」，取消不回补库存；旧 promotion flash_sale 通道已下线 |
 | 服务开始前提醒 | ServiceReminderTimer 60s 扫描 1h 内开始的 confirmed/serving 订单 → SCENE_REMINDER 订阅消息+站内通知（order_id+type 防重，三层幂等）；模板未配置自动降级站内通知 |
 | 到期提醒 | ExpiryReminderTimer 6h 扫描 3 天内到期的会员卡/优惠券 → type=card_expiry/coupon_expiry + SCENE_EXPIRY 订阅消息（order_id 记来源防重） |
 | 技师回复评价 | POST /api/v1/technician/review/reply/{order_id}：非本人 404、重复回复 422、回复成功站内通知用户；appointment_order_review 补 replied_at；admin 回复详情（权限 381） |
 | 充值到账通知 | 微信充值回调事务内写站内通知 type='wallet_recharge'（复用回调幂等，同事务原子提交，失败不阻塞主流程） |
-| 余额转账 | POST /api/v1/wallet/transfer 用户间转账：金额 0.01-1000/笔 + 单日 5000 限额；Redis NX 锁 + 双方钱包行锁（user_id 升序防死锁）+ client_token 24h 幂等；WalletTxn transfer_out/transfer_in 双流水含 balance_after 快照；接收方站内通知 type='balance_received' |
-| 积分转赠 | POST /api/v1/user/points/transfer 用户间转赠：1-10000 积分 + 单日累计 10000 限额；Redis NX 锁 + 双方最后一条流水 lockForUpdate（升序防死锁）+ 锁内复验；发送方 consume/接收方 earn 双流水（接收含 expires_at 可正常过期）；接收方站内通知 type='points_received' |
 | 评价追评 | POST /api/v1/order/review/{order_id}/append：非本人 404/重复 422/空内容 422/非 completed 422，成功写技师站内通知 type='review_append'；appointment_order_review 增 append_content/append_images(JSON)/append_at；顺带补注册用户提交评价路由（原 store 无路由不可达）并修复其潜伏 TypeError |
 | 用户端物流跟踪 | GET /api/v1/order/logistics/{id}：仅本人 product 订单（404 非本人/非商品/未发货）；读取 order.remark JSON（shipping_company/tracking_no/shipped_at，admin 发货写入）；收货人手机号脱敏 138****5678 |
 | 消息偏好设置 | appointment_user_notify_setting 表（uk_user_type 唯一键，缺省行=默认开）；GET/PUT /api/v1/user/notify-settings；5 类开关 service_reminder/card_expiry/points_expiry/marketing/system（system 恒开不可关）；notifySettingEnabled 门控 3 定时器 + 订阅事件，关闭则站内通知与订阅消息一并跳过 |
 | 预约月历 | GET /api/v1/calendar/technician/{id}（月视图）+ /day（日视图）：time_slots JSON 展开小时槽、appointment_order 已约时段排除；门店排班可视化选时 |
 | 用户成长等级 | appointment_user_growth + appointment_growth_level（青铜0/白银100/黄金500/铂金2000/钻石5000）；签到+10、评价+20、消费每1元1点（复用既有状态复验天然幂等）；GET /api/v1/growth（概览/records/levels 公开档位） |
-| 电子发票 | POST/GET /api/v1/invoices（申请/列表/详情）：uk_order_type(order_id,order_type) 防重复申请、金额服务端带出；admin 开票/驳回（权限 382-384） |
-| 客服工单 | POST/GET /api/v1/tickets + /{id}/close：用户提交/列表/详情/关闭；admin 回复（权限 385/387） |
 | 多级分销-二级返佣 | 订单支付后给一级推荐人的推荐人发 paid×level2_rate（配置 0.02）：事务行锁 + uk_order_referred 幂等防重复发放；WalletTxn TYPE_REFERRAL_LEVEL2；admin 记录查看（权限 386） |
 | 成长等级权益 | GrowthLevel.benefits 空壳落地：下单按等级 discount_rate 折扣（仅标准订单，券/次卡→等级折扣叠加，折扣额入 discount_amount + 备注可追溯，下限保护截断为 0）；支付回调成长值 floor(paid×points_multiplier) 倍率入账（支付时点取档，不抬级） |
-| 发票抬头管理 | appointment_invoice_title 常用抬头库：保存/编辑/删除/默认（首条自动默认、删默认自动转移、设默认事务清零）；申请发票可选 title_id 带入，手填兼容保留 |
-| 工单满意度 | 关闭工单可打分 1-5（越界 422，未提供兼容 NULL）；admin 满意度汇总：平均分/1-5 星分布/已评未评计数（权限 388） |
 | 评价图片审核 | admin ReviewAuditController：带图评价列表（JSON_LENGTH 过滤 + join 用户/技师名）、隐藏/恢复（hide 仅 visible、restore 仅 hidden，422 双向校验）；隐藏后技师评价列表自动不可见（权限 389-391） |
 | 浏览足迹 | appointment_browse_history（uk_user_item 重复浏览只刷 viewed_at）：服务详情挂接记录（try/catch 不阻塞主流程、未登录跳过）；列表 join 服务信息 + hashid；删单条/清空仅本人 |
 
@@ -221,27 +209,27 @@ cd ../service/ && cp .env.docker .env && docker-compose up -d
 >
 > Round-17 修复：AutoCancelTimer 通知插入改用 \support\Model::generateId()（原调用不存在的 Snowflake::generate()，自动取消通知静默失败）。
 >
-> Round-18 补充：秒杀下单（store() 支持 flash_sale 秒杀价）；服务开始前提醒（ServiceReminderTimer + SCENE_REMINDER）；会员卡/优惠券到期提醒（ExpiryReminderTimer + SCENE_EXPIRY）；技师回复评价（review reply 接口 + replied_at 列 + 权限 381）；充值到账通知（回调事务内 type='wallet_recharge'）。
+> Round-18 补充：服务开始前提醒（ServiceReminderTimer + SCENE_REMINDER）；会员卡/优惠券到期提醒（ExpiryReminderTimer + SCENE_EXPIRY）；技师回复评价（review reply 接口 + replied_at 列 + 权限 381）；充值到账通知（回调事务内 type='wallet_recharge'）。
 >
-> Round-19 补充：余额转账（appointment_wallet_transfer + WalletTransferController，权限内双行锁 + client_token 幂等）；积分转赠（appointment_user_points_transfer + PointsTransferController，单日限额 + 双向流水）；评价追评（appointment_order_review append 三列 + append 接口 + 补注册 store 路由）；用户端物流跟踪（logistics 接口 + remark JSON 解析 + 手机号脱敏）；消息偏好设置（appointment_user_notify_setting + NotifySettingController + 3 定时器门控）。
+> Round-19 补充：评价追评（appointment_order_review append 三列 + append 接口 + 补注册 store 路由）；用户端物流跟踪（logistics 接口 + remark JSON 解析 + 手机号脱敏）；消息偏好设置（appointment_user_notify_setting + NotifySettingController + 3 定时器门控）。
 >
-> Round-20 补充：预约月历（CalendarController 月/日视图 + 已约排除）；用户成长等级（appointment_user_growth + appointment_growth_level 5 档 + 签到/评价/消费挂接）；电子发票（appointment_invoice + uk_order_type 防重复 + 后台开票/驳回，权限 382-384）；客服工单（appointment_ticket 提交/列表/详情/关闭 + 后台回复，权限 385/387）；多级分销-二级返佣（payLevel2Reward 事务行锁 + uk_order_referred 幂等，权限 386）。
+> Round-20 补充：预约月历（CalendarController 月/日视图 + 已约排除）；用户成长等级（appointment_user_growth + appointment_growth_level 5 档 + 签到/评价/消费挂接）；多级分销-二级返佣（payLevel2Reward 事务行锁 + uk_order_referred 幂等，权限 386）。
 >
-> Round-21 补充：成长等级权益落地（下单 discount_rate 折扣 + 支付 points_multiplier 积分倍率，迁移种子 5 档 benefits）；发票抬头管理（appointment_invoice_title 抬头库 + 申请 title_id 联动）；工单满意度（关闭打分 rating/rated_at + admin 汇总统计，权限 388）；评价图片审核（ReviewAuditController 隐藏/恢复，权限 389-391）；用户浏览足迹（appointment_browse_history + 详情挂接 + 列表/删除/清空）。
+> Round-21 补充：成长等级权益落地（下单 discount_rate 折扣 + 支付 points_multiplier 积分倍率，迁移种子 5 档 benefits）；评价图片审核（ReviewAuditController 隐藏/恢复，权限 389-391）；用户浏览足迹（appointment_browse_history + 详情挂接 + 列表/删除/清空）。
 >
-> Round-22 补充：满减活动（appointment_full_reduction 自动减免 + 门槛校验，权限 396-400）；ICS 日历导出（RFC5545 我的预约）；技师打卡考勤（appointment_technician_attendance 上下班打卡 + 迟到标记 + admin 统计，权限 392-393）；APP 推送服务（配置驱动抽象 + 5 处事件接入，appointment_push_log）；微信官方分账（appointment_profit_sharing_log 配置驱动 + 降级，权限 394）；隐私合规（数据导出 + 账号注销 72h 状态机 close_status）。
+> Round-22 补充：ICS 日历导出（RFC5545 我的预约）；技师打卡考勤（appointment_technician_attendance 上下班打卡 + 迟到标记 + admin 统计，权限 392-393）；APP 推送服务（配置驱动抽象 + 5 处事件接入，appointment_push_log）；微信官方分账（appointment_profit_sharing_log 配置驱动 + 降级，权限 394）；隐私合规（数据导出 + 账号注销 72h 状态机 close_status）。
 >
-> Round-23 补充：用户健康档案（appointment_user_health_profile）；钱包支付密码（appointment_user_wallet pay_password 设置/校验）；技师批量排班（batch 导入 + 重叠冲突检测）；订单状态时间线（appointment_order_status_log 8 状态埋点 + 用户端/后台展示）；积分幸运转盘（appointment_lucky_wheel + appointment_wheel_record 权重抽奖，权限 401-406）；积分有效期（points.expiry_days 配置 + 新 earn 流水带 expires_at）。
+> Round-23 补充：用户健康档案（appointment_user_health_profile）；钱包支付密码（appointment_user_wallet pay_password 设置/校验）；技师批量排班（batch 导入 + 重叠冲突检测）；订单状态时间线（appointment_order_status_log 8 状态埋点 + 用户端/后台展示）；积分有效期（points.expiry_days 配置 + 新 earn 流水带 expires_at）。
 >
-> Round-24 补充：游客模式（/api/v1/guest/* 未登录只读浏览 + Redis 缓存）；秒杀（appointment_seckill_activity + Redis NX 行锁抢购 + appointment_order.seckill_id 注入下单，权限 407-411/420）；APP 版本管理与检测更新（appointment_app_version + /api/v1/app/version，权限 416-419）；回头客奖励（30 天二次消费奖金 type=return_customer，权限 412-414）；排班 CSV 导出（UTF-8 BOM + 时间槽明细，权限 415）。
+> Round-24 补充：游客模式（/api/v1/guest/* 未登录只读浏览 + Redis 缓存）；APP 版本管理与检测更新（appointment_app_version + /api/v1/app/version，权限 416-419）；回头客奖励（30 天二次消费奖金 type=return_customer，权限 412-414）；排班 CSV 导出（UTF-8 BOM + 时间槽明细，权限 415）。
 >
-> 2026-08-26 安全加固：下单接口订单项价格一律以数据库记录为准（客户端价格不可信，未知 target_type 422，target_id 必须 hashid），拼团/秒杀价同以 DB 为准；秒杀库存统一由 /api/v1/order store() 事务内行锁扣减（SeckillController::buy 不再预扣，保留 Redis 活动锁 + client_token 幂等）；技师提现申请时在途预留、审批转账前复核、并发审批防双打款；微信支付回调 total_fee 与订单应付严格比对、支付宝回调日志脱敏；/install 安装成功写 .install.lock 双重校验防重装；依赖版本收敛（webman-scout 2.0.5 / opensearch-php ^2.6 / dompdf、security-php、webman-database 精确锁定）；两应用 phpstan.neon 修复可运行（php -d memory_limit=2G）。
+> 2026-08-26 安全加固：下单接口订单项价格一律以数据库记录为准（客户端价格不可信，未知 target_type 422，target_id 必须 hashid），技师提现申请时在途预留、审批转账前复核、并发审批防双打款；微信支付回调 total_fee 与订单应付严格比对、支付宝回调日志脱敏；/install 安装成功写 .install.lock 双重校验防重装；依赖版本收敛（webman-scout 2.0.5 / opensearch-php ^2.6 / dompdf、security-php、webman-database 精确锁定）；两应用 phpstan.neon 修复可运行（php -d memory_limit=2G）。
 
 ## 文档导航
 
 | 文档 | 说明 |
 |------|------|
-| [架构说明](docs/ARCHITECTURE.md) | 系统架构、三端关系、技术组件、数据流 |
+| [架构说明](docs/ARCHITECTURE.md) | 系统架构、前后端关系、技术组件、数据流 |
 | [功能说明](docs/FEATURES.md) | 用户端/技师端/管理后台完整功能清单 |
 | [架构设计](docs/ARCHITECTURE-DESIGN.md) | 分层设计、中间件链、数据库设计、安全设计 |
 | [功能设计](docs/FEATURE-DESIGN.md) | 核心业务流程、业务规则、状态机、退款规则 |
@@ -249,28 +237,17 @@ cd ../service/ && cp .env.docker .env && docker-compose up -d
 | [安装说明](docs/INSTALL.md) | 环境要求、Docker部署、环境变量、第三方配置、常见问题 |
 | [使用说明](docs/USAGE.md) | 管理后台配置、用户端/技师端操作、退款规则（API 接口见 API.md） |
 | [项目结构](docs/STRUCTURE.md) | 完整目录布局、中间件执行链、数据库表清单 |
-| [测试报告](docs/TEST-REPORT.md) | 全量测试覆盖审计（558 用例 / 2508 断言） |
+| [测试报告](docs/TEST-REPORT.md) | 全量测试覆盖审计（当前 93 个测试文件） |
 | [设计规范](docs/superpowers/specs/2026-05-26-appointment-system-design.md) | 系统设计规范 |
 | [实现计划](docs/superpowers/plans/2026-05-26-appointment-system-plan.md) | 分阶段实现计划 |
-| [文档索引](docs/README.md) | 全部文档索引（含 12 种语言入口） |
+| [文档索引](docs/README.md) | 全部文档索引（中英文） |
 
 ## 多语言文档 / Languages
 
 | 语言 | 入口 |
 |------|------|
-| 简体中文 | [README.md（本页）](README.md（本页）) |
-| English | [docs/en/README.md](docs/en/README.md) |
-| 한국어 | [docs/ko/README.md](docs/ko/README.md) |
-| Русский | [docs/ru/README.md](docs/ru/README.md) |
-| Deutsch | [docs/de/README.md](docs/de/README.md) |
-| Français | [docs/fr/README.md](docs/fr/README.md) |
-| Español | [docs/es/README.md](docs/es/README.md) |
-| Português | [docs/pt/README.md](docs/pt/README.md) |
-| हिन्दी | [docs/hi/README.md](docs/hi/README.md) |
-| العربية | [docs/ar/README.md](docs/ar/README.md) |
-| বাংলা | [docs/bn/README.md](docs/bn/README.md) |
-| Bahasa Indonesia | [docs/id/README.md](docs/id/README.md) |
-| 日本語 | [docs/ja/README.md](docs/ja/README.md) |
+| 简体中文 | [README.md](README.md) |
+| English | [README_EN.md](README_EN.md) |
 
 ## 支持项目 / Support
 
@@ -291,48 +268,18 @@ If this project helps you, your support is welcome and appreciated!
   </tr>
 </table>
 
-### 全球转账 / Global Bank Transfer
-
-支持全球转账打赏（港元 / 人民币 / 美元 / 其他币种），感谢你的慷慨 :heart:
-
-Global bank transfer donations are welcome (HKD / CNY / USD / other currencies). Thank you for your generosity!
-
-| 项目 Item | 信息 Details |
-|-----------|-------------|
-| 收款人姓名 Beneficiary Name | WANG KEXUN |
-| 收款账户号码 Account Number | 881015918251 |
-| 收款银行 Bank | ZA Bank Limited（SWIFT Code：AABLHKHHXXX，银行编号 Bank Code：387） |
-| 银行地址 Bank Address | Core F, Cyberport 3, 100 Cyberport Road, Hong Kong |
-
-> **跨境汇款代理银行（如需）/ Intermediary Bank (if required)**
-> 此为跨境汇款代理银行（中转银行）信息，非收款银行信息，请向汇款银行查询是否需要提供。
-> Note: this is intermediary bank information, not the receiving bank. Please check with your remitting bank whether it is required.
->
-> - 汇入港元、人民币及美元（For HKD / CNY / USD）：**Citibank N.A. Hong Kong** — SWIFT Code：CITIHKHXXXX，银行编号 Bank Code：006，分行名称 Branch：Hong Kong Branch，分行编号 Branch Code：391，地址 Address：Citibank Tower, Citibank Plaza, 3 Garden Road, Central, Hong Kong
-> - 汇入其他币种（For other currencies）：**The Bank of New York Mellon** — SWIFT Code：IRVTUS3NXXX，地址 Address：240 Greenwich Street, New York, United States
-
-### 虚拟币打赏 (Crypto Donation)
-
-如果这个项目对你有帮助，欢迎扫描二维码打赏支持，谢谢！
-
-| 主网 (Network) | 二维码 (QR Code) | 钱包地址 (Wallet Address) |
-|---|---|---|
-| BNB Smart Chain (BEP20) | [<img src="docs/coin/1.jpg" width="150" alt="BNB Smart Chain (BEP20)">](docs/coin/1.jpg) | `0x355d429f97511897ccb4e271ec888205f9ab6629` |
-| Tron (TRC20) | [<img src="docs/coin/2.jpg" width="150" alt="Tron (TRC20)">](docs/coin/2.jpg) | `TEdDHWLajt1XvqtPDWmQctdrJaC3pzZZzz` |
-| Ethereum (ERC20) | [<img src="docs/coin/3.jpg" width="150" alt="Ethereum (ERC20)">](docs/coin/3.jpg) | `0x355d429f97511897ccb4e271ec888205f9ab6629` |
-| Aptos | [<img src="docs/coin/4.jpg" width="150" alt="Aptos">](docs/coin/4.jpg) | `0x836e3780edfc3f7b2372b39e2a1a3a5d7adfaccd96c726f21cfde1b50dd68030` |
-| Plasma | [<img src="docs/coin/5.jpg" width="150" alt="Plasma">](docs/coin/5.jpg) | `0x355d429f97511897ccb4e271ec888205f9ab6629` |
-| Polygon POS | [<img src="docs/coin/6.jpg" width="150" alt="Polygon POS">](docs/coin/6.jpg) | `0x355d429f97511897ccb4e271ec888205f9ab6629` |
-| Solana | [<img src="docs/coin/7.jpg" width="150" alt="Solana">](docs/coin/7.jpg) | `2hfhboHdmdrYsY25XfQSsEWxq5ip4EQsR7f4AzSRMUyr` |
-| The Open Network (TON) | [<img src="docs/coin/8.jpg" width="150" alt="The Open Network (TON)">](docs/coin/8.jpg) | `UQB9kFQohzmXUir9QSSZq01iwl9aQZIDdBpNmDklljRtCoGK` |
-| Arbitrum One | [<img src="docs/coin/9.jpg" width="150" alt="Arbitrum One">](docs/coin/9.jpg) | `0x355d429f97511897ccb4e271ec888205f9ab6629` |
-| AVAX C-Chain | [<img src="docs/coin/10.jpg" width="150" alt="AVAX C-Chain">](docs/coin/10.jpg) | `0x355d429f97511897ccb4e271ec888205f9ab6629` |
-
-## 版权
+## 项目授权 / Project License
 
 Copyright (c) 2026 erik <erik@erik.xyz> — https://erik.xyz
 
-<!-- pet-expressions:start -->
+- 本项目仅供个人学习、研究使用。
+- 未经作者书面授权，禁止任何形式的商业使用（包括但不限于商业部署、付费服务、二次销售、SaaS 运营及以本项目为基础提供商业服务）。
+- 商业授权请联系 **erik@erik.xyz**。
+- 未经授权的商业使用，作者将在全球范围内依法追究法律责任，并保留终身追责的权利。
+- 第三方组件仍遵循其各自原有的许可证；视觉资产适用仓库内的 ASSETS-LICENSE.md（如适用）。
+
+**English:** This project is provided for personal study and research only. Commercial use of any kind requires prior written authorization from the author (erik@erik.xyz). Unauthorized commercial use will be pursued for legal liability worldwide, and the author reserves the right to pursue such liability for life. Third-party components remain under their original licenses; visual assets are governed by ASSETS-LICENSE.md where applicable.
+
 ## 项目宠物表情形态 · 小约
 
 <table align="center">
@@ -353,4 +300,3 @@ SVG / PNG）**不是开源资产**，版权归作者所有。未经书面许可�
 
 > 代码部分仍遵循仓库原有 `LICENSE`；第三方素材（如明确标注的 Go Gopher 等）仍遵循其原许可证。
 <!-- assets-license:end -->
-

@@ -1,5 +1,5 @@
 # Usage Guide
-> **Languages**: [中文](../USAGE.md) · [한국어](../ko/USAGE.md) · [Русский](../ru/USAGE.md) · [Deutsch](../de/USAGE.md) · [Français](../fr/USAGE.md) · [Español](../es/USAGE.md) · [Português](../pt/USAGE.md) · [हिन्दी](../hi/USAGE.md) · [العربية](../ar/USAGE.md) · [বাংলা](../bn/USAGE.md) · [Bahasa Indonesia](../id/USAGE.md) · [日本語](../ja/USAGE.md)
+> **Languages**: [中文](../USAGE.md)
 
 ## Admin Dashboard Login
 
@@ -72,7 +72,7 @@ APP "My" → Switch to Technician → Workbench
 View today's income/funds in transit/balance → withdraw on the 20th of each month → T+1 to WeChat balance
 
 ### Growth
-Take training courses → attend assessments → pass to upgrade technician level (affects commission rate)
+Technician tier is upgraded automatically from order count and review average.
 
 ---
 

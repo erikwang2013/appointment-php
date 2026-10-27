@@ -1,5 +1,5 @@
 # System Function Diagram
-> **Languages**: [中文](../../diagrams/FUNCTION-DIAGRAM.md) · [한국어](../../ko/diagrams/FUNCTION-DIAGRAM.md) · [Русский](../../ru/diagrams/FUNCTION-DIAGRAM.md) · [Deutsch](../../de/diagrams/FUNCTION-DIAGRAM.md) · [Français](../../fr/diagrams/FUNCTION-DIAGRAM.md) · [Español](../../es/diagrams/FUNCTION-DIAGRAM.md) · [Português](../../pt/diagrams/FUNCTION-DIAGRAM.md) · [हिन्दी](../../hi/diagrams/FUNCTION-DIAGRAM.md) · [العربية](../../ar/diagrams/FUNCTION-DIAGRAM.md) · [বাংলা](../../bn/diagrams/FUNCTION-DIAGRAM.md) · [Bahasa Indonesia](../../id/diagrams/FUNCTION-DIAGRAM.md) · [日本語](../../ja/diagrams/FUNCTION-DIAGRAM.md)
+> **Languages**: [中文](../../diagrams/FUNCTION-DIAGRAM.md)
 
 ```mermaid
 mindmap
@@ -37,17 +37,14 @@ mindmap
         After-sales application  return/exchange status tracking
         Points cash-off  deduction at payment
         Group-buy ordering  order at group price after joining
-        Seckill ordering  order at seckill price, sold-out interception
         Rescheduling  change time with same technician ≥6h before start
         Appointment calendar  schedule month/day view, booked excluded
         Pre-service reminder  1h ahead subscribe message + in-app
         Text + image reviews
         Review append  extra content/images once
         Logistics tracking  shipment status/masked recipient
-        E-invoice  apply/list/detail dedupe
         ICS calendar export  export 90-day appointments as iCal
         Order timeline  status change records/own only
-        Invoice titles  common title library/default
         Notification preferences  toggles/timer gating
       Technician module
         Technician list  distance sort
@@ -62,19 +59,15 @@ mindmap
         Points earning & exchange/purchase rebate
         Points expiry  365-day validity/scheduled deduction
         Points exchange mall  exchange coupons/balance/gift cards
-        Group buy/seckill  join/full lock/order after forming
+        Group buy  join/full lock/order after forming
         Card expiry reminders  notify within 3 days of expiry
         Gift cards  cash/physical/exchange credit
-        Points transfer  user-to-user/daily cap/dual transactions
         Level-2 commission  level-2 referrer 2% commission
-        Full-reduction activities  spend X save Y/auto stack on order
-        Points wheel  weighted draw/points balance coupons/lose
       Wallet
         Balance query
         Top-up  in-app arrival notification
         Balance payment
         Refund credit
-        Balance transfer  user-to-user/dual row locks/transfer records
         Pay password  6-digit set/verify/change
       Personal center
         Avatar/nickname/phone
@@ -87,8 +80,6 @@ mindmap
         User referral  QR poster/commission details
         Growth levels  check-in/review/purchase 5 tiers
         Tier benefits  order discount/points multiplier
-        Customer service tickets  submit/list/detail/close
-        Ticket satisfaction  close rating/admin summary
         Feedback
       Settings
         Change password
@@ -135,9 +126,6 @@ mindmap
         Minimum/reserved/whole-hundred limits
       Return-customer rewards
         Second purchase bonus within 30 days
-      Professional training
-        Video courses
-        Text+image courses
 
     Admin dashboard
       Dashboard
@@ -184,17 +172,6 @@ mindmap
         Coupon CRUD
         On-off shelf control
         Claim stats
-      Full-reduction activities
-        Spend X save Y CRUD
-        On-off shelf control
-      Points wheel
-        Prize CRUD
-        On-off shelf control
-        Spin record viewing
-      Seckill activities
-        Activity CRUD
-        On-off shelf control
-        Seckill order viewing
       Points exchange
         Exchange goods CRUD
         On-off shelf control
@@ -220,7 +197,6 @@ mindmap
         Distribution commission records
         Level-2 commission records  permission 386
         Profit-sharing records  WeChat profit sharing/status filter
-        Invoice review  issue/reject permissions 382-384
         Return-customer rewards  toggle/ratio/reward records permissions 412-414
       Content management
         Banner CRUD
@@ -228,9 +204,6 @@ mindmap
         Agreement editing
         FAQ CRUD
         Feedback handling
-        Ticket replies  permissions 385/387
-        Ticket satisfaction stats  permission 388
-        Moments moderation
         About Us settings
       System settings
         Platform agreement management

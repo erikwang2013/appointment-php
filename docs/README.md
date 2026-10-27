@@ -1,6 +1,6 @@
 # 预约服务系统 — 文档索引
 
-> **项目状态**: 全部完成 ✅ | 143 控制器（service 69 / admin 74） | 87 模型 | 757 测试（service 579 / admin 178） | 95 数据表 | 479 路由（service 221 / admin 258）
+> **项目状态**: 全部完成 ✅ | 115 控制器（service 53 / admin 62） | 65 模型 | 93 测试（service 68 / admin 25） | 73 数据表 | 311 路由（service 173 / admin 138）
 
 ## 核心文档
 
@@ -10,25 +10,24 @@
 | [FEATURES.md](FEATURES.md) | 功能说明：用户端 + 技师工作台 + 管理后台 完整功能清单 |
 | [ARCHITECTURE-DESIGN.md](ARCHITECTURE-DESIGN.md) | 架构设计：分层架构、中间件设计、数据库设计、安全设计、ES集成 |
 | [FEATURE-DESIGN.md](FEATURE-DESIGN.md) | 功能设计：购买流程、订单状态机、退款规则、会员卡设计、身份切换 |
-| [STRUCTURE.md](STRUCTURE.md) | 项目结构：四端完整目录布局、中间件执行链、数据库表清单 |
+| [STRUCTURE.md](STRUCTURE.md) | 项目结构：双端完整目录布局、中间件执行链、数据库表清单 |
 | [INSTALL.md](INSTALL.md) | 安装说明：Web安装向导、手动安装、Docker部署、环境变量、FAQ |
 | [USAGE.md](USAGE.md) | 使用说明：管理后台 / 用户端 / 技师端操作（API 接口见 [API.md](API.md)） |
 | [API.md](API.md) | API文档：业务API + 管理后台API，含请求响应示例 + OpenAPI端点 |
 
 ## 图示（SVG）
 
-全部图示位于 [diagrams/](diagrams/)，中文 `cn-*` / 英文 `en-*` 双份，各 12 语言镜像在 `docs/<lang>/diagrams/`：
+全部图示位于 [diagrams/](diagrams/)，中文 `cn-*` / 英文 `en-*` 双份：
 
 | 图示 | 说明 | Mermaid 源 |
 |------|------|-----------|
-| [cn-architecture.svg](diagrams/cn-architecture.svg) | 系统架构：四端分层拓扑 + 中间件 + 数据层 + 第三方服务 | [ARCHITECTURE-DIAGRAM.md](diagrams/ARCHITECTURE-DIAGRAM.md) |
+| [cn-architecture.svg](diagrams/cn-architecture.svg) | 系统架构：双端分层拓扑 + 中间件 + 数据层 + 第三方服务 | [ARCHITECTURE-DIAGRAM.md](diagrams/ARCHITECTURE-DIAGRAM.md) |
 | [cn-architecture-design.svg](diagrams/cn-architecture-design.svg) | 架构设计：7 层分层 + 中间件执行链 + 限流 + 数据库设计原则 + 安全设计 | [ARCHITECTURE-DESIGN.md](ARCHITECTURE-DESIGN.md) |
 | [cn-feature-design.svg](diagrams/cn-feature-design.svg) | 功能设计：三大功能域 + 购买流程 + 交易规则 + 资产权益 + 技师结算 + 身份切换 + 支付 | [FEATURE-DESIGN.md](FEATURE-DESIGN.md) |
-| [cn-project-structure.svg](diagrams/cn-project-structure.svg) | 项目结构：四端目录树 + 模块明细 | [STRUCTURE.md](STRUCTURE.md) |
+| [cn-project-structure.svg](diagrams/cn-project-structure.svg) | 项目结构：双端目录树 + 模块明细 | [STRUCTURE.md](STRUCTURE.md) |
 | [cn-appointment-flow.svg](diagrams/cn-appointment-flow.svg) | 服务预约流程 | [FLOWCHART.md](diagrams/FLOWCHART.md) |
 | [cn-payment-refund.svg](diagrams/cn-payment-refund.svg) | 支付与退款流程 | [FLOWCHART.md](diagrams/FLOWCHART.md) |
 | [cn-order-lifecycle.svg](diagrams/cn-order-lifecycle.svg) | 订单生命周期状态机 | [LIFECYCLE-DIAGRAM.md](diagrams/LIFECYCLE-DIAGRAM.md) |
-| [cn-lifecycle-overview.svg](diagrams/cn-lifecycle-overview.svg) | 全量生命周期总览（17 条，四类分组） | [LIFECYCLE-DIAGRAM.md](diagrams/LIFECYCLE-DIAGRAM.md) |
 | [cn-security-defense.svg](diagrams/cn-security-defense.svg) | 纵深防御七层体系 | [SECURITY-ARCHITECTURE.md](diagrams/SECURITY-ARCHITECTURE.md) |
 | [mascot.svg](diagrams/mascot.svg) | 项目宠物——日历精灵「小约」（SMIL 动画，无外部依赖，透明背景） | — |
 | [pet-expressions/](pet-expressions/) | 项目宠物 12 种表情形态（透明背景，CSS 动画，遵循 `prefers-reduced-motion`） | — |
@@ -75,34 +74,5 @@ php start.php start -d     # 默认端口 8787
 
 | 语言 | 入口 |
 |------|------|
-| 简体中文 | [docs/README.md](README.md)（本页） |
+| 简体中文 | [docs/README.md](README.md) |
 | English | [docs/en/README.md](en/README.md) |
-| 한국어 | [docs/ko/README.md](ko/README.md) |
-| Русский | [docs/ru/README.md](ru/README.md) |
-| Deutsch | [docs/de/README.md](de/README.md) |
-| Français | [docs/fr/README.md](fr/README.md) |
-| Español | [docs/es/README.md](es/README.md) |
-| Português | [docs/pt/README.md](pt/README.md) |
-| हिन्दी | [docs/hi/README.md](hi/README.md) |
-| العربية | [docs/ar/README.md](ar/README.md) |
-| বাংলা | [docs/bn/README.md](bn/README.md) |
-| Bahasa Indonesia | [docs/id/README.md](id/README.md) |
-| 日本語 | [docs/ja/README.md](ja/README.md) |
-
-### 虚拟币打赏 (Crypto Donation)
-
-如果这个项目对你有帮助，欢迎扫描二维码打赏支持，谢谢！
-
-| 主网 (Network) | 二维码 (QR Code) | 钱包地址 (Wallet Address) |
-|---|---|---|
-| BNB Smart Chain (BEP20) | [<img src="./coin/1.jpg" width="150" alt="BNB Smart Chain (BEP20)">](./coin/1.jpg) | `0x355d429f97511897ccb4e271ec888205f9ab6629` |
-| Tron (TRC20) | [<img src="./coin/2.jpg" width="150" alt="Tron (TRC20)">](./coin/2.jpg) | `TEdDHWLajt1XvqtPDWmQctdrJaC3pzZZzz` |
-| Ethereum (ERC20) | [<img src="./coin/3.jpg" width="150" alt="Ethereum (ERC20)">](./coin/3.jpg) | `0x355d429f97511897ccb4e271ec888205f9ab6629` |
-| Aptos | [<img src="./coin/4.jpg" width="150" alt="Aptos">](./coin/4.jpg) | `0x836e3780edfc3f7b2372b39e2a1a3a5d7adfaccd96c726f21cfde1b50dd68030` |
-| Plasma | [<img src="./coin/5.jpg" width="150" alt="Plasma">](./coin/5.jpg) | `0x355d429f97511897ccb4e271ec888205f9ab6629` |
-| Polygon POS | [<img src="./coin/6.jpg" width="150" alt="Polygon POS">](./coin/6.jpg) | `0x355d429f97511897ccb4e271ec888205f9ab6629` |
-| Solana | [<img src="./coin/7.jpg" width="150" alt="Solana">](./coin/7.jpg) | `2hfhboHdmdrYsY25XfQSsEWxq5ip4EQsR7f4AzSRMUyr` |
-| The Open Network (TON) | [<img src="./coin/8.jpg" width="150" alt="The Open Network (TON)">](./coin/8.jpg) | `UQB9kFQohzmXUir9QSSZq01iwl9aQZIDdBpNmDklljRtCoGK` |
-| Arbitrum One | [<img src="./coin/9.jpg" width="150" alt="Arbitrum One">](./coin/9.jpg) | `0x355d429f97511897ccb4e271ec888205f9ab6629` |
-| AVAX C-Chain | [<img src="./coin/10.jpg" width="150" alt="AVAX C-Chain">](./coin/10.jpg) | `0x355d429f97511897ccb4e271ec888205f9ab6629` |
-

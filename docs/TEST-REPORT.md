@@ -1,5 +1,5 @@
 # 测试团队报告 — 全量测试覆盖审计
-> **多语言**：[English](en/TEST-REPORT.md) · [한국어](ko/TEST-REPORT.md) · [Русский](ru/TEST-REPORT.md) · [Deutsch](de/TEST-REPORT.md) · [Français](fr/TEST-REPORT.md) · [Español](es/TEST-REPORT.md) · [Português](pt/TEST-REPORT.md) · [हिन्दी](hi/TEST-REPORT.md) · [العربية](ar/TEST-REPORT.md) · [বাংলা](bn/TEST-REPORT.md) · [Bahasa Indonesia](id/TEST-REPORT.md) · [日本語](ja/TEST-REPORT.md)
+> **多语言**：[English](en/TEST-REPORT.md)
 
 > 生成时间：2026-08-26　版本：v1.3.8
 > 团队：deep-audit（tester-php / tester-api / tester-ui / tester-go / tester-rust）
@@ -23,7 +23,7 @@
 
 ## 3. PHP 测试覆盖
 
-**全量结果：558 tests / 2508 assertions，0 失败 0 错误 0 skip**（2 既有 vendor deprecation、2 既有 PHPUnit notice，均非本轮引入；原 4 个提现门禁 skip 已通过 config('withdraw.gate_day') 可注入消除，全天可跑）
+**当前测试文件：93 个（service 68 / admin 25）。以下为历史全量结果：558 tests / 2508 assertions，0 失败 0 错误 0 skip**（2 既有 vendor deprecation、2 既有 PHPUnit notice，均非本轮引入；原 4 个提现门禁 skip 已通过 config('withdraw.gate_day') 可注入消除，全天可跑）
 
 ### 本轮新增（tester-php，6 文件 32 用例，均真实 DB + 事务回滚）
 
@@ -38,7 +38,7 @@
 
 ### 既有覆盖（70 文件，未变）
 
-35+ 控制器已覆盖：Auth/Order 状态机/退款/核销/改期/支付回调/秒杀/拼团/优惠券/礼品卡/积分/钱包/转账/会员卡/成长值/返利/提现/打卡/排班/发票/物流/推送/订阅消息/队列等。
+35+ 控制器已覆盖：Auth/Order 状态机/退款/核销/改期/支付回调/拼团/优惠券/礼品卡/积分/钱包/会员卡/成长值/返利/提现/打卡/排班/物流/推送/订阅消息。
 
 ### 本轮修复（tester-php 发现）
 
@@ -66,12 +66,11 @@
 
 ## 5. UI 端到端结论
 
-- 客户端：Flutter（apps/flutter 用户端、admin/apps/flutter 后台端）、微信小程序（apps/wechat）、
-  HarmonyOS（apps/harmonyos）、admin/apps/weixin
+- 客户端：admin Flutter Web（admin/apps/flutter）、微信小程序（apps/wechat）、admin/apps/weixin
 - 现状：admin Flutter web 未构建产物（build/web 不存在）；本机无运行中的 UI 服务；
-  微信小程序/HarmonyOS 无浏览器自动化通道
+  微信小程序无浏览器自动化通道
 - **结论：端到端自动化环境不具备**。建议在 CI 中增加：flutter build web → Playwright 驱动
-  后台端关键路径（登录→订单列表→核销）；小程序/HarmonyOS 需真机/模拟器手动测试
+  后台端关键路径（登录→订单列表→核销）；小程序需真机/模拟器手动测试
 - 已提供：admin/public/apidoc（接口文档页面）
 
 ## 6. GO / Rust

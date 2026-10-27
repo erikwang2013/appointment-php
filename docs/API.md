@@ -1,5 +1,5 @@
 # API 说明文档
-> **多语言**：[English](en/API.md) · [한국어](ko/API.md) · [Русский](ru/API.md) · [Deutsch](de/API.md) · [Français](fr/API.md) · [Español](es/API.md) · [Português](pt/API.md) · [हिन्दी](hi/API.md) · [العربية](ar/API.md) · [বাংলা](bn/API.md) · [Bahasa Indonesia](id/API.md) · [日本語](ja/API.md)
+> **多语言**：[English](en/API.md)
 
 ## 概述
 
@@ -402,7 +402,7 @@
 
 **余额支付与退款**: 支付请求体传 `pay_channel: "balance"` 使用钱包余额；微信退款与余额退款均将金额回充至钱包余额。
 
-**积分抵现**: 支付请求体可选传 `use_points`（整数）。SUM 聚合校验积分余额（appointment_user_points 的 balance 列为单次增量快照，不可直接当余额），抵扣额 = floor(use_points / config('app.points_rate', 100)) 元，实付金额 = 原应付 - 抵扣额（下限 0.01，超出应付按应付满减不浪费积分）。成功时写 type=consume/source=points_offset 消费流水（幂等，重试不重复扣）。余额不足 422。
+**积分抵现**: 支付请求体可选传 `use_points`（整数）。SUM 聚合校验积分余额（appointment_user_points 的 balance 列为单次增量快照，不可直接当余额），抵扣额 = floor(use_points / config('app.points_rate', 100)) 元，实付金额 = 原应付 - 抵扣额（下限 0.01，超出应付按应付截断不浪费积分）。成功时写 type=consume/source=points_offset 消费流水（幂等，重试不重复扣）。余额不足 422。
 
 **积分回补**: 取消/退款时归还 points_offset 消耗的积分（type=earn/source=points_refund）：取消全额、退款按比例，5 挂接点幂等（refundOffsetPoints）。
 

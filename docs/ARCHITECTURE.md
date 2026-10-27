@@ -1,5 +1,5 @@
 # 架构说明
-> **多语言**：[English](en/ARCHITECTURE.md) · [한국어](ko/ARCHITECTURE.md) · [Русский](ru/ARCHITECTURE.md) · [Deutsch](de/ARCHITECTURE.md) · [Français](fr/ARCHITECTURE.md) · [Español](es/ARCHITECTURE.md) · [Português](pt/ARCHITECTURE.md) · [हिन्दी](hi/ARCHITECTURE.md) · [العربية](ar/ARCHITECTURE.md) · [বাংলা](bn/ARCHITECTURE.md) · [Bahasa Indonesia](id/ARCHITECTURE.md) · [日本語](ja/ARCHITECTURE.md)
+> **多语言**：[English](en/ARCHITECTURE.md)
 
 ## 系统总览
 
@@ -154,8 +154,7 @@ API请求/响应中的ID通过 `erikwang2013/hashids` 编码，对外暴露hash�
 | 消息 | 订阅消息推送(sendSubscribeMessage 订单事件3场景) |
 | 钱包 | 余额储值 / 余额支付 / 退款回充 |
 | 门店 | 蓝牙打印 |
-| 技师 | 在线考核 / 短视频展示 / 工作台(today/records/start/complete) |
-| 社区 | 发帖/评论/点赞/审核 |
+| 技师 | 工作台(today/records/start/complete) |
 | 系统 | 多语言(中/英) / 订单自动取消 / 数据种子 |
 
 `source` 字段记录操作来源：web / iPadOS / macOS / Windows / Linux / ios / android / harmonyOS

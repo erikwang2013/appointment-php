@@ -1,5 +1,5 @@
 # 预约系统 全面审查报告（含修复记录）
-> **多语言**：[English](en/AUDIT-REPORT.md) · [한국어](ko/AUDIT-REPORT.md) · [Русский](ru/AUDIT-REPORT.md) · [Deutsch](de/AUDIT-REPORT.md) · [Français](fr/AUDIT-REPORT.md) · [Español](es/AUDIT-REPORT.md) · [Português](pt/AUDIT-REPORT.md) · [हिन्दी](hi/AUDIT-REPORT.md) · [العربية](ar/AUDIT-REPORT.md) · [বাংলা](bn/AUDIT-REPORT.md) · [Bahasa Indonesia](id/AUDIT-REPORT.md) · [日本語](ja/AUDIT-REPORT.md)
+> **多语言**：[English](en/AUDIT-REPORT.md)
 
 **日期**: 2026-08-03  
 **分支**: main (d1a7285)  
@@ -17,7 +17,6 @@ Status: ALL PASSING
 ```
 | 测试类 | 说明 |
 |--------|------|
-| QueueSystemTest | 排队叫号系统 |
 | OrderRefundRatioTest | 退款比例计算 |
 | OrderStateTest | 订单状态机 |
 | HashidsEncodingTest | ID 混淆编码 |
@@ -291,4 +290,4 @@ Admin 仅 7 个模型 vs Service 58 个模型。Admin 的 54 个控制器大量�
 
 ## 8. 2026-08-26 安全加固轮
 
-本轮不改变上述历史结论，追加修复摘要：下单接口价格以库价为准防篡改（target_id 强制 hashid、未知 target_type 422）；秒杀库存统一在 /api/order store() 事务内行锁扣减；技师提现在途预留 + 审批前复核防双打款；微信支付回调金额严格比对、支付宝回调日志脱敏；/install 写 .install.lock 双重校验防重装；依赖版本收敛（webman-scout 2.0.5 / opensearch-php ^2.6 / dompdf、security-php、webman-database 精确锁定）；phpstan.neon 修复可运行。详见 [SECURITY-AUDIT-REPORT.md](SECURITY-AUDIT-REPORT.md) 第八节。
+本轮不改变上述历史结论，追加修复摘要：下单接口价格以库价为准防篡改（target_id 强制 hashid、未知 target_type 422）；技师提现在途预留 + 审批前复核防双打款；微信支付回调金额严格比对、支付宝回调日志脱敏；/install 写 .install.lock 双重校验防重装；依赖版本收敛（webman-scout 2.0.5 / opensearch-php ^2.6 / dompdf、security-php、webman-database 精确锁定）；phpstan.neon 修复可运行。详见 [SECURITY-AUDIT-REPORT.md](SECURITY-AUDIT-REPORT.md) 第八节。

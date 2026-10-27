@@ -1,5 +1,5 @@
 # Architecture
-> **Languages**: [中文](../ARCHITECTURE.md) · [한국어](../ko/ARCHITECTURE.md) · [Русский](../ru/ARCHITECTURE.md) · [Deutsch](../de/ARCHITECTURE.md) · [Français](../fr/ARCHITECTURE.md) · [Español](../es/ARCHITECTURE.md) · [Português](../pt/ARCHITECTURE.md) · [हिन्दी](../hi/ARCHITECTURE.md) · [العربية](../ar/ARCHITECTURE.md) · [বাংলা](../bn/ARCHITECTURE.md) · [Bahasa Indonesia](../id/ARCHITECTURE.md) · [日本語](../ja/ARCHITECTURE.md)
+> **Languages**: [中文](../ARCHITECTURE.md)
 
 ## System Overview
 
@@ -153,9 +153,8 @@ Documents are publicly accessible and can be imported into Swagger UI for intera
 | Realtime | WebSocket push / payment callbacks / APNs+FCM |
 | Messaging | Subscribe-message push (sendSubscribeMessage order-event 3 scenarios) |
 | Wallet | Balance top-up / balance payment / refund top-up |
-| Store | Bluetooth printing / e-signature / queue calling |
-| Technician | Online assessment / short-video showcase / workbench (today/records/start/complete) |
-| Community | Posts/comments/likes/moderation |
+| Store | Bluetooth printing |
+| Technician | Workbench (today/records/start/complete) |
 | System | Multi-language (CN/EN) / auto order cancellation / data seeding |
 
 The `source` field records the operation source: web / iPadOS / macOS / Windows / Linux / ios / android / harmonyOS

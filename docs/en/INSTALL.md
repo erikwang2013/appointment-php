@@ -1,5 +1,5 @@
 # Appointment Service System — Installation Guide
-> **Languages**: [中文](../INSTALL.md) · [한국어](../ko/INSTALL.md) · [Русский](../ru/INSTALL.md) · [Deutsch](../de/INSTALL.md) · [Français](../fr/INSTALL.md) · [Español](../es/INSTALL.md) · [Português](../pt/INSTALL.md) · [हिन्दी](../hi/INSTALL.md) · [العربية](../ar/INSTALL.md) · [বাংলা](../bn/INSTALL.md) · [Bahasa Indonesia](../id/INSTALL.md) · [日本語](../ja/INSTALL.md)
+> **Languages**: [中文](../INSTALL.md)
 
 Copyright (c) 2026 erik <erik@erik.xyz> — https://erik.xyz
 
@@ -185,17 +185,13 @@ docker exec -it appointment-svc-mysql mysql -u root -p appointment < /tmp/instal
 | Admin dashboard | 8 | `appointment_admin_user`, `appointment_admin_role`, `appointment_admin_permission`, `appointment_operation_log` |
 | User | 4 | `appointment_user`, `appointment_user_address`, `appointment_user_favorite`, `appointment_user_device` |
 | Technician | 8 | `appointment_technician_profile`, `appointment_technician_schedule`, `appointment_technician_earning`, `appointment_technician_withdrawal`, `appointment_technician_tier_config` |
-| Service | 4 | `appointment_service_category`, `appointment_service`, `appointment_service_package`, `appointment_service_record` |
+| Service | 4 | `appointment_service_category`, `appointment_service`, `appointment_service_package` |
 | Order | 5 | `appointment_order`, `appointment_order_item`, `appointment_order_payment`, `appointment_order_refund`, `appointment_order_review` |
 | Marketing | 8 | `appointment_coupon`, `appointment_member_card`, `appointment_gift_card`, `appointment_user_points`, `appointment_promotion` |
-| Queue | 1 | `appointment_queue_number` |
 | Content | 5 | `appointment_banner`, `appointment_announcement`, `appointment_faq`, `appointment_feedback`, `appointment_platform_agreement` |
-| Community | 3 | `appointment_post`, `appointment_comment`, `appointment_moment` |
 | Store | 1 | `appointment_store` |
-| Training | 2 | `appointment_training_course`, `appointment_training_progress` |
-| Exam | 3 | `appointment_exam`, `appointment_exam_question`, `appointment_exam_attempt` |
-| System | 3 | `appointment_system_config`, `appointment_notification`, `appointment_signature` |
-| **Total** | **55** | |
+| System | 3 | `appointment_system_config`, `appointment_notification` |
+| **Total** | **73** | |
 
 All tables use the `appointment_` prefix; the `id` primary key is BIGINT non-auto-increment (generated at the application layer by snowflake-php).
 

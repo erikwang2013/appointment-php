@@ -1,5 +1,5 @@
 # 预约服务系统 — 安装指南
-> **多语言**：[English](en/INSTALL.md) · [한국어](ko/INSTALL.md) · [Русский](ru/INSTALL.md) · [Deutsch](de/INSTALL.md) · [Français](fr/INSTALL.md) · [Español](es/INSTALL.md) · [Português](pt/INSTALL.md) · [हिन्दी](hi/INSTALL.md) · [العربية](ar/INSTALL.md) · [বাংলা](bn/INSTALL.md) · [Bahasa Indonesia](id/INSTALL.md) · [日本語](ja/INSTALL.md)
+> **多语言**：[English](en/INSTALL.md)
 
 Copyright (c) 2026 erik <erik@erik.xyz> — https://erik.xyz
 
@@ -189,10 +189,9 @@ docker exec -it appointment-svc-mysql mysql -u root -p appointment < /tmp/instal
 | 订单域 | 5 | `appointment_order`, `appointment_order_item`, `appointment_order_payment`, `appointment_order_refund`, `appointment_order_review` |
 | 营销域 | 8 | `appointment_coupon`, `appointment_member_card`, `appointment_gift_card`, `appointment_user_points`, `appointment_promotion` |
 | 内容域 | 5 | `appointment_banner`, `appointment_announcement`, `appointment_faq`, `appointment_feedback`, `appointment_platform_agreement` |
-| 社区域 | 3 | `appointment_post`, `appointment_comment`, `appointment_moment` |
 | 门店 | 1 | `appointment_store` |
 | 系统 | 2 | `appointment_system_config`, `appointment_notification` |
-| **合计** | **47** | |
+| **合计** | **73** | |
 
 所有表使用 `appointment_` 前缀，主键 `id` 为 BIGINT 非自增（由 snowflake-php 应用层生成）。
 

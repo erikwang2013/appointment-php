@@ -1,8 +1,8 @@
 # Appointment Service System
 
-A four-platform appointment service management platform: WeChat Mini Program + Flutter App + HarmonyOS App (same-account role switching) + PC Admin Dashboard.
+A two-platform appointment service management platform: WeChat Mini Program + PC Admin Dashboard.
 
-> **Status**: All complete | 143 Controllers (service 69 / admin 74) | 87 Models | 757 tests (service 579 / admin 178) | 95 Tables | 479 Routes (service 221 / admin 258)
+> **Status**: All complete | 115 Controllers (service 53 / admin 62) | 65 Models | 93 tests (service 68 / admin 25) | 73 Tables | 311 Routes (service 173 / admin 138)
 
 ## Project Structure
 
@@ -11,13 +11,11 @@ appointment-php/
 ├── admin/              # Admin dashboard (webman v2 + Flutter Web)
 ├── service/            # Business API service (webman v2)
 ├── apps/               # Client-side frontend apps
-│   ├── wechat/         #   WeChat Mini Program (native)
-│   ├── flutter/        #   Flutter App (iOS + Android)
-│   └── harmonyos/      #   HarmonyOS App
+│   └── wechat/         #   WeChat Mini Program (native)
 └── docs/               # Documentation
 ```
 
-**Project structure diagram** (four platforms + module detail; full version in [STRUCTURE.md](docs/STRUCTURE.md)):
+**Project structure diagram** (two platforms + module detail; full version in [STRUCTURE.md](docs/STRUCTURE.md)):
 
 <img src="docs/diagrams/en-project-structure.svg" alt="en-project-structure.svg" width="100%">
 
@@ -72,9 +70,7 @@ cd ../service/ && cp .env.docker .env && docker-compose up -d
 | Cache | Redis | Cache / Rate limiting / Session / Queue |
 | Search | Elasticsearch | Full-text search (via webman-scout) |
 | Admin Frontend | Flutter Web | PC admin dashboard style |
-| Client App | Flutter | iOS + Android |
 | Client Mini Program | Native WeChat Mini Program | WXML / WXSS / JS |
-| Client HarmonyOS App | HarmonyOS ArkTS | Native @ohos.net.http |
 | ID Generation | erikwang2013/snowflake-php | BIGINT non-auto-increment primary keys |
 | API ID Encode/Decode | erikwang2013/hashids | Hide real IDs from external exposure |
 | JWT Authentication | erikwang2013/jwt-webman | Bearer Token |
@@ -110,9 +106,8 @@ The 7-layer architecture with one-way top-down dependencies, the scope-stacked m
 
 ### All Lifecycles at a Glance
 
-Beyond orders the system runs 16 further business lifecycles, grouped into trading / assets & entitlements / identity & accounts / operations & marketing — full state machines in [LIFECYCLE-DIAGRAM.md](docs/en/diagrams/LIFECYCLE-DIAGRAM.md):
+Beyond orders the system runs 10 further business lifecycles, grouped into trading / assets & entitlements / identity & accounts / operations & marketing — full state machines in [LIFECYCLE-DIAGRAM.md](docs/en/diagrams/LIFECYCLE-DIAGRAM.md):
 
-<img src="docs/diagrams/en-lifecycle-overview.svg" alt="en-lifecycle-overview.svg" width="100%">
 
 ## Security Architecture
 
@@ -132,7 +127,7 @@ The three functional domains, purchase flows (service booking / product cart), t
 
 <img src="docs/diagrams/mascot.svg" alt="Appointment service mascot — Yue, the Calendar Sprite (animated SVG)" width="200" align="right">
 
-**Appointment Service System** is a four-platform appointment management platform for the life-services industry: WeChat Mini Program + Flutter App + HarmonyOS App (same-account role switching) + PC Admin Dashboard, covering the full loop of user booking, technician fulfillment and admin operations — appointments, membership, marketing and settlement in one system, stable, secure and easy to extend.
+**Appointment Service System** is a two-platform appointment management platform for the life-services industry: WeChat Mini Program + PC Admin Dashboard, covering the full loop of user booking, technician fulfillment and admin operations — appointments, membership, marketing and settlement in one system, stable, secure and easy to extend.
 
 ## Key Features (Rounds 6-24)
 
@@ -151,7 +146,7 @@ The three functional domains, purchase flows (service booking / product cart), t
 | Points System | Check-in points; consumption points floor(paid×1) on verification (order_id idempotent, balance snapshot); pro-rata clawback on refund; paged details with type/source filters |
 | Membership Management | appointment_user.member_level column (migration 000008); admin member-card full CRUD (permissions 365-369) |
 | Mini Program Ordering Flow | Service detail → confirm order (coupon pick / threshold grey-out / client-side estimate) → POST /order → WeChat/balance payment; 20 mini program pages |
-| Group-buy | join with duplicate 422 + full-group lock + lazy expiry close; group-buy order via store with promotion_id at discounted price (discount_percent), stacking with coupons/cards/points disabled, auto-cancel + technician lock release when group fails (old promotion FLASH_SALE channel removed; flash sale now goes through the dedicated seckill channel) |
+| Group-buy | join with duplicate 422 + full-group lock + lazy expiry close; group-buy order via store with promotion_id at discounted price (discount_percent), stacking with coupons/cards/points disabled, auto-cancel + technician lock release when group fails (old promotion FLASH_SALE channel removed) |
 | Store Manager Workbench | service /api/v1/store-manager 4 endpoints (overview/orders/technicians/revenue) with mandatory store_id isolation (403 without store); admin workbench overview + order store_id filter + Flutter page + permission 372 |
 | Referral Reward | first completed order of referred user pays referrer paid_amount × reward_rate (system config, default 0.05) into wallet (WalletTxn referral_reward); row-lock + null-check + first-order recheck triple idempotency; earnings list + admin records view (permission 379) |
 | Points Exchange Mall | goods/exchange-record tables; exchange with Redis NX + row-lock anti-oversell + uk_user_goods once-per-user; coupon grant / wallet credit / gift-card code results; admin CRUD + on-off + records (permissions 373-378) |
@@ -159,24 +154,17 @@ The three functional domains, purchase flows (service booking / product cart), t
 | Coupon Transfer | 8-char unique transfer code (uk_code fallback, 7-day validity); claim anti-abuse: Redis NX lock + row-lock recheck anti-double-spend, uk_user_coupon one-transfer-per-coupon, transferred coupons non-re-transferable, no self-claim; lazy expiry restores original coupon |
 | Points Expiry | expires_at (default 365d, config points.expiry_days); PointsExpiryTimer 60s cursor sweep writes type=expire negative rows (triple idempotency) + aggregated in-app notification; expired points cannot offset/exchange |
 | Technician Auto Tier | TierRatingService real-time stats (order count + review avg) backfill profile, match tier_config high-to-low; upgrade-only by default (allowDowngrade for manual re-eval); appointment_technician_tier_log + in-app notification; admin logs view (permission 380) |
-| Flash-sale Ordering | /api/v1/seckill activities + buy idempotency/anti-concurrency; order injects seckill_id into store(), stock deducted by row lock inside the transaction (price = seckill_price from DB), sold-out 422, no stock restore on cancel; old promotion flash_sale channel removed |
 | Service Start Reminder | ServiceReminderTimer 60s sweep of confirmed/serving orders starting within 1h → SCENE_REMINDER subscribe message + in-app notification (order_id+type dedup, triple idempotency); falls back to in-app when template unconfigured |
 | Expiry Reminder | ExpiryReminderTimer 6h sweep of member cards/coupons expiring within 3 days → type=card_expiry/coupon_expiry + SCENE_EXPIRY subscribe message (order_id tracks source dedup) |
 | Review Reply | POST /api/v1/technician/review/reply/{order_id}: non-owner 404, duplicate 422, in-app notification on success; appointment_order_review replied_at column; admin reply detail (permission 381) |
 | Recharge Arrival Notify | in-app notification type='wallet_recharge' inside WeChat recharge callback transaction (reuses callback idempotency, atomic with status change, non-blocking on failure) |
-| Balance Transfer | POST /api/v1/wallet/transfer user-to-user: amount 0.01-1000/once + daily 5000 cap; Redis NX lock + both-wallet row locks (ascending user_id anti-deadlock) + client_token 24h idempotency; WalletTxn transfer_out/transfer_in double ledger with balance_after snapshot; receiver in-app notification type='balance_received' |
-| Points Transfer | POST /api/v1/user/points/transfer user-to-user: 1-10000 points + daily 10000 cap; Redis NX lock + last-ledger-row lockForUpdate both sides (ascending anti-deadlock) + recheck inside lock; sender consume / receiver earn double ledger (receiver rows carry expires_at for normal expiry); receiver in-app notification type='points_received' |
 | Review Append | POST /api/v1/order/review/{order_id}/append: non-owner 404 / duplicate 422 / empty 422 / non-completed 422, technician in-app notification type='review_append' on success; appointment_order_review append_content/append_images(JSON)/append_at columns; also registered the previously-unreachable user review-submit route and fixed its latent TypeError |
 | Logistics Tracking | GET /api/v1/order/logistics/{id}: owner-only product orders (404 for non-owner/non-product/not-shipped); parses order.remark JSON (shipping_company/tracking_no/shipped_at written by admin ship()); receiver phone masked 138****5678 |
 | Notification Preferences | appointment_user_notify_setting table (uk_user_type unique, absent row = enabled by default); GET/PUT /api/v1/user/notify-settings; 5 types service_reminder/card_expiry/points_expiry/marketing/system (system always-on); notifySettingEnabled gates 3 timers + subscribe events, disabled type skips both in-app and subscribe messages |
 | Booking Calendar | GET /api/v1/calendar/technician/{id} (month view) + /day (day view): time_slots JSON expanded to hour slots, appointment_order booked slots excluded; visual schedule-based time picking |
 | User Growth Levels | appointment_user_growth + appointment_growth_level (Bronze 0 / Silver 100 / Gold 500 / Platinum 2000 / Diamond 5000); check-in +10, review +20, spending 1 point per yuan (reuses existing status re-check for natural idempotency); GET /api/v1/growth (overview/records, public levels) |
-| E-Invoice | POST/GET /api/v1/invoices (apply/list/detail): uk_order_type(order_id,order_type) dedup on duplicate apply, amount served server-side; admin issue/reject (permissions 382-384) |
-| Customer Tickets | POST/GET /api/v1/tickets + /{id}/close: user submit/list/detail/close; admin reply (permissions 385/387) |
 | Multi-level Referral L2 | After order paid, pay first-level referrer's referrer paid×level2_rate (config 0.02): transaction row lock + uk_order_referred idempotency; WalletTxn TYPE_REFERRAL_LEVEL2; admin record view (permission 386) |
 | Growth Level Benefits | GrowthLevel.benefits shell realized: order-time discount_rate discount (standard orders only, coupon/card → level discount order, discount amount into discount_amount + traceable remark, floor protection truncates to 0); payment growth points floor(paid×points_multiplier) (tier taken at payment time, no same-order promotion) |
-| Invoice Titles | appointment_invoice_title frequently-used title library: save/edit/delete/default (first auto-default, deleted default auto-reassigns oldest, set-default transactional clear); invoice apply optional title_id, manual-entry compatible |
-| Ticket Satisfaction | Close ticket may rate 1-5 (out-of-range 422, absent keeps NULL for old clients); admin satisfaction summary: average / 1-5 star distribution / rated vs unrated counts (permission 388) |
 | Review Image Audit | admin ReviewAuditController: image reviews list (JSON_LENGTH filter + join user/technician names), hide/restore (hide only visible, restore only hidden, 422 both ways); hidden reviews automatically invisible in public lists (permissions 389-391) |
 | Browse Footprint | appointment_browse_history (uk_user_item, re-browse refreshes viewed_at only): service detail hook records (try/catch non-blocking, anonymous skipped); list joins service info + hashid; delete single/clear owner-only |
 
@@ -192,21 +180,21 @@ The three functional domains, purchase flows (service booking / product cart), t
 >
 > Round-17 fix: AutoCancelTimer notification insert now uses \support\Model::generateId() (previously called non-existent Snowflake::generate(), silently failing auto-cancel notifications).
 >
-> Round-18 additions: flash-sale ordering (store() flash_sale price path); service start reminder (ServiceReminderTimer + SCENE_REMINDER); member-card/coupon expiry reminder (ExpiryReminderTimer + SCENE_EXPIRY); technician review reply (reply endpoint + replied_at column + permission 381); recharge arrival notification (type='wallet_recharge' inside callback transaction).
+> Round-18 additions: service start reminder (ServiceReminderTimer + SCENE_REMINDER); member-card/coupon expiry reminder (ExpiryReminderTimer + SCENE_EXPIRY); technician review reply (reply endpoint + replied_at column + permission 381); recharge arrival notification (type='wallet_recharge' inside callback transaction).
 >
-> Round-19 additions: balance transfer (appointment_wallet_transfer + WalletTransferController, dual row locks + client_token idempotency); points transfer (appointment_user_points_transfer + PointsTransferController, daily cap + double ledger); review append (appointment_order_review 3 append columns + append endpoint + store route registration); logistics tracking (logistics endpoint + remark JSON parsing + phone masking); notification preferences (appointment_user_notify_setting + NotifySettingController + 3 timer gates).
+> Round-19 additions:  review append (appointment_order_review 3 append columns + append endpoint + store route registration); logistics tracking (logistics endpoint + remark JSON parsing + phone masking); notification preferences (appointment_user_notify_setting + NotifySettingController + 3 timer gates).
 >
-> Round-20 additions: booking calendar (CalendarController month/day views + booked-slot exclusion); user growth levels (appointment_user_growth + appointment_growth_level 5 tiers + check-in/review/spending hooks); e-invoice (appointment_invoice + uk_order_type dedup + admin issue/reject, permissions 382-384); customer tickets (appointment_ticket submit/list/detail/close + admin reply, permissions 385/387); multi-level referral L2 (payLevel2Reward transaction row lock + uk_order_referred idempotency, permission 386).
+> Round-20 additions: booking calendar (CalendarController month/day views + booked-slot exclusion); user growth levels (appointment_user_growth + appointment_growth_level 5 tiers + check-in/review/spending hooks);  multi-level referral L2 (payLevel2Reward transaction row lock + uk_order_referred idempotency, permission 386).
 >
 > Round-21 additions: growth level benefits realized (order discount_rate + payment points_multiplier, migration seeds 5-tier benefits); invoice titles (appointment_invoice_title library + apply title_id link); ticket satisfaction (close rating rating/rated_at + admin summary, permission 388); review image audit (ReviewAuditController hide/restore, permissions 389-391); browse footprint (appointment_browse_history + detail hook + list/delete/clear).
 >
-> Round-22 additions: full-reduction promotions (appointment_full_reduction auto discount + threshold check, permissions 396-400); ICS calendar export (RFC5545 my appointments); technician attendance check-in (appointment_technician_attendance clock-in/out + late marking + admin stats, permissions 392-393); APP push service (config-driven abstraction + 5 event hooks, appointment_push_log); WeChat official profit sharing (appointment_profit_sharing_log config-driven + graceful degradation, permission 394); privacy compliance (data export + account deletion 72h state machine close_status).
+> Round-22 additions:  ICS calendar export (RFC5545 my appointments); technician attendance check-in (appointment_technician_attendance clock-in/out + late marking + admin stats, permissions 392-393); APP push service (config-driven abstraction + 5 event hooks, appointment_push_log); WeChat official profit sharing (appointment_profit_sharing_log config-driven + graceful degradation, permission 394); privacy compliance (data export + account deletion 72h state machine close_status).
 >
-> Round-23 additions: user health profile (appointment_user_health_profile); wallet pay password (appointment_user_wallet pay_password set/verify); technician batch scheduling (batch import + overlap conflict detection); order status timeline (appointment_order_status_log 8-state tracing + user/admin display); points lucky wheel (appointment_lucky_wheel + appointment_wheel_record weighted draw, permissions 401-406); points validity (points.expiry_days config + new earn ledger rows carry expires_at).
+> Round-23 additions: user health profile (appointment_user_health_profile); wallet pay password (appointment_user_wallet pay_password set/verify); technician batch scheduling (batch import + overlap conflict detection); order status timeline (appointment_order_status_log 8-state tracing + user/admin display);  points validity (points.expiry_days config + new earn ledger rows carry expires_at).
 >
-> Round-24 additions: guest mode (/api/v1/guest/* read-only browsing without login + Redis cache); seckill (appointment_seckill_activity + Redis NX row-lock purchase + appointment_order.seckill_id injected at order creation, permissions 407-411/420); APP version management & update check (appointment_app_version + /api/v1/app/version, permissions 416-419); return-customer reward (second purchase within 30 days bonus type=return_customer, permissions 412-414); schedule CSV export (UTF-8 BOM + time-slot detail, permission 415).
+> Round-24 additions: guest mode (/api/v1/guest/* read-only browsing without login + Redis cache);  APP version management & update check (appointment_app_version + /api/v1/app/version, permissions 416-419); return-customer reward (second purchase within 30 days bonus type=return_customer, permissions 412-414); schedule CSV export (UTF-8 BOM + time-slot detail, permission 415).
 >
-> 2026-08-26 Security hardening: order item prices are taken from the database only (client-supplied prices are not trusted; unknown target_type → 422; target_id must be hashid-encoded), group-buy/flash-sale prices also from DB; flash-sale stock is deducted by row lock inside the /api/v1/order store() transaction (SeckillController::buy no longer pre-deducts stock, Redis activity lock + client_token idempotency kept); technician withdrawal reserves in-transit balance at application time, re-checks before transfer, concurrent approvals cannot double-pay; WeChat payment callback total_fee strictly compared against order payable, Alipay callback logs desensitized; /install writes .install.lock on success with double-check against re-install; dependency versions pinned (webman-scout 2.0.5, opensearch-php ^2.6, exact pins for dompdf/security-php/webman-database); phpstan.neon fixed and runnable in both apps (php -d memory_limit=2G).
+> 2026-08-26 Security hardening: order item prices are taken from the database only (client-supplied prices are not trusted; unknown target_type → 422; target_id must be hashid-encoded), group-buy prices also from DB; technician withdrawal reserves in-transit balance at application time, re-checks before transfer, concurrent approvals cannot double-pay; WeChat payment callback total_fee strictly compared against order payable, Alipay callback logs desensitized; /install writes .install.lock on success with double-check against re-install; dependency versions pinned (webman-scout 2.0.5, opensearch-php ^2.6, exact pins for dompdf/security-php/webman-database); phpstan.neon fixed and runnable in both apps (php -d memory_limit=2G).
 
 ## Documentation
 
@@ -220,28 +208,17 @@ The three functional domains, purchase flows (service booking / product cart), t
 | [Installation](docs/INSTALL.md) | Requirements, Docker deployment, environment variables, third-party config, FAQ |
 | [Usage Guide](docs/USAGE.md) | Admin configuration, client/technician operations, API examples, refund rules |
 | [Project Structure](docs/STRUCTURE.md) | Full directory layout, middleware execution chain, database table list |
-| [Test Report](docs/TEST-REPORT.md) | Full test coverage audit (558 cases / 2508 assertions) |
+| [Test Report](docs/TEST-REPORT.md) | Full test coverage audit (93 current test files) |
 | [Design Spec](docs/superpowers/specs/2026-05-26-appointment-system-design.md) | System design specification |
 | [Implementation Plan](docs/superpowers/plans/2026-05-26-appointment-system-plan.md) | Phased implementation plan |
-| [Docs Index](docs/README.md) | Full documentation index (12 languages) |
+| [Docs Index](docs/README.md) | Full documentation index (Chinese/English) |
 
 ## Languages
 
-| 语言 | 入口 |
+| Language | Entry |
 |------|------|
-| 简体中文 | [README.md（本页）](README.md（本页）) |
-| English | [docs/en/README.md](docs/en/README.md) |
-| 한국어 | [docs/ko/README.md](docs/ko/README.md) |
-| Русский | [docs/ru/README.md](docs/ru/README.md) |
-| Deutsch | [docs/de/README.md](docs/de/README.md) |
-| Français | [docs/fr/README.md](docs/fr/README.md) |
-| Español | [docs/es/README.md](docs/es/README.md) |
-| Português | [docs/pt/README.md](docs/pt/README.md) |
-| हिन्दी | [docs/hi/README.md](docs/hi/README.md) |
-| العربية | [docs/ar/README.md](docs/ar/README.md) |
-| বাংলা | [docs/bn/README.md](docs/bn/README.md) |
-| Bahasa Indonesia | [docs/id/README.md](docs/id/README.md) |
-| 日本語 | [docs/ja/README.md](docs/ja/README.md) |
+| 简体中文 | [README.md](README.md) |
+| English | [README_EN.md](README_EN.md) |
 
 ## Support
 
@@ -260,40 +237,14 @@ If this project helps you, your support is welcome and appreciated!
   </tr>
 </table>
 
-### Global Bank Transfer
-
-Global bank transfer donations are welcome (HKD / CNY / USD / other currencies). Thank you for your generosity!
-
-| Item | Details |
-|------|---------|
-| Beneficiary Name | WANG KEXUN |
-| Account Number | 881015918251 |
-| Bank | ZA Bank Limited (SWIFT Code: AABLHKHHXXX, Bank Code: 387) |
-| Bank Address | Core F, Cyberport 3, 100 Cyberport Road, Hong Kong |
-
-> **Intermediary Bank (if required)**
-> This is intermediary bank information, not the receiving bank. Please check with your remitting bank whether it is required.
->
-> - For HKD / CNY / USD: **Citibank N.A. Hong Kong** — SWIFT Code: CITIHKHXXXX, Bank Code: 006, Branch: Hong Kong Branch, Branch Code: 391, Address: Citibank Tower, Citibank Plaza, 3 Garden Road, Central, Hong Kong
-> - For other currencies: **The Bank of New York Mellon** — SWIFT Code: IRVTUS3NXXX, Address: 240 Greenwich Street, New York, United States
-
-### Crypto Donation
-
-If this project helps you, donations are welcome. Thank you!
-
-| Network | QR Code | Wallet Address |
-|---|---|---|
-| BNB Smart Chain (BEP20) | [<img src="docs/coin/1.jpg" width="150" alt="BNB Smart Chain (BEP20)">](docs/coin/1.jpg) | `0x355d429f97511897ccb4e271ec888205f9ab6629` |
-| Tron (TRC20) | [<img src="docs/coin/2.jpg" width="150" alt="Tron (TRC20)">](docs/coin/2.jpg) | `TEdDHWLajt1XvqtPDWmQctdrJaC3pzZZzz` |
-| Ethereum (ERC20) | [<img src="docs/coin/3.jpg" width="150" alt="Ethereum (ERC20)">](docs/coin/3.jpg) | `0x355d429f97511897ccb4e271ec888205f9ab6629` |
-| Aptos | [<img src="docs/coin/4.jpg" width="150" alt="Aptos">](docs/coin/4.jpg) | `0x836e3780edfc3f7b2372b39e2a1a3a5d7adfaccd96c726f21cfde1b50dd68030` |
-| Plasma | [<img src="docs/coin/5.jpg" width="150" alt="Plasma">](docs/coin/5.jpg) | `0x355d429f97511897ccb4e271ec888205f9ab6629` |
-| Polygon POS | [<img src="docs/coin/6.jpg" width="150" alt="Polygon POS">](docs/coin/6.jpg) | `0x355d429f97511897ccb4e271ec888205f9ab6629` |
-| Solana | [<img src="docs/coin/7.jpg" width="150" alt="Solana">](docs/coin/7.jpg) | `2hfhboHdmdrYsY25XfQSsEWxq5ip4EQsR7f4AzSRMUyr` |
-| The Open Network (TON) | [<img src="docs/coin/8.jpg" width="150" alt="The Open Network (TON)">](docs/coin/8.jpg) | `UQB9kFQohzmXUir9QSSZq01iwl9aQZIDdBpNmDklljRtCoGK` |
-| Arbitrum One | [<img src="docs/coin/9.jpg" width="150" alt="Arbitrum One">](docs/coin/9.jpg) | `0x355d429f97511897ccb4e271ec888205f9ab6629` |
-| AVAX C-Chain | [<img src="docs/coin/10.jpg" width="150" alt="AVAX C-Chain">](docs/coin/10.jpg) | `0x355d429f97511897ccb4e271ec888205f9ab6629` |
-
-## License
+## 项目授权 / Project License
 
 Copyright (c) 2026 erik <erik@erik.xyz> — https://erik.xyz
+
+- 本项目仅供个人学习、研究使用。
+- 未经作者书面授权，禁止任何形式的商业使用（包括但不限于商业部署、付费服务、二次销售、SaaS 运营及以本项目为基础提供商业服务）。
+- 商业授权请联系 **erik@erik.xyz**。
+- 未经授权的商业使用，作者将在全球范围内依法追究法律责任，并保留终身追责的权利。
+- 第三方组件仍遵循其各自原有的许可证；视觉资产适用仓库内的 ASSETS-LICENSE.md（如适用）。
+
+**English:** This project is provided for personal study and research only. Commercial use of any kind requires prior written authorization from the author (erik@erik.xyz). Unauthorized commercial use will be pursued for legal liability worldwide, and the author reserves the right to pursue such liability for life. Third-party components remain under their original licenses; visual assets are governed by ASSETS-LICENSE.md where applicable.

@@ -1,9 +1,9 @@
 # Feature Description
-> **Languages**: [中文](../FEATURES.md) · [한국어](../ko/FEATURES.md) · [Русский](../ru/FEATURES.md) · [Deutsch](../de/FEATURES.md) · [Français](../fr/FEATURES.md) · [Español](../es/FEATURES.md) · [Português](../pt/FEATURES.md) · [हिन्दी](../hi/FEATURES.md) · [العربية](../ar/FEATURES.md) · [বাংলা](../bn/FEATURES.md) · [Bahasa Indonesia](../id/FEATURES.md) · [日本語](../ja/FEATURES.md)
+> **Languages**: [中文](../FEATURES.md)
 
-> **Project status**: All complete ✅ | 109 controllers | 103 models | 344 tests (service 240 / admin 104) | WebSocket | payment callbacks | queue calling | assessment | community
+> **Project status**: All complete ✅ | 115 controllers (service 53 / admin 62) | 65 models | 93 tests (service 68 / admin 25) | WebSocket | payment callbacks | queue calling | assessment | community
 
-## I. User Side (WeChat Mini Program + Flutter APP)
+## I. User Side (WeChat Mini Program)
 
 The Mini Program and APP have identical features. A unified account supports customer/technician identity switching.
 
@@ -88,7 +88,6 @@ The Mini Program and APP have identical features. A unified account supports cus
 | Withdrawals | On the 20th of each month, T+1 to WeChat change; admin review, two-level approval for amounts ≥500 (store manager → finance); in-transit reservation at application, recheck before approval transfer, concurrent approvals cannot double-pay (2026-08-26 hardening) |
 | Attendance | Clock-in/clock-out/cleanliness photo upload |
 | Return-customer rewards | Bonus recorded for second purchase within 30 days |
-| Professional training | Video courses/text courses |
 | Today's tasks | WorkController today: real-time fetch of today's to-dos |
 | Completion records | WorkController records: historical completion records |
 | Start/complete service | WorkController start/complete: row lock + state-machine guard + idempotency, auto in-app notification on completion |
@@ -205,9 +204,8 @@ The Mini Program and APP have identical features. A unified account supports cus
 | My after-sales | GET /api/v1/aftersales paged list + GET /api/v1/aftersales/{id} detail |
 | Review flow | Admin approve/reject (rejected requires remark); approved only transitions status, refund reuses the order refund endpoint |
 
-### 20. Group Buy / Flash Sale (Round 15)
+### 20. Group Buy (Round 15)
 
-> As of 2026-08 the FLASH_SALE channel is retired: PromotionController::index filters out flash_sale, show/join return 400 for it, flash sales uniformly use the "43. Flash Sale (Round 24)" channel; the `Promotion::TYPE_FLASH_SALE` constant remains for historical data compatibility. This section and "27. Flash Sale Ordering" are historical records.
 
 | Feature | Description |
 |------|------|
@@ -272,16 +270,6 @@ The Mini Program and APP have identical features. A unified account supports cus
 | Idempotency | ① expire row order_id points to the original earn record, lockForUpdate + exists recheck on the original row inside the transaction (concurrent processes serialize on the row lock) ② id cursor paging ③ notifications only produced in actual deduction rounds |
 | Accounting | Available balance SUM aggregate includes expire negative rows; expired points cannot be used for cash offset/exchange |
 
-### 27. Flash Sale Ordering (Round 18, retired)
-
-> Superseded by the Round-24 `/api/v1/seckill` channel (store() promo branch now only handles group buying); see "43. Flash Sale".
-
-| Feature | Description |
-|------|------|
-| Endpoint | POST /api/v1/order passes promotion_id (flash_sale type): flash price = round(total × (100 − discount_percent)/100, 2), consistent with PromotionController's flash price |
-| Validation | Type whitelist [group_buy, flash_sale] (else 422); activity ongoing; caller is participant; order service matches activity; sold out participants_count ≥ max_people 422 "已抢光"; coupon/session-card/points stacking disabled 422 |
-| Expiry | pay() lazy-check isFlashSaleClosed (same pattern as isGroupBuyClosed): flash expired → activity set to 0 + batch cancel that activity's pending orders + this order auto-cancelled + technician lock released 422 |
-
 ### 28. Service Reminder + Expiry Reminder (Round 18)
 
 | Feature | Description |
@@ -306,24 +294,6 @@ The Mini Program and APP have identical features. A unified account supports cus
 | Endpoint | Inside the WeChat top-up callback (R-prefixed order number) handleRechargeNotify transaction: after WalletTxn, writes in-app notification type='wallet_recharge', "You have successfully topped up ¥X.XX" (amount in yuan, number_format 2 digits) |
 | Idempotency | Reuses existing callback idempotency (top-up row lockForUpdate + status recheck, only first pending→paid reaches the notification); notification and status change committed atomically in the same transaction, no crash window; signature failure/missing order/amount mismatch writes no notification |
 | Fault tolerance | Notification write in try/catch, failure only logs a warning and does not block the main flow |
-
-### 31. Balance Transfer (Round 19)
-
-| Feature | Description |
-|------|------|
-| Endpoint | POST /api/v1/wallet/transfer: recipient hashid decode + existence 404, to self 422, amount 0.01-1000 per transfer 422 (DECIMAL comparison, no float), insufficient balance 422, 5000/day cumulative 422 |
-| Concurrency/idempotency | Redis NX lock wallet_transfer:{from} 30s serializes the sender; in-transaction both wallet rows lockForUpdate by user_id ascending (fixed order prevents deadlock); client_token SETNX 24h after success prevents resubmission (failed requests don't store the token, can retry) |
-| Crediting | Deduct sender + credit recipient + WalletTxn double records (transfer_out/transfer_in with balance_after snapshot) + transfer record completed + recipient in-app notification type='balance_received' (failure only logs) |
-| Records | GET /api/v1/wallet/transfers (direction=out/in paged) + GET /transfers/{id} (visible to both parties only 404) |
-
-### 32. Points Transfer (Round 19)
-
-| Feature | Description |
-|------|------|
-| Endpoint | POST /api/v1/user/points/transfer: recipient existence 404, to self 422, points 1-10000 422, SUM aggregate balance insufficient 422, 10000/day limit 422 |
-| Concurrency/idempotency | Redis NX lock points_transfer:{user} 30s; in-transaction both parties' last records lockForUpdate (user_id ascending prevents mutual-transfer deadlock) + in-lock recheck of balance/limit/recipient |
-| Record conventions | Sender type=consume source=points_transfer negative (balance=previous snapshot − this amount, same convention as points_offset/exchange); recipient type=earn source=points_transfer positive with expires_at (PointsExpiryTimer can expire normally); transfer record written in-transaction, in-app notification to recipient type='points_received' after commit |
-| Records | GET /api/v1/user/points/transfers (direction=sent/received paged, with counterparty nickname) |
 
 ### 33. Review Follow-up + Submission Route Completion (Round 19)
 
@@ -420,7 +390,6 @@ Flutter Web single-page app with 21 pages: dashboard/users/roles/config/logs/ver
 
 - Banner CRUD
 - About us settings
-- Moments moderation
 - FAQ CRUD
 - Feedback handling
 - Platform announcement CRUD
@@ -448,7 +417,6 @@ Flutter Web single-page app with 21 pages: dashboard/users/roles/config/logs/ver
 - Report enhancement: custom fields/scheduled email reports
 - Schedule export: Excel export of appointment records/attendance lists
 - Technician gender restriction: gender control for specific items
-- Technician training: course management/learning progress tracking
 - Store manager accounts: store_id data isolation + dedicated permissions
 
 ### 13. Data Reports (Round 7)
@@ -511,20 +479,6 @@ Flutter Web single-page app with 21 pages: dashboard/users/roles/config/logs/ver
 - Endpoints: GET /api/v1/growth (current tier overview: balance/level/next-tier gap); GET /api/v1/growth/records (paged records); GET /api/v1/growth/levels (public tier list, no login required)
 - Failure policy: each accrual point try/catch logs, does not affect the main flow
 
-### 23. E-Invoices (Round 20)
-
-- appointment_invoice: uk_order_type(order_id,order_type) prevents duplicate applications for the same order (duplicate 422, incl. MySQL 1062 catch fallback); idx_user_created/idx_status
-- User side: POST /api/v1/invoices (apply, amount/title carried server-side from the order, non-tamperable); GET /api/v1/invoices (list); GET /api/v1/invoices/{id} (detail)
-- Admin: InvoiceController issue (invoice: writes invoice_no + status=issued + issued_at) / reject (reject: status=rejected + reject_reason), permission 382 list/383 issue/384 reject
-- State machine: pending → issued / rejected
-
-### 24. Support Tickets (Round 20)
-
-- appointment_ticket: user submits ticket (title/content), admin replies appended (reply_content/replied_at), user can close (closed_at)
-- User side: POST /api/v1/tickets (submit); GET /api/v1/tickets (list); GET /api/v1/tickets/{id} (detail, own only); POST /api/v1/tickets/{id}/close (close)
-- Admin: TicketController index (list)/reply (reply), static routes defined before resource to avoid {id} shadow; permission 385 ticket reply/387 ticket list view
-- State machine: open → replied (returns to open after reply, can reply again) / closed
-
 ### 25. Multi-Level Distribution — Level-2 Commission (Round 20)
 
 - ReferralRewardService::payLevel2Reward(paidAmount, orderId): after order payment succeeds, look up the level-1 referrer's referrer (level-2 referral relation), pay paid×level2_rate (system config referral.level2_rate, default 0.02)
@@ -539,19 +493,6 @@ Flutter Web single-page app with 21 pages: dashboard/users/roles/config/logs/ver
 - Points multiplier: WechatPayService::markOrderPaid growth points changed from floor(paid) to floor(paid × points_multiplier), multiplier taken at payment-time tier (accrued before crediting, this order doesn't upgrade the tier); the R20 try/catch hook points fully retained
 - Query reuse: GrowthLevel::levelForGrowth() resolves tier by cumulative growth points, reused by ordering/payment; GET /api/v1/growth already returns benefits and next_gap (R20 implementation, no change needed)
 
-### 27. Invoice Title Management (Round 21)
-
-- appointment_invoice_title (uk_user_title(user_id, title_type, invoice_title) prevents duplicates + idx_user_default)
-- Endpoints: POST /api/v1/invoice-titles (save, company requires tax_no, duplicate 422); GET (list, default first); PUT /{id} (edit, own only); DELETE /{id} (delete, own only); POST /{id}/default (set default, transaction zeroes other rows of the same user)
-- Default rules: first saved auto-default; deleting the default auto-assigns the earliest one
-- Application link: InvoiceController::store optionally accepts title_id — resolves the title into invoice_title/tax_no/title_type, original manual path retained when no title_id; uk_order_type dedup logic unchanged
-
-### 28. Ticket Satisfaction (Round 21)
-
-- appointment_ticket gains rating TINYINT NULL + rated_at DATETIME NULL (migration 000303)
-- Close rating: TicketController::close() supports optional rating 1-5 (filter_var integer validation, out-of-range/non-integer 422; provided → writes rating+rated_at, absent → stays NULL for old clients; open-only close rule retained)
-- Admin stats: GET /admin/tickets/satisfaction (static route before resource to avoid {id} shadow) returns total/rated_count/unrated_count/average (1 decimal)/distribution (1-5 star counts, missing stars filled with 0); permission 388
-
 ### 29. Review Image Audit (Round 21)
 
 - admin ReviewAuditController (new, existing ReviewController untouched): GET /admin/review-audit reviews with images (JSON_LENGTH(images)>0 filter + leftJoin user nickname and technician name + status filter + hashid encoding); POST /{id}/hide hide; POST /{id}/restore restore
@@ -564,14 +505,6 @@ Flutter Web single-page app with 21 pages: dashboard/users/roles/config/logs/ver
 - appointment_browse_history (uk_user_item(user_id, item_id) unique, re-browse only refreshes viewed_at, no duplicate insert; idx_user_viewed ordering)
 - Recording hook: ServiceController::detail() records on success (try/catch + Log::warning doesn't affect the main flow; public route has no JWT, user_id null check skips anonymous)
 - Endpoints: GET /api/v1/browse-history (join appointment_service name/cover/price/original price, viewed_at descending, per_page default 15 max 50, item_id hashid); DELETE /{item_id} (own only, invalid/other's 404); DELETE / (clear own only)
-
-### 31. Full-Reduction Promotions (Round 22)
-
-- appointment_full_reduction_activity (threshold/reduction/title/status/start_at/end_at + idx_status_status_time)
-- Order stacking: standard orders only (group-buy/flash skip), threshold judged on the amount after coupon/session-card deduction, order **coupon/session card → full reduction → tier discount**; picks the activity with the largest reduction; discount merged into discount_amount + remark "满减：满X减Y"; post-reduction actual pay floor 0.01 CNY (in cents)
-- User side GET /api/v1/full-reduction-activities (public, active ones sorted by reduction descending)
-- admin FullReductionController: CRUD + toggle-status on/off shelf (destroy with confirmPassword)
-- Permissions: 396 list / 397 create / 398 edit / 399 on-off shelf / 400 delete (one permission record corresponds to one method.path slug, 5 routes split into 5 records)
 
 ### 32. My Appointments ICS Export (Round 22)
 
@@ -602,7 +535,7 @@ Flutter Web single-page app with 21 pages: dashboard/users/roles/config/logs/ver
 ### 36. Privacy Compliance (Round 22)
 
 - GET /api/v1/privacy/data: data export (personal/orders/points/wallet_txns/reviews/addresses/invoices grouped; logs only record masked phone + counts)
-- Deletion loop: close-request (balance non-zero / unfinished orders / in-progress tickets 422 → close_status=1) → close-cancel (1→0) → close-confirm (after 72h → close_status=2 + close_at + phone/nickname anonymized to user{id} + status=0)
+- Deletion loop: close-request (balance non-zero / unfinished orders 422 → close_status=1) → close-cancel (1→0) → close-confirm (after 72h → close_status=2 + close_at + phone/nickname anonymized to user{id} + status=0)
 - appointment_user gains close_status/close_requested_at/close_at (idempotent ALTER migration); AuthController login/loginByCode return 403 "账号已注销" for close_status=2
 
 ### 37. User Health Profile (Round 23)
@@ -630,25 +563,11 @@ Flutter Web single-page app with 21 pages: dashboard/users/roles/config/logs/ver
 - Payment callback markOrderPaid is the single consumption point; record() internal try/catch + Log::warning never blocks the main flow
 - Migration 000501_order_status_log; OrderTimelineTest 4 tests
 
-### 41. Points Lucky Wheel (Round 23)
-
-- GET /api/v1/wheel/prizes (hides weight/stock); POST /api/v1/wheel/spin: Redis NX + row lock prevents concurrency, random_int weighted draw, client_token idempotent
-- Prize crediting: points→earn record (with expiry time, can be expired normally by PointsExpiryTimer), balance→lockForUpdate, coupon→pending manual issue, no-prize→lose
-- GET /api/v1/wheel/records my records paged; admin /admin/lucky-wheel CRUD + on/off shelf + records (permissions 401-406)
-- Migrations 000503 (appointment_lucky_wheel + appointment_wheel_record + w60/w40 demo seeds) + 000505 (permission seeds); LuckyWheelTest admin 3 + service 6 tests
-
 ### 42. Guest Mode (Round 24)
 
 - GET /api/v1/guest/{home,services,services/{id},stores,technicians}: unauthenticated browsing entry (public endpoints)
 - home aggregates banners/announcements/service categories/hot services, Redis cache svc:guest:home 300s; services supports category filter + newest/sales/price sorting (page/per_page≤50); technicians only approved, service_id filterable, rating descending
 - Covered by GuestControllerTest
-
-### 43. Flash Sale (Round 24)
-
-- appointment_seckill_activity (name/service_id/seckill_price/original_price/stock/start_at/end_at/status); sold count = appointment_order.seckill_id order count
-- GET /api/v1/seckill (status=1 + time window), /{id} (state=not_started/ongoing/ended), POST /{id}/buy: client_token (8-64 chars, SETNX 24h) idempotency + Redis NX 30s concurrency prevention + activity validation (no stock pre-deduction since 2026-08-26)
-- Order injection: seckill_id reuses OrderController::store; stock uniformly deducted by row lock inside store() transaction (calling /api/v1/order directly with seckill_id also deducts stock), flash price = seckill_price (DB authoritative), no coupon/points/member-card stacking; order cancellation does not restore stock; old FLASH_SALE promotion channel removed (store() promo branch now only handles group buying, PromotionController index filters flash_sale, show/join 400), flash sales only go through this channel
-- admin /admin/seckill CRUD + on/off shelf + order list (permissions 407-411, 420); migration 000606 permission seeds; SeckillTest service + admin
 
 ### 44. APP Version Management & Update Check (Round 24)
 

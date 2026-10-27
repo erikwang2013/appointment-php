@@ -1,5 +1,5 @@
 # API Documentation
-> **Languages**: [中文](../API.md) · [한국어](../ko/API.md) · [Русский](../ru/API.md) · [Deutsch](../de/API.md) · [Français](../fr/API.md) · [Español](../es/API.md) · [Português](../pt/API.md) · [हिन्दी](../hi/API.md) · [العربية](../ar/API.md) · [বাংলা](../bn/API.md) · [Bahasa Indonesia](../id/API.md) · [日本語](../ja/API.md)
+> **Languages**: [中文](../API.md)
 
 ## Overview
 
@@ -308,15 +308,6 @@ Setting one as default automatically un-defaults the others.
 
 **Distribution commission**: paid out after the referee's first order reaches completed; amount = paid_amount × reward_rate (appointment_system_config referral.reward_rate, default 0.05, falls back to constant on invalid value). Triple idempotency: row lock + rewarded_at null check + first-order re-check; credited as WalletTxn type=referral_reward.
 
-#### 2.6 Points Transfer (Round 19)
-
-| Method | Path | Description |
-|--------|------|-------------|
-| POST | `/api/v1/user/points/transfer` | Transfer points (to_user_id hashid/points) |
-| GET | `/api/v1/user/points/transfers` | Transfer records (?direction=sent/received&page=1) |
-
-**Points transfer**: recipient hashid decode + existence 404, self-transfer 422, points 1-10000 422, insufficient balance via SUM aggregate 422, daily cumulative 10000 cap 422. Concurrency protection: Redis NX lock points_transfer:{user} 30s → both parties' last transaction rows lockForUpdate inside a transaction (user_id ascending to prevent mutual-transfer deadlock) → re-verify balance/cap/recipient inside the lock. Transaction records: sender type=consume/source=points_transfer negative value (balance=previous snapshot−this transfer), recipient type=earn/source=points_transfer positive value with expires_at (PointsExpiryTimer can expire normally); after commit, in-app notification to recipient type='points_received' (failure only warns).
-
 #### 2.7 Notification Preferences (Round 19)
 
 | Method | Path | Description |
@@ -403,7 +394,7 @@ Rules: withdrawable on the 20th of each month, T+1 arrival, minimum amount/whole
 
 **On order creation**: Redis SETNX locks the technician for 3 minutes, released on page exit or timeout.
 
-**Price tamper prevention (2026-08-26)**: order item amounts always come from database records (target_type=service → appointment_service, product → appointment_product); client-sent prices never participate in calculation; unknown target_type 422; target_id must be a hashid-encoded value (raw id decodes to 0 → 422 "商品不存在或已下架"); group-buy/seckill prices likewise DB-based.
+**Price tamper prevention (2026-08-26)**: order item amounts always come from database records (target_type=service → appointment_service, product → appointment_product); client-sent prices never participate in calculation; unknown target_type 422; target_id must be a hashid-encoded value (raw id decodes to 0 → 422 "商品不存在或已下架"); group-buy prices likewise DB-based.
 
 **Refund rules**: within 15 min of ordering or > 6h before start → 100% / ≤ 6h → 90% / started → 80% / after confirmed start → no refund.
 
@@ -417,7 +408,6 @@ Rules: withdrawable on the 20th of each month, T+1 arrival, minimum amount/whole
 
 **Group-buy order (Round 16)**: optionally pass `promotion_id` (hashid) when creating an order. Validation: group_buy type only, activity within validity window, caller is a participant, not full (locked after formed 422), order service matches activity; group price = original price × discount_percent/100, coupons/session cards/points stacking disabled (passing any → 422). Order stores promotion_id/participant_id; payment fully reuses `POST /api/v1/order/pay/{id}`, with lazy detection at pay time if the activity closed (expired without forming) → order auto-cancelled and technician lock released.
 
-**Seckill order (Round 18, retired)**: ~~create order with `promotion_id` (flash_sale type)~~ — since 2026-08 the legacy FLASH_SALE channel has been removed; the store() promotion branch only handles group-buy GROUP_BUY (non-group-buy promotion 422); seckill uniformly uses the Round-24 `/api/v1/seckill` channel (seckill_id injects stock deduction with row locks inside the store transaction), PromotionController::index filters out flash_sale, show/join return 400 for it, and the `Promotion::TYPE_FLASH_SALE` constant is kept for historical data compatibility.
 
 **Reschedule (Round 17)**: `POST /api/v1/order/reschedule/{id}` with new_service_time (required) + reason (optional), changing time with the same technician. Rules: own order only (not own 404), appointment type only with status pending/paid/confirmed (others 422), ≥ 6 hours before original start (aligned with the full-refund window). Concurrency protection: B1 order_lock (same mutual-exclusion family as pay/cancel/refund) → new slot technician lock Redis SETNX EX 180 (prevents overselling on concurrent reschedules) → row-lock re-read inside transaction + B2 schedule-conflict DB check (excluding this order) → update service_time + write appointment_order_reschedule record → release original slot lock, new slot lock held by this order → SCENE_RESCHEDULE subscribe message (falls back to in-app notification when unconfigured). Failed paths roll back the transaction and release the new slot lock.
 
@@ -446,7 +436,7 @@ Rules: withdrawable on the 20th of each month, T+1 arrival, minimum amount/whole
 | GET | `/api/v1/promotions/{id}/participants` | Participant list |
 | POST | `/api/v1/promotions/join/{id}` | Join activity (Round-15 polish: response includes discount_percent/original_price/group_price; flash_sale type 400) |
 
-**Join rules**: group_buy locks when full (≥ min_people), new joins after formed 422; expired-without-forming lazily closes (status set to 0 on show/join). After joining, order at group price per "Group-Buy Order (Round 16)". Seckill no longer uses this channel, see "24. Seckill Endpoints".
+**Join rules**: group_buy locks when full (≥ min_people), new joins after formed 422; expired-without-forming lazily closes (status set to 0 on show/join). After joining, order at group price per "Group-Buy Order (Round 16)".
 
 ---
 
@@ -499,9 +489,6 @@ Rules: withdrawable on the 20th of each month, T+1 arrival, minimum amount/whole
 | GET | `/api/v1/wallet` | Wallet balance + paginated transactions |
 | POST | `/api/v1/wallet/recharge` | Create top-up order (amount: yuan) |
 | POST | `/api/v1/wallet/recharge/{id}/pay` | Initiate top-up payment (WeChat) |
-| POST | `/api/v1/wallet/transfer` | Balance transfer (to_user_id hashid/amount/remark optional/client_token optional) (Round 19) |
-| GET | `/api/v1/wallet/transfers` | Transfer records (?direction=out/in&page=1) (Round 19) |
-| GET | `/api/v1/wallet/transfers/{id}` | Transfer details (visible to both parties only, others 404) (Round 19) |
 
 **Transactions**: wallet_txn types: recharge / consume / refund / gift_card / referral_reward (distribution commission) / referral_level2 (level-2 commission) / points_exchange (points exchange credit), paginated.
 
@@ -509,7 +496,6 @@ Rules: withdrawable on the 20th of each month, T+1 arrival, minimum amount/whole
 
 **Balance payment**: pass `pay_channel: "balance"` in the order pay request body to use wallet balance; both WeChat refunds and balance refunds credit the amount back to the wallet balance.
 
-**Balance transfer (Round 19)**: `POST /api/v1/wallet/transfer` — recipient hashid decode + existence 404, self-transfer 422, amount 0.01-1000/transaction 422 (DECIMAL comparison, no floats), insufficient balance 422, daily cumulative 5000 yuan 422. Concurrency/idempotency: Redis NX lock wallet_transfer:{from} 30s serializes the sender → inside a transaction both wallet rows lockForUpdate in user_id ascending order (fixed order prevents deadlocks) → debit sender + credit recipient + dual WalletTxn records (transfer_out/transfer_in with balance_after snapshots) + transfer record completed + in-app notification to recipient type='balance_received' (failure only logged). client_token optional: on success SETNX 24h prevents duplicate submission (failed requests don't record the token, so retries work).
 
 ---
 
@@ -536,43 +522,12 @@ Rules: withdrawable on the 20th of each month, T+1 arrival, minimum amount/whole
 
 **Growth crediting**: check-in +10; review submitted +20 (appends don't credit); purchases floor(paid) 1 point per yuan (reuses status re-verification inside the payment callback for idempotency; duplicate callbacks don't double-credit).
 
-### 10. Invoice Endpoints (JWT Required, Round 20)
-
-| Method | Path | Description |
-|--------|------|-------------|
-| POST | `/api/v1/invoices` | Apply for invoice (order_id hashid/order_type: service=service/points_exchange=points exchange; order_type defaults to service; amount and title server-side, not tamperable) |
-| GET | `/api/v1/invoices` | Invoice list (?status=&page=) |
-| GET | `/api/v1/invoices/{id}` | Invoice details (own only) |
-
-**Dedupe**: uk_order_type(order_id, order_type) unique key; duplicate application for the same order+type 422 (incl. MySQL 1062 catch as fallback).
-
-### 11. Customer Service Ticket Endpoints (JWT Required, Round 20)
-
-| Method | Path | Description |
-|--------|------|-------------|
-| POST | `/api/v1/tickets` | Submit ticket (title/content required) |
-| GET | `/api/v1/tickets` | Ticket list (?status=open/closed&page=) |
-| GET | `/api/v1/tickets/{id}` | Ticket details (own only, others 404) |
-| POST | `/api/v1/tickets/{id}/close` | Close ticket (own/open only; optional rating 1-5 satisfaction score, out-of-range/non-integer 422, absent → NULL for compatibility) |
-
 ### 12. Appointment Calendar Endpoints (JWT Required, Round 20)
 
 | Method | Path | Description |
 |--------|------|-------------|
 | GET | `/api/v1/calendar/technician/{id}` | Month view (?month=YYYY-MM): schedule time_slots expanded to hour slots + booked excluded |
 | GET | `/api/v1/calendar/technician/{id}/day` | Day view (?date=YYYY-MM-DD): bookable/booked/unbookable slot details for the day |
-
-### 13. Invoice Title Endpoints (JWT Required, Round 21)
-
-| Method | Path | Description |
-|--------|------|-------------|
-| POST | `/api/v1/invoice-titles` | Save title (title_type: personal/company; company requires tax_no; same user + same title duplicate 422; first one auto-default) |
-| GET | `/api/v1/invoice-titles` | Title list (default first) |
-| PUT | `/api/v1/invoice-titles/{id}` | Edit title (own only) |
-| DELETE | `/api/v1/invoice-titles/{id}` | Delete title (own only; deleting the default auto-assigns the earliest one) |
-| POST | `/api/v1/invoice-titles/{id}/default` | Set default (transaction clears other rows of the same user) |
-
-**Application integration**: POST /api/v1/invoices supports optional title_id — resolves the title and auto-fills invoice_title/tax_no/title_type; without title_id the original manual-entry path is kept.
 
 ### 14. Browse History Endpoints (JWT Required, Round 21)
 
@@ -583,14 +538,6 @@ Rules: withdrawable on the 20th of each month, T+1 arrival, minimum amount/whole
 | DELETE | `/api/v1/browse-history` | Clear history (own only) |
 
 **Recording**: automatically recorded after a successful service-detail visit (skipped when not logged in; repeat views only refresh viewed_at, no duplicate inserts).
-
-### 15. Full-Reduction Activity Endpoints (Round 22)
-
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | `/api/v1/full-reduction-activities` | Active full-reduction activities (status=1 and within validity window, sorted by reduction descending; public endpoint) |
-
-**Order stacking rules**: full-reduction applies only to standard orders (group-buy/seckill skipped), threshold judged on the payable after coupon/session-card deduction, stacking order **coupon/session card → full reduction → tier discount**; picks the activity with the largest reduction; the discount merges into discount_amount, note appends "满减：满X减Y"; payable floor 0.01 yuan after reduction.
 
 ### 16. My Appointments ICS Export (JWT Required, Round 22)
 
@@ -612,8 +559,8 @@ Rules: withdrawable on the 20th of each month, T+1 arrival, minimum amount/whole
 
 | Method | Path | Description |
 |--------|------|-------------|
-| GET | `/api/v1/privacy/data` | Data export (grouped JSON: personal/orders/points/wallet_txns/reviews/addresses/invoices; server logs only record masked phone + row count) |
-| POST | `/api/v1/privacy/close-request` | Apply for account closure (balance non-zero / unfinished orders / open tickets 422; sets close_status=1 + close_requested_at) |
+| GET | `/api/v1/privacy/data` | Data export (grouped JSON: personal/orders/points/wallet_txns/reviews/addresses; server logs only record masked phone + row count) |
+| POST | `/api/v1/privacy/close-request` | Apply for account closure (balance non-zero / unfinished orders 422; sets close_status=1 + close_requested_at) |
 | POST | `/api/v1/privacy/close-cancel` | Cancel closure application (close_status 1→0) |
 | POST | `/api/v1/privacy/close-confirm` | Confirm closure (only after 72h; close_status=2 + close_at + phone/nickname anonymized to user{id} + status=0) |
 
@@ -647,14 +594,6 @@ Storage: password_hash() hash + pay_password_set_at; plaintext never stored.
 
 Tracked events: submit/pay (WeChat callback markOrderPaid single consumption point)/cancel/technician confirm/refund application/refund approved/service start/service complete/timeout auto-cancel/admin operation (operator=admin), 8 change types in total.
 
-### 22. Points Lucky Wheel Endpoints (JWT Required, Round 23)
-
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | `/api/v1/wheel/prizes` | Wheel prize list (hides sensitive weight/stock fields) |
-| POST | `/api/v1/wheel/spin` | Spin once (Redis NX + row lock against concurrency; random_int weighted draw; points→earn transaction with expiry, balance→lockForUpdate credit, coupon→pending manual issuance, no-prize→lose; client_token idempotent) |
-| GET | `/api/v1/wheel/records` | My spin records (paginated) |
-
 ### 23. Guest Mode Endpoints (Round 24)
 
 | Method | Path | Description |
@@ -666,16 +605,6 @@ Tracked events: submit/pay (WeChat callback markOrderPaid single consumption poi
 | GET | `/api/v1/guest/technicians` | Technician list (approved only; ?service_id=hashid filter; rating descending) |
 
 Not-logged-in browsing entry requiring no authentication (public endpoints).
-
-### 24. Seckill Endpoints (JWT Required, Round 24)
-
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | `/api/v1/seckill` | Seckill activity list (status=1 and within time window; includes sold count = appointment_order.seckill_id order count, remaining stock) |
-| GET | `/api/v1/seckill/{id}` | Activity details (state=not_started/ongoing/ended) |
-| POST | `/api/v1/seckill/{id}/buy` | Seckill order (client_token idempotent + Redis NX 30s against concurrency + activity validation; no longer pre-deducts stock) |
-
-**Ordering rules (from 2026-08-26)**: stock uniformly deducted via row locks inside the `/api/v1/order store()` transaction; buy only does entry validation/idempotency; seckill price = seckill_price (DB-based), no coupon/points/member-card stacking; order cancellation does not restore stock; calling `/api/v1/order` directly with seckill_id also deducts stock.
 
 ### 25. APP Version Check Endpoints (Round 24)
 
@@ -780,26 +709,6 @@ Permission IDs: 380.
 
 Permission IDs: 381 (slug 'get.admin/reviews/{id}/reply').
 
-### Invoice Management (Round 20)
-
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | `/admin/invoices` | Invoice list (?status=pending/issued/rejected&page=) |
-| POST | `/admin/invoices/{id}/issue` | Issue invoice (invoice_no required, status→issued + issued_at; idempotent: already issued 422) |
-| POST | `/admin/invoices/{id}/reject` | Reject (reject_reason required, status→rejected; only pending can be rejected) |
-
-Permission IDs: 382 list / 383 issue / 384 reject.
-
-### Ticket Management (Round 20)
-
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | `/admin/tickets` | Ticket list (?status=&page=, static route precedes resource to avoid shadowing) |
-| POST | `/admin/tickets/{id}/reply` | Reply to ticket (content required, writes reply_content/replied_at, ticket back to open) |
-| GET | `/admin/tickets/satisfaction` | Satisfaction summary (Round 21): total/rated_count/unrated_count/average 1 decimal/1-5 star distribution with missing stars zero-filled; static route precedes resource |
-
-Permission IDs: 385 ticket reply / 387 ticket list view / 388 ticket satisfaction stats.
-
 ### Review Image Audit (Round 21)
 
 | Method | Path | Description |
@@ -827,18 +736,6 @@ Permission IDs: 386. Disbursement rule: after order payment, the level-1 referre
 
 Permission IDs: 392 list / 393 stats.
 
-### Full-Reduction Activity Management (Round 22)
-
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | `/admin/full-reduction-activities` | Activity list (paginated) |
-| POST | `/admin/full-reduction-activities` | Add (threshold/reduction/title/status/start_at/end_at) |
-| PUT | `/admin/full-reduction-activities/{id}` | Edit |
-| POST | `/admin/full-reduction-activities/{id}/toggle-status` | On-off shelf |
-| DELETE | `/admin/full-reduction-activities/{id}` | Delete (with confirmPassword) |
-
-Permission IDs: 396 list / 397 add / 398 edit / 399 on-off shelf / 400 delete (one permission record per method.path slug, so 5 routes 5 records).
-
 ### Profit-Sharing Records (Round 22)
 
 | Method | Path | Description |
@@ -846,19 +743,6 @@ Permission IDs: 396 list / 397 add / 398 edit / 399 on-off shelf / 400 delete (o
 | GET | `/admin/profit-sharing` | Profit-sharing records (leftJoin order no/technician nickname, ?status&order_no&technician_name&page=, hashid-encoded) |
 
 Permission IDs: 394. Server logic: appointment_system_config group=profit_sharing (enabled/receiver_ratio); disabled degrades to log-only; when enabled, payment success auto-requests profit sharing (amount=actual paid×receiver_ratio default 0.7, same-order pending/success idempotent skip); no HTTP execution without credentials, request structure logged.
-
-### Points Lucky Wheel Management (Round 23)
-
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | `/admin/lucky-wheel` | Wheel prize list (incl. weight/stock, paginated) |
-| POST | `/admin/lucky-wheel` | Add prize (name/type points/balance/coupon/none/weight/stock/image) |
-| GET/PUT | `/admin/lucky-wheel/{id}` | Details / edit |
-| DELETE | `/admin/lucky-wheel/{id}` | Delete |
-| POST | `/admin/lucky-wheel/{id}/toggle-status` | On-off shelf |
-| GET | `/admin/lucky-wheel/records` | Spin records (?status&page=, incl. user nickname/prize name) |
-
-Permission IDs: 401-406. Static routes `/lucky-wheel/records` and `/lucky-wheel/{id}/toggle-status` registered before the resource to avoid {id} shadowing.
 
 ### Return-Customer Reward Management (Round 24)
 
@@ -869,20 +753,6 @@ Permission IDs: 401-406. Static routes `/lucky-wheel/records` and `/lucky-wheel/
 | GET | `/admin/return-customer/rewards` | Reward records list (?keyword technician name/order no/user nickname, type=return_customer paginated) |
 
 Permission IDs: 412-414. Reward rule: a user's 2nd purchase with the same technician within 30 days (order completed) pays a bonus = actual paid × ratio (default 0.05), recorded in appointment_technician_earnings (type=return_customer, status=pending) settling together with the commission settlement chain; same-order idempotent, no duplicates.
-
-### Seckill Activity Management (Round 24)
-
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | `/admin/seckill` | Activity list (paginated) |
-| POST | `/admin/seckill` | Add activity (name/service_id/seckill_price/original_price/stock/start_at/end_at) |
-| GET | `/admin/seckill/{id}` | Activity details |
-| PUT | `/admin/seckill/{id}` | Edit |
-| DELETE | `/admin/seckill/{id}` | Delete |
-| POST | `/admin/seckill/{id}/toggle-status` | On-off shelf |
-| GET | `/admin/seckill/{id}/orders` | Seckill order list |
-
-Permission IDs: 407-411, 420. Sold count = appointment_order.seckill_id order count; stock deducted with row locks, sold-out interception.
 
 ### APP Version Management (Round 24)
 

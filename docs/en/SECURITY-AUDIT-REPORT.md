@@ -1,5 +1,5 @@
 # Security Audit Report — Appointment System (appointment-php)
-> **Languages**: [中文](../SECURITY-AUDIT-REPORT.md) · [한국어](../ko/SECURITY-AUDIT-REPORT.md) · [Русский](../ru/SECURITY-AUDIT-REPORT.md) · [Deutsch](../de/SECURITY-AUDIT-REPORT.md) · [Français](../fr/SECURITY-AUDIT-REPORT.md) · [Español](../es/SECURITY-AUDIT-REPORT.md) · [Português](../pt/SECURITY-AUDIT-REPORT.md) · [हिन्दी](../hi/SECURITY-AUDIT-REPORT.md) · [العربية](../ar/SECURITY-AUDIT-REPORT.md) · [বাংলা](../bn/SECURITY-AUDIT-REPORT.md) · [Bahasa Indonesia](../id/SECURITY-AUDIT-REPORT.md) · [日本語](../ja/SECURITY-AUDIT-REPORT.md)
+> **Languages**: [中文](../SECURITY-AUDIT-REPORT.md)
 
 **Date**: 2026-08-04
 **Scope**: service (appointment service system), admin (open admin dashboard)
@@ -157,8 +157,7 @@ Placeholder keys in `.env.docker` must be replaced with randomly generated value
 
 | Item | Fix |
 |------|-----|
-| Order tamper prevention | OrderController::store() order item prices all use database records (service→appointment_service, product→appointment_product); client prices never participate in calculation; unknown target_type 422; target_id must be a hashid (raw id decodes to 0 → 422 "product does not exist or is offline"); group-buy/seckill prices likewise DB-based |
-| Unified seckill inventory deduction | Inventory uniformly deducted via row locks inside the /api/order store() transaction; SeckillController::buy no longer pre-deducts inventory (keeps the Redis activity lock + client_token idempotency); calling /api/order directly with seckill_id also deducts inventory |
+| Order tamper prevention | OrderController::store() order item prices all use database records (service→appointment_service, product→appointment_product); client prices never participate in calculation; unknown target_type 422; target_id must be a hashid (raw id decodes to 0 → 422 "product does not exist or is offline"); group-buy prices likewise DB-based |
 | Technician withdrawals | Balance reserved in-transit (pending/approved) on application; re-check settled−withdrawn−in-transit ≥ withdrawal amount before approval transfer; concurrent approvals cannot cause double payouts |
 | Payment callbacks | WeChat callback total_fee strictly compared against the order's payable amount, mismatches rejected; Alipay callback logs masked (no buyer_id/seller_id, etc.) |
 | /install protection | .install.lock written on successful install; install endpoint double-checks (file lock + isInstalled); .install.lock in .gitignore |

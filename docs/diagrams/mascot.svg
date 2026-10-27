@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 480" width="480" height="480" role="img" aria-labelledby="title desc">
   <title id="title">预约服务系统吉祥物——日历精灵「小约」</title>
-  <desc id="desc">把预约日历本身做成角色：红色卡头 + 双线圈 + 白色日期页，页面上有表情，右下角绿色对勾表示预约成功，底部四色圆点代表微信小程序 / APP / 鸿蒙 / 后台四端。纯 SMIL 动画，无外部依赖</desc>
+  <desc id="desc">把预约日历本身做成角色：红色卡头 + 双线圈 + 白色日期页，页面上有表情，右下角绿色对勾表示预约成功，底部双色圆点代表微信小程序 / 管理后台双端。纯 SMIL 动画，无外部依赖</desc>
   <defs>
     <linearGradient id="pageGrad" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0%" stop-color="#FFFFFF"/>

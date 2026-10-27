@@ -1,5 +1,5 @@
 # 预约服务系统 — 项目结构
-> **多语言**：[English](en/STRUCTURE.md) · [한국어](ko/STRUCTURE.md) · [Русский](ru/STRUCTURE.md) · [Deutsch](de/STRUCTURE.md) · [Français](fr/STRUCTURE.md) · [Español](es/STRUCTURE.md) · [Português](pt/STRUCTURE.md) · [हिन्दी](hi/STRUCTURE.md) · [العربية](ar/STRUCTURE.md) · [বাংলা](bn/STRUCTURE.md) · [Bahasa Indonesia](id/STRUCTURE.md) · [日本語](ja/STRUCTURE.md)
+> **多语言**：[English](en/STRUCTURE.md)
 
 ## 仓库总览
 
@@ -84,7 +84,6 @@ admin/
 │   │   ├── AnnouncementController  #   公告CRUD/发布
 │   │   ├── FaqController           #   常见问题CRUD
 │   │   ├── FeedbackController      #   意见反馈/回复
-│   │   ├── MomentController        #   朋友圈审核
 │   │   ├── AgreementController     #   协议编辑/发布
 │   │   ├── AboutController         #   关于我们设置
 │   │   └── SystemMessageController #   系统消息模板/发送
@@ -99,22 +98,17 @@ admin/
 │   │   ├── BatchMessageController   #   批量推送
 │   │   ├── TechnicianTierController #   技师等级
 │   │   │                            # ✅ 第22-25轮新增:
-│   │   ├── FullReductionController  #   满减活动
 │   │   ├── AttendanceController     #   技师考勤
 │   │   ├── ProfitSharingController  #   微信分账
-│   │   ├── LuckyWheelController     #   积分转盘
 │   │   ├── PointsExchangeGoodsController # 积分兑换商品
 │   │   ├── ReviewAuditController    #   评价图片审核
 │   │   ├── ReferralRewardController #   一级返佣记录
 │   │   ├── ReferralLevel2Controller #   二级返佣记录
 │   │   ├── ReturnCustomerController #   回头客奖励
-│   │   ├── SeckillController        #   秒杀活动
 │   │   ├── VersionController        #   APP版本管理
 │   │   ├── TechnicianScheduleController # 排班管理/CSV导出
 │   │   ├── AftersaleController      #   售后处理
 │   │   ├── OrderVerificationController # 核销记录
-│   │   ├── CommunityModerationController # 社区审核
-│   │   ├── VideoAuditController     #   视频审核
 │   │   └── InstallController        #   安装向导
 │   ├── api/v1/controller/      # 公开API v1
 │   │   ├── AuthController
@@ -191,7 +185,7 @@ admin/
 ```
 service/
 ├── app/
-│   ├── api/v1/controller/       # 公开API v1（26 控制器）
+│   ├── api/v1/controller/       # 公开API v1（19 控制器）
 │   │   ├── AuthController          # 登录/注册/忘记密码/刷新/身份切换
 │   │   ├── CaptchaController       # 短信验证码(Redis限流)
 │   │   ├── CommonController        # 公共配置/协议/区域
@@ -199,7 +193,6 @@ service/
 │   │   ├── DocsController          # OpenAPI文档(hg/apidoc)
 │   │   ├── LbsController           # 附近门店(Haversine)/逆地理
 │   │   ├── GuestController         # 游客模式（未登录只读浏览，Redis缓存）
-│   │   ├── SeckillController       # 秒杀活动/抢购（独立通道）
 │   │   ├── PromotionController     # 拼团（旧 flash_sale 通道已下线）
 │   │   ├── ServiceController       # 服务分类/项目/产品/门店
 │   │   ├── ServicePackageController # 服务套餐
@@ -207,17 +200,12 @@ service/
 │   │   ├── TechnicianController    # 技师公开信息
 │   │   ├── BrowseHistoryController # 浏览足迹
 │   │   ├── CalendarController      # 预约月历（月/日视图）
-│   │   ├── CommunityController     # 社区动态
-│   │   ├── CommunityCommentController # 社区评论
-│   │   ├── FullReductionController # 满减活动
 │   │   ├── PaymentNotifyController # 支付回调（微信/支付宝）
 │   │   ├── PrintController         # 打印
 │   │   ├── PrivacyController       # 隐私合规（数据导出/注销）
 │   │   ├── VersionController       # APP版本管理/检测更新
-│   │   ├── VideoController         # 视频
 │   │   ├── WechatController        # 微信相关
-│   │   └── WheelController         # 积分幸运转盘
-│   ├── user/v1/controller/      # 用户模块 v1（14 控制器）
+│   ├── user/v1/controller/      # 用户模块 v1（8 控制器）
 │   │   ├── ProfileController       # 个人信息/密码/手机/注销/登出
 │   │   ├── AddressController       # 地址CRUD(默认地址管理)
 │   │   ├── FavoriteController      # 收藏(服务/技师)
@@ -228,7 +216,7 @@ service/
 │   │   ├── GrowthController        # 成长等级（概览/records/levels）
 │   │   ├── HealthProfileController # 健康档案
 │   │   ├── NotifySettingController # 消息偏好设置
-│   ├── technician/v1/controller/ # 技师模块 v1（10 控制器）
+│   ├── technician/v1/controller/ # 技师模块 v1（8 控制器）
 │   │   ├── ProfileController       # 技师档案/入驻申请
 │   │   ├── ScheduleController      # 排班查询/设置
 │   │   ├── OrderController         # 技师订单列表
@@ -237,7 +225,7 @@ service/
 │   │   ├── WithdrawController      # 提现申请（每月 config('withdraw.gate_day') 号，可配置）
 │   │   ├── AttendanceController    # 上下班打卡考勤
 │   │   └── ReviewController        # 技师回复评价
-│   ├── order/v1/controller/     # 订单模块 v1（8 控制器 + 9 trait）
+│   ├── order/v1/controller/     # 订单模块 v1（6 控制器 + 10 trait）
 │   │   ├── OrderController         # 下单(锁技师)/列表/详情/取消/支付/退款/核销（聚合入口，38行，方法全部来自 trait）
 │   │   ├── OrderCreateTrait        # 订单创建 store/计价辅助 (475行)
 │   │   ├── OrderQueryTrait         # 订单查询 列表/详情/物流 (205行)
@@ -272,7 +260,7 @@ service/
 │   │   ├── Cors                    # 跨域处理
 │   │   ├── Security                # 安全检测(security-php)
 │   │   └── TechnicianAuth          # 技师身份校验
-│   └── model/                   # 数据模型(81个)
+│   └── model/                   # 数据模型(59个)
 │       ├── User.php → appointment_user
 │       ├── TechnicianProfile.php → appointment_technician_profile
 │       ├── Service.php → appointment_service (ES: appointment_services)
@@ -282,7 +270,7 @@ service/
 │       ├── Coupon.php → appointment_coupon
 │       ├── MemberCard.php → appointment_member_card
 │       ├── Notification.php → appointment_notification
-│       └── ... (共81个模型文件；admin 另有 6 个特有模型，合计 87)
+│       └── ... (共59个模型文件；admin 另有 6 个特有模型，合计 65)
 ├── config/                     # 配置文件
 ├── public/                     # 入口
 ├── runtime/                    # 运行时
@@ -395,7 +383,7 @@ apps/wechat/
 | 服务 | appointment_service | 服务项目 |
 | 服务 | appointment_product | 产品 |
 | 服务 | appointment_store | 门店 |
-| 订单 | appointment_order | 订单主表（秒杀 seckill_id 关联列，第24轮） |
+| 订单 | appointment_order | 订单主表 |
 | 订单 | appointment_order_item | 订单明细 |
 | 订单 | appointment_order_payment | 支付记录 |
 | 订单 | appointment_order_refund | 退款记录 |
@@ -422,7 +410,6 @@ apps/wechat/
 | 内容 | appointment_platform_agreement | 平台协议 |
 | 内容 | appointment_faq | 常见问题 |
 | 内容 | appointment_feedback | 意见反馈 |
-| 内容 | appointment_moment | 朋友圈动态 |
 | 内容 | appointment_notification | 消息通知 |
 | 财务 | appointment_finance_transaction | 收支流水 |
 | 财务 | appointment_technician_commission_config | 佣金配置 |
@@ -439,15 +426,11 @@ apps/wechat/
 | 用户 | appointment_growth_level | 成长等级档位（第20轮） |
 | 营销 | appointment_referral_level2_reward | 二级返佣记录（第20轮） |
 | 用户 | appointment_browse_history | 浏览足迹（第21轮） |
-| 营销 | appointment_full_reduction_activity | 满减活动（第22轮） |
 | 技师 | appointment_technician_attendance | 技师考勤（第22轮） |
 | 系统 | appointment_push_log | APP推送记录（第22轮） |
 | 财务 | appointment_profit_sharing | 微信分账记录（第22轮） |
 | 订单 | appointment_order_status_log | 订单状态时间线（第23轮） |
 | 用户 | appointment_user_health_profile | 用户健康档案（第23轮） |
-| 营销 | appointment_lucky_wheel | 转盘奖品定义（第23轮） |
-| 营销 | appointment_wheel_record | 转盘抽奖记录（第23轮） |
-| 营销 | appointment_seckill_activity | 秒杀活动（第24轮） |
 | 系统 | appointment_app_version | APP版本（第24轮） |
 
 ### 补充清单（docs/install.sql 95 表中未在上方列出的部分，完整权威清单以 install.sql 为准）
@@ -456,8 +439,6 @@ apps/wechat/
 |----|------|------|
 | 营销 | appointment_card_transfer | 次卡转赠 |
 | 用户 | appointment_check_in | 签到打卡 |
-| 内容 | appointment_community_post | 社区动态 |
-| 内容 | appointment_community_comment | 社区评论 |
 | 系统 | appointment_operation_log_detail | 操作日志详情 |
 | 订单 | appointment_order_aftersale | 订单售后 |
 | 营销 | appointment_points_exchange_goods | 积分兑换商品 |
@@ -468,7 +449,6 @@ apps/wechat/
 | 技师 | appointment_technician_tier_config | 技师等级配置 |
 | 用户 | appointment_user_device | 用户设备 |
 | 营销 | appointment_user_points_exchange | 积分兑换记录 |
-| 内容 | appointment_video_post | 视频动态 |
 
 ## 外部服务预留
 

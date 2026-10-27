@@ -1,5 +1,5 @@
 # 系统功能图
-> **多语言**：[English](../en/diagrams/FUNCTION-DIAGRAM.md) · [한국어](../ko/diagrams/FUNCTION-DIAGRAM.md) · [Русский](../ru/diagrams/FUNCTION-DIAGRAM.md) · [Deutsch](../de/diagrams/FUNCTION-DIAGRAM.md) · [Français](../fr/diagrams/FUNCTION-DIAGRAM.md) · [Español](../es/diagrams/FUNCTION-DIAGRAM.md) · [Português](../pt/diagrams/FUNCTION-DIAGRAM.md) · [हिन्दी](../hi/diagrams/FUNCTION-DIAGRAM.md) · [العربية](../ar/diagrams/FUNCTION-DIAGRAM.md) · [বাংলা](../bn/diagrams/FUNCTION-DIAGRAM.md) · [Bahasa Indonesia](../id/diagrams/FUNCTION-DIAGRAM.md) · [日本語](../ja/diagrams/FUNCTION-DIAGRAM.md)
+> **多语言**：[English](../en/diagrams/FUNCTION-DIAGRAM.md)
 
 ```mermaid
 mindmap
@@ -37,17 +37,14 @@ mindmap
         售后申请 退/换货 状态跟踪
         积分抵现 支付时抵扣
         拼团下单 参与活动后以拼团价下单
-        秒杀下单 以秒杀价下单 售罄拦截
         预约改期 同技师换时间 距开始≥6h
         预约月历 排班月/日视图 已约排除
         服务开始前提醒 1h前订阅消息+站内
         文字+图片评价
         评价追评 追加内容/图片 一次
         物流跟踪 发货状态/脱敏收件人
-        电子发票 申请/列表/详情 防重复
         ICS日历导出 90天内预约导出iCal
         订单时间线 状态变更记录/仅本人
-        发票抬头 常用抬头库/默认
         消息偏好设置 通知开关/定时器门控
       技师模块
         技师列表 距离排序
@@ -62,19 +59,15 @@ mindmap
         积分获取与兑换/消费回扣
         积分过期 365天有效期/定时扣减
         积分兑换商城 兑换券/余额/礼品卡
-        拼团/秒杀 参与/满员锁定/成团下单
+        拼团 参与/满员锁定/成团下单
         卡券到期提醒 3天内到期通知
         礼品卡 现金/实物/兑换入账
-        积分转赠 用户间/单日限额/双向流水
         二级返佣 二级推荐人 2%返佣
-        满减活动 满X减Y/下单自动叠加
-        积分转盘 权重抽奖/积分余额优惠券/lose
       钱包
         余额查询
         充值 到账站内通知
         余额支付
         退款回充
-        余额转账 用户间/双行锁/转账记录
         支付密码 6位数字设置/校验/修改
       个人中心
         头像/昵称/手机号
@@ -87,8 +80,6 @@ mindmap
         用户推广 二维码海报/返佣明细
         成长等级 签到/评价/消费 5档
         等级权益 下单折扣/积分倍率
-        客服工单 提交/列表/详情/关闭
-        工单满意度 关闭打分/后台汇总
         意见反馈
       设置
         修改密码
@@ -135,9 +126,6 @@ mindmap
         最低/保留/整百限制
       回头客奖励
         30天内二次消费奖金
-      专业培训
-        视频课程
-        图文课程
 
     管理后台
       仪表盘
@@ -184,17 +172,6 @@ mindmap
         优惠券CRUD
         上下架控制
         领取统计
-      满减活动
-        满X减Y CRUD
-        上下架控制
-      积分转盘
-        奖品CRUD
-        上下架控制
-        抽奖记录查看
-      秒杀活动
-        活动CRUD
-        上下架控制
-        秒杀订单查看
       积分兑换
         兑换商品CRUD
         上下架控制
@@ -220,7 +197,6 @@ mindmap
         分销返佣记录
         二级返佣记录 权限386
         分账记录 微信分账/状态筛选
-        发票审核 开票/驳回 权限382-384
         回头客奖励 开关/比例/奖励记录 权限412-414
       内容管理
         轮播图CRUD
@@ -228,9 +204,6 @@ mindmap
         协议编辑
         常见问题CRUD
         意见反馈处理
-        客服工单回复 权限385/387
-        工单满意度统计 权限388
-        朋友圈审核
         关于我们设置
       系统设置
         平台协议管理

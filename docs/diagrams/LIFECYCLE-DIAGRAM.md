@@ -1,5 +1,5 @@
 # 生命周期图
-> **多语言**：[English](../en/diagrams/LIFECYCLE-DIAGRAM.md) · [한국어](../ko/diagrams/LIFECYCLE-DIAGRAM.md) · [Русский](../ru/diagrams/LIFECYCLE-DIAGRAM.md) · [Deutsch](../de/diagrams/LIFECYCLE-DIAGRAM.md) · [Français](../fr/diagrams/LIFECYCLE-DIAGRAM.md) · [Español](../es/diagrams/LIFECYCLE-DIAGRAM.md) · [Português](../pt/diagrams/LIFECYCLE-DIAGRAM.md) · [हिन्दी](../hi/diagrams/LIFECYCLE-DIAGRAM.md) · [العربية](../ar/diagrams/LIFECYCLE-DIAGRAM.md) · [বাংলা](../bn/diagrams/LIFECYCLE-DIAGRAM.md) · [Bahasa Indonesia](../id/diagrams/LIFECYCLE-DIAGRAM.md) · [日本語](../ja/diagrams/LIFECYCLE-DIAGRAM.md)
+> **多语言**：[English](../en/diagrams/LIFECYCLE-DIAGRAM.md)
 
 ## 1. 订单生命周期（状态机）
 
@@ -203,108 +203,13 @@ stateDiagram-v2
     note right of expired: 三层幂等：原行行锁复验<br/>+ id游标分页 + 通知仅扣减轮次产生
 ```
 
-## 10. 转账生命周期（第19轮：余额转账 + 积分转赠）
-
-```mermaid
-stateDiagram-v2
-    [*] --> validating: 发起转账<br/>(余额转账: 0.01-1000元/笔, 单日5000元<br/>积分转赠: 1-10000点, 单日10000点)
-
-    validating --> locked: 通过校验<br/>(Redis NX锁 30s + 双方行锁<br/>user_id升序防死锁)
-
-    locked --> completed: 事务提交<br/>(转出方扣减 + 接收方累加<br/>双流水 transfer_out/in 或 consume/earn<br/>转账记录 status=completed)
-
-    locked --> failed: 锁内复验失败<br/>(余额不足/超限额/接收人消失)
-    locked --> idempotent: client_token重复<br/>(SETNX 24h拦截, 余额转账)
-
-    completed --> notified: 接收方站内通知<br/>(balance_received / points_received)
-    completed --> [*]
-    failed --> [*]
-    idempotent --> [*]
-    notified --> [*]
-
-    note right of completed: 积分接收流水含 expires_at<br/>可被 PointsExpiryTimer 正常过期
-```
-
-## 11. 客服工单生命周期（第20轮）
-
-```mermaid
-stateDiagram-v2
-    [*] --> open: 用户提交工单<br/>(title/content)
-
-    open --> open: 后台回复<br/>(reply_content/replied_at 追加)
-
-    open --> closed: 用户主动关闭<br/>(仅本人/仅 open，可选 rating 1-5)
-
-    closed --> [*]
-
-    note right of closed: 满意度打分落 rating/rated_at<br/>admin 汇总平均分与分布
-```
-
-## 12. 电子发票生命周期（第20轮）
-
-```mermaid
-stateDiagram-v2
-    [*] --> pending: 用户申请<br/>(uk_order_type 防重复,<br/>金额服务端带出)
-
-    pending --> issued: 后台开票<br/>(invoice_no + issued_at)
-
-    pending --> rejected: 后台驳回<br/>(reject_reason)
-
-    issued --> [*]
-    rejected --> [*]
-```
-
-## 13. 满减活动生命周期（第22轮）
-
-```mermaid
-stateDiagram-v2
-    [*] --> draft: 后台创建(默认下架)
-
-    draft --> published: 上架发布(status=1)
-
-    published --> ended: 到期(end_at) / 手动下架
-
-    published --> used: 用户下单触发<br/>(券后金额≥threshold 自动减免<br/>取减免额最大活动)
-
-    used --> [*]: 正常订单生命周期<br/>(满减后实付下限0.01元)
-
-    ended --> published: 重新上架<br/>(未到期)
-    ended --> [*]
-
-    note right of used: 仅标准订单生效<br/>拼团/秒杀跳过
-```
-
-## 15. 转盘抽奖生命周期（第23轮）
-
-```mermaid
-stateDiagram-v2
-    [*] --> on: 后台创建奖品并上架
-
-    on --> spun: 用户抽奖 spin<br/>(Redis NX + 行锁防并发<br/>random_int 权重抽取<br/>client_token 幂等)
-
-    spun --> points: 奖品=积分<br/>(earn 流水含 expires_at<br/>可被 PointsExpiryTimer 过期)
-
-    spun --> balance: 奖品=余额<br/>(lockForUpdate 入账)
-
-    spun --> coupon: 奖品=优惠券<br/>(pending 人工发放)
-
-    spun --> lose: 无奖品<br/>(记录 type=none)
-
-    points --> [*]
-    balance --> [*]
-    coupon --> [*]
-    lose --> [*]
-
-    note right of on: 上下架 toggle-status 控制<br/>下架奖品不参与抽取
-```
-
 ## 14. 账号注销生命周期（第22轮）
 
 ```mermaid
 stateDiagram-v2
     [*] --> active: 正常使用
 
-    active --> requested: 申请注销<br/>(余额/未完成订单/在途工单拦截422)
+    active --> requested: 申请注销<br/>(余额/未完成订单拦截422)
 
     requested --> active: 取消申请(close-cancel)
 
@@ -314,29 +219,6 @@ stateDiagram-v2
 
     note right of requested: 登录不受影响
     note right of closing: close_status=2 登录拦截403
-```
-
-## 16. 秒杀活动生命周期（第24轮）
-
-```mermaid
-stateDiagram-v2
-    [*] --> published: 后台创建+上架(status=1)
-
-    published --> ongoing: 进入时间窗<br/>(start_at ≤ now ≤ end_at)
-
-    ongoing --> sold_out: 行锁 stock-1 至 0<br/>(下单失败回补库存)
-
-    ongoing --> ended: 到期(end_at)
-
-    sold_out --> ended: 到期 / 手动下架
-
-    ended --> published: 重新上架(未到期)
-
-    ongoing --> seckill_order: 用户秒杀下单<br/>(Redis NX 30s 防并发<br/>client_token 幂等<br/>注入 seckill_id)
-
-    seckill_order --> [*]: 复用订单创建/支付流程<br/>(秒杀价不叠加券/积分/卡)
-
-    note right of ongoing: 取消订单不回补库存
 ```
 
 ## 17. 回头客奖励生命周期（第24轮）

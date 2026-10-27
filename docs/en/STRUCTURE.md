@@ -1,5 +1,5 @@
 # Appointment Service System — Project Structure
-> **Languages**: [中文](../STRUCTURE.md) · [한국어](../ko/STRUCTURE.md) · [Русский](../ru/STRUCTURE.md) · [Deutsch](../de/STRUCTURE.md) · [Français](../fr/STRUCTURE.md) · [Español](../es/STRUCTURE.md) · [Português](../pt/STRUCTURE.md) · [हिन्दी](../hi/STRUCTURE.md) · [العربية](../ar/STRUCTURE.md) · [বাংলা](../bn/STRUCTURE.md) · [Bahasa Indonesia](../id/STRUCTURE.md) · [日本語](../ja/STRUCTURE.md)
+> **Languages**: [中文](../STRUCTURE.md)
 
 ## Repository Overview
 
@@ -8,9 +8,7 @@ appointment-php/
 ├── admin/              # 管理后台 (webman v2 + Flutter Web)
 ├── service/            # 业务API服务 (webman v2)
 ├── apps/               # 用户端前端应用
-│   ├── wechat/         #   微信小程序（原生）
-│   ├── flutter/        #   Flutter APP（iOS + Android）
-│   └── harmonyos/      #   HarmonyOS APP（鸿蒙原生）
+│   └── wechat/         #   微信小程序（原生）
 ├── docs/               # 项目文档
 └── .claude/            # Claude Code 配置
 ```
@@ -20,13 +18,11 @@ appointment-php/
 ```
 ┌──────────────────────────────────────────────┐
 │                   apps/                       │
-│  ┌─────────────┐  ┌──────────┐  ┌─────────┐  │
-│  │ wechat/      │  │ flutter/  │  │harmonyos/│  │
-│  │ 微信小程序    │  │iOS/Android│  │ 鸿蒙 APP │  │
-│  └──────┬──────┘  └────┬─────┘  └────┬────┘  │
-│         │     功能完全相同      │            │
-│         └──────────┬─────────┘            │
-│                    │ HTTP API                 │
+│  ┌─────────────┐                             │
+│  │ wechat/      │                             │
+│  │ 微信小程序    │                             │
+│  └──────┬──────┘                             │
+│         │ HTTP API                            │
 ├────────────────────┼─────────────────────────┤
 │              service/                         │
 │         业务API (webman v2)                    │
@@ -88,7 +84,6 @@ admin/
 │   │   ├── AnnouncementController  #   公告CRUD/发布
 │   │   ├── FaqController           #   常见问题CRUD
 │   │   ├── FeedbackController      #   意见反馈/回复
-│   │   ├── MomentController        #   朋友圈审核
 │   │   ├── AgreementController     #   协议编辑/发布
 │   │   ├── AboutController         #   关于我们设置
 │   │   └── SystemMessageController #   系统消息模板/发送
@@ -97,34 +92,23 @@ admin/
 │   │   ├── SystemMonitorController  #   系统监控
 │   │   ├── IpBlacklistController    #   IP黑名单管理
 │   │   ├── DbBackupController       #   数据库备份
-│   │   ├── SmsConfigController      #   短信配置
-│   │   ├── StorageConfigController  #   存储配置
 │   │   ├── StoreManagerController   #   店长账号
-│   │   ├── TrainingController       #   技师培训
 │   │   ├── ScheduledTaskController  #   定时任务
 │   │   ├── CustomerProfileController #  客户画像
 │   │   ├── BatchMessageController   #   批量推送
-│   │   ├── RefundWorkflowController #   退款审核
 │   │   ├── TechnicianTierController #   技师等级
 │   │   │                            # ✅ 第22-25轮新增:
-│   │   ├── FullReductionController  #   满减活动
 │   │   ├── AttendanceController     #   技师考勤
 │   │   ├── ProfitSharingController  #   微信分账
-│   │   ├── LuckyWheelController     #   积分转盘
 │   │   ├── PointsExchangeGoodsController # 积分兑换商品
 │   │   ├── ReviewAuditController    #   评价图片审核
-│   │   ├── InvoiceController        #   电子发票
-│   │   ├── TicketController         #   客服工单
 │   │   ├── ReferralRewardController #   一级返佣记录
 │   │   ├── ReferralLevel2Controller #   二级返佣记录
 │   │   ├── ReturnCustomerController #   回头客奖励
-│   │   ├── SeckillController        #   秒杀活动
 │   │   ├── VersionController        #   APP版本管理
 │   │   ├── TechnicianScheduleController # 排班管理/CSV导出
 │   │   ├── AftersaleController      #   售后处理
 │   │   ├── OrderVerificationController # 核销记录
-│   │   ├── CommunityModerationController # 社区审核
-│   │   ├── VideoAuditController     #   视频审核
 │   │   └── InstallController        #   安装向导
 │   ├── api/v1/controller/      # 公开API v1
 │   │   ├── AuthController
@@ -201,7 +185,7 @@ admin/
 ```
 service/
 ├── app/
-│   ├── api/v1/controller/       # 公开API v1（26 控制器）
+│   ├── api/v1/controller/       # 公开API v1（19 控制器）
 │   │   ├── AuthController          # 登录/注册/忘记密码/刷新/身份切换
 │   │   ├── CaptchaController       # 短信验证码(Redis限流)
 │   │   ├── CommonController        # 公共配置/协议/区域
@@ -209,7 +193,6 @@ service/
 │   │   ├── DocsController          # OpenAPI文档(hg/apidoc)
 │   │   ├── LbsController           # 附近门店(Haversine)/逆地理
 │   │   ├── GuestController         # 游客模式（未登录只读浏览，Redis缓存）
-│   │   ├── SeckillController       # 秒杀活动/抢购（独立通道）
 │   │   ├── PromotionController     # 拼团（旧 flash_sale 通道已下线）
 │   │   ├── ServiceController       # 服务分类/项目/产品/门店
 │   │   ├── ServicePackageController # 服务套餐
@@ -217,18 +200,12 @@ service/
 │   │   ├── TechnicianController    # 技师公开信息
 │   │   ├── BrowseHistoryController # 浏览足迹
 │   │   ├── CalendarController      # 预约月历（月/日视图）
-│   │   ├── CommunityController     # 社区动态
-│   │   ├── CommunityCommentController # 社区评论
-│   │   ├── FullReductionController # 满减活动
 │   │   ├── PaymentNotifyController # 支付回调（微信/支付宝）
 │   │   ├── PrintController         # 打印
 │   │   ├── PrivacyController       # 隐私合规（数据导出/注销）
-│   │   ├── QueueController         # 排队叫号
 │   │   ├── VersionController       # APP版本管理/检测更新
-│   │   ├── VideoController         # 视频
 │   │   ├── WechatController        # 微信相关
-│   │   └── WheelController         # 积分幸运转盘
-│   ├── user/v1/controller/      # 用户模块 v1（14 控制器）
+│   ├── user/v1/controller/      # 用户模块 v1（8 控制器）
 │   │   ├── ProfileController       # 个人信息/密码/手机/注销/登出
 │   │   ├── AddressController       # 地址CRUD(默认地址管理)
 │   │   ├── FavoriteController      # 收藏(服务/技师)
@@ -238,23 +215,17 @@ service/
 │   │   ├── DeviceController        # 用户设备管理
 │   │   ├── GrowthController        # 成长等级（概览/records/levels）
 │   │   ├── HealthProfileController # 健康档案
-│   │   ├── InvoiceController       # 电子发票申请/列表/详情
-│   │   ├── InvoiceTitleController  # 发票抬头库
 │   │   ├── NotifySettingController # 消息偏好设置
-│   │   ├── PointsTransferController# 积分转赠
-│   │   └── TicketController        # 客服工单
-│   ├── technician/v1/controller/ # 技师模块 v1（10 控制器）
+│   ├── technician/v1/controller/ # 技师模块 v1（8 控制器）
 │   │   ├── ProfileController       # 技师档案/入驻申请
 │   │   ├── ScheduleController      # 排班查询/设置
 │   │   ├── OrderController         # 技师订单列表
 │   │   ├── WorkController          # 工作台(today/records/start/complete)
 │   │   ├── EarningController       # 收益概况+流水
 │   │   ├── WithdrawController      # 提现申请（每月 config('withdraw.gate_day') 号，可配置）
-│   │   ├── ServiceRecordController # 服务记录
-│   │   ├── ExamController          # 在线考核
 │   │   ├── AttendanceController    # 上下班打卡考勤
 │   │   └── ReviewController        # 技师回复评价
-│   ├── order/v1/controller/     # 订单模块 v1（8 控制器 + 9 trait）
+│   ├── order/v1/controller/     # 订单模块 v1（6 控制器 + 10 trait）
 │   │   ├── OrderController         # 下单(锁技师)/列表/详情/取消/支付/退款/核销（聚合入口，38行，方法全部来自 trait）
 │   │   ├── OrderCreateTrait        # 订单创建 store/计价辅助 (475行)
 │   │   ├── OrderQueryTrait         # 订单查询 列表/详情/物流 (205行)
@@ -270,12 +241,9 @@ service/
 │   │   ├── CartController          # 购物车
 │   │   ├── IcsController           # ICS日历导出
 │   │   ├── ReviewController        # 评价/追评
-│   │   ├── SignatureController     # 签名
 │   │   ├── TimelineController      # 订单状态时间线
-│   │   └── WaitlistController      # 候补名单
 │   ├── wallet/v1/controller/    # 钱包模块 v1（2 控制器）
 │   │   ├── WalletController        # 余额/充值/交易流水/余额支付
-│   │   └── WalletTransferController# 用户间转账
 │   ├── marketing/v1/controller/ # 营销模块 v1（7 控制器）
 │   │   ├── CouponController        # 优惠券列表/领取/下单抵扣
 │   │   ├── CardController          # 会员卡列表/购买/次卡 my/use
@@ -292,7 +260,7 @@ service/
 │   │   ├── Cors                    # 跨域处理
 │   │   ├── Security                # 安全检测(security-php)
 │   │   └── TechnicianAuth          # 技师身份校验
-│   └── model/                   # 数据模型(81个)
+│   └── model/                   # 数据模型(59个)
 │       ├── User.php → appointment_user
 │       ├── TechnicianProfile.php → appointment_technician_profile
 │       ├── Service.php → appointment_service (ES: appointment_services)
@@ -302,7 +270,7 @@ service/
 │       ├── Coupon.php → appointment_coupon
 │       ├── MemberCard.php → appointment_member_card
 │       ├── Notification.php → appointment_notification
-│       └── ... (共81个模型文件；admin 另有 6 个特有模型，合计 87)
+│       └── ... (共59个模型文件；admin 另有 6 个特有模型，合计 65)
 ├── config/                     # 配置文件
 ├── public/                     # 入口
 ├── runtime/                    # 运行时
@@ -356,7 +324,6 @@ apps/wechat/
 │   │   ├── earnings            #   收益
 │   │   ├── withdrawal          #   提现
 │   │   ├── transaction-list    #   交易明细
-│   │   └── training            #   培训
 │   ├── user/                   # 个人中心
 │   │   ├── index               #   个人信息
 │   │   ├── settings            #   设置
@@ -376,40 +343,6 @@ apps/wechat/
 │   └── constants.js            #   常量
 ├── styles/                     # 公共样式
 └── images/                     # 图片资源
-```
-
-### apps/flutter/ — Flutter APP
-
-```
-apps/flutter/
-├── lib/
-│   ├── main.dart               # 入口
-│   ├── app.dart                # App配置/路由/主题
-│   ├── pages/                  # 页面（与小程序结构一致）
-│   │   ├── auth/
-│   │   ├── home/
-│   │   ├── service/
-│   │   ├── order/
-│   │   ├── cart/
-│   │   ├── technician/
-│   │   ├── tech_work/
-│   │   ├── user/
-│   │   ├── marketing/
-│   │   ├── message/
-│   │   ├── store/
-│   │   └── other/
-│   ├── widgets/                # 公共组件
-│   ├── services/               # API服务
-│   │   ├── api_service         #   HTTP (Dio)
-│   │   ├── auth_service        #   认证
-│   │   └── location_service    #   定位
-│   ├── models/                 # 数据模型
-│   ├── state/                  # 状态管理
-│   └── utils/                  # 工具
-├── android/                    # Android工程
-├── ios/                        # iOS工程
-├── pubspec.yaml
-└── ...
 ```
 
 ## Middleware Execution Chain
@@ -450,7 +383,7 @@ All tables use the `appointment_` prefix, BIGINT non-auto-increment primary keys
 | Service | appointment_service | Service items |
 | Service | appointment_product | Products |
 | Service | appointment_store | Stores |
-| Order | appointment_order | Order master table (seckill_id link column, Round 24) |
+| Order | appointment_order | Order master table |
 | Order | appointment_order_item | Order items |
 | Order | appointment_order_payment | Payment records |
 | Order | appointment_order_refund | Refund records |
@@ -460,7 +393,6 @@ All tables use the `appointment_` prefix, BIGINT non-auto-increment primary keys
 | Marketing | appointment_coupon | Coupon definitions |
 | Marketing | appointment_user_coupon | User coupons |
 | Marketing | appointment_user_coupon_transfer | Coupon transfer records (Round 17) |
-| Marketing | appointment_user_points_transfer | Points transfer records (Round 19) |
 | Marketing | appointment_technician_tier_log | Technician tier change log (Round 17) |
 | Marketing | appointment_member_card | Member card definitions |
 | Marketing | appointment_user_member_card | User member cards |
@@ -472,14 +404,12 @@ All tables use the `appointment_` prefix, BIGINT non-auto-increment primary keys
 | Wallet | appointment_user_wallet | User wallet balance |
 | Wallet | appointment_wallet_recharge | Wallet top-up records |
 | Wallet | appointment_wallet_txn | Wallet transactions |
-| Wallet | appointment_wallet_transfer | User-to-user transfer records (Round 19) |
 | User | appointment_user_notify_setting | Notification preferences (Round 19) |
 | Content | appointment_banner | Banners |
 | Content | appointment_announcement | Announcements |
 | Content | appointment_platform_agreement | Platform agreements |
 | Content | appointment_faq | FAQs |
 | Content | appointment_feedback | Feedback |
-| Content | appointment_moment | Moments (posts) |
 | Content | appointment_notification | Notifications |
 | Finance | appointment_finance_transaction | Income/expense transactions |
 | Finance | appointment_technician_commission_config | Commission config |
@@ -494,50 +424,31 @@ All tables use the `appointment_` prefix, BIGINT non-auto-increment primary keys
 | System | appointment_operation_log | Operation logs (created) |
 | User | appointment_user_growth | Growth value transactions (Round 20) |
 | User | appointment_growth_level | Growth level tiers (Round 20) |
-| Order | appointment_invoice | E-invoices (Round 20) |
-| User | appointment_ticket | Customer service tickets (Round 20) |
 | Marketing | appointment_referral_level2_reward | Level-2 referral commission records (Round 20) |
-| User | appointment_invoice_title | Invoice title library (Round 21) |
 | User | appointment_browse_history | Browse history (Round 21) |
-| Marketing | appointment_full_reduction_activity | Full-reduction activities (Round 22) |
 | Technician | appointment_technician_attendance | Technician attendance (Round 22) |
 | System | appointment_push_log | APP push records (Round 22) |
 | Finance | appointment_profit_sharing | WeChat profit-sharing records (Round 22) |
 | Order | appointment_order_status_log | Order status timeline (Round 23) |
 | User | appointment_user_health_profile | User health profiles (Round 23) |
-| Marketing | appointment_lucky_wheel | Wheel prize definitions (Round 23) |
-| Marketing | appointment_wheel_record | Wheel draw records (Round 23) |
-| Marketing | appointment_seckill_activity | Seckill activities (Round 24) |
 | System | appointment_app_version | APP versions (Round 24) |
 
-### Supplementary List (tables among the 95 in docs/install.sql not listed above; the authoritative full list is install.sql)
+### Supplementary List (tables among the 73 in docs/install.sql not listed above; the authoritative full list is install.sql)
 
 | Domain | Table | Description |
 |--------|-------|-------------|
 | Marketing | appointment_card_transfer | Session card transfers |
 | User | appointment_check_in | Check-in |
-| Content | appointment_community_post | Community posts |
-| Content | appointment_community_comment | Community comments |
-| Technician | appointment_exam | Assessments |
-| Technician | appointment_exam_question | Assessment questions |
-| Technician | appointment_exam_attempt | Assessment attempts |
 | System | appointment_operation_log_detail | Operation log details |
 | Order | appointment_order_aftersale | Order after-sales |
 | Marketing | appointment_points_exchange_goods | Points exchange goods |
 | Marketing | appointment_promotion | Group-buy activities |
 | Marketing | appointment_promotion_participant | Group-buy participants |
-| Order | appointment_queue_number | Queue numbers |
 | Service | appointment_service_package | Service packages |
-| Technician | appointment_service_record | Service records |
 | Content | appointment_share | Share records |
-| Order | appointment_signature | Signatures |
 | Technician | appointment_technician_tier_config | Technician tier config |
-| Technician | appointment_training_course | Training courses |
-| Technician | appointment_training_progress | Training progress |
 | User | appointment_user_device | User devices |
 | Marketing | appointment_user_points_exchange | Points exchange records |
-| Content | appointment_video_post | Video posts |
-| Order | appointment_waitlist | Waitlists |
 
 ## External Service Reservations
 
