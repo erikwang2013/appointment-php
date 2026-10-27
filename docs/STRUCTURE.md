@@ -93,13 +93,10 @@ admin/
 │   │   ├── SystemMonitorController  #   系统监控
 │   │   ├── IpBlacklistController    #   IP黑名单管理
 │   │   ├── DbBackupController       #   数据库备份
-│   │   ├── SmsConfigController      #   短信配置
-│   │   ├── StorageConfigController  #   存储配置
 │   │   ├── StoreManagerController   #   店长账号
 │   │   ├── ScheduledTaskController  #   定时任务
 │   │   ├── CustomerProfileController #  客户画像
 │   │   ├── BatchMessageController   #   批量推送
-│   │   ├── RefundWorkflowController #   退款审核
 │   │   ├── TechnicianTierController #   技师等级
 │   │   │                            # ✅ 第22-25轮新增:
 │   │   ├── FullReductionController  #   满减活动

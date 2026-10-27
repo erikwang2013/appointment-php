@@ -278,12 +278,6 @@ INSERT INTO `appointment_admin_permission` (`id`, `parent_id`, `name`, `slug`, `
 INSERT INTO `appointment_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
 (21000000000000119, 0, '批量消息发送', 'post.admin/batch-messages', 3, '', '', 1, NOW(), NOW());
 
--- API 权限: 退款审批
-INSERT INTO `appointment_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
-(21000000000000120, 0, '退款审批列表', 'get.admin/refund-workflows', 3, '', '', 1, NOW(), NOW()),
-(21000000000000121, 0, '退款审批通过', 'post.admin/refund-workflows/approve', 3, '', '', 2, NOW(), NOW()),
-(21000000000000122, 0, '退款审批驳回', 'post.admin/refund-workflows/reject', 3, '', '', 3, NOW(), NOW());
-
 -- API 权限: 技师等级
 INSERT INTO `appointment_admin_permission` (`id`, `parent_id`, `name`, `slug`, `type`, `icon`, `path`, `sort`, `created_at`, `updated_at`) VALUES
 (21000000000000123, 0, '技师等级查询', 'get.admin/technician-tiers', 3, '', '', 1, NOW(), NOW()),

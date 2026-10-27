@@ -16,7 +16,7 @@ use app\common\Money;
  *
  * admin 端 Money 与 service 端同签名同实现（双份），本文件只做加载态冒烟——
  * 完整边界用例见 service/tests/Unit/MoneyTest.php（16 用例 / 63 断言）。
- * 覆盖 admin 控制器实际用法：RefundWorkflowController 的 ≥500 审核阈值 cmp、
+ * 覆盖 admin 控制器实际用法：WithdrawalController 的 ≥500 审核阈值 cmp、
  * ReportController net_revenue 减法链、WithdrawalController 金额比对。
  */
 class MoneyTest extends TestCase
@@ -33,7 +33,7 @@ class MoneyTest extends TestCase
 
     #[Test] public function admin_threshold_comparisons_use_cmp(): void
     {
-        // RefundWorkflowController：退款金额 ≥ 500.00 才走两级审批
+        // 技师提现：金额 ≥ 500.00 才走两级审批
         $this->assertTrue(Money::cmp('500.00', '500.00') >= 0);
         $this->assertTrue(Money::cmp('500.01', '500.00') >= 0);
         $this->assertFalse(Money::cmp('499.99', '500.00') >= 0);
