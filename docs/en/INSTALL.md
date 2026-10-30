@@ -103,12 +103,12 @@ APP_DEBUG=false
 mysql -u root -p -e "CREATE DATABASE IF NOT EXISTS appointment DEFAULT CHARSET utf8mb4 COLLATE utf8mb4_unicode_ci;"
 mysql -u root -p -e "CREATE DATABASE IF NOT EXISTS open_admin DEFAULT CHARSET utf8mb4 COLLATE utf8mb4_unicode_ci;"
 
-# Import the unified install script (contains all 54+ tables + permission data + demo data)
+# Import the unified install script (contains all 73 tables + permission data + demo data)
 mysql -u root -p appointment < docs/install.sql
 mysql -u root -p open_admin < docs/install.sql
 ```
 
-> `docs/install.sql` is merged from all migration files, 2723 lines in total, containing the full schema and seed data for both the admin dashboard and the business service. Run it once for a fresh install; re-running on an existing database will abort on primary-key/column conflicts — for upgrades, back up first or resolve conflicts manually.
+> `docs/install.sql` is merged from all migration files, 2250 lines in total, containing the full schema and seed data for both the admin dashboard and the business service. Run it once for a fresh install; re-running on an existing database will abort on primary-key/column conflicts — for upgrades, back up first or resolve conflicts manually.
 
 ### 2.5 Start the Services
 
@@ -280,7 +280,7 @@ appointment-php/
 │   └── docker-compose.yml    # Docker 编排
 ├── docs/                     # 文档
 │   ├── INSTALL.md            # 本安装指南
-│   ├── install.sql           # 统一数据库安装脚本（2723 行）
+│   ├── install.sql           # 统一数据库安装脚本（2250 行）
 │   ├── ARCHITECTURE.md       # 架构设计文档
 │   ├── API.md                # API 参考文档
 │   └── AUDIT-REPORT.md       # 审查报告

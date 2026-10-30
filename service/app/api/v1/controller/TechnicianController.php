@@ -35,6 +35,7 @@ class TechnicianController extends BaseController
         $gender = $request->input('gender');
         $page = (int)($request->input('page', 1));
         $perPage = (int)($request->input('per_page', 15));
+        $perPage = max(1, min($perPage, 50));
 
         // Redis 缓存 5 分钟（读多写少，按参数哈希分键），管理端写操作按 svc:* 前缀失效
         $cacheKey = 'svc:technician:list:' . md5(json_encode([$lat, $lng, $serviceId, $gender, $page, $perPage]));
@@ -155,7 +156,7 @@ class TechnicianController extends BaseController
             ->values();
 
         // 最近评价（10条）
-        $reviews = OrderReview::where('technician_id', $profile->user_id)
+        $reviews = OrderReview::where('technician_id', $profile->id)
             ->where('status', OrderReview::STATUS_VISIBLE)
             ->with(['user' => function ($query) {
                 $query->select('id', 'avatar', 'nickname');

@@ -10,8 +10,8 @@ namespace app\admin\controller;
 use support\Log;
 use support\Request;
 use support\Response;
-use Illuminate\Support\Facades\Redis;
-use Illuminate\Support\Facades\DB;
+use support\Redis;
+use support\Db;
 
 /**
  * 系统监控面板控制器
@@ -77,16 +77,23 @@ class SystemMonitorController extends BaseController
     public function clearCache(Request $request): Response
     {
 
-        $prefix = $request->input('prefix', '');
+        $prefix = (string) $request->input('prefix', '');
         $deletedCount = 0;
 
         try {
-            if ($prefix) {
-                $keys = Redis::keys($prefix . '*');
-                foreach ($keys as $key) {
-                    Redis::del($key);
-                    $deletedCount++;
+            if ($prefix !== '') {
+                // 仅允许清除应用缓存前缀，禁止误删 jwt_blacklist/order_lock 等关键键
+                $allowed = false;
+                foreach (['svc:', 'erik:cache:', 'erik:dashboard:', 'erik:query:'] as $allowedPrefix) {
+                    if (str_starts_with($prefix, $allowedPrefix)) {
+                        $allowed = true;
+                        break;
+                    }
                 }
+                if (!$allowed) {
+                    return $this->fail('不允许清除该前缀的缓存', 422);
+                }
+                $patterns = [$prefix . '*'];
             } else {
                 // 只清除应用缓存前缀，不清除安全/会话相关
                 $patterns = [
@@ -94,12 +101,12 @@ class SystemMonitorController extends BaseController
                     'erik:dashboard:*',
                     'erik:query:*',
                 ];
-                foreach ($patterns as $pattern) {
-                    $keys = Redis::keys($pattern);
-                    foreach ($keys as $key) {
-                        Redis::del($key);
-                        $deletedCount++;
-                    }
+            }
+
+            foreach ($patterns as $pattern) {
+                foreach ($this->scanKeys($pattern) as $key) {
+                    Redis::del($key);
+                    $deletedCount++;
                 }
             }
 
@@ -256,7 +263,7 @@ class SystemMonitorController extends BaseController
     private function getMysqlInfo(): array
     {
         try {
-            $status = DB::select('SHOW STATUS WHERE Variable_name IN (?, ?, ?, ?, ?, ?, ?, ?)', [
+            $status = Db::select('SHOW STATUS WHERE Variable_name IN (?, ?, ?, ?, ?, ?, ?, ?)', [
                 'Threads_connected',
                 'Threads_running',
                 'Uptime',

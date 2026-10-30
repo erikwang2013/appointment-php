@@ -58,7 +58,7 @@ class ContentController extends BaseController
     {
         $type = $request->input('type', 'announcement');
         $page = (int)($request->input('page', 1));
-        $perPage = (int)($request->input('per_page', 15));
+        $perPage = $this->normalizePerPage($request->input('per_page', 15));
 
         // Redis 缓存 5 分钟（读多写少，按参数哈希分键）
         $cacheKey = 'svc:content:articles:' . md5(json_encode([$type, $page, $perPage]));

@@ -52,6 +52,21 @@ class BaseController
     }
 
     /**
+     * 归一化分页大小：非法值回退默认值，有效值限制在 1..$max
+     * @param mixed $value 请求传入的 per_page
+     * @param int $default 默认每页条数
+     * @param int $max 每页最多条数
+     * @return int
+     */
+    protected function normalizePerPage(mixed $value, int $default = 15, int $max = 50): int
+    {
+        if (!is_numeric($value)) {
+            return $default;
+        }
+        return max(1, min($max, (int) $value));
+    }
+
+    /**
      * 返回分页数据
      * @param mixed $paginator illuminate/pagination 分页器实例
      * @return Response

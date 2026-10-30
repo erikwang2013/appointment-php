@@ -33,7 +33,7 @@ class ServicePackageController extends BaseController
     public function index(Request $request)
     {
         $page = (int)($request->input('page', 1));
-        $perPage = (int)($request->input('per_page', 15));
+        $perPage = $this->normalizePerPage($request->input('per_page', 15));
 
         // Redis 缓存 5 分钟（读多写少，按参数哈希分键）
         $cacheKey = 'svc:package:index:' . md5(json_encode([$page, $perPage]));

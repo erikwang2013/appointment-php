@@ -62,7 +62,7 @@ class ServiceController extends BaseController
     {
         $categoryId = $request->input('category_id');
         $page = (int)($request->input('page', 1));
-        $perPage = (int)($request->input('per_page', 15));
+        $perPage = $this->normalizePerPage($request->input('per_page', 15));
         $sort = $request->input('sort', 'newest');
         $keyword = $request->input('keyword', '');
 
@@ -107,7 +107,7 @@ class ServiceController extends BaseController
     {
         $categoryId = $request->input('category_id');
         $page = (int)($request->input('page', 1));
-        $perPage = (int)($request->input('per_page', 15));
+        $perPage = $this->normalizePerPage($request->input('per_page', 15));
         $sort = $request->input('sort', 'newest');
         $keyword = $request->input('keyword', '');
 

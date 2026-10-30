@@ -117,27 +117,38 @@ class BaseController
     }
 
     /**
+     * 按 SCAN 游标收集匹配键
+     * P5: Redis::keys() 为 O(N) 全量扫描，会阻塞 Redis 单线程；SCAN 增量迭代不阻塞。
+     * 客户端为 phpredis，经 Illuminate PhpRedisConnection::scan 包装后返回
+     * [下一游标, 键列表]，迭代完成（游标回 0 且本批无键）时返回 false。
+     */
+    protected function scanKeys(string $pattern, int $count = 100): array
+    {
+        $keys = [];
+        $cursor = null;
+        do {
+            $result = Redis::connection()->scan($cursor, ['match' => $pattern, 'count' => $count]);
+            if ($result === false) {
+                break; // 迭代完成
+            }
+            [$cursor, $batch] = $result;
+            foreach ($batch as $key) {
+                $keys[] = $key;
+            }
+        } while ($cursor !== 0);
+        return $keys;
+    }
+
+    /**
      * 清除 service 端读缓存（svc: 前缀）
      * 管理端对缓存数据（服务/分类/轮播/公告/FAQ/技师/套餐/活动等）写操作后调用，
      * 保证读多写少的接口缓存及时失效
      */
     protected function clearSvcCache(): void
     {
-        // P5: Redis::keys('svc:*') 为 O(N) 全量扫描，会阻塞 Redis 单线程；
-        // 改为 SCAN 游标迭代删除（增量、不阻塞）。
-        // 客户端为 phpredis，经 Illuminate PhpRedisConnection::scan 包装后返回
-        // [下一游标, 键列表]，迭代完成（游标回 0 且本批无键）时返回 false。
-        $cursor = null;
-        do {
-            $result = Redis::connection()->scan($cursor, ['match' => 'svc:*', 'count' => 100]);
-            if ($result === false) {
-                break; // 迭代完成
-            }
-            [$cursor, $keys] = $result;
-            foreach ($keys as $key) {
-                Redis::del($key);
-            }
-        } while ($cursor !== 0);
+        foreach ($this->scanKeys('svc:*') as $key) {
+            Redis::del($key);
+        }
     }
 
     /**

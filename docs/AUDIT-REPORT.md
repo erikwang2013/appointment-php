@@ -6,9 +6,13 @@
 **审查范围**: service/ (API服务) + admin/ (管理后台) + 生态配置  
 **状态**: ✅ 所有问题已修复
 
+> 2026-10-30 更新：第 4.1/4.2/4.4 节按当前代码校正；其余章节保留 2026-08-03 历史记录。
+
 ---
 
-## 1. 测试结果（修复后）
+## 1. 测试结果（修复后，2026-08-03 历史记录）
+
+> 当前测试套件：96 个测试文件（service 70 / admin 26），675 个用例（service 525 / admin 150）。以下为 2026-08-03 当轮记录。
 
 ### Service (API) — ✅ 全部通过
 ```
@@ -36,10 +40,12 @@ Status: ALL PASSING (修复前: 1 Failure + 3 Errors + 1 Risky + 5 Warnings)
 - `captcha_key_persists_after_failed_attempt` → 验证失败后 key 仍可用
 - `captcha_generates_unique_keys` → key 唯一性
 
-### 测试覆盖率分析（未变）
+### 测试覆盖率分析（2026-08-03 时点）
 - Service: 4 个测试类覆盖 50 个控制器，覆盖率极低
 - Admin: 7 个测试类覆盖 54 个控制器，覆盖率极低
 - 大量业务逻辑（支付、微信、营销、技师、订单）无测试覆盖
+
+> 截至 2026-10-30，测试已扩充到 service 70 个文件、admin 26 个文件（共 675 个用例）；上述为历史结论。
 
 ---
 
@@ -157,15 +163,15 @@ GitHub Actions (`.github/workflows/ci.yml`)：
 
 | 指标 | Service | Admin |
 |------|---------|-------|
-| 控制器 | 50 | 54 |
-| 模型 | 58 | 7 |
-| PHP 文件总数 | 132 | 79 |
-| 中间件 | 5 | — |
-| 进程 (worker) | 4 | — |
+| 控制器 | 62 | 62 |
+| 模型 | 59 | 6 特有 + 59 共享 |
+| PHP 文件（app + config） | 191 | 129 |
+| 中间件 | 5 | 7 |
+| 进程 (worker) | 7 | 3 |
 
-### 4.2 模型层失衡
+### 4.2 模型共享
 
-Admin 仅 7 个模型 vs Service 58 个模型。Admin 的 54 个控制器大量操作需要访问数据库表（订单、用户、技师等），但未定义对应的 Eloquent Model。推测 Admin 通过 API 调用 Service 而非直接访问数据库。如果是这样，Admin 应定位为「前端网关」而非独立后端。
+Admin 侧只有 6 个特有模型（AdminPermission、AdminRole、AdminUser、OperationLog、OperationLogDetail、SystemConfig），其余 59 个业务模型通过 `admin/composer.json` 的 PSR-4 映射 `app\model\` → `../service/app/model/` 直接复用，不存在重复模型。Admin 与 Service 共用同一套 Eloquent 模型和数据库，Admin 是独立后端而非 API 网关。
 
 ### 4.3 安全配置 — 优秀
 
@@ -180,9 +186,9 @@ Admin 仅 7 个模型 vs Service 58 个模型。Admin 的 54 个控制器大量�
 
 ### 4.4 敏感字段加密 — 已配置
 
-`Encryptable` trait 已应用到关键模型：
-- User: `phone`, `wx_openid`, `wx_unionid`, `real_name`
-- TechnicianProfile, Store, UserAddress, TechnicianWithdrawal 等
+`Encryptable` cast 已应用到需要加密的模型字段：
+- User: `real_name`（`phone`、`wx_openid`、`wx_unionid` 保持明文，登录/查重/唯一键依赖明文精确查询）
+- TechnicianProfile (`id_card`)、Store (`phone`)、UserAddress (`contact_phone`)、TechnicianWithdrawal (`account_name`、`account_no`)、AdminUser (`email`、`phone`、`id_card`)
 
 ### 4.5 路由设计 — 良好
 
@@ -212,7 +218,7 @@ Admin 仅 7 个模型 vs Service 58 个模型。Admin 的 54 个控制器大量�
 | 5 | PHPStan 不可执行 | ✅ 已修复 |
 | 6 | CI 静默忽略代码质量问题 | ✅ 已修复 |
 | 7 | 测试覆盖率极低 | 📋 备案待后续 |
-| 8 | Admin 模型层过薄 (7 vs 58) | ✅ 已确认（架构设计） |
+| 8 | Admin 模型层 (6 特有 + 59 共享) | ✅ 已确认（架构设计） |
 | 9 | Service 无迁移目录 | ✅ 已修复 |
 | 10 | .env.example 变量名注释错误 | ✅ 已修复 |
 | 11 | .gitignore 缺失项 | ✅ 已修复 |

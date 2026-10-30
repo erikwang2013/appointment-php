@@ -19,8 +19,8 @@ use Webman\Http\Response;
  * 技师工作台闭环测试（WorkController）
  *
  * 覆盖：
- * - 今日任务：只返回我的 confirmed/serving 且服务时间为今日的订单
- * - 开始服务：confirmed→serving + service_start_at + 通知用户；非本人 403；状态错误 422；重复开始幂等
+ * - 今日任务：只返回我的 paid/confirmed/serving 且服务时间为今日的订单
+ * - 开始服务：paid/confirmed→serving + service_start_at + 通知用户；非本人 403；状态错误 422；重复开始幂等
  * - 完成服务：serving→completed + service_end_at；状态错误 422
  * - 完成记录：分页只含 serving/completed
  * - 无效 hashid 返回 422
@@ -98,15 +98,17 @@ class TechnicianWorkTest extends TestCase
 
     // ── 今日任务 ──
 
-    #[Test] public function today_returns_my_confirmed_and_serving_orders(): void
+    #[Test] public function today_returns_my_paid_confirmed_and_serving_orders(): void
     {
         $tech = $this->makeTechnician();
         $other = $this->makeTechnician();
-        $mineConfirmed = $this->makeOrder($tech->id, Order::STATUS_CONFIRMED);
-        $mineServing = $this->makeOrder($tech->id, Order::STATUS_SERVING);
-        $minePaid = $this->makeOrder($tech->id, Order::STATUS_PAID);            // 状态不符，排除
+        $todayNoon = now()->setTime(12, 0, 0); // 固定中午，避免午夜跨越导致 whereDate 抖动
+        $minePaid = $this->makeOrder($tech->id, Order::STATUS_PAID, $todayNoon);
+        $mineConfirmed = $this->makeOrder($tech->id, Order::STATUS_CONFIRMED, $todayNoon);
+        $mineServing = $this->makeOrder($tech->id, Order::STATUS_SERVING, $todayNoon);
+        $minePending = $this->makeOrder($tech->id, Order::STATUS_PENDING, $todayNoon);       // 状态不符，排除
         $mineTomorrow = $this->makeOrder($tech->id, Order::STATUS_CONFIRMED, now()->addDay()); // 非今日，排除
-        $this->makeOrder($other->id, Order::STATUS_CONFIRMED);                  // 非本人，排除
+        $this->makeOrder($other->id, Order::STATUS_CONFIRMED, $todayNoon);                  // 非本人，排除
 
         $request = $this->makeRequest();
         $request->technician_id = $tech->id;
@@ -115,9 +117,10 @@ class TechnicianWorkTest extends TestCase
         $body = $this->body($resp);
         $this->assertSame(0, $body['code']);
         $ids = array_column($body['data'] ?? [], 'id');
+        $this->assertContains($this->encodeId($minePaid->id), $ids);
         $this->assertContains($this->encodeId($mineConfirmed->id), $ids);
         $this->assertContains($this->encodeId($mineServing->id), $ids);
-        $this->assertNotContains($this->encodeId($minePaid->id), $ids);
+        $this->assertNotContains($this->encodeId($minePending->id), $ids);
         $this->assertNotContains($this->encodeId($mineTomorrow->id), $ids);
     }
 
@@ -146,6 +149,20 @@ class TechnicianWorkTest extends TestCase
         );
     }
 
+    #[Test] public function start_transitions_paid_to_serving(): void
+    {
+        $tech = $this->makeTechnician();
+        $order = $this->makeOrder($tech->id, Order::STATUS_PAID);
+
+        $request = $this->makeRequest('POST');
+        $request->technician_id = $tech->id;
+        $resp = (new WorkController())->start($request, $this->encodeId($order->id));
+
+        $body = $this->body($resp);
+        $this->assertSame(0, $body['code']);
+        $this->assertSame(Order::STATUS_SERVING, Order::find($order->id)->status);
+    }
+
     #[Test] public function start_rejected_for_non_owner_technician(): void
     {
         $owner = $this->makeTechnician();
@@ -162,10 +179,10 @@ class TechnicianWorkTest extends TestCase
         $this->assertSame(Order::STATUS_CONFIRMED, Order::find($order->id)->status);
     }
 
-    #[Test] public function start_rejected_when_status_not_confirmed(): void
+    #[Test] public function start_rejected_when_status_not_paid_or_confirmed(): void
     {
         $tech = $this->makeTechnician();
-        $order = $this->makeOrder($tech->id, Order::STATUS_PAID);
+        $order = $this->makeOrder($tech->id, Order::STATUS_PENDING);
 
         $request = $this->makeRequest('POST');
         $request->technician_id = $tech->id;
@@ -174,7 +191,7 @@ class TechnicianWorkTest extends TestCase
         $body = $this->body($resp);
         $this->assertSame(422, $body['code']);
         $this->assertSame('当前订单状态不可开始服务', $body['message']);
-        $this->assertSame(Order::STATUS_PAID, Order::find($order->id)->status);
+        $this->assertSame(Order::STATUS_PENDING, Order::find($order->id)->status);
     }
 
     #[Test] public function start_idempotent_when_already_serving(): void

@@ -181,7 +181,7 @@ class ReviewController extends BaseController
             return $this->error('技师ID无效');
         }
 
-        $perPage = (int)$request->input('per_page', 15);
+        $perPage = $this->normalizePerPage($request->input('per_page', 15));
         $paginator = OrderReview::where('technician_id', $techId)
             ->where('status', OrderReview::STATUS_VISIBLE)
             ->with(['user:id,nickname,avatar'])

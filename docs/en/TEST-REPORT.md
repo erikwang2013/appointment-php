@@ -23,7 +23,9 @@
 
 ## 3. PHP Test Coverage
 
-**Current test files: 93 (service 68 / admin 25). Historical full results: 558 tests / 2508 assertions, 0 failures 0 errors 0 skipped** (2 pre-existing vendor deprecations, 2 pre-existing PHPUnit notices, none introduced this round; the original 4 withdrawal-gate skips were eliminated via injectable `config('withdraw.gate_day')`, so all tests run any day)
+**Current test files: 96 (service 70 / admin 26), 675 cases (service 525 / admin 150). Historical full results (2026-08-26): 558 tests / 2508 assertions, 0 failures 0 errors 0 skipped** (2 pre-existing vendor deprecations, 2 pre-existing PHPUnit notices, none introduced this round; the original 4 withdrawal-gate skips were eliminated via injectable `config('withdraw.gate_day')`, so all tests run any day)
+
+> Added in the 2026-10-30 fix round: `admin/tests/WechatPayServiceSyncTest.php` (admin/service WechatPayService copies stay in sync), `service/tests/Unit/AutoCancelLockTest.php` (auto-cancel order_lock concurrency), `service/tests/Unit/OrderPriceTamperTest.php` (client-supplied price tampering overwritten by server DB price).
 
 ### Added This Round (tester-php, 6 files 32 cases, all real DB + transaction rollback)
 

@@ -73,16 +73,22 @@ class PointsExchangeController extends BaseController
             return $this->error('商品不存在', 404);
         }
 
-        // 并发防护：Redis NX 锁（30s TTL 兜底），锁内事务复验库存/幂等
-        $lockKey = "points_exchange:{$userId}:{$goodsId}";
-        if (!Redis::connection()->set($lockKey, (string) $userId, 'EX', 30, 'NX')) {
+        // 并发防护：与积分抵现共用用户级消费锁（30s TTL 兜底），锁内事务复验库存/幂等
+        $lockKey = 'points_spend_lock:' . $userId;
+        $lockToken = bin2hex(random_bytes(16));
+        if (!Redis::connection()->set($lockKey, $lockToken, 'EX', 30, 'NX')) {
             return $this->error('兑换处理中，请稍后再试');
         }
 
         try {
             return $this->doExchange($userId, $goodsId);
         } finally {
-            Redis::connection()->del($lockKey);
+            try {
+                if ((string) Redis::connection()->get($lockKey) === $lockToken) {
+                    Redis::connection()->del($lockKey);
+                }
+            } catch (\Throwable) {
+            }
         }
     }
 

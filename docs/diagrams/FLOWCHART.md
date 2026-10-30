@@ -21,20 +21,19 @@ flowchart TD
     M -->|"零元"| N["FREE 直通<br/>transaction_id = 'FREE'+支付单号<br/>订单 → paid"]
     M -->|"余额支付"| B1["钱包余额扣减<br/>wallet_txn 入账<br/>订单 → paid"]
     M -->|"金额 > 0"| O{"支付方式"}
-    O -->|"微信"| OW["调用微信支付<br/>pay_lock 防并发重复支付"]
+    O -->|"微信"| OW["调用微信支付<br/>order_lock:{id} 防并发重复支付"]
     O -->|"余额"| B1
     OW --> P{"支付结果"}
     B1 --> S
     P -->|"成功"| Q["支付成功回调消费<br/>markOrderPaid 单一消费点<br/>原子扣减券/次卡<br/>订单 → paid"]
-    P -->|"失败/取消"| R["订单保持 pending<br/>15分钟后自动取消"]
-    N --> S["技师确认服务开始"]
+    P -->|"失败/取消"| R["订单保持 pending<br/>30分钟后自动取消"]
+    N --> S["技师扫码核销/确认开始<br/>paid 或 confirmed → serving"]
     Q --> S
     S --> T["订单 → serving"]
-    T --> U["服务完成"]
-    U --> V["技师扫码核销"]
-    V --> W["订单 → completed"]
-    W --> X["用户评价（文字+图片）"]
-    X --> Y["订单 → reviewed ✅"]
+    T --> U["技师完成服务"]
+    U --> W["订单 → completed"]
+    W --> X["用户评价（独立记录）"]
+    X --> Y["订单保持 completed ✅"]
 
     style A fill:#e3f2fd,stroke:#1565c0,color:#333
     style Y fill:#c8e6c9,stroke:#2e7d32,color:#333
@@ -48,7 +47,7 @@ flowchart TD
 ```mermaid
 flowchart TD
     subgraph 支付流程["正向支付流程"]
-        P1["创建支付记录"] --> P2["微信统一下单<br/>pay_lock 防并发<br/>out_trade_no = order_no 幂等"]
+        P1["创建支付记录"] --> P2["微信统一下单<br/>order_lock:{id} 防并发<br/>out_trade_no = order_no 幂等"]
         P2 --> P3["前端调起支付<br/>选择支付方式"]
         P3 -->|"余额"| PB["钱包余额扣减<br/>wallet_txn 入账<br/>幂等 仅扣一次"]
         P3 -->|"微信"| P4["微信回调 notify"]
@@ -59,14 +58,14 @@ flowchart TD
     end
 
     subgraph 退款流程["退款流程"]
-        R1["用户申请退款<br/>refund_lock 防并发"] --> R2{"退款规则判定"}
-        R2 -->|"下单≤15min 或 距开始>6h"| R3["退款 100%"]
-        R2 -->|"距开始≤6h"| R4["退款 90%"]
-        R2 -->|"已开始未确认"| R5["退款 80%"]
-        R2 -->|"服务确认后"| R6["不予退款"]
+        R1["用户申请退款<br/>order_lock:{id} 防并发"] --> R2{"退款规则判定"}
+        R2 -->|"下单≤15min 或 距服务开始>6h"| R3["退款 100%"]
+        R2 -->|"距服务开始≤6h"| R4["退款 90%"]
+        R2 -->|"已开始/已过服务时间/confirmed/serving/completed"| R5["不予退款 0%"]
+        R2 -->|"商品类或无服务时间"| R6["退款 100%"]
         R3 --> R7["订单 → refunding"]
         R4 --> R7
-        R5 --> R7
+        R6 --> R7
         R7 --> R8["两级审批<br/>店长→财务"]
         R8 --> R9["两段式退款<br/>事务内建退款记录<br/>事务外微信退款 IO"]
         R9 -->|"微信失败"| R10["回滚订单 PAID<br/>可重试退款"]
@@ -74,7 +73,7 @@ flowchart TD
     end
 
     style P6 fill:#c8e6c9,stroke:#2e7d32,color:#333
-    style R6 fill:#ffcdd2,stroke:#c62828,color:#333
+    style R5 fill:#ffcdd2,stroke:#c62828,color:#333
     style R11 fill:#c8e6c9,stroke:#2e7d32,color:#333
     style R10 fill:#fff9c4,stroke:#f9a825,color:#333
 ```

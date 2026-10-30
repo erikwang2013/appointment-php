@@ -1,5 +1,5 @@
 const api = require('../../utils/api');
-const STATUS_TEXT = { confirmed: '待服务', serving: '服务中', completed: '已完成' };
+const STATUS_TEXT = { paid: '待服务', confirmed: '待服务', serving: '服务中', completed: '已完成' };
 
 Page({
   data: {

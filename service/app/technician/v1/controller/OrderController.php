@@ -24,7 +24,7 @@ class OrderController extends BaseController
         $technicianId = $request->technician_id;
         $status = $request->input('status', '');
         $page = (int)$request->input('page', 1);
-        $perPage = (int)$request->input('per_page', 15);
+        $perPage = $this->normalizePerPage($request->input('per_page', 15));
 
         // 服务字段（service_id/service_name/price）在 appointment_order_item 明细表中，
         // 通过子查询取每个订单最早的一条明细（MIN(id)，snowflake 按时间递增）关联；

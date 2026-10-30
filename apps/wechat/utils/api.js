@@ -1,4 +1,4 @@
-const DEFAULT_BASE_URL = 'http://localhost:8788/api/v1';
+const DEFAULT_BASE_URL = 'http://localhost:8787/api/v1';
 
 // baseUrl 支持环境配置：优先取 app.js globalData.baseUrl（可在构建/发布时按环境修改），
 // 兜底使用本地开发默认地址。延迟求值以兼容 getApp() 注册时序。

@@ -7,6 +7,7 @@ namespace app\order\v1\controller;
 
 use app\common\Money;
 use app\common\NotificationReminderService;
+use app\common\PendingOrderCancelService;
 use app\common\WechatPayService;
 use app\model\Order;
 use app\model\OrderPayment;
@@ -18,6 +19,7 @@ use app\model\UserWallet;
 use app\model\WalletTxn;
 use support\Db;
 use support\Log;
+use support\Redis;
 use Webman\Http\Request;
 
 /**
@@ -69,31 +71,115 @@ trait OrderPayTrait
 
             // 拼团订单懒判定：活动已关闭（到期未成团）→ 自动取消订单，拒绝支付
             if ((int) $order->promotion_id > 0 && $this->isGroupBuyClosed((int) $order->promotion_id)) {
-                $order->status = Order::STATUS_CANCELLED;
-                $order->cancel_reason = '拼团未成团自动取消';
-                $order->cancel_at = now();
-                $order->save();
-                OrderStatusLog::record($order->id, Order::STATUS_PENDING, Order::STATUS_CANCELLED, '拼团未成团自动取消', 'system');
-                $this->releaseTechnicianLock($order);
+                // 当前 pay 已持有 order_lock，直接走统一取消流程（不再重复取锁）
+                PendingOrderCancelService::cancelLocked($order, '拼团未成团自动取消', '拼团未成团自动取消');
                 return $this->error('拼团未成团，订单已自动取消', 422);
             }
 
-            // 秒杀订单懒判定（存量 flash_sale 促销订单兼容）：活动已过期 → 自动取消订单并释放技师锁，拒绝支付
+            // 秒杀订单懒判定（存量 flash_sale 促销订单兼容）：活动已过期 → 自动取消订单，拒绝支付
             if ((int) $order->promotion_id > 0 && $this->isFlashSaleClosed((int) $order->promotion_id)) {
-                $order->status = Order::STATUS_CANCELLED;
-                $order->cancel_reason = '秒杀活动已结束自动取消';
-                $order->cancel_at = now();
-                $order->save();
-                OrderStatusLog::record($order->id, Order::STATUS_PENDING, Order::STATUS_CANCELLED, '秒杀活动已结束自动取消', 'system');
-                $this->releaseTechnicianLock($order);
+                PendingOrderCancelService::cancelLocked($order, '秒杀活动已结束自动取消', '秒杀活动已结束自动取消');
                 return $this->error('秒杀活动已结束，订单已自动取消', 422);
             }
+
+            // 微信预支付标记：某次统一下单前锁定支付金额（2h，与微信 prepay 有效期一致）。
+            // 之后不得再改金额，否则旧 prepay 与新 prepay/回调金额不一致，可能造成扣款无法入账。
+            // Redis 为主缓存，DB payment.transaction_id='PREPAY:xx' 为持久兜底（Redis 重启/evict 后仍可回读）。
+            $prepayKey = 'order_prepay:' . $order->id;
+            $payment = OrderPayment::where('order_id', $order->id)->first();
+            $prepayAmount = Redis::connection()->get($prepayKey);
+            if (($prepayAmount === false || $prepayAmount === null || $prepayAmount === '') && $payment) {
+                $txn = (string) $payment->transaction_id;
+                if (str_starts_with($txn, 'PREPAY:')) {
+                    $prepayAmount = substr($txn, 7);
+                    try {
+                        Redis::connection()->set($prepayKey, (string) $prepayAmount, 'EX', 7200);
+                    } catch (\Throwable) {
+                    }
+                }
+            }
+            $hasPrepay = $prepayAmount !== false && $prepayAmount !== null && $prepayAmount !== '';
 
             // 积分抵扣（可选，use_points 缺省 0 走原逻辑）：余额校验 → 抵扣额计算 → 消费流水写入
             $pointsUsed   = 0;
             $pointsOffset = 0.0;
             $usePoints    = (int) $request->input('use_points', 0);
-            if ($usePoints > 0) {
+            // 支付重试可能不再携带 use_points：已有抵扣流水时必须沿用，否则会把实付金额改回原价
+            $hasStoredOffset = UserPoints::where('order_id', $order->id)
+                ->where('source', 'points_offset')
+                ->where('type', 'consume')
+                ->exists();
+
+            // 无标记但涉及积分抵扣：先向微信核对是否已有旧 prepay（存量订单/旧版本遗留），
+            // 有则锁定原金额并退还本次/历史积分，避免改金额后旧 prepay 仍可支付造成错账。
+            if (!$hasPrepay && $payment && ($usePoints > 0 || $hasStoredOffset)) {
+                $probe = new WechatPayService();
+                if ($probe->isConfigured()) {
+                    $query = $probe->queryOrder($order->order_no);
+                    if (!empty($query['error'])) {
+                        return $this->error('无法确认支付状态，请稍后重试', 422);
+                    }
+                    $resultCode = (string) ($query['result_code'] ?? '');
+                    $tradeState = (string) ($query['trade_state'] ?? '');
+                    $errCode = (string) ($query['err_code'] ?? '');
+
+                    if ($resultCode === 'SUCCESS' && $tradeState === 'SUCCESS') {
+                        $paidFee = (float) ($query['total_fee'] ?? 0) / 100;
+                        if ($paidFee > 0) {
+                            // 实付金额与当前支付记录不一致时，说明旧 prepay 未包含积分抵扣，退还积分并对齐金额
+                            if (Money::toFen($paidFee) !== Money::toFen((float) $payment->amount)) {
+                                if ($hasStoredOffset) {
+                                    UserPoints::refundOrderOffset($order, true);
+                                }
+                                $payment->amount = $paidFee;
+                            }
+                            $payment->transaction_id = 'PREPAY:' . $paidFee;
+                            $payment->save();
+                            $probe->markOrderPaid(
+                                $payment->payment_no,
+                                (string) ($query['transaction_id'] ?? ''),
+                                $paidFee,
+                                'wechat'
+                            );
+                        }
+                        return $this->error('订单已支付，请刷新订单状态', 422);
+                    }
+
+                    if ($resultCode === 'SUCCESS' && in_array($tradeState, ['NOTPAY', 'USERPAYING'], true)) {
+                        $existingFee = (float) ($query['total_fee'] ?? 0) / 100;
+                        if ($existingFee > 0) {
+                            // 旧 prepay 金额与当前记录一致时保留积分抵扣；不一致时退积分并对齐到旧 prepay 金额
+                            if (Money::toFen($existingFee) !== Money::toFen((float) $payment->amount)) {
+                                if ($hasStoredOffset) {
+                                    UserPoints::refundOrderOffset($order, true);
+                                }
+                                $payment->amount = $existingFee;
+                            }
+                            $payment->transaction_id = 'PREPAY:' . $existingFee;
+                            $payment->save();
+                            try {
+                                Redis::connection()->set($prepayKey, (string) $existingFee, 'EX', 7200);
+                            } catch (\Throwable) {
+                            }
+                            return $this->error('订单已有微信支付单，请重试支付', 422);
+                        }
+                    }
+
+                    if ($resultCode === 'FAIL' && $errCode !== 'ORDERNOTEXIST') {
+                        return $this->error('无法确认支付状态，请稍后重试', 422);
+                    }
+                }
+            }
+
+            // 拼团/秒杀订单创建时已禁止叠加优惠，支付时同样禁止新增积分抵扣（已存在的抵扣流水按重试沿用）
+            if ((int) $order->promotion_id > 0 && $usePoints > 0 && !$hasStoredOffset) {
+                return $this->error('拼团订单不支持积分抵扣', 422);
+            }
+            // 已发起微信支付后禁止追加积分抵扣：金额一旦变更，旧 prepay 仍可按原金额支付
+            if ($hasPrepay && $usePoints > 0 && !$hasStoredOffset) {
+                return $this->error('订单已发起支付，不能追加积分抵扣，请取消后重新下单', 422);
+            }
+            if ($usePoints > 0 || $hasStoredOffset) {
                 try {
                     $offset = $this->applyPointsOffset($order, $usePoints);
                     $pointsUsed   = $offset['points_used'];
@@ -108,10 +194,13 @@ trait OrderPayTrait
 
             // 实际支付金额 = 订单应付 - 积分抵扣（未用积分时为应付原额，与原有行为一致）
             $payAmount = (float) Money::round(Money::sub((string) $order->paid_amount, (string) $pointsOffset), 2);
+            // 已发起微信支付：沿用首次下单金额，不再因积分/配置变化改写金额
+            if ($hasPrepay) {
+                $payAmount = (float) Money::round((string) $prepayAmount, 2);
+                $pointsOffset = max(0.0, (float) Money::round(Money::sub((string) $order->paid_amount, (string) $payAmount), 2));
+            }
 
-            // 查找或创建支付记录
-            $payment = OrderPayment::where('order_id', $order->id)->first();
-
+            // 创建/更新支付记录（$payment 已在预支付标记段加载）
             if (!$payment) {
                 $payment = OrderPayment::create([
                     'id'         => OrderPayment::generateId(),
@@ -121,11 +210,21 @@ trait OrderPayTrait
                     'amount'     => $payAmount,
                     'status'     => OrderPayment::STATUS_PENDING,
                 ]);
-            } elseif ($payment->status === OrderPayment::STATUS_CLOSED || $payment->status === OrderPayment::STATUS_FAILED) {
-                $payment->payment_no = OrderPayment::generatePaymentNo();
-                $payment->amount = $payAmount;
-                $payment->status = OrderPayment::STATUS_PENDING;
-                $payment->save();
+            } else {
+                $dirty = false;
+                if ($payment->status === OrderPayment::STATUS_CLOSED || $payment->status === OrderPayment::STATUS_FAILED) {
+                    $payment->payment_no = OrderPayment::generatePaymentNo();
+                    $payment->status = OrderPayment::STATUS_PENDING;
+                    $dirty = true;
+                }
+                // store 创建的 pending 记录金额为抵扣前应付：同步为积分抵扣后金额，避免微信按原价扣款
+                if (Money::toFen((float) $payment->amount) !== Money::toFen($payAmount)) {
+                    $payment->amount = $payAmount;
+                    $dirty = true;
+                }
+                if ($dirty) {
+                    $payment->save();
+                }
             }
 
             // 全额优惠订单（paid_amount=0）：无支付路径，直接标记支付成功（单一消费点）
@@ -148,6 +247,11 @@ trait OrderPayTrait
                 ], '订单支付成功');
             }
 
+            // 已发起微信支付时禁止切换余额：旧 prepay 仍可支付，避免同一订单双渠道重复扣款
+            if ($payChannel === 'balance' && $hasPrepay) {
+                return $this->error('订单已发起微信支付，请完成支付或取消后重试', 422);
+            }
+
             // 余额支付：无微信预下单，事务内钱包扣款 + 标记支付成功（order_lock 内串行，幂等）
             if ($payChannel === 'balance') {
                 return $this->doBalancePay($order, $payment, $pointsUsed, $pointsOffset);
@@ -166,6 +270,21 @@ trait OrderPayTrait
                 $body = $firstItem->name;
             }
 
+            // 先写预支付标记再下单：DB 持久化 + Redis 缓存；即使进程在下单/返回间崩溃，后续重试也不会改金额
+            $payment->transaction_id = 'PREPAY:' . $payment->amount;
+            try {
+                $payment->save();
+            } catch (\Throwable $e) {
+                Log::error('[OrderController] persist prepay marker failed, order_no: ' . $order->order_no . ': ' . $e->getMessage());
+                return $this->error('支付通道繁忙，请稍后重试', 422);
+            }
+            try {
+                Redis::connection()->set($prepayKey, (string) $payment->amount, 'EX', 7200);
+            } catch (\Throwable $e) {
+                // DB marker 已持久化，Redis 丢失可由 DB 回读
+                Log::warning('[OrderController] cache prepay marker failed, order_no: ' . $order->order_no . ': ' . $e->getMessage());
+            }
+
             // 微信统一下单（金额以元传入，服务内部转分）
             $payService = new WechatPayService();
             $result = $payService->unifiedOrder([
@@ -177,8 +296,9 @@ trait OrderPayTrait
             ]);
 
             if (!empty($result['error'])) {
+                // 保留预支付标记：网络超时无法确认微信是否已建单，禁止后续改金额
                 Log::error('[OrderController] unifiedOrder failed, order_no: ' . $order->order_no . ', error: ' . $result['error']);
-                // payment 保持 pending，允许重试
+                // payment 保持 pending，允许按同一金额重试
                 return $this->error('支付下单失败: ' . $result['error']);
             }
 
@@ -300,36 +420,57 @@ trait OrderPayTrait
             $rate = 100; // 配置异常兜底
         }
 
-        $earned   = (int) UserPoints::where('user_id', $order->user_id)->where('type', 'earn')->sum('points');
-        $consumed = (int) UserPoints::where('user_id', $order->user_id)->whereIn('type', ['consume', 'use'])->sum('points');
-        $expired  = (int) UserPoints::where('user_id', $order->user_id)->where('type', 'expire')->sum('points');
-        $available = $earned + $consumed + $expired; // consume/use/expire 行为负值
-        if ($available <= 0 || $usePoints > $available) {
-            throw new \InvalidArgumentException('积分不足', 422);
-        }
-
-        $paidFen   = Money::toFen((float) $order->paid_amount);
-        $offsetFen = (int) floor($usePoints / $rate) * 100;
-        if ($offsetFen <= 0) {
-            throw new \InvalidArgumentException('积分不足', 422);
-        }
-        // 抵扣后金额 >= 0.01：超出应付部分按应付满减（剩余 1 分）
-        $capFen = max(0, $paidFen - 1);
-        if ($offsetFen > $capFen) {
-            $offsetFen = $capFen;
-        }
-        if ($offsetFen <= 0) {
-            throw new \InvalidArgumentException('积分不足', 422);
-        }
-
-        // 积分 = 抵扣元 × 兑换比例（分→元走 string 域，防浮点折损）
-        $pointsUsed = (int) Money::round(Money::mul(Money::div((string) $offsetFen, '100', 2), (string) $rate), 0);
-
-        // 幂等：同订单 points_offset 流水已存在（支付重试）则不重复扣减
-        $exists = UserPoints::where('order_id', $order->id)
+        // 幂等：本单已有抵扣流水（支付重试）时按流水返回，客户端改 use_points 也不重复扣减/改金额
+        $existing = UserPoints::where('order_id', $order->id)
             ->where('source', 'points_offset')
-            ->exists();
-        if (!$exists) {
+            ->where('type', 'consume')
+            ->first();
+        if ($existing) {
+            $pointsUsed = abs((int) $existing->points);
+            return [
+                'points_used'   => $pointsUsed,
+                'offset_amount' => (float) Money::round(Money::div((string) $pointsUsed, (string) $rate), 2),
+            ];
+        }
+
+        // 用户级积分消费锁：同一用户并发支付不同订单时，SUM 校验与写入必须串行，防超扣
+        $spendLockKey = 'points_spend_lock:' . $order->user_id;
+        $spendLockToken = bin2hex(random_bytes(16));
+        try {
+            $acquired = Redis::connection()->set($spendLockKey, $spendLockToken, 'EX', 10, 'NX');
+        } catch (\Throwable $e) {
+            throw new \InvalidArgumentException('积分处理失败，请稍后重试', 422);
+        }
+        if (!$acquired) {
+            throw new \InvalidArgumentException('积分处理中，请稍后重试', 422);
+        }
+
+        try {
+            $earned   = (int) UserPoints::where('user_id', $order->user_id)->where('type', 'earn')->sum('points');
+            $consumed = (int) UserPoints::where('user_id', $order->user_id)->whereIn('type', ['consume', 'use'])->sum('points');
+            $expired  = (int) UserPoints::where('user_id', $order->user_id)->where('type', 'expire')->sum('points');
+            $available = $earned + $consumed + $expired; // consume/use/expire 行为负值
+            if ($available <= 0 || $usePoints > $available) {
+                throw new \InvalidArgumentException('积分不足', 422);
+            }
+
+            $paidFen   = Money::toFen((float) $order->paid_amount);
+            $offsetFen = (int) floor($usePoints / $rate) * 100;
+            if ($offsetFen <= 0) {
+                throw new \InvalidArgumentException('积分不足', 422);
+            }
+            // 抵扣后金额 >= 0.01：超出应付部分按应付满减（剩余 1 分）
+            $capFen = max(0, $paidFen - 1);
+            if ($offsetFen > $capFen) {
+                $offsetFen = $capFen;
+            }
+            if ($offsetFen <= 0) {
+                throw new \InvalidArgumentException('积分不足', 422);
+            }
+
+            // 积分 = 抵扣元 × 兑换比例（分→元走 string 域，防浮点折损）
+            $pointsUsed = (int) Money::round(Money::mul(Money::div((string) $offsetFen, '100', 2), (string) $rate), 0);
+
             // balance = 上一条余额 - 本次扣减（快照累加，锁最后一条流水防同用户并发串行）
             $lastBalance = (int) (UserPoints::where('user_id', $order->user_id)
                 ->orderBy('created_at', 'desc')
@@ -347,12 +488,19 @@ trait OrderPayTrait
                 'order_id'    => $order->id,
                 'description' => '积分抵扣订单 ' . $order->order_no,
             ]);
-        }
 
-        return [
-            'points_used'   => $pointsUsed,
-            'offset_amount' => (float) Money::round(Money::div((string) $offsetFen, '100'), 2),
-        ];
+            return [
+                'points_used'   => $pointsUsed,
+                'offset_amount' => (float) Money::round(Money::div((string) $offsetFen, '100'), 2),
+            ];
+        } finally {
+            try {
+                if ((string) Redis::connection()->get($spendLockKey) === $spendLockToken) {
+                    Redis::connection()->del($spendLockKey);
+                }
+            } catch (\Throwable) {
+            }
+        }
     }
 
     /**
@@ -360,13 +508,16 @@ trait OrderPayTrait
      */
     private function cancelGroupBuyOrders(int $promotionId, string $reason): void
     {
-        Order::where('promotion_id', $promotionId)
+        // 逐单走统一取消流程（order_lock + 行锁复检 + 退积分/释放排班/通知），
+        // 拿不到锁的订单跳过，交给其自身的 pay/自动取消流程，避免与支付回调竞态。
+        $orders = Order::where('promotion_id', $promotionId)
             ->where('status', Order::STATUS_PENDING)
-            ->update([
-                'status'        => Order::STATUS_CANCELLED,
-                'cancel_reason' => $reason,
-                'cancel_at'     => now(),
-            ]);
+            ->orderBy('id')
+            ->get();
+
+        foreach ($orders as $order) {
+            PendingOrderCancelService::cancel($order, $reason, $reason);
+        }
     }
 
     /**

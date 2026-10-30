@@ -57,8 +57,9 @@ class AuthControllerTest extends TestCase
             'real_name' => '测试管理员',
         ]));
 
-        // 注意：admin json() 辅助函数业务码在 body['code']，HTTP 状态恒为 200
+        // 业务码仍在 body['code']，AuthController 现在同时返回对应 HTTP 状态
         $this->assertSame(410, $this->body($resp)['code']);
+        $this->assertSame(410, $resp->getStatusCode());
         // 测试环境未加载翻译文件时 trans() 回退为原始 key，两种均可
         $this->assertContains($this->body($resp)['message'], ['系统已初始化，注册接口已关闭', 'messages.system_initialized']);
     }
@@ -73,5 +74,15 @@ class AuthControllerTest extends TestCase
 
         // 空参数在参数校验层被拦截（422），证明未走 410 分支，且不触碰 DB/Redis
         $this->assertSame(422, $this->body($resp)['code']);
+        $this->assertSame(422, $resp->getStatusCode());
+    }
+
+    #[Test]
+    public function refresh_missing_token_returns_422(): void
+    {
+        $resp = (new AuthController())->refresh($this->makeRequest([]));
+
+        $this->assertSame(422, $this->body($resp)['code']);
+        $this->assertSame(422, $resp->getStatusCode());
     }
 }

@@ -27,5 +27,10 @@ return [
         // 容器化部署时 service 目录可能未挂载，逐个 is_file() 防护避免 bootstrap 致命错误
         dirname(base_path()) . '/service/app/common/WechatPayService.php',
         dirname(base_path()) . '/service/app/common/TechnicianWithdrawalService.php',
+        // 订单完成奖励（管理端确认完成与技师端/自动完成同口径）
+        dirname(base_path()) . '/service/app/common/ReferralRewardService.php',
+        dirname(base_path()) . '/service/app/common/ReturnCustomerRewardService.php',
+        // 待支付订单统一取消（管理端取消与定时器/拼团批量关闭同口径）
+        dirname(base_path()) . '/service/app/common/PendingOrderCancelService.php',
     ], 'is_file')))
 ];

@@ -22,6 +22,7 @@ use app\model\User;
 use app\model\Order;
 use app\model\TechnicianProfile;
 use support\Request;
+use support\Response;
 
 class ExportController extends BaseController
 {
@@ -578,10 +579,8 @@ class ExportController extends BaseController
 
     private function downloadAndCleanup(string $tmpFile, string $filename): Response
     {
-        register_shutdown_function(function () use ($tmpFile) {
-            @unlink($tmpFile);
-        });
-        return $this->downloadAndCleanup($tmpFile, $filename);
+        // 临时文件由 AdminScheduleProcess 每小时 cleanStaleFiles() 统一清理（进程常驻，shutdown 不触发）
+        return response()->download($tmpFile, $filename);
     }
 
     public static function cleanStaleFiles(?string $dir = null, int $maxAgeSeconds = 3600): int

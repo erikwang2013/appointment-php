@@ -143,7 +143,7 @@ class StoreManagerTest extends TestCase
         return $verification;
     }
 
-    /** 造技师档案（user_id 即订单 technician_id） */
+    /** 造技师档案（档案 id 即订单 technician_id） */
     private function makeTechnician(string $userId): TechnicianProfile
     {
         $profile = new TechnicianProfile();
@@ -199,13 +199,13 @@ class StoreManagerTest extends TestCase
         $tech1 = $this->makeTechnician(User::generateId());
         $tech2 = $this->makeTechnician(User::generateId());
 
-        $completedToday = $this->makeOrder(self::STORE_A, Order::STATUS_COMPLETED, 100.0, now(), now(), $tech1->user_id);
-        $pendingToday   = $this->makeOrder(self::STORE_A, Order::STATUS_PENDING, 0.0, now(), now(), $tech1->user_id);
-        $servingToday   = $this->makeOrder(self::STORE_A, Order::STATUS_SERVING, 50.0, now(), now(), $tech2->user_id);
+        $completedToday = $this->makeOrder(self::STORE_A, Order::STATUS_COMPLETED, 100.0, now(), now(), $tech1->id);
+        $pendingToday   = $this->makeOrder(self::STORE_A, Order::STATUS_PENDING, 0.0, now(), now(), $tech1->id);
+        $servingToday   = $this->makeOrder(self::STORE_A, Order::STATUS_SERVING, 50.0, now(), now(), $tech2->id);
         // 昨日已完成：不计今日订单数/营收，但计入技师数（本店曾服务）
-        $this->makeOrder(self::STORE_A, Order::STATUS_COMPLETED, 200.0, now()->subDay(), now()->subDay(), $tech2->user_id);
+        $this->makeOrder(self::STORE_A, Order::STATUS_COMPLETED, 200.0, now()->subDay(), now()->subDay(), $tech2->id);
         // 他店订单：不得影响本店统计
-        $this->makeOrder(self::STORE_B, Order::STATUS_COMPLETED, 999.0, now(), now(), $tech2->user_id);
+        $this->makeOrder(self::STORE_B, Order::STATUS_COMPLETED, 999.0, now(), now(), $tech2->id);
 
         $this->makeVerification($completedToday, now());
         $this->makeVerification($pendingToday, now()->subDay());
@@ -258,9 +258,9 @@ class StoreManagerTest extends TestCase
         $techA2 = $this->makeTechnician(User::generateId());
         $techB  = $this->makeTechnician(User::generateId());
 
-        $this->makeOrder(self::STORE_A, Order::STATUS_COMPLETED, 100.0, now(), now(), $techA1->user_id);
-        $this->makeOrder(self::STORE_A, Order::STATUS_CONFIRMED, 80.0, now(), now(), $techA2->user_id);
-        $this->makeOrder(self::STORE_B, Order::STATUS_COMPLETED, 70.0, now(), now(), $techB->user_id);
+        $this->makeOrder(self::STORE_A, Order::STATUS_COMPLETED, 100.0, now(), now(), $techA1->id);
+        $this->makeOrder(self::STORE_A, Order::STATUS_CONFIRMED, 80.0, now(), now(), $techA2->id);
+        $this->makeOrder(self::STORE_B, Order::STATUS_COMPLETED, 70.0, now(), now(), $techB->id);
 
         $scheduleA2 = $this->makeSchedule($techA2, date('Y-m-d'));
         $this->makeSchedule($techB, date('Y-m-d')); // 他店技师排班不得出现

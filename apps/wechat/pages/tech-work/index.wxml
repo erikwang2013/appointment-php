@@ -31,7 +31,7 @@
       <view class="task-meta">用户：{{item.nickname || '—'}}</view>
       <view class="task-meta">预约：{{item.service_time_text || '—'}}</view>
       <view class="task-meta" wx:if="{{item.start_time_text}}">开始：{{item.start_time_text}}</view>
-      <view class="task-actions" wx:if="{{item.status === 'confirmed'}}">
+      <view class="task-actions" wx:if="{{item.status === 'confirmed' || item.status === 'paid'}}">
         <button class="btn btn-primary" data-id="{{item.id}}" bindtap="onStartTap">开始服务</button>
       </view>
       <view class="task-actions" wx:if="{{item.status === 'serving'}}">

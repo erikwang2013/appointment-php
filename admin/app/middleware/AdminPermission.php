@@ -19,9 +19,9 @@ class AdminPermission
 
     public function process(Request $request, callable $next): Response
     {
-        $adminId = $request->adminId ?? 0;
+        $adminId = (int) ($request->adminId ?? 0);
         if (!$adminId) {
-            return $next($request);
+            return json(['code' => 401, 'message' => '未登录', 'data' => []])->withStatus(401);
         }
 
         $path = $request->path();
@@ -39,7 +39,7 @@ class AdminPermission
         $requiredPermission = $this->resolvePermission($method, trim($path, '/'));
 
         if (!in_array($requiredPermission, $permissions, true) && !in_array($exactSlug, $permissions, true)) {
-            return json(['code' => 403, 'message' => '无权限访问', 'data' => []]);
+            return json(['code' => 403, 'message' => '无权限访问', 'data' => []])->withStatus(403);
         }
 
         return $next($request);

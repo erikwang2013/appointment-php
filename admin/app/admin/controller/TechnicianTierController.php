@@ -124,10 +124,7 @@ class TechnicianTierController extends BaseController
     public function logs(Request $request): Response
     {
         $page  = (int) $request->input('page', 1);
-        $limit = (int) $request->input('per_page', 15);
-        if ($limit < 1 || $limit > 100) {
-            $limit = 15;
-        }
+        $limit = min(100, max(1, (int) $request->input('per_page', 15)));
 
         $query = Db::table('appointment_technician_tier_log as log')
             ->leftJoin('appointment_technician_profile as p', 'p.id', '=', 'log.technician_id')

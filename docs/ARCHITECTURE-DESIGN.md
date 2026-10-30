@@ -6,7 +6,7 @@
 ```
 ┌─────────────────────────────────────────┐
 │              表现层 (Presentation)        │
-│  微信小程序 / Flutter APP / Flutter Web   │
+│  微信小程序 / Flutter Web / 微信 / HarmonyOS 管理端 │
 ├─────────────────────────────────────────┤
 │              路由层 (Route)               │
 │  config/route.php — 路由分组 + 中间件绑定  │
@@ -43,7 +43,7 @@ Cors → Security(31种攻击检测) → RateLimit → Auth(JWT+用户状态)
 
 | 中间件 | 作用域 | 功能 |
 |--------|--------|------|
-| Cors | 全局 | OPTIONS预检 + CORS响应头 |
+| Cors | 全局 | OPTIONS预检 + CORS响应头；`CORS_ALLOW_ORIGIN` 白名单，未配置时默认仅同源 |
 | Security | 全局 | erikwang2013/security-php，31种攻击检测 |
 | RateLimit | 全局 | Redis滑动窗口+Lua原子化 |
 | Auth | 路由组 | JWT解析 + 用户存在性/状态校验 |
@@ -59,7 +59,7 @@ Cors → Security(31种攻击检测) → RateLimit → Auth(JWT+用户状态)
 | 默认 | 60次/分钟/IP |
 | 登录 | 10次/分钟 |
 | 注册 | 5次/分钟 |
-| 验证码 | 1次/60秒/手机号 |
+| 验证码 | 5次/分钟/IP/路由 |
 
 ## 数据库设计原则
 
@@ -75,21 +75,20 @@ Cors → Security(31种攻击检测) → RateLimit → Auth(JWT+用户状态)
 
 ### 敏感字段加密
 
-使用 `erikwang2013/encryptable` trait：
+通过 Model `$casts` 使用 `erikwang2013/encryptable`：
 
 ```php
 use Erikwang2013\Encryptable\Encryptable;
 
 class User extends Model
 {
-    use Encryptable;
-    protected array $encryptable = [
-        'phone', 'wx_openid', 'wx_unionid', 'real_name',
+    protected $casts = [
+        'real_name' => Encryptable::class,
     ];
 }
 ```
 
-加密字段VARCHAR长度设为500（加密数据膨胀）。
+只加密确有必要的字段：`User.real_name`、`TechnicianProfile.id_card`、`Store.phone`、`UserAddress.contact_phone`、`TechnicianWithdrawal.account_name/account_no`、`AdminUser.email/phone/id_card`。`User.phone/wx_openid/wx_unionid` 必须明文存储——登录、查重和唯一键依赖明文精确查询，加密后无法做等值查询。加密字段VARCHAR长度设为500（加密数据膨胀）。
 
 ### 软删除与时间戳
 
@@ -169,10 +168,10 @@ HarmonyOS → harmonyOS / 其他 → web
 
 ## TDD 测试
 
-| 项目 | 测试数 | 状态 |
-|------|--------|------|
-| admin/ | 60 | ✅ 通过 |
-| service/ | 21 | ✅ 通过 |
-| 合计 | 81 | ✅ |
+| 项目 | 测试文件 | 用例 | 状态 |
+|------|--------|------|------|
+| admin/ | 26 | 150 | 已纳入测试套件 |
+| service/ | 70 | 525 | 已纳入测试套件 |
+| 合计 | 96 | 675 | 已纳入测试套件 |
 
-测试覆盖: 退款规则 / 订单状态 / Hashids / 加密 / 验证码
+测试覆盖: 退款规则 / 订单状态 / 下单价格防篡改 / 自动取消并发锁 / Hashids / 加密 / 验证码 / 支付回调

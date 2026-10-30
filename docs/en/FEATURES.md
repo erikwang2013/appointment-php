@@ -1,11 +1,11 @@
 # Feature Description
 > **Languages**: [中文](../FEATURES.md)
 
-> **Project status**: All complete ✅ | 115 controllers (service 53 / admin 62) | 65 models | 93 tests (service 68 / admin 25) | WebSocket | payment callbacks | queue calling | assessment | community
+> **Project status**: All complete ✅ | 124 controllers (service 62 / admin 62) | 65 models | 96 tests (service 70 / admin 26) | WebSocket | payment callbacks
 
 ## I. User Side (WeChat Mini Program)
 
-The Mini Program and APP have identical features. A unified account supports customer/technician identity switching.
+The user client is the WeChat Mini Program. A unified account supports customer/technician identity switching.
 
 ### 1. Authentication
 
@@ -64,7 +64,7 @@ The Mini Program and APP have identical features. A unified account supports cus
 | Pending receipt | Logistics info/confirm receipt |
 | Pending review | Order detail/text+image review |
 | Completed | View order info |
-| Refund rules | Within 15min of ordering or >6h before start 100% / <6h before start 90% / after start 80% / after confirmation none |
+| Refund rules | 100% within 15min of ordering or >6h before service / 90% within 6h before service / 0% once started, service time passed, or status is confirmed/serving/completed / 100% for products or bookings without a service time |
 
 ### 6. Technicians (customer view)
 
@@ -72,7 +72,7 @@ The Mini Program and APP have identical features. A unified account supports cus
 |------|------|
 | Technician list | Nearest-first/avatar/name/order count/rating/favorite/distance/available times/book now |
 | Technician detail | Images/name/distance/orders/reviews/favorites/available service items |
-| Technician onboarding | Fill in info to apply to become a technician, download the technician APP |
+| Technician onboarding | Fill in info to apply to become a technician; after approval, access the technician workbench |
 
 ### 7. Technician Workbench (after identity switch)
 
@@ -206,11 +206,12 @@ The Mini Program and APP have identical features. A unified account supports cus
 
 ### 20. Group Buy (Round 15)
 
+> The old FLASH_SALE channel is retired: PromotionController::index filters out flash_sale, show/join return 400 for it; the `Promotion::TYPE_FLASH_SALE` constant remains for historical data compatibility.
 
 | Feature | Description |
 |------|------|
-| Activity list/detail | GET /api/v1/promotions + /api/v1/promotions/{id}, type filter group_buy/flash_sale |
-| Join | POST /api/v1/promotions/join/{id}: Redis NX lock prevents oversell (flash_sale uses max_people as stock cap), duplicate join 422, group_buy full-team lock, lazy close on expiry without full team (status set to 0 on show/join) |
+| Activity list/detail | GET /api/v1/promotions + /api/v1/promotions/{id}, type=group_buy |
+| Join | POST /api/v1/promotions/join/{id}: Redis NX lock prevents oversell, duplicate join 422, group_buy full-team lock, lazy close on expiry without full team (status set to 0 on show/join) |
 | Participant list | GET /api/v1/promotions/{id}/participants |
 | Status fix | PromotionParticipant status switched to integer constants 0/1/2/3 (fixes strict-mode join 1366 corruption) |
 
@@ -323,7 +324,7 @@ The Mini Program and APP have identical features. A unified account supports cus
 
 ## II. Admin Dashboard (PC Web)
 
-Flutter Web single-page app with 21 pages: dashboard/users/roles/config/logs/verification/schedule/services/technicians/orders/coupons/members/session cards/announcements/FAQ/withdrawals/reviews/reports/after-sales/store workbench/profile.
+Flutter Web single-page app with 22 pages: login/dashboard/users/roles/config/logs/verification/schedule/services/technicians/orders/coupons/members/session cards/announcements/FAQ/withdrawals/reviews/reports/after-sales/store workbench/profile.
 
 ### 1. Home Dashboard
 

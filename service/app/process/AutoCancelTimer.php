@@ -5,11 +5,12 @@ declare(strict_types=1);
 
 namespace app\process;
 
+use app\common\PendingOrderCancelService;
+use app\common\ReferralRewardService;
+use app\common\ReturnCustomerRewardService;
 use app\model\Order;
-use app\model\TechnicianSchedule;
 use support\Db;
 use support\Log;
-use support\Redis;
 use Workerman\Timer;
 use Workerman\Worker;
 
@@ -173,6 +174,9 @@ class AutoCancelTimer
                         $locked->status = Order::STATUS_COMPLETED;
                         $locked->service_end_at = date('Y-m-d H:i:s');
                         $locked->save();
+                        // 完成奖励与技师端 complete 同口径（同事务、幂等，失败整体回滚可重试）
+                        ReferralRewardService::handleOrderCompleted($locked);
+                        ReturnCustomerRewardService::handleOrderCompleted($locked);
                         return true;
                     });
                     if ($done) {
@@ -209,126 +213,7 @@ class AutoCancelTimer
      */
     private function cancelOrder(Order $order): bool
     {
-        $done = Db::transaction(function () use ($order): bool {
-            // 重新查询并加锁，避免并发问题
-            $locked = Order::where('id', $order->id)
-                ->where('status', Order::STATUS_PENDING)
-                ->lockForUpdate()
-                ->first();
-
-            if (!$locked) {
-                return false; // 已被其他进程处理
-            }
-
-            // 更新订单状态
-            $locked->status = Order::STATUS_CANCELLED;
-            $locked->cancel_reason = 'auto_cancel: unpaid timeout';
-            $locked->cancel_at = date('Y-m-d H:i:s');
-            $locked->save();
-
-            // 释放技师排班锁定
-            if (!empty($order->technician_id) && !empty($order->service_time)) {
-                $this->releaseTechnicianLock(
-                    (string)$order->technician_id,
-                    $order->service_time->format('Y-m-d'),
-                    $order->service_time->format('H:i:00')
-                );
-            }
-
-            // 写入通知
-            try {
-                Db::table('appointment_notification')->insert([
-                    'id'         => \support\Model::generateId(),
-                    'user_id'    => $order->user_id,
-                    'type'       => 'order_auto_cancel',
-                    'title'      => '订单已自动取消',
-                    'content'    => '您的订单 ' . ($order->order_no ?? '') . ' 因超时未支付已被系统自动取消。',
-                    'is_read'    => 0,
-                    'created_at' => date('Y-m-d H:i:s'),
-                    'updated_at' => date('Y-m-d H:i:s'),
-                ]);
-            } catch (\Throwable $e) {
-                Log::warning('[AutoCancelTimer] Failed to insert notification: ' . $e->getMessage());
-            }
-
-            // 清除订单相关的 TTL 键（Keyspace 通知备用）
-            $ttlKey = 'order_ttl:' . $order->id;
-            if (Redis::exists($ttlKey)) {
-                Redis::del($ttlKey);
-            }
-
-            return true;
-        });
-
-        if ($done) {
-            // 状态时间线：pending → cancelled（超时自动取消，失败仅记日志）
-            \app\model\OrderStatusLog::record(
-                (string) $order->id,
-                Order::STATUS_PENDING,
-                Order::STATUS_CANCELLED,
-                '超时未支付自动取消',
-                'system'
-            );
-        }
-        return $done;
+        return PendingOrderCancelService::cancel($order, 'auto_cancel: unpaid timeout', '超时未支付自动取消');
     }
 
-    /**
-     * 释放技师排班锁定
-     *
-     * 从 schedule 的时间槽中移除原预约，恢复可用状态
-     * B2: 排班结构为 [{start:"09:00", end:"12:00", ...}]（见 ScheduleController::update
-     * 与 TechnicianController::schedule 的 status 默认 'available'），按 start/time 键匹配
-     * 并写回字符串 'available'，修复原逻辑按 $slot['time']/int 0 匹配导致的永久 no-op。
-     *
-     * @param string $technicianId 技师 ID
-     * @param string $date         Y-m-d 格式日期
-     * @param string $timeSlot     H:i:00 格式时间
-     */
-    private function releaseTechnicianLock(string $technicianId, string $date, string $timeSlot): void
-    {
-        try {
-            $schedule = TechnicianSchedule::where('technician_id', $technicianId)
-                ->where('date', $date)
-                ->first();
-
-            if (!$schedule) {
-                return;
-            }
-
-            $slots = $schedule->time_slots ?? [];
-            if (!is_array($slots)) {
-                return;
-            }
-
-            $match = substr($timeSlot, 0, 5); // 'H:i:00' → 'H:i'
-
-            // 恢复该时间槽为可用
-            foreach ($slots as &$slot) {
-                if (!is_array($slot)) {
-                    continue;
-                }
-                $slotTime = (string)($slot['start'] ?? $slot['time'] ?? '');
-                if ($slotTime !== '' && ($slotTime === $match || $slotTime === $timeSlot)) {
-                    $slot['status'] = 'available'; // 与排班读取端默认值一致（字符串）
-                    $slot['order_id'] = null;
-                    break;
-                }
-            }
-            unset($slot);
-
-            $schedule->time_slots = $slots;
-            $schedule->save();
-
-            // 清除 Redis 技师锁（B6: 键名与 OrderController 下单锁定统一为 technician_lock:{id}:{YmdHi}，
-            // 此前 tech_lock:{id}:{date}:{H:i:00} 与下单锁键名不一致导致释放失效）
-            $timeSlotKey = date('YmdHi', strtotime($date . ' ' . $timeSlot));
-            $lockKey = "technician_lock:{$technicianId}:{$timeSlotKey}";
-            if (Redis::exists($lockKey)) {
-                Redis::del($lockKey);
-            }
-        } catch (\Throwable $e) {
-            Log::error('[AutoCancelTimer] Failed to release technician lock: ' . $e->getMessage());
-        }
-    }
 }

@@ -10,7 +10,7 @@ namespace app\admin\controller;
 use support\Log;
 use support\Request;
 use support\Response;
-use Illuminate\Support\Facades\Redis;
+use support\Redis;
 
 /**
  * IP 黑名单管理控制器
@@ -30,7 +30,7 @@ class IpBlacklistController extends BaseController
 
         $blockedIps = [];
         try {
-            $keys = Redis::keys('security:blocked_ips:*');
+            $keys = $this->scanKeys('security:blocked_ips:*');
             foreach ($keys as $key) {
                 $ip = str_replace('security:blocked_ips:', '', $key);
                 $data = Redis::get($key);
@@ -175,7 +175,7 @@ class IpBlacklistController extends BaseController
 
         try {
             // 读取 security:attack_log:* 模式的日志
-            $keys = Redis::keys('security:attack_log:*');
+            $keys = $this->scanKeys('security:attack_log:*');
 
             if (!empty($keys)) {
                 foreach ($keys as $key) {
@@ -197,7 +197,7 @@ class IpBlacklistController extends BaseController
             }
 
             // 也尝试从 Redis 的 list 类型读取
-            $listKeys = Redis::keys('security:attack_list:*');
+            $listKeys = $this->scanKeys('security:attack_list:*');
             foreach ($listKeys as $listKey) {
                 $items = Redis::lRange($listKey, 0, 99);
                 foreach ($items as $item) {

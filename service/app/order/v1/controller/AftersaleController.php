@@ -83,7 +83,7 @@ class AftersaleController extends BaseController
     {
         $userId = $request->user_id;
         $page   = (int) $request->input('page', 1);
-        $limit  = (int) $request->input('limit', 15);
+        $limit  = max(1, min(50, (int) $request->input('limit', 15)));
 
         $paginator = OrderAftersale::where('user_id', $userId)
             ->with('order')

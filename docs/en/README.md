@@ -3,7 +3,7 @@
 
 A two-platform appointment service management platform: WeChat Mini Program, plus a PC admin dashboard.
 
-> **Project status**: All complete ✅ | 115 controllers (service 53 / admin 62) | 65 models | 93 tests (service 68 / admin 25) | 73 database tables | 311 routes (service 173 / admin 138)
+> **Project status**: All complete ✅ | 124 controllers (service 62 / admin 62) | 65 models | 96 tests (service 70 / admin 26) | 73 database tables | 309 routes (service 171 / admin 138)
 
 > English translation · Original: [中文](../../README.md)
 
@@ -27,7 +27,7 @@ Uses self-developed security components: JWT authentication, ID obfuscation, 31 
 
 **Mature technology foundation**
 
-Built on PHP 8.3 + the high-performance resident webman framework, backed by MySQL 8.0 + Redis + Elasticsearch; 73 database tables, 311 APIs, and 93 automated tests all passing, with complete bilingual (Chinese/English) architecture documentation and a one-click install script — ready to use out of the box and easy to extend.
+Built on PHP 8.3 + the high-performance resident webman framework, backed by MySQL 8.0 + Redis + Elasticsearch; 73 database tables, 309 APIs, and 96 automated test files, with complete bilingual (Chinese/English) architecture documentation and a one-click install script — ready to use out of the box and easy to extend.
 
 Whether you run a single store or a multi-store chain, Appointment Service System provides a stable, secure, and scalable all-in-one solution.
 
@@ -35,7 +35,7 @@ Whether you run a single store or a multi-store chain, Appointment Service Syste
 
 ```
 appointment-php/
-├── admin/                     # Admin dashboard (webman v2 + Flutter Web, deployed separately :8787)
+├── admin/                     # Admin dashboard (webman v2 + Flutter Web/WeChat/HarmonyOS admin, deployed separately :8787)
 │   ├── app/                   #   admin (backend controllers)/api/v1/model/middleware/process/view
 │   ├── apps/                  #   Flutter Web admin / HarmonyOS / WeChat admin client
 │   ├── config/                #   Route/database/process/plugin config
@@ -55,7 +55,7 @@ appointment-php/
     └── diagrams/              #   Architecture/flow diagrams (SVG + mermaid)
 ```
 
-**Project structure diagram** (four platforms + module detail; full version in [STRUCTURE.md](STRUCTURE.md)):
+**Project structure diagram** (two platforms + module detail; full version in [STRUCTURE.md](STRUCTURE.md)):
 
 ![en-project-structure.svg](../diagrams/en-project-structure.svg)
 
@@ -86,7 +86,7 @@ Open `http://localhost:8787/install` in the browser and follow the wizard to ent
 cd service/ && cp .env.example .env && composer install
 cd ../admin/ && cp .env.example .env && composer install
 
-# 2. Import the database in one go (all 95 tables + permission/config seeds)
+# 2. Import the database in one go (all 73 tables + permission/config seeds)
 mysql -u root -p < docs/install.sql
 
 # 3. Start the services
@@ -168,7 +168,7 @@ The three functional domains, purchase flows (service booking / product cart), t
 | Feature | Description |
 |------|------|
 | Stored-value wallet | `user_wallet` / `wallet_recharge` / `wallet_txn` tables; balance + transaction log, WeChat Pay top-up (callback uses R-prefixed order numbers), order balance payment (`pay_channel=balance`), WeChat/balance refunds automatically top up the wallet |
-| Admin UI completed | Flutter Web 21 pages: dashboard/users/roles/config/logs/verification/schedule/services/technicians/orders/coupons/members/session cards/announcements/FAQ/withdrawals/reviews/reports/after-sales/store manager/profile |
+| Admin UI completed | Flutter Web 22 pages: login/dashboard/users/roles/config/logs/verification/schedule/services/technicians/orders/coupons/members/session cards/announcements/FAQ/withdrawals/reviews/reports/after-sales/store manager/profile |
 | Dashboard real-time stats | Admin home dynamically renders 7 stat cards (total users/new today/active users/operation logs/appointments today/pending withdrawals/pending technicians) + 30-day trend charts (order volume/amount/new users/activity) + user-status distribution pie + recent operation logs, Redis svc:dashboard cache 300s |
 | Data reports | ReportController 3 endpoints: order stats / technician TOP10 / channel distribution (GET /admin/reports/orders\|technicians\|distribution, 7/30-day range, Redis cache 300s) + sales stats (svc:sales_stats) + finance stats (svc:finance_stats revenue/refunds/withdrawals/commissions) |
 | Mini Program subscribe messages | Order 3-scenario subscribe pushes (payment success/refund received/verification success); `push_sent_at` idempotent; auto fallback to in-app notification when template not configured |
@@ -240,7 +240,7 @@ The three functional domains, purchase flows (service booking / product cart), t
 | [Installation](INSTALL.md) | Requirements, Docker deployment, environment variables, third-party config, FAQ |
 | [Usage](USAGE.md) | Admin configuration, user/technician operations, refund rules (API endpoints in API.md) |
 | [Project Structure](STRUCTURE.md) | Complete directory layout, middleware execution chain, database table list |
-| [Test Report](TEST-REPORT.md) | Full test coverage audit (558 cases / 2508 assertions) |
+| [Test Report](TEST-REPORT.md) | Full test coverage audit (675 cases (96 test files)) |
 | [Design Spec](specs/2026-05-26-appointment-system-design.md) | System design specification |
 | [Implementation Plan](plans/2026-05-26-appointment-system-plan.md) | Phased implementation plan |
 

@@ -19,7 +19,7 @@ graph TB
     end
 
     subgraph 流量控制["第四层：流量控制"]
-        RL["RateLimit 中间件<br/>Redis 滑动窗口 + Lua 原子化<br/>默认: 60次/min/IP<br/>登录: 10次/min<br/>注册: 5次/min<br/>验证码: 1次/60s/手机号"]
+        RL["RateLimit 中间件<br/>Redis 滑动窗口 + Lua 原子化<br/>默认: 60次/min/IP<br/>登录: 10次/min<br/>注册: 5次/min<br/>验证码: 5次/min（IP+路由）"]
     end
 
     subgraph 身份认证["第五层：身份认证"]

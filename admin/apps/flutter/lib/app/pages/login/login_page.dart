@@ -107,6 +107,12 @@ class _LoginPageState extends State<LoginPage> {
         setState(() => _error = resp.data['message'] ?? '登录失败');
         _loadCaptcha();
       }
+    } on DioException catch (e) {
+      // 登录失败已改为 HTTP 4xx，优先展示服务端返回的 message
+      final data = e.response?.data;
+      final message = data is Map ? data['message'] : null;
+      setState(() => _error = message is String && message.isNotEmpty ? message : '网络错误，请检查连接');
+      _loadCaptcha();
     } catch (e) {
       setState(() => _error = '网络错误，请检查连接');
       _loadCaptcha();

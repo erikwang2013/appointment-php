@@ -17,7 +17,7 @@ use Workerman\Timer;
  * 服务开始前预约提醒定时器
  *
  * 每 60 秒扫描一次 service_time 落在 [now+1h, now+1h+60s) 窗口内、
- * 状态为 confirmed/serving 的 appointment 订单，为订单用户写站内通知
+ * 状态为 paid/confirmed/serving 的 appointment 订单，为订单用户写站内通知
  * （type=service_reminder，内容含服务/技师/门店/时间），并挂接可配置降级的
  * 微信订阅消息（SCENE_REMINDER，未配置 WECHAT_SUBSCRIBE_TEMPLATE_REMINDER
  * 时仅站内通知）。
@@ -61,7 +61,7 @@ class ServiceReminderTimer
 
             while (true) {
                 $rows = Order::with(['items', 'store'])
-                    ->whereIn('status', [Order::STATUS_CONFIRMED, Order::STATUS_SERVING])
+                    ->whereIn('status', [Order::STATUS_PAID, Order::STATUS_CONFIRMED, Order::STATUS_SERVING])
                     ->where('order_type', Order::ORDER_TYPE_APPOINTMENT)
                     ->where('service_time', '>=', $windowStart)
                     ->where('service_time', '<', $windowEnd)
@@ -122,7 +122,7 @@ class ServiceReminderTimer
         $notificationId = Db::transaction(function () use ($order, $technicians): ?string {
             // 重新查询并加锁，串行化并发扫描
             $locked = Order::where('id', $order->id)
-                ->whereIn('status', [Order::STATUS_CONFIRMED, Order::STATUS_SERVING])
+                ->whereIn('status', [Order::STATUS_PAID, Order::STATUS_CONFIRMED, Order::STATUS_SERVING])
                 ->lockForUpdate()
                 ->first();
 

@@ -10,6 +10,7 @@ use app\model\Notification;
 use app\model\UserPoints;
 use support\Db;
 use support\Log;
+use support\Redis;
 use Workerman\Timer;
 
 /**
@@ -92,43 +93,73 @@ class PointsExpiryTimer
      */
     private function expireRow(UserPoints $row): int
     {
-        return (int) Db::transaction(function () use ($row): int {
-            $locked = UserPoints::where('id', $row->id)
-                ->where('type', 'earn')
-                ->lockForUpdate()
-                ->first();
-            if (!$locked) {
-                return 0; // 行不存在（理论不可达）
-            }
-
-            // 幂等：同原流水已有 expire 扣减行则跳过（并发进程在此行锁上串行）
-            $exists = UserPoints::where('order_id', $row->id)
-                ->where('type', 'expire')
-                ->exists();
-            if ($exists) {
+        // 与积分支付/兑换共用用户级消费锁；拿不到锁则本轮跳过，下轮重试
+        $lockKey = 'points_spend_lock:' . $row->user_id;
+        $lockToken = bin2hex(random_bytes(16));
+        try {
+            if (!Redis::connection()->set($lockKey, $lockToken, 'EX', 10, 'NX')) {
                 return 0;
             }
+        } catch (\Throwable $e) {
+            Log::warning('[PointsExpiryTimer] points lock unavailable: ' . $e->getMessage());
+            return 0;
+        }
 
-            // balance 快照累加：上一条余额 - 本次过期（锁最后一条流水防同用户并发串行）
-            $lastBalance = (int) (UserPoints::where('user_id', $row->user_id)
-                ->orderBy('created_at', 'desc')
-                ->orderBy('id', 'desc')
-                ->lockForUpdate()
-                ->value('balance') ?? 0);
+        try {
+            return (int) Db::transaction(function () use ($row): int {
+                $locked = UserPoints::where('id', $row->id)
+                    ->where('type', 'earn')
+                    ->lockForUpdate()
+                    ->first();
+                if (!$locked) {
+                    return 0; // 行不存在（理论不可达）
+                }
 
-            UserPoints::create([
-                'id'          => UserPoints::generateId(),
-                'user_id'     => $row->user_id,
-                'type'        => 'expire',
-                'points'      => -$row->points,
-                'balance'     => $lastBalance - $row->points,
-                'source'      => 'expiry',
-                'order_id'    => $row->id,
-                'description' => '积分过期扣减（原流水 ' . $row->id . '）',
-            ]);
+                // 幂等：同原流水已有 expire 扣减行则跳过（并发进程在此行锁上串行）
+                $exists = UserPoints::where('order_id', $row->id)
+                    ->where('type', 'expire')
+                    ->exists();
+                if ($exists) {
+                    return 0;
+                }
 
-            return (int) $row->points;
-        });
+                // 只过期当前仍可用的积分（已消费部分不再扣，避免余额变负）
+                $available = (int) UserPoints::where('user_id', $row->user_id)
+                    ->whereIn('type', ['earn', 'consume', 'use', 'expire'])
+                    ->sum('points');
+                $points = min((int) $row->points, max(0, $available));
+                if ($points <= 0) {
+                    return 0;
+                }
+
+                // balance 快照累加：上一条余额 - 本次过期（锁最后一条流水防同用户并发串行）
+                $lastBalance = (int) (UserPoints::where('user_id', $row->user_id)
+                    ->orderBy('created_at', 'desc')
+                    ->orderBy('id', 'desc')
+                    ->lockForUpdate()
+                    ->value('balance') ?? 0);
+
+                UserPoints::create([
+                    'id'          => UserPoints::generateId(),
+                    'user_id'     => $row->user_id,
+                    'type'        => 'expire',
+                    'points'      => -$points,
+                    'balance'     => $lastBalance - $points,
+                    'source'      => 'expiry',
+                    'order_id'    => $row->id,
+                    'description' => '积分过期扣减（原流水 ' . $row->id . '）',
+                ]);
+
+                return $points;
+            });
+        } finally {
+            try {
+                if ((string) Redis::connection()->get($lockKey) === $lockToken) {
+                    Redis::connection()->del($lockKey);
+                }
+            } catch (\Throwable) {
+            }
+        }
     }
 
     /**

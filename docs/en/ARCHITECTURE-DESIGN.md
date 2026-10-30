@@ -6,7 +6,7 @@
 ```
 ┌─────────────────────────────────────────┐
 │              表现层 (Presentation)        │
-│  微信小程序 / Flutter APP / Flutter Web   │
+│  微信小程序 / Flutter Web / 微信 / HarmonyOS 管理端 │
 ├─────────────────────────────────────────┤
 │              路由层 (Route)               │
 │  config/route.php — 路由分组 + 中间件绑定  │
@@ -43,7 +43,7 @@ Cors → Security(31种攻击检测) → RateLimit → Auth(JWT+用户状态)
 
 | Middleware | Scope | Function |
 |------------|-------|----------|
-| Cors | Global | OPTIONS preflight + CORS response headers |
+| Cors | Global | OPTIONS preflight + CORS response headers; `CORS_ALLOW_ORIGIN` allowlist, same-origin only when unset |
 | Security | Global | erikwang2013/security-php, 31 attack detections |
 | RateLimit | Global | Redis sliding window + atomic Lua |
 | Auth | Route group | JWT parsing + user existence/status validation |
@@ -59,7 +59,7 @@ Cors → Security(31种攻击检测) → RateLimit → Auth(JWT+用户状态)
 | Default | 60/min/IP |
 | Login | 10/min |
 | Register | 5/min |
-| Captcha | 1/60s/phone number |
+| Captcha | 5/min/IP/route |
 
 ## Database Design Principles
 
@@ -75,21 +75,20 @@ Unified `appointment_` prefix, configured in `config/database.php`. Models write
 
 ### Sensitive Field Encryption
 
-Uses the `erikwang2013/encryptable` trait:
+Uses the `erikwang2013/encryptable` cast on the model:
 
 ```php
 use Erikwang2013\Encryptable\Encryptable;
 
 class User extends Model
 {
-    use Encryptable;
-    protected array $encryptable = [
-        'phone', 'wx_openid', 'wx_unionid', 'real_name',
+    protected $casts = [
+        'real_name' => Encryptable::class,
     ];
 }
 ```
 
-Encrypted fields use VARCHAR(500) length (encrypted data expands).
+Only encrypt fields that genuinely need it: `User.real_name`, `TechnicianProfile.id_card`, `Store.phone`, `UserAddress.contact_phone`, `TechnicianWithdrawal.account_name/account_no`, `AdminUser.email/phone/id_card`. `User.phone/wx_openid/wx_unionid` must stay plaintext — login, deduplication, and unique keys rely on exact plaintext lookups, which encrypted values cannot support. Encrypted fields use VARCHAR(500) length (encrypted data expands).
 
 ### Soft Deletes and Timestamps
 
@@ -168,10 +167,10 @@ HarmonyOS → harmonyOS / 其他 → web
 
 ## TDD Tests
 
-| Project | Test Count | Status |
-|---------|------------|--------|
-| admin/ | 60 | ✅ Passed |
-| service/ | 21 | ✅ Passed |
-| Total | 81 | ✅ |
+| Project | Test files | Cases | Status |
+|---------|------------|-------|--------|
+| admin/ | 26 | 150 | In the test suite |
+| service/ | 70 | 525 | In the test suite |
+| Total | 96 | 675 | In the test suite |
 
-Coverage: refund rules / order status / Hashids / encryption / captcha
+Coverage: refund rules / order status / order price tamper protection / auto-cancel locking / Hashids / encryption / captcha / payment callbacks

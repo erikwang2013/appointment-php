@@ -7,10 +7,13 @@
 
 ```
 Service details → Confirm order (store/technician/time/coupon/note) → Read service agreement
-    → Submit order → Redis locks technician for 3 minutes → WeChat Pay → Payment success
-    → Notify user + technician → Service time arrives → Technician confirms start
-    → Service completed → QR code verification → User review → Order completed
+    → Submit order → Redis locks technician for 3 minutes → WeChat Pay → paid
+    → Unpaid orders auto-cancel after 30 minutes
+    → Notify user + technician → Service time arrives → Technician scans/confirms start → serving
+    → Service completed → completed → User review (separate record, does not change order state)
 ```
+
+Pay/cancel/refund/payment callback/auto-cancel/verification/reschedule/technician start and complete all use the Redis lock `order_lock:{id}`.
 
 ### Product Purchase Flow (Cart Mode)
 
@@ -22,13 +25,16 @@ Product list → Add to cart → Cart confirmation (change quantity/delete)
 ## Order State Machine
 
 ```
-pending (pending payment) → paid (paid) → confirmed (confirmed)
-    → serving (in service) → completed (completed) → reviewed (reviewed)
+pending (pending payment) → paid (paid) → serving (in service) → completed (completed)
+                                 └→ confirmed (compatibility state) → serving
 
 pending → cancelled (cancelled)
 paid → cancelled
 paid → refunding (refunding) → refunded (refunded)
 ```
+
+- Successful payment lands on `paid`; both `paid` and `confirmed` can enter `serving`.
+- There is no `reviewed` status: reviews are a separate record and do not change order state.
 
 ## Technician Lock Mechanism
 
@@ -40,14 +46,16 @@ SETNX lock:tech:123:2026-05-26-14:00 user_456 EX 180
  → Failure: technician already locked
 ```
 
+The technician slot lock only prevents duplicate bookings for the same slot; order pay/cancel/refund state transitions are protected by `order_lock:{id}`.
+
 ## Refund Rules
 
 | Condition | Refund Ratio |
 |-----------|--------------|
-| Within 15 minutes of ordering OR > 6 hours before start | 100% |
-| ≤ 6 hours before start | 90% |
-| Started but service not confirmed | 80% |
-| After service confirmed started | 0% (no refund) |
+| Within 15 minutes of ordering OR > 6 hours before service | 100% |
+| ≤ 6 hours before service | 90% |
+| Service started, service time passed, or status is confirmed/serving/completed | 0% (no refund) |
+| Product orders or bookings without a service time | 100% |
 
 ## Discount Rules
 

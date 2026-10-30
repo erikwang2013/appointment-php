@@ -28,7 +28,7 @@ class PointController extends BaseController
             ->value('balance') ?? 0;
 
         // 积分流水记录（分页，支持 type/source 过滤）
-        $perPage = (int) $request->input('per_page', 20);
+        $perPage = $this->normalizePerPage($request->input('per_page', 20), 20);
         $query = UserPoints::where('user_id', $userId);
         if ($type = (string) $request->input('type', '')) {
             $query->where('type', $type);

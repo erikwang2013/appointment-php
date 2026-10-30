@@ -24,7 +24,7 @@ class EarningController extends BaseController
     {
         $technicianId = $request->technician_id;
         $page = (int)$request->input('page', 1);
-        $perPage = (int)$request->input('per_page', 15);
+        $perPage = $this->normalizePerPage($request->input('per_page', 15));
 
         $today = date('Y-m-d');
 

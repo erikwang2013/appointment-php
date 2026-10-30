@@ -18,9 +18,9 @@ use app\process\ServiceReminderTimer;
 /**
  * 服务开始前预约提醒闭环测试
  *
- * 覆盖：confirmed/serving 订单落入 [now+1h, now+1h+60s) 窗口生成
+ * 覆盖：paid/confirmed/serving 订单落入 [now+1h, now+1h+60s) 窗口生成
  * type=service_reminder 站内通知（内容含服务/技师/门店/时间）、窗口外不提醒、
- * paid 状态不提醒、重复扫描幂等（不重复通知）。
+ * 重复扫描幂等（不重复通知）。
  * 基建与 NotificationReminderServiceTest 一致（真实 DB + tearDown 清理）。
  */
 class ServiceReminderTest extends TestCase
@@ -192,14 +192,15 @@ class ServiceReminderTest extends TestCase
         $this->assertSame(0, Notification::where('order_id', $order->id)->count());
     }
 
-    #[Test] public function paid_order_is_not_reminded(): void
+    #[Test] public function paid_order_in_window_generates_reminder(): void
     {
-        // 仅 confirmed/serving 触发，paid 由既有 NotificationReminderService（2h~1h）负责
+        // paid 同样属于待服务状态（confirmed 并非所有支付路径都会写入），窗口内应提醒
         $order = $this->makeAppointment(Order::STATUS_PAID, 3600 + 30);
 
         $this->scan();
 
-        $this->assertSame(0, Notification::where('order_id', $order->id)->count());
+        $this->assertSame(1, Notification::where('order_id', $order->id)
+            ->where('type', 'service_reminder')->count());
     }
 
     // ── 幂等 ──

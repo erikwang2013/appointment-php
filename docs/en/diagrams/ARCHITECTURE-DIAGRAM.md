@@ -5,7 +5,6 @@
 graph TB
     subgraph 用户终端层["User Client Layer"]
         WX["WeChat Mini Program<br/>apps/wechat/<br/>native WXML/WXSS/JS"]
-        APP["Flutter APP<br/>apps/flutter/<br/>iOS + Android<br/>GetX + Dio"]
     end
 
     subgraph 业务服务层["Business Service Layer :8787"]
@@ -30,11 +29,13 @@ graph TB
         MW2["Middleware chain<br/>Cors → Security → RateLimit → AdminAuth → RBAC → OperationLog"]
         ADMIN_API["Admin API<br/>admin/controller/<br/>dashboard/users/technicians/stores/services<br/>orders/coupons/member cards/withdrawals/reviews<br/>reports/finance/content/settings"]
         FLUTTER_WEB["Flutter Web frontend<br/>admin/apps/flutter/<br/>PC admin dashboard UI"]
-        MODEL["Shared models<br/>admin/app/model<br/>39 symlinks<br/>→ service/app/model same implementation"]
+        WX_ADMIN["WeChat admin client<br/>admin/apps/weixin/"]
+        HARMONY["HarmonyOS admin client<br/>admin/apps/harmonyos/"]
+        MODEL["Shared models<br/>admin/app/model<br/>59 shared models<br/>→ service/app/model same implementation"]
     end
 
     subgraph 数据层["Data Layer"]
-        MySQL[("MySQL 8.0<br/>55+ tables · appointment_ prefix<br/>BIGINT Snowflake primary keys")]
+        MySQL[("MySQL 8.0<br/>73 tables · appointment_ prefix<br/>BIGINT Snowflake primary keys")]
         Redis[("Redis<br/>cache/rate limit/Session<br/>queue/technician locks<br/>svc:* list cache")]
         ES[("Elasticsearch<br/>full-text search<br/>webman-scout auto sync")]
     end
@@ -54,11 +55,12 @@ graph TB
         POSTER["Operation verification<br/>random verification for sensitive ops"]
     end
 
-    WX -->|"HTTP API<br/>functionally equivalent"| MW1
-    APP -->|"HTTP API<br/>functionally equivalent"| MW1
+    WX -->|"HTTP API"| MW1
     MW1 --> API模块
 
     FLUTTER_WEB -->|"HTTP API"| MW2
+    WX_ADMIN -->|"HTTP API"| MW2
+    HARMONY -->|"HTTP API"| MW2
     MW2 --> ADMIN_API
 
     API模块 --> MySQL
@@ -81,9 +83,9 @@ graph TB
     classDef external fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#4a148c
     classDef security fill:#fff8e1,stroke:#f9a825,stroke-width:2px,color:#f57f17
 
-    class WX,APP terminal
+    class WX terminal
     class MW1,API模块,PUB,USER,TECH,SVC,ORD,MKT,WALLET,CTN,LBS,CACHE,RES service
-    class MW2,ADMIN_API,FLUTTER_WEB,MODEL admin
+    class MW2,ADMIN_API,FLUTTER_WEB,WX_ADMIN,HARMONY,MODEL admin
     class MySQL,Redis,ES data
     class WXPAY,SMS,MAP,OSS,SUBMSG external
     class SEC,JWT,ENC,POSTER security

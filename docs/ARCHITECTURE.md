@@ -3,18 +3,17 @@
 
 ## 系统总览
 
-预约服务系统采用三端 + 双服务架构：
+预约服务系统采用客户端 + 管理端 + 双服务架构：
 
 ```
 ┌─────────────────────────────────────────────────────┐
-│                    用户终端层                         │
-│  ┌──────────────┐  ┌──────────────┐                 │
-│  │ 微信小程序     │  │ Flutter APP   │                │
-│  │ apps/wechat/  │  │ apps/flutter/ │                │
-│  └──────┬───────┘  └──────┬───────┘                 │
-│         │     功能等价      │                         │
-│         └────────┬─────────┘                         │
-│                  │ 客户/技师 身份切换                   │
+│                  客户端 / 管理端                       │
+│  ┌──────────────┐  ┌────────────────────┐           │
+│  │ 微信小程序     │  │ Flutter Web 管理端  │           │
+│  │ apps/wechat/  │  │ admin/apps/flutter/│           │
+│  └──────┬───────┘  └──────────┬─────────┘           │
+│         │     客户/技师身份切换  │ 管理端登录          │
+│         │                      │                     │
 ├──────────────────┼──────────────────────────────────┤
 │              业务API层                                 │
 │  ┌──────────────┐  ┌──────────────┐                 │
@@ -32,11 +31,13 @@
 └─────────────────────────────────────────────────────┘
 ```
 
+> 微信管理端 `admin/apps/weixin/`、HarmonyOS 管理端 `admin/apps/harmonyos/` 与 Flutter Web 管理端并列，均对接 admin/ API。根目录 `apps/` 仅包含原生微信小程序 `apps/wechat/`。
+
 ## 项目组成
 
 ### service/ — 业务API服务
 
-为微信小程序和Flutter APP提供全部业务接口。webman v2，端口8787。
+为微信小程序提供全部业务接口。webman v2，端口8787。
 
 **模块划分：**
 
@@ -62,18 +63,20 @@ PC管理后台。webman v2 + Flutter Web，端口8787。
 
 **扩展模块：** 技师管理、会员管理、门店管理、服务/产品管理、订单管理、优惠券、会员卡、提现审核、评价管理、报表统计、财务管理、内容管理、系统设置
 
-### apps/ — 用户端前端
+### 前端 — 客户端与管理端
 
 | 目录 | 技术 | 平台 |
 |------|------|------|
-| `apps/wechat/` | 原生微信小程序 | 微信 |
-| `apps/flutter/` | Flutter 3.x + GetX + Dio | iOS + Android |
+| `apps/wechat/` | 原生微信小程序 | 微信（用户端） |
+| `admin/apps/flutter/` | Flutter Web | PC 管理后台 |
+| `admin/apps/weixin/` | 微信管理端 | 微信 |
+| `admin/apps/harmonyos/` | ArkTS | HarmonyOS 管理端 |
 
 ## 核心组件
 
 ### Snowflake ID
 
-所有主键由 `erikwang2013/snowflake-php` 生成，BIGINT非自增，保证分布式全局唯一。`service/support/Model::nextId()` 进程内复用单个 Snowflake 实例，64 个模型的 `generateId()` 副本已删除（统一继承基类实现）。
+所有主键由 `erikwang2013/snowflake-php` 生成，BIGINT非自增，保证分布式全局唯一。`service/support/Model::nextId()` 进程内复用单个 Snowflake 实例，65 个模型（service 59 + admin 特有 6）的 `generateId()` 副本已删除（统一继承基类实现）。
 
 ### Hashids
 

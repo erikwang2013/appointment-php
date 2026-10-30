@@ -19,7 +19,7 @@ graph TB
     end
 
     subgraph 流量控制["Layer 4: Traffic Control"]
-        RL["RateLimit middleware<br/>Redis sliding window + atomic Lua<br/>default: 60/min/IP<br/>login: 10/min<br/>register: 5/min<br/>captcha: 1/60s/phone"]
+        RL["RateLimit middleware<br/>Redis sliding window + atomic Lua<br/>default: 60/min/IP<br/>login: 10/min<br/>register: 5/min<br/>captcha: 5/min (IP + route)"]
     end
 
     subgraph 身份认证["Layer 5: Identity & Authentication"]

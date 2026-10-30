@@ -7,6 +7,7 @@ namespace app\common;
 
 use app\model\Order;
 use app\model\TechnicianEarning;
+use app\model\User;
 use support\Db;
 use support\Log;
 
@@ -51,6 +52,12 @@ class ReturnCustomerRewardService
             return;
         }
         if (!self::isEnabled()) {
+            return;
+        }
+
+        // 同一用户完成订单串行化：并发完成两单时，后一单能看到前一单已提交的 completed，避免双双漏发
+        $user = User::where('id', $order->user_id)->lockForUpdate()->first();
+        if (!$user) {
             return;
         }
 

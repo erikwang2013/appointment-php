@@ -2,7 +2,7 @@
 
 双端预约服务管理平台：用户端微信小程序、PC 管理后台。
 
-> **项目状态**: 全部完成 ✅ | 115 控制器（service 53 / admin 62） | 65 模型 | 93 测试（service 68 / admin 25） | 73 数据表 | 311 路由（service 173 / admin 138）
+> **项目状态**: 全部完成 ✅ | 124 控制器（service 62 / admin 62） | 65 模型 | 96 测试（service 70 / admin 26） | 73 数据表 | 309 路由（service 171 / admin 138）
 
 ## 项目介绍
 
@@ -24,7 +24,7 @@
 
 **成熟的技术底座**
 
-基于 PHP 8.3 + webman 高性能常驻框架，MySQL 8.0 + Redis + Elasticsearch 支撑；73 张数据表、311 个接口、93 项自动化测试全部通过，并有完善的中英文架构文档与一键安装向导，开箱即用、易于二次开发。
+基于 PHP 8.3 + webman 高性能常驻框架，MySQL 8.0 + Redis + Elasticsearch 支撑；73 张数据表、309 个接口、96 项自动化测试全部通过，并有完善的中英文架构文档与一键安装向导，开箱即用、易于二次开发。
 
 无论是单店预约还是多门店连锁，预约服务系统都能为您提供稳定、安全、可扩展的一体化解决方案。
 
@@ -32,9 +32,9 @@
 
 ```
 appointment-php/
-├── admin/                     # 管理后台 (webman v2 + Flutter Web，独立部署 :8787)
+├── admin/                     # 管理后台 (webman v2 + Flutter Web/微信/HarmonyOS，独立部署 :8787)
 │   ├── app/                   #   admin(后台控制器)/api/v1/model/middleware/process/view
-│   ├── apps/                  #   Flutter Web 后台 / 微信管理端
+│   ├── apps/                  #   Flutter Web / 微信 / HarmonyOS 管理端
 │   ├── config/                #   路由/数据库/进程/插件配置
 │   ├── database/              #   备份脚本（表结构与种子数据统一见 docs/install.sql）
 │   ├── tests/                 #   PHPUnit（#[\Test] 属性风格）
@@ -164,7 +164,7 @@ cd ../service/ && cp .env.docker .env && docker-compose up -d
 | 功能 | 说明 |
 |------|------|
 | 储值钱包 | user_wallet / wallet_recharge / wallet_txn 表；余额+流水、微信支付充值（回调 R 前缀单号）、订单余额支付（pay_channel=balance）、微信/余额退款自动回充余额 |
-| 管理后台 UI 完整补齐 | Flutter Web 21 页面：仪表盘/用户/角色/配置/日志/核销/排班/服务/技师/订单/优惠券/会员/次卡/公告/FAQ/提现/评价/报表/售后/门店工作台/个人中心 |
+| 管理后台 UI 完整补齐 | Flutter Web 22 页面：登录/仪表盘/用户/角色/配置/日志/核销/排班/服务/技师/订单/优惠券/会员/次卡/公告/FAQ/提现/评价/报表/售后/门店工作台/个人中心 |
 | 仪表盘实时统计 | 管理后台首页统计卡 7 项动态渲染（用户总数/今日新增/活跃用户/操作日志/今日预约/待审核提现/待审技师）+ 近30天趋势图（订单量/金额/新增用户/活跃度）+ 用户状态分布饼图 + 最近操作日志，Redis svc:dashboard 缓存 300s |
 | 数据报表 | ReportController 3 端点：订单统计 / 技师TOP10业绩 / 渠道分布（GET /admin/reports/orders\|technicians\|distribution，7/30 天范围，Redis 缓存 300s）+ 销售统计（svc:sales_stats 区间汇总）+ 财务统计（svc:finance_stats 收入/退款/提现/佣金） |
 | 小程序订阅消息 | 订单 3 场景订阅推送（支付成功/退款到账/核销成功）；push_sent_at 幂等；未配置模板自动降级站内通知 |
@@ -236,7 +236,7 @@ cd ../service/ && cp .env.docker .env && docker-compose up -d
 | [安装说明](docs/INSTALL.md) | 环境要求、Docker部署、环境变量、第三方配置、常见问题 |
 | [使用说明](docs/USAGE.md) | 管理后台配置、用户端/技师端操作、退款规则（API 接口见 API.md） |
 | [项目结构](docs/STRUCTURE.md) | 完整目录布局、中间件执行链、数据库表清单 |
-| [测试报告](docs/TEST-REPORT.md) | 全量测试覆盖审计（当前 93 个测试文件） |
+| [测试报告](docs/TEST-REPORT.md) | 全量测试覆盖审计（当前 96 个测试文件） |
 | [设计规范](docs/superpowers/specs/2026-05-26-appointment-system-design.md) | 系统设计规范 |
 | [实现计划](docs/superpowers/plans/2026-05-26-appointment-system-plan.md) | 分阶段实现计划 |
 | [文档索引](docs/README.md) | 全部文档索引（中英文） |
@@ -264,13 +264,13 @@ If this project helps you, your support is welcome and appreciated!
 
 | 维度 | 开源版 | 商业版 |
 |------|--------|--------|
-| 功能覆盖 | 115 控制器 / 65 模型 / 73 表 / 311 路由；预约、订单、支付退款、会员、营销、技师、报表 | 143 / 87 / 95 / 479；额外社区内容、培训考试、排队候补/电子签名、发票工单、余额积分转赠、满减/秒杀/转盘、Flutter 用户端 |
+| 功能覆盖 | 124 控制器 / 65 模型 / 73 表 / 309 路由；预约、订单、支付退款、会员、营销、技师、报表 | 143 / 87 / 95 / 479；额外社区内容、培训考试、排队候补/电子签名、发票工单、余额积分转赠、满减/秒杀/转盘、Flutter 用户端（仅商业版提供，开源版不包含） |
 | 安全防护 | 5 个 service + 7 个 admin 中间件；JWT、RBAC、操作审计、34 类 security-php 检测器、Hashids/字段加密；登录 5 次失败锁 15 分钟、单用户最多 3 个有效 token | 同一套中间件与检测器、同样的锁定/会话/加密/审计策略；多 28 个控制器、166 条路由，权限点与审计面更大 |
 | 性能与规模 | 7 个 service 常驻进程 + 3 个 admin 进程；Redis 缓存/限流/队列、ES/Scout 同步、定时器 | 进程与缓存架构一致；Redis 使用点略多（65 vs 58 个文件）；模块更多，商业流量需另行压测 |
 | 数据与检索 | 73 张表；MySQL + Redis + Elasticsearch（webman-scout）；共享代码使用唯一键/行锁/幂等 | 95 张表；同样的 MySQL+Redis+ES 组合；幂等与锁策略共享 |
-| 测试与质量 | 93 个测试文件 / 665 个用例；1 条 CI 工作流 4 个 job | 109 个文件 / 762 个用例（README 称 757）；同一 CI 结构 |
+| 测试与质量 | 96 个测试文件 / 675 个用例；1 条 CI 工作流 4 个 job | 109 个文件 / 762 个用例（README 称 757）；同一 CI 结构 |
 | 部署与运维 | admin/service 各 10 个 compose 服务；安装向导、健康检查、Prometheus、备份脚本 | 相同拓扑与 10+10 compose 服务；文档更完整（425 vs 82 个文件） |
-| 多端与国际化 | 微信小程序 + PC 管理端（Flutter/微信小程序/HarmonyOS 管理端）；后端消息 en/zh_CN | 增加 Flutter 用户端（16 页）；文档 12 语言；运行时消息同为 en/zh_CN；HarmonyOS 用户端目录当前无源码 |
+| 多端与国际化 | 微信小程序 + PC 管理端（Flutter/微信小程序/HarmonyOS 管理端）；后端消息 en/zh_CN | 增加 Flutter 用户端（16 页）；文档中/英双语；运行时消息同为 en/zh_CN；HarmonyOS 用户端目录当前无源码 |
 | 扩展性与二次开发 | /api/v1 版本化、模块化 controller/model、队列/事件/定时器；82 份文档 | 同一扩展机制；更多业务模块与 425 份文档，可作为完整业务参考实现 |
 | 授权与商业支持 | 仅个人学习/研究；商业使用需书面授权 | 商业授权、交付与支持；联系 erik@erik.xyz |
 | 适用场景 | 学习、研究、小规模自建 | 商业部署、多门店/多业务、需要完整营销/票据/客户端 |

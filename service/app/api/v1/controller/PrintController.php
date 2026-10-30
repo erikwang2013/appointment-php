@@ -8,6 +8,7 @@ namespace app\api\v1\controller;
 use app\common\BaseController;
 use app\common\BluetoothPrintService;
 use app\model\Order;
+use app\model\TechnicianProfile;
 use Webman\Http\Request;
 
 /**
@@ -23,6 +24,19 @@ class PrintController extends BaseController
     public function __construct()
     {
         $this->printService = new BluetoothPrintService();
+    }
+
+    /**
+     * 订单可见性：下单用户本人或订单所属技师
+     * Order.technician_id 存 TechnicianProfile.id，技师需按 user_id 反查档案
+     */
+    private function canAccessOrder(Order $order, mixed $userId): bool
+    {
+        if ((string) $order->user_id === (string) $userId) {
+            return true;
+        }
+        $profile = TechnicianProfile::where('user_id', $userId)->first();
+        return $profile !== null && (string) $order->technician_id === (string) $profile->id;
     }
 
     /**
@@ -52,11 +66,11 @@ class PrintController extends BaseController
             return $this->error('订单不存在', 404);
         }
 
-        if ($order->user_id !== $userId && $order->technician_id !== $userId) {
+        if (!$this->canAccessOrder($order, $userId)) {
             return $this->error('无权打印此订单', 403);
         }
 
-        $result = $this->printService->printReceipt($orderId);
+        $result = $this->printService->printReceipt((string) $orderId);
 
         if (isset($result['error'])) {
             return $this->error($result['error']);
@@ -90,11 +104,11 @@ class PrintController extends BaseController
             return $this->error('订单不存在', 404);
         }
 
-        if ($order->user_id !== $userId && $order->technician_id !== $userId) {
+        if (!$this->canAccessOrder($order, $userId)) {
             return $this->error('无权预览此订单', 403);
         }
 
-        $result = $this->printService->previewReceipt($orderId);
+        $result = $this->printService->previewReceipt((string) $orderId);
 
         if (isset($result['error'])) {
             return $this->error($result['error']);

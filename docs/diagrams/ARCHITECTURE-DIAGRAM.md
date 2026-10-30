@@ -5,7 +5,6 @@
 graph TB
     subgraph 用户终端层["用户终端层"]
         WX["微信小程序<br/>apps/wechat/<br/>原生 WXML/WXSS/JS"]
-        APP["Flutter APP<br/>apps/flutter/<br/>iOS + Android<br/>GetX + Dio"]
     end
 
     subgraph 业务服务层["业务服务层 :8787"]
@@ -30,11 +29,13 @@ graph TB
         MW2["中间件链<br/>Cors → Security → RateLimit → AdminAuth → RBAC → OperationLog"]
         ADMIN_API["管理API<br/>admin/controller/<br/>仪表盘/用户/技师/门店/服务<br/>订单/优惠券/会员卡/提现/评价<br/>报表/财务/内容/设置"]
         FLUTTER_WEB["Flutter Web 前端<br/>admin/apps/flutter/<br/>PC管理后台界面"]
-        MODEL["模型共享<br/>admin/app/model<br/>39 个 symlink<br/>→ service/app/model 同一实现"]
+        WX_ADMIN["微信管理端<br/>admin/apps/weixin/"]
+        HARMONY["HarmonyOS 管理端<br/>admin/apps/harmonyos/"]
+        MODEL["模型共享<br/>admin/app/model<br/>59 个共享模型<br/>→ service/app/model 同一实现"]
     end
 
     subgraph 数据层["数据层"]
-        MySQL[("MySQL 8.0<br/>55+ 表 · appointment_ 前缀<br/>BIGINT Snowflake 主键")]
+        MySQL[("MySQL 8.0<br/>73 表 · appointment_ 前缀<br/>BIGINT Snowflake 主键")]
         Redis[("Redis<br/>缓存/限流/Session<br/>队列/技师锁<br/>svc:* 列表缓存")]
         ES[("Elasticsearch<br/>全文检索<br/>webman-scout 自动同步")]
     end
@@ -54,11 +55,12 @@ graph TB
         POSTER["操作验证<br/>敏感操作随机验证"]
     end
 
-    WX -->|"HTTP API<br/>功能等价"| MW1
-    APP -->|"HTTP API<br/>功能等价"| MW1
+    WX -->|"HTTP API"| MW1
     MW1 --> API模块
 
     FLUTTER_WEB -->|"HTTP API"| MW2
+    WX_ADMIN -->|"HTTP API"| MW2
+    HARMONY -->|"HTTP API"| MW2
     MW2 --> ADMIN_API
 
     API模块 --> MySQL
@@ -81,9 +83,9 @@ graph TB
     classDef external fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#4a148c
     classDef security fill:#fff8e1,stroke:#f9a825,stroke-width:2px,color:#f57f17
 
-    class WX,APP terminal
+    class WX terminal
     class MW1,API模块,PUB,USER,TECH,SVC,ORD,MKT,WALLET,CTN,LBS,CACHE,RES service
-    class MW2,ADMIN_API,FLUTTER_WEB,MODEL admin
+    class MW2,ADMIN_API,FLUTTER_WEB,WX_ADMIN,HARMONY,MODEL admin
     class MySQL,Redis,ES data
     class WXPAY,SMS,MAP,OSS,SUBMSG external
     class SEC,JWT,ENC,POSTER security

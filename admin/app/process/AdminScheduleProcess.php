@@ -7,6 +7,7 @@ declare(strict_types=1);
 
 namespace app\process;
 
+use app\admin\controller\ExportController;
 use app\admin\controller\ScheduledTaskController;
 use support\Log;
 use support\Request;
@@ -41,6 +42,11 @@ class AdminScheduleProcess
             });
         });
 
+        // 每小时：清理 runtime/tmp 导出临时文件（register_shutdown_function 仅在 worker 退出时触发）
+        Timer::add(3600, function (): void {
+            $this->cleanTempFiles();
+        });
+
         // 每日 03:00：技师收益自动结算
         $toNextSettle = $this->secondsToNextDailyRun(3, 0);
         Timer::add($toNextSettle, function (): void {
@@ -58,6 +64,20 @@ class AdminScheduleProcess
     {
         $this->safeRun('expireCoupons', 'expire_coupons');
         $this->safeRun('expireMemberCards', 'expire_member_cards');
+    }
+
+    /**
+     * 每小时任务：清理 runtime/tmp 中超过 1 小时的导出临时文件
+     * （覆盖 export/exportSchedules/exportAttendance 等 register_shutdown_function 兜底不生效的场景）
+     */
+    private function cleanTempFiles(): void
+    {
+        try {
+            $count = ExportController::cleanStaleFiles();
+            Log::info("[AdminScheduleProcess] clean_stale_files 清理 {$count} 个文件");
+        } catch (\Throwable $e) {
+            Log::error('[AdminScheduleProcess] clean_stale_files 执行失败: ' . $e->getMessage());
+        }
     }
 
     /**

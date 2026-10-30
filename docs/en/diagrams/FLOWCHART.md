@@ -21,20 +21,19 @@ flowchart TD
     M -->|"Zero yuan"| N["FREE pass-through<br/>transaction_id = 'FREE'+payment no.<br/>order → paid"]
     M -->|"Balance payment"| B1["Deduct wallet balance<br/>wallet_txn recorded<br/>order → paid"]
     M -->|"Amount > 0"| O{"Payment method"}
-    O -->|"WeChat"| OW["Call WeChat Pay<br/>pay_lock prevents concurrent duplicate payment"]
+    O -->|"WeChat"| OW["Call WeChat Pay<br/>order_lock:{id} prevents concurrent duplicate payment"]
     O -->|"Balance"| B1
     OW --> P{"Payment result"}
     B1 --> S
     P -->|"Success"| Q["Payment success callback consumed<br/>markOrderPaid single consumption point<br/>atomic coupon/session-card deduction<br/>order → paid"]
-    P -->|"Failed/cancelled"| R["Order stays pending<br/>auto-cancelled after 15 minutes"]
-    N --> S["Technician confirms service start"]
+    P -->|"Failed/cancelled"| R["Order stays pending<br/>auto-cancelled after 30 minutes"]
+    N --> S["Technician scans QR / confirms start<br/>paid or confirmed → serving"]
     Q --> S
     S --> T["Order → serving"]
-    T --> U["Service completed"]
-    U --> V["Technician scans QR to verify"]
-    V --> W["Order → completed"]
-    W --> X["User review (text + images)"]
-    X --> Y["Order → reviewed ✅"]
+    T --> U["Technician completes service"]
+    U --> W["Order → completed"]
+    W --> X["User review (separate record)"]
+    X --> Y["Order stays completed ✅"]
 
     style A fill:#e3f2fd,stroke:#1565c0,color:#333
     style Y fill:#c8e6c9,stroke:#2e7d32,color:#333
@@ -48,7 +47,7 @@ flowchart TD
 ```mermaid
 flowchart TD
     subgraph 支付流程["Forward payment flow"]
-        P1["Create payment record"] --> P2["WeChat unified order<br/>pay_lock prevents concurrency<br/>out_trade_no = order_no idempotent"]
+        P1["Create payment record"] --> P2["WeChat unified order<br/>order_lock:{id} prevents concurrency<br/>out_trade_no = order_no idempotent"]
         P2 --> P3["Frontend initiates payment<br/>select payment method"]
         P3 -->|"Balance"| PB["Deduct wallet balance<br/>wallet_txn recorded<br/>idempotent, deducted only once"]
         P3 -->|"WeChat"| P4["WeChat callback notify"]
@@ -59,14 +58,14 @@ flowchart TD
     end
 
     subgraph 退款流程["Refund flow"]
-        R1["User applies for refund<br/>refund_lock prevents concurrency"] --> R2{"Refund rule check"}
-        R2 -->|"Ordered ≤15min or >6h before start"| R3["Refund 100%"]
-        R2 -->|"≤6h before start"| R4["Refund 90%"]
-        R2 -->|"Started but not confirmed"| R5["Refund 80%"]
-        R2 -->|"After service confirmed"| R6["No refund"]
+        R1["User applies for refund<br/>order_lock:{id} prevents concurrency"] --> R2{"Refund rule check"}
+        R2 -->|"Ordered ≤15min or >6h before service"| R3["Refund 100%"]
+        R2 -->|"≤6h before service"| R4["Refund 90%"]
+        R2 -->|"Started/time passed/confirmed/serving/completed"| R5["No refund 0%"]
+        R2 -->|"Product or no service time"| R6["Refund 100%"]
         R3 --> R7["Order → refunding"]
         R4 --> R7
-        R5 --> R7
+        R6 --> R7
         R7 --> R8["Two-level approval<br/>store manager → finance"]
         R8 --> R9["Two-stage refund<br/>refund record inside transaction<br/>WeChat refund IO outside transaction"]
         R9 -->|"WeChat failed"| R10["Roll back order to PAID<br/>refund retryable"]
@@ -74,7 +73,7 @@ flowchart TD
     end
 
     style P6 fill:#c8e6c9,stroke:#2e7d32,color:#333
-    style R6 fill:#ffcdd2,stroke:#c62828,color:#333
+    style R5 fill:#ffcdd2,stroke:#c62828,color:#333
     style R11 fill:#c8e6c9,stroke:#2e7d32,color:#333
     style R10 fill:#fff9c4,stroke:#f9a825,color:#333
 ```

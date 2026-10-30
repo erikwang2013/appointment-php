@@ -9,20 +9,18 @@ stateDiagram-v2
 
     pending --> paid: payment success<br/>(WeChat/balance/free three channels)
 
-    pending --> cancelled: timeout cancel (15min)<br/>user-initiated cancel
+    pending --> cancelled: timeout cancel (30min)<br/>user-initiated cancel
 
-    paid --> confirmed: technician confirms order<br/>callback atomic consumption<br/>coupon deducted/session card used
     paid --> cancelled: user cancels<br/>(per refund rules)
     paid --> refunding: user applies for refund
     paid --> aftersale: after-sales application<br/>(refund/exchange)
 
-    confirmed --> serving: service starts
+    paid --> serving: technician scans/confirms start<br/>coupon/session card consumed atomically
 
-    serving --> completed: service completed + verified<br/>session card usage deducted
+    serving --> completed: technician completes service
 
-    serving --> refunding: abnormal refund<br/>(80%)
+    serving --> refunding: abnormal refund<br/>(0%)
 
-    completed --> reviewed: user review
     completed --> aftersale: after-sales application<br/>(refund/exchange)
 
     refunding --> refunded: approved<br/>original route refund/balance credit<br/>coupon returned + points clawed back
@@ -32,13 +30,14 @@ stateDiagram-v2
     aftersale --> paid: rejected
     aftersale --> [*]: approved-exchange<br/>status flow complete
 
-    reviewed --> [*]
     cancelled --> [*]
     refunded --> [*]
 
-    note right of pending: technician locked for 3 minutes
+    note right of pending: technician lock 3 minutes<br/>unpaid orders auto-cancel after 30 minutes
     note right of refunding: store manager → finance two-level approval
 ```
+
+> Successful payment lands on `paid`; `confirmed` is a valid compatibility state (historical data/admin), and both `paid` and `confirmed` can enter `serving` via technician verification/start. There is no `reviewed` status: reviews are a separate record and the order stays `completed`.
 
 ## 2. Member Card Lifecycle
 

@@ -12,7 +12,6 @@ use app\model\Product;
 use app\model\SystemConfig;
 use support\Request;
 use support\Response;
-use Illuminate\Support\Facades\DB;
 
 /**
  * 卡项设计控制器

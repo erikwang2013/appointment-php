@@ -46,7 +46,7 @@ appointment-php/
 ```
 admin/
 ├── app/
-│   ├── admin/controller/       # 管理端控制器
+│   ├── admin/controller/       # 管理端控制器（60）
 │   │   ├── BaseController          # 基础控制器
 │   │   ├── DashboardController     # 仪表盘
 │   │   ├── UserController          # 用户管理
@@ -110,7 +110,7 @@ admin/
 │   │   ├── AftersaleController      #   售后处理
 │   │   ├── OrderVerificationController # 核销记录
 │   │   └── InstallController        #   安装向导
-│   ├── api/v1/controller/      # 公开API v1
+│   ├── api/v1/controller/      # 公开API v1（2）
 │   │   ├── AuthController
 │   │   └── CaptchaController
 │   ├── common/                 # 公共工具
@@ -205,7 +205,7 @@ service/
 │   │   ├── PrivacyController       # 隐私合规（数据导出/注销）
 │   │   ├── VersionController       # APP版本管理/检测更新
 │   │   ├── WechatController        # 微信相关
-│   ├── user/v1/controller/      # 用户模块 v1（8 控制器）
+│   ├── user/v1/controller/      # 用户模块 v1（10 控制器）
 │   │   ├── ProfileController       # 个人信息/密码/手机/注销/登出
 │   │   ├── AddressController       # 地址CRUD(默认地址管理)
 │   │   ├── FavoriteController      # 收藏(服务/技师)
@@ -246,7 +246,7 @@ service/
 │   │   ├── WalletController        # 余额/充值/交易流水/余额支付
 │   ├── marketing/v1/controller/ # 营销模块 v1（7 控制器）
 │   │   ├── CouponController        # 优惠券列表/领取/下单抵扣
-│   │   ├── CardController          # 会员卡列表/购买/次卡 my/use
+│   │   ├── CardController          # 会员卡列表/次卡 my/use（等级卡购买走 member-cards/buy）
 │   │   ├── PointController         # 积分流水/消费回扣
 │   │   ├── GiftCardController      # 礼品卡/兑换 redeem
 │   │   ├── MemberBenefitController # 会员权益
@@ -433,7 +433,7 @@ apps/wechat/
 | 用户 | appointment_user_health_profile | 用户健康档案（第23轮） |
 | 系统 | appointment_app_version | APP版本（第24轮） |
 
-### 补充清单（docs/install.sql 95 表中未在上方列出的部分，完整权威清单以 install.sql 为准）
+### 补充清单（docs/install.sql 73 表中未在上方列出的部分，完整权威清单以 install.sql 为准）
 
 | 域 | 表名 | 说明 |
 |----|------|------|

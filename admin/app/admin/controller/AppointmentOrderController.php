@@ -7,9 +7,14 @@ declare(strict_types=1);
 
 namespace app\admin\controller;
 
+use app\common\PendingOrderCancelService;
+use app\common\ReferralRewardService;
+use app\common\ReturnCustomerRewardService;
 use app\model\Order;
 use app\model\OrderPayment;
 use app\model\OrderStatusLog;
+use support\Db;
+use support\Log;
 use support\Redis;
 use support\Request;
 use support\Response;
@@ -141,16 +146,15 @@ class AppointmentOrderController extends BaseController
             }
 
             $reason = $request->input('cancel_reason', '平台取消');
-            $fromStatus = $order->status;
-            $order->status        = 'cancelled';
-            $order->cancel_reason = $reason;
-            $order->cancel_at     = date('Y-m-d H:i:s');
-            $order->save();
 
-            // 状态时间线：→ cancelled（平台取消）
-            OrderStatusLog::record((string) $order->id, $fromStatus, 'cancelled', $reason, 'admin');
+            // 复用统一取消流程：事务内行锁复检 + 退积分 + 释放技师排班/锁 + 通知/时间线/TTL
+            if (!PendingOrderCancelService::cancelLocked($order, $reason, $reason, 'admin')) {
+                return $this->fail('取消失败或订单状态已变化', 422);
+            }
 
-            return $this->success($order->toArray(), '订单已取消');
+            $order = Order::find($id);
+
+            return $this->success($order ? $order->toArray() : [], '订单已取消');
         } finally {
             $this->releaseLock($lockKey, $lockToken);
         }
@@ -195,18 +199,47 @@ class AppointmentOrderController extends BaseController
             return $this->fail('订单不存在', 404);
         }
 
-        if (!in_array($order->status, ['serving', 'paid', 'confirmed'], true)) {
-            return $this->fail('当前状态不可完成', 422);
+        // 与用户退款共用 order_lock；行锁 + 事务内状态复检，防止退款/完成互相覆盖
+        $lockKey   = 'order_lock:' . $order->id;
+        $lockToken = $this->acquireLock($lockKey);
+        if ($lockToken === null) {
+            return $this->fail('操作处理中，请稍后再试', 422);
         }
 
-        $fromStatus = $order->status;
-        $order->status          = 'completed';
-        $order->service_end_at   = date('Y-m-d H:i:s');
-        $order->save();
+        try {
+            $result = Db::transaction(function () use ($id) {
+                $locked = Order::where('id', $id)->lockForUpdate()->first();
+                if (!$locked || !in_array($locked->status, ['serving', 'paid', 'confirmed'], true)) {
+                    return null;
+                }
 
-        // 状态时间线：→ completed（平台确认完成）
-        OrderStatusLog::record((string) $order->id, $fromStatus, 'completed', '平台确认完成', 'admin');
+                $fromStatus = $locked->status;
+                $locked->status          = 'completed';
+                $locked->service_end_at   = date('Y-m-d H:i:s');
+                $locked->save();
+                // 完成奖励：与技师端/自动完成同口径（同事务、幂等，失败整体回滚可重试）
+                ReferralRewardService::handleOrderCompleted($locked);
+                ReturnCustomerRewardService::handleOrderCompleted($locked);
 
-        return $this->success($order->toArray(), '订单已完成');
+                return ['order' => $locked, 'from' => $fromStatus];
+            });
+
+            if ($result === null) {
+                return $this->fail('当前状态不可完成', 422);
+            }
+
+            // 状态时间线：→ completed（平台确认完成；写日志失败不影响已提交的完成）
+            try {
+                OrderStatusLog::record((string) $result['order']->id, $result['from'], 'completed', '平台确认完成', 'admin');
+            } catch (\Throwable $e) {
+                Log::warning('[AppointmentOrderController] complete timeline failed: ' . $e->getMessage());
+            }
+
+            return $this->success($result['order']->toArray(), '订单已完成');
+        } catch (\Throwable $e) {
+            return $this->fail('订单完成失败，请稍后重试', 422);
+        } finally {
+            $this->releaseLock($lockKey, $lockToken);
+        }
     }
 }

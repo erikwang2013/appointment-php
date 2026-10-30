@@ -18,10 +18,10 @@ System Config → fill in platform name/LOGO → About Us → customer service p
 Store Management → add store (name/address/coordinates/phone/hours) → Service Categories → create category → Service Items → add service (name/price/duration/specs) → Product Management → add products/cards
 
 ### 3. Technician Onboarding
-Technician applies via APP → reviewed in admin "Technician Management" → after approval, technician sets schedule → can receive appointments
+Technician applies in the Mini Program → reviewed in admin "Technician Management" → after approval, enters the technician workbench and sets schedule → can receive appointments
 
 ### 4. Operations Config
-Banner → upload + set redirect | Announcements → publish scrolling notices | Coupons → create new-user coupons/discount coupons | Member Cards → monthly/VIP/session cards | Commission → set technician commission rates
+Banner → upload + set redirect | Announcements → publish scrolling notices | Coupons → create new-user coupons/fixed-amount coupons | Member Cards → monthly/VIP/session cards | Commission → set technician commission rates
 
 ---
 
@@ -118,10 +118,10 @@ APP device registration: `POST /api/v1/user/device/register {"platform":"ios","d
 
 | Condition | Ratio |
 |-----------|-------|
-| Within 15 min of ordering or > 6h before start | 100% |
-| ≤ 6h before start | 90% |
-| Started but not confirmed | 80% |
-| After confirmed start | 0% |
+| Within 15 min of ordering or > 6h before service | 100% |
+| ≤ 6h before service | 90% |
+| Service started, service time passed, or status is confirmed/serving/completed | 0% |
+| Product orders or bookings without a service time | 100% |
 
 ---
 

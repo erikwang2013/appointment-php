@@ -28,6 +28,7 @@ class WechatPayService
     private const UNIFIED_ORDER_URL = 'https://api.mch.weixin.qq.com/pay/unifiedorder';
     private const ORDER_QUERY_URL   = 'https://api.mch.weixin.qq.com/pay/orderquery';
     private const REFUND_URL        = 'https://api.mch.weixin.qq.com/secapi/pay/refund';
+    private const REFUND_QUERY_URL  = 'https://api.mch.weixin.qq.com/pay/refundquery';
     private const TRANSFER_URL      = 'https://api.mch.weixin.qq.com/mmpaymkttransfers/promotion/transfers';
 
     public function __construct()
@@ -53,6 +54,14 @@ class WechatPayService
         $this->alipayAppId     = $alipayConfigs['app_id'] ?? ($alipayEnv['app_id'] ?? '');
         $this->alipayPublicKey = $alipayConfigs['alipay_public_key'] ?? ($alipayEnv['alipay_public_key'] ?? '');
         $this->alipayMd5Key    = $alipayConfigs['md5_key'] ?? ($alipayEnv['md5_key'] ?? '');
+    }
+
+    /**
+     * 微信支付关键配置是否完整（用于区分“未配置/测试环境”与真实预支付）
+     */
+    public function isConfigured(): bool
+    {
+        return $this->appId !== '' && $this->mchId !== '' && $this->apiKey !== '';
     }
 
     /**
@@ -230,6 +239,53 @@ class WechatPayService
         return [
             'refund_id' => $result['refund_id'] ?? '',
             'result'    => $result,
+        ];
+    }
+
+    /**
+     * 查询退款
+     *
+     * 以商户退款单号查询微信侧退款状态（refundquery 无需证书）
+     *
+     * @param string $outRefundNo 商户退款单号
+     * @return array{success: bool, refund_status: string, result: array}|array{error: string}
+     */
+    public function queryRefund(string $outRefundNo): array
+    {
+        $data = [
+            'appid'         => $this->appId,
+            'mch_id'        => $this->mchId,
+            'nonce_str'     => $this->generateNonceStr(),
+            'out_refund_no' => $outRefundNo,
+        ];
+
+        $data['sign'] = $this->sign($data);
+
+        $xml  = $this->arrayToXml($data);
+        $resp = $this->postXml(self::REFUND_QUERY_URL, $xml);
+
+        if (empty($resp)) {
+            return ['error' => '微信退款查询无响应'];
+        }
+
+        $result = $this->xmlToArray($resp);
+
+        if (($result['return_code'] ?? '') !== 'SUCCESS') {
+            return ['error' => $result['return_msg'] ?? '退款查询失败'];
+        }
+
+        if (($result['result_code'] ?? '') !== 'SUCCESS') {
+            return ['error' => $result['err_code_des'] ?? '退款查询失败'];
+        }
+
+        if (!$this->verifySign($result)) {
+            return ['error' => '签名验证失败'];
+        }
+
+        return [
+            'success'       => true,
+            'refund_status' => (string) ($result['refund_status_0'] ?? ''),
+            'result'        => $result,
         ];
     }
 
@@ -598,16 +654,30 @@ class WechatPayService
                 return ['success' => true, 'message' => 'OK'];
             }
 
-            $order = \app\model\Order::find($payment->order_id);
+            // 行锁：与取消/退款/批量关单串行，防止并发取消后退回 pending 又写 paid
+            $order = \app\model\Order::where('id', $payment->order_id)->lockForUpdate()->first();
 
-            // 金额强比对（转分，防浮点误差/跨单错配/篡改回调）：回调实付必须等于订单应付，
-            // 否则拒绝且不改支付状态（充值分支 handleRechargeNotify 已有同等比对）
-            $dueAmount = $order ? (float) $order->paid_amount : (float) $payment->amount;
-            if ($totalFee > 0 && Money::toFen($totalFee) !== Money::toFen($dueAmount)) {
+            // 已取消订单迟到支付：不参与金额比对，直接按实收金额自动退款（并退积分）
+            if ($order && $order->status === \app\model\Order::STATUS_CANCELLED && $totalFee > 0) {
                 \support\Db::rollBack();
-                Log::error('[WechatPay markOrderPaid] amount mismatch, out_trade_no: ' . $outTradeNo
-                    . ', callback total_fee: ' . $totalFee . ', order paid_amount: ' . $dueAmount);
-                return ['success' => false, 'message' => '回调金额与订单应付不一致'];
+                return $this->autoRefundCancelledOrder($payment, $order, $transactionId, $totalFee);
+            }
+
+            // 金额比对（转分）：待支付订单若收到更高的已签名回调（旧版本改动金额前的 prepay），
+            // 以微信实收为准入账并退还可能的积分抵扣，避免用户被扣款却无法入账；低于应付仍拒绝。
+            $dueAmount = (float) $payment->amount;
+            if ($totalFee > 0 && Money::toFen($totalFee) !== Money::toFen($dueAmount)) {
+                if ($order && $order->status === \app\model\Order::STATUS_PENDING
+                    && Money::toFen($totalFee) > Money::toFen($dueAmount)) {
+                    Log::warning('[WechatPay markOrderPaid] overpayment accepted, out_trade_no: ' . $outTradeNo
+                        . ', callback total_fee: ' . $totalFee . ', payment amount: ' . $dueAmount);
+                    \app\model\UserPoints::refundOrderOffset($order, true);
+                } else {
+                    \support\Db::rollBack();
+                    Log::error('[WechatPay markOrderPaid] amount mismatch, out_trade_no: ' . $outTradeNo
+                        . ', callback total_fee: ' . $totalFee . ', payment amount: ' . $dueAmount);
+                    return ['success' => false, 'message' => '回调金额与订单应付不一致'];
+                }
             }
 
             // 幂等：订单已非 pending（如已取消/已退款），不再消费与改状态
@@ -746,6 +816,12 @@ class WechatPayService
      */
     private function autoRefundCancelledOrder($payment, $order, string $transactionId, float $totalFee): array
     {
+        // 余额支付没有微信交易，不能走微信退款；返回失败让 doBalancePay 回滚钱包扣款
+        if ($payment->pay_type === 'balance') {
+            Log::warning('[WechatPay autoRefundCancelledOrder] balance payment on cancelled order, order_no: ' . $order->order_no);
+            return ['success' => false, 'message' => '订单已取消，余额支付已回滚'];
+        }
+
         // 阶段一：事务内支付记录置 success + 建退款单(pending)
         try {
             \support\Db::beginTransaction();
@@ -765,6 +841,8 @@ class WechatPayService
                 'reason'     => '订单已取消，自动全额退款',
                 'status'     => \app\model\OrderRefund::STATUS_PENDING,
             ]);
+            // 取消后迟到支付：现金自动退款，同时退还支付尝试中已扣的积分抵扣（幂等）
+            \app\model\UserPoints::refundOrderOffset($order, true);
             \support\Db::commit();
         } catch (\Throwable $e) {
             \support\Db::rollBack();

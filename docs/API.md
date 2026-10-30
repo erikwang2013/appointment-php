@@ -3,8 +3,8 @@
 
 ## 概述
 
-- **业务API** (service/): `http://localhost:8787` — 为小程序/APP提供业务接口
-- **管理后台API** (admin/): `http://localhost:8787` — 为管理后台Flutter Web提供接口
+- **业务API** (service/): `http://localhost:8787` — 为微信小程序提供业务接口
+- **管理后台API** (admin/): `http://localhost:8787` — 为管理后台（Flutter Web/微信/HarmonyOS）提供接口
 - **认证方式**: Bearer Token (JWT), 请求头 `Authorization: Bearer <token>`
 - **版本控制**: 版本固化在 URL 路径前缀 `/api/v1` 中（如 `POST /api/v1/auth/login`），URL 不带版本前缀即 404
 - **ID编码**: 所有请求/响应中的ID字段使用hashids编码，对外隐藏真实数据库ID
@@ -390,13 +390,17 @@
 | POST | `/api/v1/order/review/{order_id}` | 提交评价 (rating 1-5/content/images)（第19轮补注册） |
 | POST | `/api/v1/order/review/{order_id}/append` | 评价追评 (content/images 逗号分隔)（第19轮） |
 
-**订单状态**: pending(待支付) → paid(已支付) → confirmed(已确认) → serving(服务中) → completed(已完成)
+**订单状态**: pending(待支付) → paid(已支付) → serving(服务中) → completed(已完成)；`confirmed`(已确认) 为兼容状态，`paid` 与 `confirmed` 均可进入 `serving`；不存在 `reviewed` 状态，评价是独立记录，不改变订单状态。
 
 **创建订单时**: Redis SETNX 锁定技师3分钟，退出页面或超时释放。
 
-**价格防篡改（2026-08-26）**: 订单项金额一律以数据库记录为准（target_type=service 查 appointment_service、product 查 appointment_product），客户端传价不参与计算；未知 target_type 422；target_id 必须传 hashid 编码值（传 raw id 解码为 0 → 422「商品不存在或已下架」）；拼团价同样以 DB 为准。
+**待支付超时**: 下单后 30 分钟内未支付自动取消（`AutoCancelTimer`，`PENDING_TIMEOUT = 1800`）。
 
-**退款规则**: 下单15min内或距开始>6h退100% / ≤6h退90% / 已开始退80% / 确认开始后不退。
+**并发控制**: 支付/取消/退款/支付回调/自动取消/核销/改期/技师开始与完成统一使用 Redis 锁 `order_lock:{id}`，防止重复支付与状态竞争。
+
+**价格防篡改（2026-08-26）**: 订单项金额、名称、封面一律以数据库记录为准（target_type=service 查 appointment_service、product 查 appointment_product），客户端传值不参与计算；未知 target_type 422；target_id 必须传 hashid 编码值（传 raw id 解码为 0 → 422「商品不存在或已下架」）；拼团价同样以 DB 为准。
+
+**退款规则**: 下单后15min内 100% / 距服务开始>6h 100% / ≤6h 90% / 已开始、已过服务时间、confirmed/serving/completed 0% / 商品类或无服务时间 100%。
 
 **优惠券抵扣**: 创建订单可选传 user_coupon_id（hashid）。错误码: 他人券 404、门槛不足/已过期/已下架/已使用 422、非法 hashid 422。抵扣两段式：下单时 PriceCalculator.applyCoupon 只读校验并计算抵扣金额写入 discount_amount；支付成功后 consume 将优惠券置为 used；退款时 restoreCouponAndCard 幂等归还。
 
@@ -447,10 +451,12 @@
 |------|------|------|
 | GET | `/api/v1/marketing/coupons` | 优惠券列表 (?status=available/used/expired) |
 | POST | `/api/v1/marketing/coupons/receive` | 领取优惠券 (coupon_id) |
-| GET | `/api/v1/marketing/cards` | 会员卡列表 |
-| POST | `/api/v1/marketing/cards/buy` | 购买会员卡 (card_id) |
+| GET | `/api/v1/marketing/cards` | 卡项列表（含次卡） |
 | GET | `/api/v1/marketing/cards/my` | 我的次卡列表 |
 | POST | `/api/v1/marketing/cards/use` | 核销次卡 (user_card_id/service_id/remark?) |
+| GET | `/api/v1/marketing/member-cards` | 会员卡等级列表（不含次卡） |
+| POST | `/api/v1/marketing/member-cards/buy` | 购买会员卡（余额支付，card_id） |
+| GET | `/api/v1/marketing/member-cards/my` | 我的会员卡 |
 | GET | `/api/v1/marketing/gift-cards` | 礼品卡列表 |
 | GET | `/api/v1/marketing/gift-cards/my` | 我的礼品卡 (redeem记录) |
 | POST | `/api/v1/marketing/gift-cards/redeem` | 兑换礼品卡 (cash类型兑换后充值钱包余额) |

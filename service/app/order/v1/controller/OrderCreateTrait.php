@@ -12,8 +12,11 @@ use app\model\Order;
 use app\model\OrderItem;
 use app\model\OrderPayment;
 use app\model\OrderVerification;
+use app\model\Product;
 use app\model\Promotion;
 use app\model\PromotionParticipant;
+use app\model\Service;
+use app\model\ServicePackage;
 use app\model\UserGrowth;
 use support\Db;
 use support\Log;
@@ -162,22 +165,45 @@ trait OrderCreateTrait
         foreach ($items as $item) {
             $targetType = $item['target_type'] ?? 'service';
             $targetId   = $item['target_id'] ?? 0;
-            $name       = $item['name'] ?? '';
-            $coverImage = $item['cover_image'] ?? '';
-            $price      = (float)($item['price'] ?? 0);
-            $quantity   = (int)($item['quantity'] ?? 1);
+            $quantity   = max(1, (int)($item['quantity'] ?? 1));
             $specInfo   = $item['spec_info'] ?? null;
 
-            if (empty($name) || $price <= 0) {
-                return $this->error('订单项信息不完整');
+            if (!in_array($targetType, ['service', 'product', 'package'], true)) {
+                return $this->error('订单项类型无效', 422);
+            }
+
+            // 名称/封面/价格一律以库中记录为准，忽略客户端传值（防价格篡改）
+            $target = match ($targetType) {
+                'product' => Product::find($targetId),
+                'package' => ServicePackage::find($targetId),
+                default   => Service::find($targetId),
+            };
+            if (!$target || (int) $target->status !== 1) {
+                return $this->error('订单项不存在或已下架', 422);
+            }
+
+            $price = (float) $target->price;
+            // 服务规格价：spec_info.name 命中 specs 条目时取该规格价，否则用基础价
+            if ($targetType === 'service' && is_array($specInfo) && !empty($specInfo['name'])) {
+                foreach ((array) $target->specs as $spec) {
+                    if (is_array($spec)
+                        && (string)($spec['name'] ?? '') === (string) $specInfo['name']
+                        && is_numeric($spec['price'] ?? null)) {
+                        $price = (float) $spec['price'];
+                        break;
+                    }
+                }
+            }
+            if ($price <= 0) {
+                return $this->error('订单项价格异常', 422);
             }
 
             $orderItemsData[] = [
                 'id'          => OrderItem::generateId(),
                 'target_type' => $targetType,
-                'target_id'   => $targetId,
-                'name'        => $name,
-                'cover_image' => $coverImage,
+                'target_id'   => $target->id,
+                'name'        => (string) $target->name,
+                'cover_image' => (string) ($target->cover_image ?? ''),
                 'price'       => $price,
                 'quantity'    => $quantity,
                 'spec_info'   => $specInfo ? json_encode($specInfo, JSON_UNESCAPED_UNICODE) : null,
@@ -214,7 +240,8 @@ trait OrderCreateTrait
             }
 
             // 优惠计价引擎（互斥：次卡/券/积分 一次订单仅一种；内部全程按分计算）
-            $pricing = PriceCalculator::calculate($items, [
+            // 使用服务端组装的订单项（价格已按库中记录/规格校验），不信任客户端价格
+            $pricing = PriceCalculator::calculate($orderItemsData, [
                 'user_id'              => $userId,
                 'order_id'             => $orderId,
                 'coupon_id'            => $couponId,

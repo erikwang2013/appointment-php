@@ -13,6 +13,7 @@ use app\model\User;
 use app\model\UserPoints;
 use app\order\v1\controller\OrderController;
 use support\Container;
+use support\Redis;
 use Webman\Http\Request;
 use Webman\Http\Response;
 
@@ -37,6 +38,11 @@ class OrderPointsPayTest extends TestCase
     protected function tearDown(): void
     {
         foreach ($this->orderIds as $id) {
+            try {
+                Redis::connection()->del('order_prepay:' . $id);
+                Redis::connection()->del('order_lock:' . $id);
+            } catch (\Throwable) {
+            }
             UserPoints::where('order_id', $id)->delete();
             OrderPayment::where('order_id', $id)->delete();
             Order::where('id', $id)->delete();
@@ -192,5 +198,141 @@ class OrderPointsPayTest extends TestCase
         $this->assertNotNull($payment);
         $this->assertSame(100.0, (float) $payment->amount);
         $this->assertSame(0, UserPoints::where('order_id', $order->id)->count());
+    }
+
+    /** store 已创建的待支付记录（金额为抵扣前应付） */
+    private function makePendingPayment(Order $order, float $amount): OrderPayment
+    {
+        return OrderPayment::create([
+            'id'         => OrderPayment::generateId(),
+            'order_id'   => $order->id,
+            'payment_no' => OrderPayment::generatePaymentNo(),
+            'pay_type'   => 'wechat',
+            'amount'     => $amount,
+            'status'     => OrderPayment::STATUS_PENDING,
+        ]);
+    }
+
+    #[Test] public function existing_pending_payment_amount_is_reduced_by_points(): void
+    {
+        $user  = $this->makeUser();
+        $order = $this->makePendingOrder((string) $user->id, 30.0);
+        $this->makePendingPayment($order, 30.0);
+        $this->creditPoints((string) $user->id, 1000);
+
+        // 250 积分 → 抵扣 2 元，实付 28.00；实际消耗 200 积分
+        $resp = $this->pay((string) $user->id, $order, ['use_points' => 250]);
+
+        $this->assertNotSame(0, $resp['code'], json_encode($resp));
+        $this->assertStringContainsString('微信信息缺失', (string) $resp['message']);
+
+        $payment = OrderPayment::where('order_id', $order->id)->first();
+        $this->assertNotNull($payment);
+        $this->assertSame(28.0, (float) $payment->amount, '已存在的待支付记录应同步为抵扣后金额');
+        $this->assertSame(OrderPayment::STATUS_PENDING, $payment->status);
+
+        $txn = UserPoints::where('order_id', $order->id)->where('source', 'points_offset')->first();
+        $this->assertNotNull($txn);
+        $this->assertSame(-200, (int) $txn->points);
+    }
+
+    #[Test] public function retry_with_different_use_points_keeps_stored_offset(): void
+    {
+        $user  = $this->makeUser();
+        $order = $this->makePendingOrder((string) $user->id, 30.0);
+        $this->makePendingPayment($order, 30.0);
+        $this->creditPoints((string) $user->id, 1000);
+
+        $this->pay((string) $user->id, $order, ['use_points' => 250]);
+
+        // 重试改用 500 积分：仍按已落库流水（200 分 / 2 元）返回，不重复扣减、不改支付金额
+        $resp = $this->pay((string) $user->id, $order, ['use_points' => 500]);
+
+        $this->assertNotSame(0, $resp['code'], json_encode($resp));
+        $this->assertStringContainsString('微信信息缺失', (string) $resp['message']);
+
+        $payment = OrderPayment::where('order_id', $order->id)->first();
+        $this->assertNotNull($payment);
+        $this->assertSame(28.0, (float) $payment->amount, '重试不得按新 use_points 改金额');
+
+        $rows = UserPoints::where('order_id', $order->id)->where('source', 'points_offset')->get();
+        $this->assertCount(1, $rows);
+        $this->assertSame(-200, (int) $rows[0]->points, '重试不得重复扣减或改扣减额');
+    }
+
+    #[Test] public function retry_without_use_points_keeps_stored_offset(): void
+    {
+        $user  = $this->makeUser();
+        $order = $this->makePendingOrder((string) $user->id, 30.0);
+        $this->makePendingPayment($order, 30.0);
+        $this->creditPoints((string) $user->id, 1000);
+
+        $this->pay((string) $user->id, $order, ['use_points' => 250]);
+
+        // 重试不传 use_points：仍须沿用已落库的 200 分 / 2 元抵扣，不能把实付改回 30.00
+        $resp = $this->pay((string) $user->id, $order);
+
+        $this->assertNotSame(0, $resp['code'], json_encode($resp));
+        $this->assertStringContainsString('微信信息缺失', (string) $resp['message']);
+
+        $payment = OrderPayment::where('order_id', $order->id)->first();
+        $this->assertNotNull($payment);
+        $this->assertSame(28.0, (float) $payment->amount, '重试不带 use_points 仍按已扣积分抵扣');
+    }
+
+    #[Test] public function points_cannot_be_added_after_wechat_prepay_started(): void
+    {
+        $user  = $this->makeUser();
+        $order = $this->makePendingOrder((string) $user->id, 30.0);
+        $this->makePendingPayment($order, 30.0);
+        $this->creditPoints((string) $user->id, 1000);
+        // 模拟首次微信预下单已锁定 30.00
+        Redis::connection()->set('order_prepay:' . $order->id, '30.00', 'EX', 60);
+
+        $resp = $this->pay((string) $user->id, $order, ['use_points' => 250]);
+
+        $this->assertSame(422, $resp['code'], json_encode($resp));
+        $this->assertStringContainsString('不能追加积分抵扣', (string) $resp['message']);
+        $this->assertSame(0, UserPoints::where('order_id', $order->id)->where('source', 'points_offset')->count());
+        $payment = OrderPayment::where('order_id', $order->id)->first();
+        $this->assertNotNull($payment);
+        $this->assertSame(30.0, (float) $payment->amount, '已有预支付时不得改写金额');
+    }
+
+    #[Test] public function points_cannot_be_added_with_db_prepay_marker(): void
+    {
+        $user  = $this->makeUser();
+        $order = $this->makePendingOrder((string) $user->id, 30.0);
+        $payment = $this->makePendingPayment($order, 30.0);
+        $this->creditPoints((string) $user->id, 1000);
+        // 仅 DB marker（模拟 Redis 重启/evict 后回读）
+        $payment->transaction_id = 'PREPAY:30.00';
+        $payment->save();
+
+        $resp = $this->pay((string) $user->id, $order, ['use_points' => 250]);
+
+        $this->assertSame(422, $resp['code'], json_encode($resp));
+        $this->assertStringContainsString('不能追加积分抵扣', (string) $resp['message']);
+        $this->assertSame(0, UserPoints::where('order_id', $order->id)->where('source', 'points_offset')->count());
+    }
+
+    #[Test] public function concurrent_points_spend_is_rejected_by_user_lock(): void
+    {
+        $user  = $this->makeUser();
+        $order = $this->makePendingOrder((string) $user->id, 30.0);
+        $this->makePendingPayment($order, 30.0);
+        $this->creditPoints((string) $user->id, 1000);
+
+        // 模拟另一个订单/积分兑换正在消费同一用户积分
+        Redis::connection()->set('points_spend_lock:' . $user->id, 'other-request', 'EX', 10);
+
+        try {
+            $resp = $this->pay((string) $user->id, $order, ['use_points' => 250]);
+            $this->assertSame(422, $resp['code'], json_encode($resp));
+            $this->assertStringContainsString('积分处理中', (string) $resp['message']);
+            $this->assertSame(0, UserPoints::where('order_id', $order->id)->where('source', 'points_offset')->count());
+        } finally {
+            Redis::connection()->del('points_spend_lock:' . $user->id);
+        }
     }
 }

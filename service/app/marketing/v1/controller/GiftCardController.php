@@ -142,47 +142,4 @@ class GiftCardController extends BaseController
         ]);
     }
 
-    /**
-     * 创建礼品卡（管理后台用）
-     * POST /api/marketing/gift-cards/store
-     */
-    public function store(Request $request)
-    {
-        $type = $request->input('type', 'gift');
-        $amount = (float) $request->input('amount', 0);
-        $giftName = $request->input('gift_name', '');
-
-        if ($type === 'cash' && $amount <= 0) {
-            return $this->error('请输入有效金额');
-        }
-
-        if ($type === 'gift' && empty($giftName)) {
-            return $this->error('请输入礼品名称');
-        }
-
-        // 生成唯一兑换码
-        $code = strtoupper(substr(md5(uniqid((string) random_int(0, 99999), true)), 0, 12));
-        // appointment_gift_card.uk_code 唯一索引：兑换码禁止为空
-        if ($code === '') {
-            return $this->error('兑换码生成失败，请重试');
-        }
-
-        $giftCard = new GiftCard();
-        $giftCard->id = GiftCard::generateId();
-        $giftCard->code = $code;
-        $giftCard->type = $type;
-        $giftCard->amount = $type === 'cash' ? $amount : 0;
-        $giftCard->gift_name = $type === 'gift' ? $giftName : '';
-        $giftCard->status = 'unused';
-        $giftCard->save();
-
-        return $this->success([
-            'id' => $giftCard->id,
-            'code' => $giftCard->code,
-            'type' => $giftCard->type,
-            'amount' => $giftCard->amount,
-            'gift_name' => $giftCard->gift_name,
-            'status' => $giftCard->status,
-        ], '创建成功');
-    }
 }

@@ -23,7 +23,9 @@
 
 ## 3. PHP 测试覆盖
 
-**当前测试文件：93 个（service 68 / admin 25）。以下为历史全量结果：558 tests / 2508 assertions，0 失败 0 错误 0 skip**（2 既有 vendor deprecation、2 既有 PHPUnit notice，均非本轮引入；原 4 个提现门禁 skip 已通过 config('withdraw.gate_day') 可注入消除，全天可跑）
+**当前测试文件：96 个（service 70 / admin 26），共 675 个用例（service 525 / admin 150）。以下为 2026-08-26 历史全量结果：558 tests / 2508 assertions，0 失败 0 错误 0 skip**（2 既有 vendor deprecation、2 既有 PHPUnit notice，均非本轮引入；原 4 个提现门禁 skip 已通过 config('withdraw.gate_day') 可注入消除，全天可跑）
+
+> 2026-10-30 修复轮新增测试：`admin/tests/WechatPayServiceSyncTest.php`（admin/service 两份 WechatPayService 实现同步校验）、`service/tests/Unit/AutoCancelLockTest.php`（自动取消 order_lock 并发）、`service/tests/Unit/OrderPriceTamperTest.php`（客户端价格篡改被服务端 DB 价覆盖）。
 
 ### 本轮新增（tester-php，6 文件 32 用例，均真实 DB + 事务回滚）
 

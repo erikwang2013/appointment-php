@@ -1,7 +1,7 @@
 # Appointment Service System — Documentation Index
 > **Languages**: [中文](../README.md)
 
-> **Project status**: All complete ✅ | 115 controllers (service 53 / admin 62) | 65 models | 93 tests (service 68 / admin 25) | 73 database tables | 311 routes (service 173 / admin 138)
+> **Project status**: All complete ✅ | 124 controllers (service 62 / admin 62) | 65 models | 96 tests (service 70 / admin 26) | 73 database tables | 309 routes (service 171 / admin 138)
 
 ## Core Documentation
 
@@ -11,7 +11,7 @@
 | [FEATURES.md](FEATURES.md) | Features: complete feature list for user clients + technician workbench + admin dashboard |
 | [ARCHITECTURE-DESIGN.md](ARCHITECTURE-DESIGN.md) | Architecture design: layered architecture, middleware design, database design, security design, ES integration |
 | [FEATURE-DESIGN.md](FEATURE-DESIGN.md) | Feature design: purchase flow, order state machine, refund rules, membership card design, identity switching |
-| [STRUCTURE.md](STRUCTURE.md) | Project structure: full directory layout of the four clients, middleware execution chain, database table list |
+| [STRUCTURE.md](STRUCTURE.md) | Project structure: full directory layout of the client and admin apps, middleware execution chain, database table list |
 | [INSTALL.md](INSTALL.md) | Installation: Web install wizard, manual installation, Docker deployment, environment variables, FAQ |
 | [USAGE.md](USAGE.md) | Usage: admin dashboard / user clients / technician operations (API endpoints in [API.md](API.md)) |
 | [API.md](API.md) | API documentation: business API + admin API, with request/response examples + OpenAPI endpoints |
@@ -36,7 +36,7 @@ All diagrams live in [diagrams/](diagrams/). Only Chinese (`cn-*`) and English (
 
 | Document | Description |
 |------|------|
-| [TEST-REPORT.md](TEST-REPORT.md) | Test report: full 558-case / 2508-assertion coverage audit + HTTP smoke test record |
+| [TEST-REPORT.md](TEST-REPORT.md) | Test report: full 675-case (96 test files) coverage audit + HTTP smoke test record |
 | [AUDIT-REPORT.md](AUDIT-REPORT.md) | Audit report: test results, ecosystem configuration scores, fix records, code architecture analysis |
 | [SECURITY-AUDIT-REPORT.md](SECURITY-AUDIT-REPORT.md) | Security audit report |
 
@@ -44,7 +44,7 @@ All diagrams live in [diagrams/](diagrams/). Only Chinese (`cn-*`) and English (
 
 | Document | Description |
 |------|------|
-| [install.sql](../install.sql) | Unified install script: 67 migrations merged, 2723 lines, 95 tables / 285 permissions / 38 configs + demo data |
+| [install.sql](../install.sql) | Unified install script: 58 migrations merged, 2250 lines, 73 tables / permission and config seeds + demo data |
 
 ## Specs & Plans
 

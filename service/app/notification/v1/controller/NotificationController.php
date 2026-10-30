@@ -27,7 +27,7 @@ class NotificationController extends BaseController
         $userId = $request->user_id;
         $type = $request->input('type');
         $page = (int)($request->input('page', 1));
-        $perPage = (int)($request->input('per_page', 15));
+        $perPage = $this->normalizePerPage($request->input('per_page', 15));
 
         $query = Notification::where(function ($q) use ($userId) {
             $q->where('user_id', 0)

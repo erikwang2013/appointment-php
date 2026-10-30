@@ -2,13 +2,13 @@
 
 A two-platform appointment service management platform: WeChat Mini Program + PC Admin Dashboard.
 
-> **Status**: All complete | 115 Controllers (service 53 / admin 62) | 65 Models | 93 tests (service 68 / admin 25) | 73 Tables | 311 Routes (service 173 / admin 138)
+> **Status**: All complete | 124 Controllers (service 62 / admin 62) | 65 Models | 96 tests (service 70 / admin 26) | 73 Tables | 309 Routes (service 171 / admin 138)
 
 ## Project Structure
 
 ```
 appointment-php/
-├── admin/              # Admin dashboard (webman v2 + Flutter Web)
+├── admin/              # Admin dashboard (webman v2 + Flutter Web/WeChat/HarmonyOS admin)
 ├── service/            # Business API service (webman v2)
 ├── apps/               # Client-side frontend apps
 │   └── wechat/         #   WeChat Mini Program (native)
@@ -46,7 +46,7 @@ Open `http://localhost:8787/install` in browser and follow the wizard to configu
 cd service/ && cp .env.example .env && composer install
 cd ../admin/ && cp .env.example .env && composer install
 
-# 2. Import unified database script (95 tables + permissions/config seeds + demo data)
+# 2. Import unified database script (73 tables + permissions/config seeds + demo data)
 mysql -u root -p < docs/install.sql
 
 # 3. Start services
@@ -133,7 +133,7 @@ The three functional domains, purchase flows (service booking / product cart), t
 | Feature | Description |
 |---------|-------------|
 | Wallet & Prepaid | user_wallet / wallet_recharge / wallet_txn tables; balance + transactions, WeChat recharge (callback with R-prefixed order no.), balance order payment (pay_channel=balance), auto top-up on WeChat/balance refunds |
-| Admin UI Complete | Flutter Web, 21 pages: dashboard/users/roles/config/logs/verification/schedule/services/technicians/orders/coupons/members/session cards/announcements/FAQ/withdrawals/reviews/reports/after-sales/store manager/profile |
+| Admin UI Complete | Flutter Web, 22 pages: login/dashboard/users/roles/config/logs/verification/schedule/services/technicians/orders/coupons/members/session cards/announcements/FAQ/withdrawals/reviews/reports/after-sales/store manager/profile |
 | Dashboard Real-time Stats | Admin home dynamically renders 7 stat cards (total users / new today / active users / operation logs / appointments today / pending withdrawals / pending technicians) + 30-day trend charts (order volume / amount / new users / activity) + user-status distribution pie + recent operation logs, Redis svc:dashboard cache 300s |
 | Data Reports | ReportController 3 endpoints: order statistics / technician TOP10 performance / channel distribution (GET /admin/reports/orders\|technicians\|distribution, 7/30-day ranges, Redis cache 300s) + sales stats (svc:sales_stats range summary) + finance stats (svc:finance_stats revenue/refunds/withdrawals/commissions) |
 | Mini Program Subscribe Messages | 3 order scenarios (payment success / refund arrival / verified); push_sent_at idempotency; automatic fallback to in-app notification when template unconfigured |
@@ -207,7 +207,7 @@ The three functional domains, purchase flows (service booking / product cart), t
 | [Installation](docs/INSTALL.md) | Requirements, Docker deployment, environment variables, third-party config, FAQ |
 | [Usage Guide](docs/USAGE.md) | Admin configuration, client/technician operations, API examples, refund rules |
 | [Project Structure](docs/STRUCTURE.md) | Full directory layout, middleware execution chain, database table list |
-| [Test Report](docs/TEST-REPORT.md) | Full test coverage audit (93 current test files) |
+| [Test Report](docs/TEST-REPORT.md) | Full test coverage audit (96 current test files) |
 | [Design Spec](docs/superpowers/specs/2026-05-26-appointment-system-design.md) | System design specification |
 | [Implementation Plan](docs/superpowers/plans/2026-05-26-appointment-system-plan.md) | Phased implementation plan |
 | [Docs Index](docs/README.md) | Full documentation index (Chinese/English) |
@@ -233,13 +233,13 @@ The open-source edition is a streamlined edition for personal study and research
 
 | Dimension | Open Source | Commercial |
 |-----------|-------------|------------|
-| Feature coverage | 115 controllers / 65 models / 73 tables / 311 routes; booking, orders, payments/refunds, membership, marketing, technicians, reports | 143 / 87 / 95 / 479; adds community content, training/exams, queue/waitlist/e-signature, invoices/tickets, wallet & points transfers, full-reduction/flash-sale/lucky-wheel, Flutter client |
+| Feature coverage | 124 controllers / 65 models / 73 tables / 309 routes; booking, orders, payments/refunds, membership, marketing, technicians, reports | 143 / 87 / 95 / 479; adds community content, training/exams, queue/waitlist/e-signature, invoices/tickets, wallet & points transfers, full-reduction/flash-sale/lucky-wheel, Flutter client (commercial-only; not included in the open-source edition) |
 | Security | 5 service + 7 admin middleware; JWT, RBAC, audit log, 34 security-php detectors, Hashids/field encryption; 5 failed logins lock for 15 min, max 3 active tokens per user | Same middleware/detectors and lockout/session/encryption/audit policy; 28 more controllers and 166 more routes, so a larger permission/audit surface |
 | Performance & scale | 7 service processes + 3 admin processes; Redis cache/rate-limit/queue, ES/Scout sync, timers | Same process/cache architecture; slightly more Redis usage (65 vs 58 files); more modules — load-test commercial traffic separately |
 | Data & search | 73 tables; MySQL + Redis + Elasticsearch (webman-scout); shared code uses unique keys/row locks/idempotency | 95 tables; same MySQL+Redis+ES stack; same idempotency and locking patterns |
-| Tests & quality | 93 test files / 665 cases; one CI workflow with 4 jobs | 109 files / 762 cases (README claims 757); same CI structure |
+| Tests & quality | 96 test files / 675 cases; one CI workflow with 4 jobs | 109 files / 762 cases (README claims 757); same CI structure |
 | Deployment & ops | 10 compose services each for admin/service; installer, health checks, Prometheus, backup scripts | Same topology and 10+10 compose services; fuller docs (425 vs 82 files) |
-| Clients & i18n | WeChat Mini Program + PC admin (Flutter/WeChat/HarmonyOS admin); runtime messages en/zh_CN | Adds Flutter client (16 pages); docs in 12 languages; runtime messages still en/zh_CN; HarmonyOS client directory has no source |
+| Clients & i18n | WeChat Mini Program + PC admin (Flutter/WeChat/HarmonyOS admin); runtime messages en/zh_CN | Adds Flutter client (16 pages); docs in Chinese/English; runtime messages still en/zh_CN; HarmonyOS client directory has no source |
 | Extensibility | Versioned /api/v1, modular controllers/models, queues/events/timers; 82 doc files | Same extension mechanisms; more business modules and 425 doc files, usable as a complete reference implementation |
 | Licensing & support | Personal study/research only; commercial use needs written authorization | Commercial licensing, delivery and support; contact erik@erik.xyz |
 | Best fit | Learning, research, small self-hosted deployments | Commercial deployment, multi-store/multi-business, full marketing/invoicing/clients |

@@ -277,7 +277,9 @@ class DocsController
         $this->add($p, '/api/v1/marketing/coupons', 'get', '我的优惠券', '营销', ['status?'], null, ['JWT']);
         $this->add($p, '/api/v1/marketing/coupons/receive', 'post', '领取优惠券', '营销', ['coupon_id'], null, ['JWT']);
         $this->add($p, '/api/v1/marketing/cards', 'get', '会员卡列表', '营销', [], null, ['JWT']);
-        $this->add($p, '/api/v1/marketing/cards/buy', 'post', '购买会员卡', '营销', ['card_id'], null, ['JWT']);
+        $this->add($p, '/api/v1/marketing/member-cards', 'get', '会员卡列表', '营销', [], null, ['JWT']);
+        $this->add($p, '/api/v1/marketing/member-cards/buy', 'post', '购买会员卡', '营销', ['card_id'], null, ['JWT']);
+        $this->add($p, '/api/v1/marketing/member-cards/my', 'get', '我的会员卡', '营销', [], null, ['JWT']);
         $this->add($p, '/api/v1/marketing/points', 'get', '积分流水', '营销', ['page?'], null, ['JWT']);
         $this->add($p, '/api/v1/marketing/gift-cards', 'get', '礼品卡列表', '营销', [], null, ['JWT']);
 

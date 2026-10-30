@@ -12,6 +12,7 @@ use app\common\TierRatingService;
 use app\model\Notification;
 use app\model\Order;
 use app\model\OrderStatusLog;
+use app\order\v1\controller\OrderLockTrait;
 use support\Db;
 use support\Log;
 use Webman\Http\Request;
@@ -27,11 +28,13 @@ use Webman\Http\Request;
  */
 class WorkController extends BaseController
 {
+    use OrderLockTrait;
+
     /**
      * 今日任务列表
      * GET /api/technician/work/today
      *
-     * 我的订单中：待服务(confirmed) + 服务中(serving)，
+     * 我的订单中：待服务(paid/confirmed) + 服务中(serving)，
      * 限定服务时间为今日（或未填服务时间）的任务，关联服务名/用户/时间。
      */
     public function today(Request $request)
@@ -69,7 +72,7 @@ class WorkController extends BaseController
             })
             ->leftJoin('appointment_order_item as item', 'item.id', '=', 'first_item.first_item_id')
             ->where('appointment_order.technician_id', $technicianId)
-            ->whereIn('appointment_order.status', [Order::STATUS_CONFIRMED, Order::STATUS_SERVING])
+            ->whereIn('appointment_order.status', [Order::STATUS_PAID, Order::STATUS_CONFIRMED, Order::STATUS_SERVING])
             ->where(function ($q) {
                 // 今日任务：服务时间在今天（或未填写）的才上工作台
                 $q->whereNull('appointment_order.service_time')
@@ -92,7 +95,7 @@ class WorkController extends BaseController
     {
         $technicianId = $request->technician_id;
         $page = (int)$request->input('page', 1);
-        $perPage = (int)$request->input('per_page', 15);
+        $perPage = max(1, min(50, (int)$request->input('per_page', 15)));
 
         $firstItem = Db::table('appointment_order_item')
             ->select('order_id')
@@ -136,8 +139,8 @@ class WorkController extends BaseController
      * 开始服务
      * POST /api/technician/work/{id}/start
      *
-     * 状态机：confirmed → serving（记录 service_start_at）。
-     * 守卫：订单属于当前技师(403)；状态非 confirmed 报 422；
+     * 状态机：paid/confirmed → serving（记录 service_start_at）。
+     * 守卫：订单属于当前技师(403)；状态非 paid/confirmed 报 422；
      * 幂等：已是 serving 直接返回成功（防重复点击/并发）。
      * 并发：行锁 lockForUpdate + 锁内状态复查。
      */
@@ -159,29 +162,45 @@ class WorkController extends BaseController
         if ($order->status === Order::STATUS_SERVING) {
             return $this->success($order, '服务已在进行中');
         }
-        if ($order->status !== Order::STATUS_CONFIRMED) {
-            return $this->error('当前订单状态不可开始服务', 422);
+        // 与退款/取消/支付回调共用 order_lock，避免开始服务与退款并发互相覆盖
+        $lockKey = 'order_lock:' . $orderId;
+        $lockToken = $this->acquireLock($lockKey);
+        if ($lockToken === null) {
+            return $this->error('操作处理中，请稍后再试');
         }
 
         try {
-            Db::beginTransaction();
-            // 行锁 + 锁内状态守卫（防并发重复开始/竞态）
-            $locked = Order::where('id', $orderId)->lockForUpdate()->first();
-            if ($locked->status !== Order::STATUS_CONFIRMED) {
-                Db::rollBack();
-                return $this->error('当前订单状态不可开始服务', 422);
-            }
-            $locked->status = Order::STATUS_SERVING;
-            $locked->service_start_at = now();
-            $locked->save();
-            Db::commit();
+            try {
+                Db::beginTransaction();
+                // 行锁 + 锁内状态守卫（防并发重复开始/竞态）
+                $locked = Order::where('id', $orderId)->lockForUpdate()->first();
+                if ($locked->status === Order::STATUS_SERVING) {
+                    Db::rollBack();
+                    return $this->success($locked, '服务已在进行中');
+                }
+                if (!in_array($locked->status, [Order::STATUS_PAID, Order::STATUS_CONFIRMED], true)) {
+                    Db::rollBack();
+                    return $this->error('当前订单状态不可开始服务', 422);
+                }
+                $fromStatus = $locked->status;
+                $locked->status = Order::STATUS_SERVING;
+                $locked->service_start_at = now();
+                $locked->save();
+                Db::commit();
 
-            // 状态时间线：confirmed → serving（技师开始服务）
-            OrderStatusLog::record((string) $orderId, Order::STATUS_CONFIRMED, Order::STATUS_SERVING, '技师开始服务', 'technician');
-        } catch (\Throwable $e) {
-            Db::rollBack();
-            Log::error('[WorkController] start failed: ' . $e->getMessage());
-            return $this->error('操作失败，请稍后重试');
+                // 状态时间线：paid/confirmed → serving（技师开始服务，记录实际来源状态；写失败不影响已提交结果）
+                try {
+                    OrderStatusLog::record((string) $orderId, $fromStatus, Order::STATUS_SERVING, '技师开始服务', 'technician');
+                } catch (\Throwable $e) {
+                    Log::warning('[WorkController] start timeline failed: ' . $e->getMessage());
+                }
+            } catch (\Throwable $e) {
+                Db::rollBack();
+                Log::error('[WorkController] start failed: ' . $e->getMessage());
+                return $this->error('操作失败，请稍后重试');
+            }
+        } finally {
+            $this->releaseLock($lockKey, $lockToken);
         }
 
         $this->notifyUser($order, '服务已开始', '您的订单 ' . $order->order_no . ' 已开始服务，技师正在为您服务。');
@@ -215,33 +234,48 @@ class WorkController extends BaseController
         if ($order->status === Order::STATUS_COMPLETED) {
             return $this->success($order, '服务已完成');
         }
-        if ($order->status !== Order::STATUS_SERVING) {
-            return $this->error('当前订单状态不可完成服务', 422);
+        // 与退款/取消/管理端完成共用 order_lock，避免完成与退款/取消并发互相覆盖
+        $lockKey = 'order_lock:' . $orderId;
+        $lockToken = $this->acquireLock($lockKey);
+        if ($lockToken === null) {
+            return $this->error('操作处理中，请稍后再试');
         }
 
         try {
-            Db::beginTransaction();
-            // 行锁 + 锁内状态守卫（防并发重复完成/竞态）
-            $locked = Order::where('id', $orderId)->lockForUpdate()->first();
-            if ($locked->status !== Order::STATUS_SERVING) {
-                Db::rollBack();
-                return $this->error('当前订单状态不可完成服务', 422);
-            }
-            $locked->status = Order::STATUS_COMPLETED;
-            $locked->service_end_at = now();
-            $locked->save();
-            // 分销返佣：首单完成发放（同事务、幂等，失败整体回滚可重试）
-            ReferralRewardService::handleOrderCompleted($locked);
-            // 回头客奖励：30 天内二次消费给技师发放奖金（同事务、幂等，失败整体回滚可重试）
-            ReturnCustomerRewardService::handleOrderCompleted($locked);
-            Db::commit();
+            try {
+                Db::beginTransaction();
+                // 行锁 + 锁内状态守卫（防并发重复完成/竞态）
+                $locked = Order::where('id', $orderId)->lockForUpdate()->first();
+                if ($locked->status === Order::STATUS_COMPLETED) {
+                    Db::rollBack();
+                    return $this->success($locked, '服务已完成');
+                }
+                if ($locked->status !== Order::STATUS_SERVING) {
+                    Db::rollBack();
+                    return $this->error('当前订单状态不可完成服务', 422);
+                }
+                $locked->status = Order::STATUS_COMPLETED;
+                $locked->service_end_at = now();
+                $locked->save();
+                // 分销返佣：首单完成发放（同事务、幂等，失败整体回滚可重试）
+                ReferralRewardService::handleOrderCompleted($locked);
+                // 回头客奖励：30 天内二次消费给技师发放奖金（同事务、幂等，失败整体回滚可重试）
+                ReturnCustomerRewardService::handleOrderCompleted($locked);
+                Db::commit();
 
-            // 状态时间线：serving → completed（技师完成服务）
-            OrderStatusLog::record((string) $orderId, Order::STATUS_SERVING, Order::STATUS_COMPLETED, '技师完成服务', 'technician');
-        } catch (\Throwable $e) {
-            Db::rollBack();
-            Log::error('[WorkController] complete failed: ' . $e->getMessage());
-            return $this->error('操作失败，请稍后重试');
+                // 状态时间线：serving → completed（技师完成服务；写失败不影响已提交结果）
+                try {
+                    OrderStatusLog::record((string) $orderId, Order::STATUS_SERVING, Order::STATUS_COMPLETED, '技师完成服务', 'technician');
+                } catch (\Throwable $e) {
+                    Log::warning('[WorkController] complete timeline failed: ' . $e->getMessage());
+                }
+            } catch (\Throwable $e) {
+                Db::rollBack();
+                Log::error('[WorkController] complete failed: ' . $e->getMessage());
+                return $this->error('操作失败，请稍后重试');
+            }
+        } finally {
+            $this->releaseLock($lockKey, $lockToken);
         }
 
         $this->notifyUser($order, '服务已完成', '您的订单 ' . $order->order_no . ' 已完成，感谢您的光临，欢迎评价本次服务。');

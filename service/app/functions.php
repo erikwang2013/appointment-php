@@ -26,13 +26,3 @@ function generate_order_no(): string
 {
     return date('YmdHis') . str_pad((string) random_int(0, 9999), 4, '0', STR_PAD_LEFT);
 }
-
-/**
- * 生成财务流水号
- * @param string $prefix 前缀，默认 'FN'
- * @return string 格式: 前缀 + YmdHis + 4位随机数字，例如 FN202605261530451234
- */
-function generate_finance_no(string $prefix = 'FN'): string
-{
-    return $prefix . date('YmdHis') . str_pad(random_int(0, 9999), 4, '0', STR_PAD_LEFT);
-}

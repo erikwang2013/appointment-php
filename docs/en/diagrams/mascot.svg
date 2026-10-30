@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 480" width="480" height="480" role="img" aria-labelledby="title desc">
   <title id="title">Appointment Service System mascot — Yue, the Calendar Sprite</title>
-  <desc id="desc">The appointment calendar itself turned into a character: red header + twin binder rings + a white date page with a face, a green check in the lower right meaning booking confirmed, and four colored dots below for the four clients — WeChat Mini Program / APP / HarmonyOS / admin dashboard. Pure SMIL animation, no external dependencies</desc>
+  <desc id="desc">The appointment calendar itself turned into a character: red header + twin binder rings + a white date page with a face, a green check in the lower right meaning booking confirmed, and four colored dots below for the four open-source clients — WeChat Mini Program / Flutter Web admin / WeChat admin / HarmonyOS admin. Pure SMIL animation, no external dependencies</desc>
   <defs>
     <linearGradient id="pageGrad" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0%" stop-color="#FFFFFF"/>

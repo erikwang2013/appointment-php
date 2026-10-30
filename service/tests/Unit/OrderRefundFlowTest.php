@@ -5,6 +5,7 @@ namespace tests\Unit;
 
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\Test;
+use app\common\WechatPayService;
 use app\order\v1\controller\OrderController;
 use app\model\Order;
 use app\model\OrderPayment;
@@ -38,6 +39,7 @@ class OrderRefundFlowTest extends TestCase
     {
         foreach ($this->orderIds as $id) {
             Db::table('appointment_notification')->where('order_id', $id)->delete();
+            Db::table('appointment_order_status_log')->where('order_id', $id)->delete();
             OrderRefund::where('order_id', $id)->delete();
             OrderPayment::where('order_id', $id)->delete();
             Order::where('id', $id)->delete();
@@ -97,6 +99,24 @@ class OrderRefundFlowTest extends TestCase
         $m = new \ReflectionMethod(OrderController::class, $method);
         $m->setAccessible(true);
         return $m->invokeArgs($ctl, $args);
+    }
+
+    /** 微信退款查询 stub：补偿路径需确认微信已退款，测试不发起真实网络请求 */
+    private function fakeWechatPayService(string $refundStatus = 'SUCCESS'): WechatPayService
+    {
+        return new class($refundStatus) extends WechatPayService {
+            private string $refundStatus;
+
+            public function __construct(string $refundStatus)
+            {
+                $this->refundStatus = $refundStatus;
+            }
+
+            public function queryRefund(string $outRefundNo): array
+            {
+                return ['success' => true, 'refund_status' => $this->refundStatus, 'result' => []];
+            }
+        };
     }
 
     // ── doCancel：阶段二退款失败 → 退款单 failed + 订单回滚 PAID ──
@@ -238,7 +258,7 @@ class OrderRefundFlowTest extends TestCase
     {
         $order = $this->makeStuckRefundOrder(Order::STATUS_REFUNDING, 1.0);
 
-        (new OrderController())->completeRefundCompensation();
+        (new OrderController())->completeRefundCompensation($this->fakeWechatPayService());
 
         // 退款单补写 success
         $refund = OrderRefund::where('order_id', $order->id)->first();
@@ -257,13 +277,13 @@ class OrderRefundFlowTest extends TestCase
         $order = $this->makeStuckRefundOrder(Order::STATUS_REFUNDING, 1.0);
         $ctl = new OrderController();
 
-        $ctl->completeRefundCompensation();
+        $ctl->completeRefundCompensation($this->fakeWechatPayService());
         $refund = OrderRefund::where('order_id', $order->id)->first();
         $this->assertSame(OrderRefund::STATUS_SUCCESS, $refund->status);
 
         // 再次扫描：退款单已 success，不得重复处理/重复归还
         $couponId = $order->user_coupon_id;
-        $ctl->completeRefundCompensation();
+        $ctl->completeRefundCompensation($this->fakeWechatPayService());
         $this->assertSame(OrderRefund::STATUS_SUCCESS, OrderRefund::find($refund->id)->status);
         $this->assertSame('available', Db::table('appointment_user_coupon')->where('id', $couponId)->value('status'));
         $this->assertSame(Order::STATUS_REFUNDED, Order::find($order->id)->status);
@@ -274,10 +294,22 @@ class OrderRefundFlowTest extends TestCase
         // B3/B4 联动：0.9 部分退款补偿后订单 refunded，但券不归还
         $order = $this->makeStuckRefundOrder(Order::STATUS_REFUNDING, 0.9);
 
-        (new OrderController())->completeRefundCompensation();
+        (new OrderController())->completeRefundCompensation($this->fakeWechatPayService());
 
         $this->assertSame(Order::STATUS_REFUNDED, Order::find($order->id)->status);
         $this->assertSame('used', Db::table('appointment_user_coupon')->where('id', $order->user_coupon_id)->value('status'));
+    }
+
+    #[Test] public function compensation_keeps_pending_when_wechat_refund_not_confirmed(): void
+    {
+        $order = $this->makeStuckRefundOrder(Order::STATUS_REFUNDING, 1.0);
+
+        // 微信退款仍在处理中：不得把退款单置成功，订单保持 refunding 等下次扫描
+        (new OrderController())->completeRefundCompensation($this->fakeWechatPayService('PROCESSING'));
+
+        $refund = OrderRefund::where('order_id', $order->id)->first();
+        $this->assertSame(OrderRefund::STATUS_PENDING, $refund->status);
+        $this->assertSame(Order::STATUS_REFUNDING, Order::find($order->id)->status);
     }
 
     #[Test] public function compensation_keeps_cancelled_terminal_state_and_restores_benefits(): void
@@ -285,7 +317,7 @@ class OrderRefundFlowTest extends TestCase
         // doCancel 落库失败：订单滞留 cancelled + pending 退款单 → 补偿补写退款单并归还券，不覆盖终态
         $order = $this->makeStuckRefundOrder(Order::STATUS_CANCELLED, 1.0);
 
-        (new OrderController())->completeRefundCompensation();
+        (new OrderController())->completeRefundCompensation($this->fakeWechatPayService());
 
         $refund = OrderRefund::where('order_id', $order->id)->first();
         $this->assertSame(OrderRefund::STATUS_SUCCESS, $refund->status);
@@ -450,8 +482,8 @@ class OrderRefundFlowTest extends TestCase
         $order = $this->makeStuckRefundOrder(Order::STATUS_REFUNDING, 1.0);
         $ctl = new OrderController();
 
-        $ctl->completeRefundCompensation();
-        $ctl->completeRefundCompensation(); // 幂等：重复扫描不得重复通知
+        $ctl->completeRefundCompensation($this->fakeWechatPayService());
+        $ctl->completeRefundCompensation($this->fakeWechatPayService()); // 幂等：重复扫描不得重复通知
 
         $rows = Db::table('appointment_notification')->where('order_id', $order->id)->get();
         $this->assertCount(1, $rows);

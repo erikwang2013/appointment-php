@@ -5,7 +5,7 @@ declare(strict_types=1);
 
 namespace app\common;
 
-use Illuminate\Support\Facades\Redis;
+use support\Redis;
 use support\Db;
 use support\Log;
 

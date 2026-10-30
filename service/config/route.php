@@ -304,14 +304,12 @@ Route::group('/api/v1/marketing', function () {
     Route::post('/coupons/claim', v('marketing', 'CouponController', 'claim'));
     Route::get('/coupons/transfers', v('marketing', 'CouponController', 'transfers'));
     Route::get('/cards', v('marketing', 'CardController', 'index'));
-    Route::post('/cards/buy', v('marketing', 'CardController', 'buy'));
     Route::get('/cards/my', v('marketing', 'CardController', 'my'));
     Route::post('/cards/use', v('marketing', 'CardController', 'use'));
     Route::get('/points', v('marketing', 'PointController', 'index'));
     Route::get('/gift-cards', v('marketing', 'GiftCardController', 'index'));
     Route::get('/gift-cards/my', v('marketing', 'GiftCardController', 'my'));
     Route::post('/gift-cards/redeem', v('marketing', 'GiftCardController', 'redeem'));
-    Route::post('/gift-cards/store', v('marketing', 'GiftCardController', 'store'));
 
     // ── 积分兑换商城 ──
     Route::get('/points-exchange', v('marketing', 'PointsExchangeController', 'index'));

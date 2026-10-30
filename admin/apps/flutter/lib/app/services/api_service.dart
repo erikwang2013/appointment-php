@@ -2,6 +2,8 @@
  * Copyright (c) 2026 erik <erik@erik.xyz> — https://erik.xyz
  */
 
+import 'dart:async';
+
 import 'package:dio/dio.dart';
 import 'package:get/get.dart' hide Response;
 import 'auth_service.dart';
@@ -11,6 +13,8 @@ class ApiService {
   factory ApiService() => _instance;
 
   late final Dio dio;
+  Future<bool>? _refreshInFlight;
+  bool _redirectingToLogin = false;
   static const String baseUrl = String.fromEnvironment('API_BASE_URL', defaultValue: 'http://localhost:8787');
 
   ApiService._() {
@@ -32,12 +36,30 @@ class ApiService {
         handler.next(options);
       },
       onError: (error, handler) async {
-        if (error.response?.statusCode == 401) {
+        final status = error.response?.statusCode;
+        final skipRefresh = error.requestOptions.extra['skipAuthRefresh'] == true;
+        final retried = error.requestOptions.extra['retried'] == true;
+
+        if (status == 401 && !skipRefresh && !retried) {
           final refreshed = await tryRefresh();
-          if (!refreshed) {
-            await AuthService.clearToken();
-            Future.microtask(() => Get.offAllNamed('/login'));
+          if (refreshed) {
+            // 刷新成功后重放原请求一次；retried 标记防止再次 401 时递归刷新
+            final token = await AuthService.getToken();
+            final options = error.requestOptions;
+            options.headers['Authorization'] = 'Bearer $token';
+            options.extra['retried'] = true;
+            try {
+              handler.resolve(await dio.fetch(options));
+              return;
+            } catch (_) {
+              handler.next(error);
+              return;
+            }
           }
+          await _redirectToLogin();
+        } else if (status == 401 && retried) {
+          // 重放后仍 401：刷新后的 token 也无效，回登录页，避免死循环
+          await _redirectToLogin();
         }
         handler.next(error);
       },
@@ -72,22 +94,47 @@ class ApiService {
     return body;
   }
 
-  Future<bool> tryRefresh() async {
+  Future<bool> tryRefresh() {
+    // single-flight：并发 401 只触发一次刷新
+    final inFlight = _refreshInFlight;
+    if (inFlight != null) return inFlight;
+    final future = _doRefresh();
+    _refreshInFlight = future;
+    return future.whenComplete(() => _refreshInFlight = null);
+  }
+
+  Future<bool> _doRefresh() async {
     final refreshToken = await AuthService.getRefreshToken();
     if (refreshToken == null) return false;
     try {
-      final resp = await dio.post('/api/v1/auth/refresh', data: {'refresh_token': refreshToken});
-      final data = resp.data['data'];
+      final resp = await dio.post(
+        '/api/v1/auth/refresh',
+        data: {'refresh_token': refreshToken},
+        options: Options(extra: {'skipAuthRefresh': true}),
+      );
       if (resp.data['code'] == 0) {
+        final data = resp.data['data'];
+        final username = (data['user']?['username'] as String?) ?? (await AuthService.getUsername()) ?? '';
         await AuthService.saveLogin(
           token: data['access_token'],
           refreshToken: data['refresh_token'],
-          username: data['user']?['username'] ?? '',
+          username: username,
         );
         return true;
       }
     } catch (_) {}
     return false;
+  }
+
+  Future<void> _redirectToLogin() async {
+    if (_redirectingToLogin) return;
+    _redirectingToLogin = true;
+    try {
+      await AuthService.clearToken();
+      Future.microtask(() => Get.offAllNamed('/login'));
+    } finally {
+      _redirectingToLogin = false;
+    }
   }
 }
 

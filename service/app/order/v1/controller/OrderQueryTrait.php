@@ -30,7 +30,7 @@ trait OrderQueryTrait
             $query->where('status', $status);
         }
 
-        $perPage = (int)$request->input('per_page', 15);
+        $perPage = $this->normalizePerPage($request->input('per_page', 15));
         $paginator = $query->paginate($perPage);
 
         // 退款信息预取（N+1 防护）：按订单批量取最近一条退款记录

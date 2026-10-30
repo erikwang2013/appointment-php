@@ -23,8 +23,6 @@ use Webman\Http\Request;
  */
 class GuestController extends BaseController
 {
-    private const MAX_PER_PAGE = 50;
-
     /**
      * 首页聚合（轮播图 / 公告 / 服务分类 / 热门服务）
      * GET /api/guest/home
@@ -181,8 +179,4 @@ class GuestController extends BaseController
         return max(1, (int)$value);
     }
 
-    private function normalizePerPage(mixed $value): int
-    {
-        return min(self::MAX_PER_PAGE, max(1, (int)$value));
-    }
 }

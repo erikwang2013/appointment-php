@@ -1,6 +1,6 @@
 # 预约服务系统 — 文档索引
 
-> **项目状态**: 全部完成 ✅ | 115 控制器（service 53 / admin 62） | 65 模型 | 93 测试（service 68 / admin 25） | 73 数据表 | 311 路由（service 173 / admin 138）
+> **项目状态**: 全部完成 ✅ | 124 控制器（service 62 / admin 62） | 65 模型 | 96 测试（service 70 / admin 26） | 73 数据表 | 309 路由（service 171 / admin 138）
 
 ## 核心文档
 
@@ -49,7 +49,7 @@ php start.php start -d     # 默认端口 8787
 
 | 文档 | 说明 |
 |------|------|
-| [TEST-REPORT.md](TEST-REPORT.md) | 测试报告：全量 558 用例 / 2508 断言覆盖审计 + HTTP 冒烟记录 |
+| [TEST-REPORT.md](TEST-REPORT.md) | 测试报告：全量 675 用例（96 个测试文件）覆盖审计 + HTTP 冒烟记录 |
 | [AUDIT-REPORT.md](AUDIT-REPORT.md) | 审查报告：测试结果、生态配置评分、问题修复记录、代码架构分析 |
 | [SECURITY-AUDIT-REPORT.md](SECURITY-AUDIT-REPORT.md) | 安全审计报告 |
 
@@ -57,7 +57,7 @@ php start.php start -d     # 默认端口 8787
 
 | 文档 | 说明 |
 |------|------|
-| [install.sql](install.sql) | 统一安装脚本：67 个迁移合并，2723 行，95 表 / 285 权限 / 38 配置 + 演示数据 |
+| [install.sql](install.sql) | 统一安装脚本：58 个迁移合并，2250 行，73 表 / 权限与配置种子 + 演示数据 |
 
 ## 规范与计划
 

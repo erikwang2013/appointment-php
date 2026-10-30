@@ -106,6 +106,7 @@ class StoreManagerController extends BaseController
         }
         $status = (string) $request->input('status', '');
         $limit = (int) $request->input('limit', 15);
+        $limit = max(1, min($limit, 50));
 
         $query = Order::where('store_id', $storeId);
         if ($status !== '' && in_array($status, [
@@ -138,17 +139,17 @@ class StoreManagerController extends BaseController
             return $this->error('无门店权限', 403);
         }
 
-        $technicianUserIds = Order::where('store_id', $storeId)
+        $technicianIds = Order::where('store_id', $storeId)
             ->where('technician_id', '>', 0)
             ->distinct()
             ->pluck('technician_id')
             ->all();
 
-        if (!$technicianUserIds) {
+        if (!$technicianIds) {
             return $this->success([]);
         }
 
-        $profiles = TechnicianProfile::whereIn('user_id', $technicianUserIds)
+        $profiles = TechnicianProfile::whereIn('id', $technicianIds)
             ->orderByDesc('id')
             ->get();
 

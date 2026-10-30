@@ -9,20 +9,18 @@ stateDiagram-v2
 
     pending --> paid: 支付成功<br/>(微信/余额/免费 三通道)
 
-    pending --> cancelled: 超时取消(15min)<br/>用户主动取消
+    pending --> cancelled: 超时取消(30min)<br/>用户主动取消
 
-    paid --> confirmed: 技师确认接单<br/>回调原子消费<br/>优惠券扣减/次卡扣次
     paid --> cancelled: 用户取消<br/>(按退款规则)
     paid --> refunding: 用户申请退款
     paid --> aftersale: 申请售后<br/>(退款/换货)
 
-    confirmed --> serving: 服务开始
+    paid --> serving: 技师扫码核销/确认开始<br/>优惠券/次卡原子消费
 
-    serving --> completed: 服务完成 + 核销<br/>次卡核销扣次
+    serving --> completed: 技师完成服务
 
-    serving --> refunding: 异常退款<br/>(退80%)
+    serving --> refunding: 异常退款<br/>(0%)
 
-    completed --> reviewed: 用户评价
     completed --> aftersale: 申请售后<br/>(退款/换货)
 
     refunding --> refunded: 审核通过<br/>原路退回/余额回充<br/>优惠券归还 + 积分回扣
@@ -32,13 +30,14 @@ stateDiagram-v2
     aftersale --> paid: 审核拒绝
     aftersale --> [*]: 审核通过-换货<br/>状态流转完成
 
-    reviewed --> [*]
     cancelled --> [*]
     refunded --> [*]
 
-    note right of pending: 锁定技师3分钟
+    note right of pending: 技师锁3分钟<br/>待支付超30分钟自动取消
     note right of refunding: 店长→财务 两级审批
 ```
+
+> 支付成功落 `paid`；`confirmed` 是有效兼容状态（历史数据/后台），`paid` 与 `confirmed` 均可经技师核销/确认开始进入 `serving`。不存在 `reviewed` 状态：评价是独立记录，订单保持 `completed`。
 
 ## 2. 会员卡生命周期
 

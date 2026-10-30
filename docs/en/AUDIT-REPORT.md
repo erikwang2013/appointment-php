@@ -6,9 +6,13 @@
 **Scope**: service/ (API service) + admin/ (admin dashboard) + ecosystem config  
 **Status**: ✅ All issues fixed
 
+> Updated 2026-10-30: sections 4.1/4.2/4.4 are corrected against the current code; all other sections keep the 2026-08-03 historical record.
+
 ---
 
-## 1. Test Results (After Fixes)
+## 1. Test Results (After Fixes, 2026-08-03 Historical Record)
+
+> Current test suite: 96 test files (service 70 / admin 26), 675 cases (service 525 / admin 150). The results below are from the 2026-08-03 round.
 
 ### Service (API) — ✅ All Passing
 ```
@@ -36,10 +40,12 @@ Status: ALL PASSING (before fixes: 1 Failure + 3 Errors + 1 Risky + 5 Warnings)
 - `captcha_key_persists_after_failed_attempt` → key still usable after failed verification
 - `captcha_generates_unique_keys` → key uniqueness
 
-### Test Coverage Analysis (Unchanged)
+### Test Coverage Analysis (as of 2026-08-03)
 - Service: 4 test classes cover 50 controllers, very low coverage
 - Admin: 7 test classes cover 54 controllers, very low coverage
 - Large amounts of business logic (payment, WeChat, marketing, technician, orders) have no test coverage
+
+> As of 2026-10-30, the suites have grown to 70 service files and 26 admin files (675 cases total); the above is a historical conclusion.
 
 ---
 
@@ -157,15 +163,15 @@ The `.agents` directory is ignored in `.gitignore`, so files under it are not tr
 
 | Metric | Service | Admin |
 |--------|---------|-------|
-| Controllers | 50 | 54 |
-| Models | 58 | 7 |
-| Total PHP files | 132 | 79 |
-| Middleware | 5 | — |
-| Processes (workers) | 4 | — |
+| Controllers | 62 | 62 |
+| Models | 59 | 6 specific + 59 shared |
+| PHP files (app + config) | 191 | 129 |
+| Middleware | 5 | 7 |
+| Processes (workers) | 7 | 3 |
 
-### 4.2 Unbalanced Model Layer
+### 4.2 Model Sharing
 
-Admin has only 7 models vs Service's 58. Admin's 54 controllers heavily need database access (orders, users, technicians, etc.) but do not define corresponding Eloquent Models. The implication is that Admin calls Service via API rather than accessing the database directly. If so, Admin should be positioned as a "front-end gateway" rather than an independent backend.
+Admin has only 6 specific models (AdminPermission, AdminRole, AdminUser, OperationLog, OperationLogDetail, SystemConfig); the other 59 business models are reused through the PSR-4 mapping `app\model\` → `../service/app/model/` in `admin/composer.json`, with no duplicates. Admin and Service share the same Eloquent models and database, so Admin is an independent backend rather than an API gateway.
 
 ### 4.3 Security Config — Excellent
 
@@ -180,9 +186,9 @@ All detectors default to `mode: 'block'`, with a few in `log` mode (`header_inje
 
 ### 4.4 Sensitive Field Encryption — Configured
 
-The `Encryptable` trait is applied to key models:
-- User: `phone`, `wx_openid`, `wx_unionid`, `real_name`
-- TechnicianProfile, Store, UserAddress, TechnicianWithdrawal, etc.
+The `Encryptable` cast is applied to the fields that need it:
+- User: `real_name` (`phone`, `wx_openid`, `wx_unionid` stay plaintext — login, deduplication, and unique keys rely on exact plaintext lookups)
+- TechnicianProfile (`id_card`), Store (`phone`), UserAddress (`contact_phone`), TechnicianWithdrawal (`account_name`, `account_no`), AdminUser (`email`, `phone`, `id_card`)
 
 ### 4.5 Route Design — Good
 
@@ -212,7 +218,7 @@ The `Encryptable` trait is applied to key models:
 | 5 | PHPStan not runnable | ✅ Fixed |
 | 6 | CI silently ignored code quality issues | ✅ Fixed |
 | 7 | Very low test coverage | 📋 Logged for later |
-| 8 | Admin model layer too thin (7 vs 58) | ✅ Confirmed (architectural design) |
+| 8 | Admin model layer (6 specific + 59 shared) | ✅ Confirmed (architectural design) |
 | 9 | Service has no migrations directory | ✅ Fixed |
 | 10 | .env.example variable name comment wrong | ✅ Fixed |
 | 11 | .gitignore missing entries | ✅ Fixed |

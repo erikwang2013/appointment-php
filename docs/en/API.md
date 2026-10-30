@@ -3,8 +3,8 @@
 
 ## Overview
 
-- **Business API** (service/): `http://localhost:8787` — provides business endpoints for the Mini Program/APP
-- **Admin API** (admin/): `http://localhost:8787` — provides endpoints for the admin Flutter Web dashboard
+- **Business API** (service/): `http://localhost:8787` — provides business endpoints for the WeChat Mini Program
+- **Admin API** (admin/): `http://localhost:8787` — provides endpoints for the admin clients (Flutter Web/WeChat/HarmonyOS)
 - **Authentication**: Bearer Token (JWT), request header `Authorization: Bearer <token>`
 - **Versioning**: version is fixed in the URL path prefix `/api/v1` (e.g. `POST /api/v1/auth/login`); URLs without the version prefix return 404
 - **ID encoding**: All ID fields in requests/responses are hashids-encoded, hiding the real database IDs externally
@@ -390,13 +390,17 @@ Rules: withdrawable on the 20th of each month, T+1 arrival, minimum amount/whole
 | POST | `/api/v1/order/review/{order_id}` | Submit review (rating 1-5/content/images) (registered in Round 19) |
 | POST | `/api/v1/order/review/{order_id}/append` | Append review (content/images comma-separated) (Round 19) |
 
-**Order status**: pending → paid → confirmed → serving → completed
+**Order status**: pending → paid → serving → completed; `confirmed` is a compatibility state, and both `paid` and `confirmed` can enter `serving`. Successful payment lands on `paid`; there is no `reviewed` status — reviews are a separate record and do not change order state.
 
 **On order creation**: Redis SETNX locks the technician for 3 minutes, released on page exit or timeout.
 
-**Price tamper prevention (2026-08-26)**: order item amounts always come from database records (target_type=service → appointment_service, product → appointment_product); client-sent prices never participate in calculation; unknown target_type 422; target_id must be a hashid-encoded value (raw id decodes to 0 → 422 "商品不存在或已下架"); group-buy prices likewise DB-based.
+**Pending-payment timeout**: an unpaid order is auto-cancelled after 30 minutes (`AutoCancelTimer`, `PENDING_TIMEOUT = 1800`).
 
-**Refund rules**: within 15 min of ordering or > 6h before start → 100% / ≤ 6h → 90% / started → 80% / after confirmed start → no refund.
+**Concurrency control**: pay/cancel/refund/payment callback/auto-cancel/verification/reschedule/technician start and complete all use the Redis lock `order_lock:{id}` to prevent duplicate payment and state races.
+
+**Price tamper prevention (2026-08-26)**: order item amounts, names, and covers always come from database records (target_type=service → appointment_service, product → appointment_product); client-sent values never participate in calculation; unknown target_type 422; target_id must be a hashid-encoded value (raw id decodes to 0 → 422 "商品不存在或已下架"); group-buy prices likewise DB-based.
+
+**Refund rules**: 100% within 15 min of ordering / 100% more than 6h before service / 90% within 6h / 0% once started, service time has passed, or status is confirmed/serving/completed / 100% for products or bookings without a service time.
 
 **Coupon deduction**: optionally pass user_coupon_id (hashid) when creating an order. Error codes: someone else's coupon 404, threshold not met/expired/offline/used 422, invalid hashid 422. Two-stage deduction: at order time PriceCalculator.applyCoupon only validates read-only and writes the computed deduction to discount_amount; after successful payment, consume marks the coupon used; on refund, restoreCouponAndCard returns it idempotently.
 
@@ -446,10 +450,12 @@ Rules: withdrawable on the 20th of each month, T+1 arrival, minimum amount/whole
 |--------|------|-------------|
 | GET | `/api/v1/marketing/coupons` | Coupon list (?status=available/used/expired) |
 | POST | `/api/v1/marketing/coupons/receive` | Claim coupon (coupon_id) |
-| GET | `/api/v1/marketing/cards` | Member card list |
-| POST | `/api/v1/marketing/cards/buy` | Buy member card (card_id) |
+| GET | `/api/v1/marketing/cards` | Card list (including session cards) |
 | GET | `/api/v1/marketing/cards/my` | My session cards |
 | POST | `/api/v1/marketing/cards/use` | Verify session card (user_card_id/service_id/remark?) |
+| GET | `/api/v1/marketing/member-cards` | Member card tier list (excluding session cards) |
+| POST | `/api/v1/marketing/member-cards/buy` | Buy member card with wallet balance (card_id) |
+| GET | `/api/v1/marketing/member-cards/my` | My member cards |
 | GET | `/api/v1/marketing/gift-cards` | Gift card list |
 | GET | `/api/v1/marketing/gift-cards/my` | My gift cards (redeem records) |
 | POST | `/api/v1/marketing/gift-cards/redeem` | Redeem gift card (cash type credits wallet balance after redemption) |

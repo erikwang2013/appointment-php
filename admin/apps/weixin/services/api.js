@@ -19,51 +19,56 @@ function request(method, path, data = {}, silent = false) {
         ...(token ? { 'Authorization': 'Bearer ' + token } : {})
       },
       success(res) {
-        if (res.statusCode === 200) {
-          const body = res.data;
-          if (body.code === 0) {
-            resolve(body);
-          } else {
-            if (body.code === 401 && !silent) {
-              tryRefresh().then(refreshed => {
-                if (refreshed) {
-                  const newToken = auth.getToken();
-                  wx.request({
-                    url: BASE_URL + path,
-                    method: method,
-                    data: data,
-                    header: {
-                      'Content-Type': 'application/json',
-                      'Authorization': 'Bearer ' + newToken
-                    },
-                    success(r2) {
-                      if (r2.statusCode === 200 && r2.data.code === 0) {
-                        resolve(r2.data);
-                      } else {
-                        auth.clearToken();
-                        wx.reLaunch({ url: '/pages/login/login' });
-                        reject(r2.data);
-                      }
-                    },
-                    fail(err) {
-                      reject(err);
-                    }
-                  });
-                } else {
-                  auth.clearToken();
-                  wx.reLaunch({ url: '/pages/login/login' });
-                  reject(body);
+        const body = res.data || {};
+        if (res.statusCode === 200 && body.code === 0) {
+          resolve(body);
+          return;
+        }
+
+        // 后台鉴权失败可能是 HTTP 401（AdminAuth 已改为标准状态码），也可能是旧版 body.code=401
+        if (res.statusCode === 401 || body.code === 401) {
+          if (silent) {
+            reject(body);
+            return;
+          }
+          tryRefresh().then(refreshed => {
+            if (refreshed) {
+              const newToken = auth.getToken();
+              wx.request({
+                url: BASE_URL + path,
+                method: method,
+                data: data,
+                header: {
+                  'Content-Type': 'application/json',
+                  'Authorization': 'Bearer ' + newToken
+                },
+                success(r2) {
+                  if (r2.statusCode === 200 && r2.data && r2.data.code === 0) {
+                    resolve(r2.data);
+                  } else {
+                    auth.clearToken();
+                    wx.reLaunch({ url: '/pages/login/login' });
+                    reject(r2.data);
+                  }
+                },
+                fail(err) {
+                  reject(err);
                 }
               });
             } else {
-              wx.showToast({ title: body.message || '请求失败', icon: 'none' });
+              auth.clearToken();
+              wx.reLaunch({ url: '/pages/login/login' });
               reject(body);
             }
-          }
-        } else {
-          wx.showToast({ title: '服务器错误: ' + res.statusCode, icon: 'none' });
-          reject(res);
+          });
+          return;
         }
+
+        wx.showToast({
+          title: res.statusCode === 200 ? (body.message || '请求失败') : (body.message || ('服务器错误: ' + res.statusCode)),
+          icon: 'none'
+        });
+        reject(body);
       },
       fail(err) {
         wx.showToast({ title: '网络请求失败', icon: 'none' });

@@ -103,12 +103,12 @@ APP_DEBUG=false
 mysql -u root -p -e "CREATE DATABASE IF NOT EXISTS appointment DEFAULT CHARSET utf8mb4 COLLATE utf8mb4_unicode_ci;"
 mysql -u root -p -e "CREATE DATABASE IF NOT EXISTS open_admin DEFAULT CHARSET utf8mb4 COLLATE utf8mb4_unicode_ci;"
 
-# 导入统一安装脚本（包含全部 54+ 张表 + 权限数据 + 演示数据）
+# 导入统一安装脚本（包含全部 73 张表 + 权限数据 + 演示数据）
 mysql -u root -p appointment < docs/install.sql
 mysql -u root -p open_admin < docs/install.sql
 ```
 
-> `docs/install.sql` 由全部迁移文件合并而成，共 2723 行，包含管理后台和业务服务的全部表结构及种子数据。全新安装一次执行；对已有库重复执行会因主键/列冲突中断，升级场景请先备份或手动处理冲突。
+> `docs/install.sql` 由全部迁移文件合并而成，共 2250 行，包含管理后台和业务服务的全部表结构及种子数据。全新安装一次执行；对已有库重复执行会因主键/列冲突中断，升级场景请先备份或手动处理冲突。
 
 ### 1.5 启动服务
 
@@ -280,7 +280,7 @@ appointment-php/
 │   └── docker-compose.yml    # Docker 编排
 ├── docs/                     # 文档
 │   ├── INSTALL.md            # 本安装指南
-│   ├── install.sql           # 统一数据库安装脚本（2723 行）
+│   ├── install.sql           # 统一数据库安装脚本（2250 行）
 │   ├── ARCHITECTURE.md       # 架构设计文档
 │   ├── API.md                # API 参考文档
 │   └── AUDIT-REPORT.md       # 审查报告

@@ -27,7 +27,7 @@ use Webman\Route;
  *   - 多段通配：post.admin/user/{id}/toggle-status 命中 /admin/user/123/toggle-status
  *   - 无匹配权限 → 403
  *   - 精确 slug 兜底：权限表存具体 ID 仍放行
- *   - 超级管理员 * 放行 / 未认证（无 adminId）跳过
+ *   - 超级管理员 * 放行 / 未认证（无 adminId）返回 401
  *   - 种子覆盖：/admin 组全部路由 slug 均存在于权限种子（两份 SQL）
  *
  * 注意：routeSlugs() 有进程内静态缓存，必须在首次 process() 调用前注册齐
@@ -162,11 +162,12 @@ class AdminPermissionTest extends TestCase
     }
 
     #[Test]
-    public function request_without_admin_id_bypasses_permission_check(): void
+    public function request_without_admin_id_returns_401(): void
     {
         $request = $this->makeRequest('GET', '/admin/user/123');
         $resp = (new AdminPermission())->process($request, fn () => json(['code' => 0]));
-        $this->assertSame(0, $this->code($resp));
+        $this->assertSame(401, $this->code($resp));
+        $this->assertSame(401, $resp->getStatusCode());
     }
 
     // ── 种子覆盖验证 ──

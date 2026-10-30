@@ -55,12 +55,12 @@ class AuthController
         ]);
 
         if ($validator->fails()) {
-            return json(['code' => 422, 'message' => $validator->errors()->first(), 'data' => []]);
+            return json(['code' => 422, 'message' => $validator->errors()->first(), 'data' => []])->withStatus(422);
         }
 
         // 验证点击验证码
         if (!captcha_verify($request->input('captcha_key'), 'click', $request->input('clicks'))) {
-            return json(['code' => 422, 'message' => trans('messages.captcha_error'), 'data' => []]);
+            return json(['code' => 422, 'message' => trans('messages.captcha_error'), 'data' => []])->withStatus(422);
         }
 
         // 校验用户凭证
@@ -71,7 +71,7 @@ class AuthController
         $lockKey = "account_lock:{$username}";
         try {
             if (Redis::get($lockKey)) {
-                return json(['code' => 429, 'message' => trans('messages.account_locked'), 'data' => []]);
+                return json(['code' => 429, 'message' => trans('messages.account_locked'), 'data' => []])->withStatus(429);
             }
         } catch (\Throwable) {}
 
@@ -84,17 +84,17 @@ class AuthController
                 if ($fails >= 5) {
                     Redis::setex($lockKey, 900, '1');
                     Redis::del($failKey);
-                    return json(['code' => 429, 'message' => trans('messages.account_locked'), 'data' => []]);
+                    return json(['code' => 429, 'message' => trans('messages.account_locked'), 'data' => []])->withStatus(429);
                 }
             } catch (\Throwable) {}
-            return json(['code' => 401, 'message' => trans('messages.invalid_credentials'), 'data' => []]);
+            return json(['code' => 401, 'message' => trans('messages.invalid_credentials'), 'data' => []])->withStatus(401);
         }
 
         // 登录成功：清除失败计数
         try { Redis::del("login_fail:{$username}"); Redis::del($lockKey); } catch (\Throwable) {}
 
-        if ($user->status === 0) {
-            return json(['code' => 403, 'message' => trans('messages.account_disabled'), 'data' => []]);
+        if ((int) $user->status !== 1) {
+            return json(['code' => 403, 'message' => trans('messages.account_disabled'), 'data' => []])->withStatus(403);
         }
 
         // 签发 JWT
@@ -149,7 +149,7 @@ class AuthController
         // 系统初始化保护：安装向导创建管理员后注册接口即关闭，
         // 防止公开注册接口被用于批量创建 status=1 管理员并签发 token
         if ($this->isSystemInstalled()) {
-            return json(['code' => 410, 'message' => trans('messages.system_initialized'), 'data' => []]);
+            return json(['code' => 410, 'message' => trans('messages.system_initialized'), 'data' => []])->withStatus(410);
         }
 
         $validator = validator($request->all(), [
@@ -161,16 +161,16 @@ class AuthController
         ]);
 
         if ($validator->fails()) {
-            return json(['code' => 422, 'message' => $validator->errors()->first(), 'data' => []]);
+            return json(['code' => 422, 'message' => $validator->errors()->first(), 'data' => []])->withStatus(422);
         }
 
         if (!captcha_verify($request->input('captcha_key'), 'click', $request->input('clicks'))) {
-            return json(['code' => 422, 'message' => trans('messages.captcha_error'), 'data' => []]);
+            return json(['code' => 422, 'message' => trans('messages.captcha_error'), 'data' => []])->withStatus(422);
         }
 
         $username = $request->input('username');
         if (AdminUser::where('username', $username)->exists()) {
-            return json(['code' => 422, 'message' => trans('messages.username_exists'), 'data' => []]);
+            return json(['code' => 422, 'message' => trans('messages.username_exists'), 'data' => []])->withStatus(422);
         }
 
         $user = new AdminUser();
@@ -224,27 +224,32 @@ class AuthController
         $refreshToken = $request->input('refresh_token', '');
 
         if (empty($refreshToken)) {
-            return json(['code' => 422, 'message' => trans('messages.refresh_missing'), 'data' => []]);
+            return json(['code' => 422, 'message' => trans('messages.refresh_missing'), 'data' => []])->withStatus(422);
         }
 
         try {
             $jwt = self::getJWT();
             $payload = $jwt->decode($refreshToken);
 
-            // 刷新时更新最后登录时间和IP
-            $userId = $payload['sub'] ?? 0;
-            if ($userId) {
-                $user = AdminUser::find($userId);
-                if ($user) {
-                    $user->last_login_at = date('Y-m-d H:i:s');
-                    $user->last_login_ip = $request->getRealIp();
-                    $user->save();
-                }
+            // 只接受 refresh token；access token 不得换取长期 refresh token
+            if (($payload['token_type'] ?? '') !== 'refresh') {
+                return json(['code' => 401, 'message' => trans('messages.refresh_invalid'), 'data' => []])->withStatus(401);
             }
 
+            $userId = (int) ($payload['sub'] ?? 0);
+            $user = $userId > 0 ? AdminUser::find($userId) : null;
+            if (!$user || (int) $user->status !== 1) {
+                return json(['code' => 401, 'message' => trans('messages.refresh_invalid'), 'data' => []])->withStatus(401);
+            }
+
+            // 刷新时更新最后登录时间和IP
+            $user->last_login_at = date('Y-m-d H:i:s');
+            $user->last_login_ip = $request->getRealIp();
+            $user->save();
+
             $tokenExpire = (int)(config('plugin.erikwang2013.jwt.jwt.default_expire') ?: 7200);
-            $token = $jwt->encode(['sub' => $payload['sub'], 'username' => $payload['username'] ?? '']);
-            $newRefresh = $jwt->encode(['sub' => $payload['sub'], 'token_type' => 'refresh'],
+            $token = $jwt->encode(['sub' => $userId, 'username' => $user->username]);
+            $newRefresh = $jwt->encode(['sub' => $userId, 'token_type' => 'refresh'],
                 (int)(config('plugin.erikwang2013.jwt.jwt.refresh_expire') ?: 1209600)
             );
 
@@ -259,10 +264,11 @@ class AuthController
                     'access_token'  => $token,
                     'refresh_token' => $newRefresh,
                     'expires_in'    => (int)(config('plugin.erikwang2013.jwt.jwt.default_expire') ?: 7200),
+                    'user'          => ['username' => $user->username],
                 ],
             ]);
         } catch (Throwable $e) {
-            return json(['code' => 401, 'message' => trans('messages.refresh_invalid'), 'data' => []]);
+            return json(['code' => 401, 'message' => trans('messages.refresh_invalid'), 'data' => []])->withStatus(401);
         }
     }
 
